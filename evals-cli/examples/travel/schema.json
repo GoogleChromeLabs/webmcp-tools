@@ -1,0 +1,215 @@
+{
+    "tools": [
+        {
+            "name": "listFlights",
+            "description": "Lists all flights available in the current search results, regardless of filters.",
+            "inputSchema": null,
+            "outputSchema": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "type": "array",
+                        "description": "The list of flights.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "number",
+                                    "description": "The unique identifier for the flight."
+                                },
+                                "airline": {
+                                    "type": "string",
+                                    "description": "The airline of the flight."
+                                },
+                                "origin": {
+                                    "type": "string",
+                                    "description": "The origin airport.",
+                                    "pattern": "^[A-Z]{3}$"
+                                },
+                                "destination": {
+                                    "type": "string",
+                                    "description": "The destination airport.",
+                                    "pattern": "^[A-Z]{3}$"
+                                },
+                                "departureTime": {
+                                    "type": "string",
+                                    "description": "The departure time."
+                                },
+                                "arrivalTime": {
+                                    "type": "string",
+                                    "description": "The arrival time."
+                                },
+                                "duration": {
+                                    "type": "string",
+                                    "description": "The duration of the flight."
+                                },
+                                "stops": {
+                                    "type": "number",
+                                    "description": "The number of stops."
+                                },
+                                "price": {
+                                    "type": "number",
+                                    "description": "The price of the flight."
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "airline",
+                                "origin",
+                                "destination",
+                                "departureTime",
+                                "arrivalTime",
+                                "duration",
+                                "stops",
+                                "price"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "result"
+                ]
+            }
+        },
+        {
+            "name": "filterFlights",
+            "description": "Filters the full list of flights according to the provided criteria. Help users find the flights they are looking for in the page.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "stops": {
+                        "type": "array",
+                        "description": "The list of stop counts to filter by.",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "airlines": {
+                        "type": "array",
+                        "description": "The list of airlines IATA codes to filter by.",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"                            
+                        }
+                    },
+                    "origins": {
+                        "type": "array",
+                        "description": "The list of origin airports to filter by, using the 3 letter IATA code.",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{3}$"
+                        }
+                    },
+                    "destinations": {
+                        "type": "array",
+                        "description": "The list of destination airports to filter by, using the 3 letter IATA code.",
+                        "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{3}$"
+                        }
+                    },
+                    "minPrice": {
+                        "type": "number",
+                        "description": "The minimum price."
+                    },
+                    "maxPrice": {
+                        "type": "number",
+                        "description": "The maximum price."
+                    },
+                    "departureTime": {
+                        "type": "object",
+                        "description": "The departure time. If `departureTime` is included, at least one of `min` and `max` properties must be included.",
+                        "properties": {
+                            "min": {
+                                "type": "string",
+                                "pattern": "^[0-9]{2}:[0-9]{2}$",
+                                "description": "The minimum departure time."
+                            },
+                            "max": {
+                                "type": "string",
+                                "pattern": "^[0-9]{2}:[0-9]{2}$",
+                                "description": "The maximum departure time."
+                            }                            
+                        }
+                    },
+                    "arrivalTime": {
+                        "type": "object",
+                        "description": "The arrival time time. If `arrivalTime` is included, at least one of `min` and `max` properties must be included.",
+                        "properties": {
+                            "min": {
+                                "type": "string",
+                                "pattern": "^[0-9]{2}:[0-9]{2}$",
+                                "description": "The minimum arrival time."
+                            },
+                            "max": {
+                                "type": "string",
+                                "pattern": "^[0-9]{2}:[0-9]{2}$",
+                                "description": "The maximum arrival time."
+                            }                            
+                        }
+                    },
+                    "flightIds": {
+                        "type": "array",
+                        "description": "The list of flight IDs to filter by.",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                }
+            },
+            "outputSchema": null
+        },
+        {
+            "name": "resetFilters",
+            "description": "Resets all filters to their default values.",
+            "inputSchema": null,
+            "outputSchema": null
+        },
+        {
+            "name": "searchFlights",
+            "description": "Searches for flights with the given parameters.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "origin": {
+                        "type": "string",
+                        "description": "City or airport IATA code for the origin. Prefer city IATA codes when a specific airport is not provided.",
+                        "pattern": "^[A-Z]{3}$"
+                    },
+                    "destination": {
+                        "type": "string",
+                        "description": "City or airport IATA code for the destination airport. Prefer city IATA codes when a specific airport is not provided.",
+                        "pattern": "^[A-Z]{3}$"
+                    },
+                    "tripType": {
+                        "enum": ["one-way", "round-trip"],
+                        "description": "The trip type. Can be 'one-way' or 'round-trip'"
+                    },
+                    "outboundDate": {
+                        "type": "string",
+                        "description": "The outbound date in YYYY-MM-DD format."
+                    },
+                    "inboundDate": {
+                        "type": "string",
+                        "description": "The inbound date in YYYY-MM-DD format. Required round-trip journeys."
+                    },
+                    "passengers": {
+                        "type": "number",
+                        "description": "The number of passengers."
+                    }
+                },
+                "required": [
+                    "origin",
+                    "destination",
+                    "tripType",
+                    "outboundDate",
+                    "passengers"
+                ]
+            },
+            "outputSchema": {
+                "type": "string",
+                "description": "a message describing the result of the flight search request"
+            }
+        }
+    ]
+}

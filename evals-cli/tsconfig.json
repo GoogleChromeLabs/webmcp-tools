@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    /* Base Options */
+    "target": "ES2022",              /* Required: Output JS that supports modern async/await */
+    "module": "NodeNext",            /* Required: Enables ESM for Node.js */
+    "moduleResolution": "NodeNext",  /* Required: Strict Node.js ESM import rules */
+    
+    /* Strictness & Interop */
+    "strict": true,
+    "esModuleInterop": true,         /* Recommended for importing CJS packages */
+    "skipLibCheck": true,            /* Recommended to speed up compilation */
+    
+    /* Output */
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"]
+}

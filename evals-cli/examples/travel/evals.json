@@ -1,0 +1,516 @@
+[
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Please, reset the page filters" }],
+        "expectedCall": {
+            "functionName": "resetFilters",
+            "arguments": {}
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Clear all my filters" }],
+        "expectedCall": {
+            "functionName": "resetFilters",
+            "arguments": {}
+        }
+    },    
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search for a round-trip flight from LON to NYC departing on 2026-01-20 and returning on 2026-01-27 for 1 passenger" }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "destination":"NYC",
+                "inboundDate":"2026-01-27",
+                "origin":"LON",
+                "outboundDate":"2026-01-20",
+                "passengers":1,
+                "tripType":"round-trip"
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search for a round-trip flight from LON to NYC departing next monday and returning a week later for 1 passenger" }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "destination":"NYC",
+                "inboundDate":"2026-02-02",
+                "origin":"LON",
+                "outboundDate":"2026-01-26",
+                "passengers":1,
+                "tripType":"round-trip"
+            }
+        }
+    },    
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search one way flights from San Francisco to Rio de Janeiro on May 12th 2026, for one person" }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "destination":"RIO",
+                "origin":"SFO",
+                "outboundDate":"2026-05-12",
+                "passengers":1,
+                "tripType":"one-way"
+            }
+        }
+    },    
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Filter the results by direct flights only." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": { "stops": [0] }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Show only flights departing from Heathrow" }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": { "origins":["LHR"] }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "List all the flights you found." }],
+        "expectedCall": {
+            "functionName": "listFlights",
+            "arguments": {}
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I only want to fly with Delta or American Airlines, and the price must be under 600." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "airlines": ["DL", "AA"],
+                "maxPrice": 600
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Show me flights that depart between 9:00 AM and 5:00 PM." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "departureTime": {
+                    "min": "09:00",
+                    "max": "17:00"
+                }
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Actually, I need to arrive before noon." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "arrivalTime": {
+                    "max": "12:00"
+                }
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search for a flight from Berlin to Paris for this coming Friday, returning Sunday. Just me." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "BER",
+                "destination": "PAR",
+                "outboundDate": "2026-01-23",
+                "inboundDate": "2026-01-25",
+                "passengers": 1,
+                "tripType": "round-trip"
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Filter for specific flight IDs 101 and 205." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "flightIds": [101, 205]
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I want a one-way ticket from Tokyo to Sydney on Christmas day 2026 for a family of 4." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "TYO",
+                "destination": "SYD",
+                "outboundDate": "2026-12-25",
+                "passengers": 4,
+                "tripType": "one-way"
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Find me a one-way flight from Heathrow to Haneda Airport on February 10th, 2026 for 2 adults." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "LHR",
+                "destination": "HND",
+                "tripType": "one-way",
+                "outboundDate": "2026-02-10",
+                "passengers": 2
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I need a round-trip from Gatwick to Newark. Leaving March 3rd, 2026 and returning March 10th. Just for me." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "LGW",
+                "destination": "EWR",
+                "tripType": "round-trip",
+                "outboundDate": "2026-03-03",
+                "inboundDate": "2026-03-10",
+                "passengers": 1
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Filter the list to only show flights departing from Stansted." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "origins": ["STN"]
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search for flights from O'Hare to Charles de Gaulle, leaving on April 1st, 2026. One way, 3 passengers." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "ORD",
+                "destination": "CDG",
+                "tripType": "one-way",
+                "outboundDate": "2026-04-01",
+                "passengers": 3
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Show me flights arriving after 8:00 PM." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "arrivalTime": {
+                    "min": "20:00"
+                }                
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Look for a round-trip from Narita to Los Angeles International. Outbound May 20, 2026, inbound June 1st. 1 passenger." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "NRT",
+                "destination": "LAX",
+                "tripType": "round-trip",
+                "outboundDate": "2026-05-20",
+                "inboundDate": "2026-06-01",
+                "passengers": 1
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Actually, only show me flights arriving at JFK or LaGuardia." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "destinations": ["JFK", "LGA"]
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I need a flight from Heathrow to JFK leaving next Monday and staying for exactly one week. Just for me." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "LHR",
+                "destination": "JFK",
+                "tripType": "round-trip",
+                "outboundDate": "2026-01-26",
+                "inboundDate": "2026-02-02",
+                "passengers": 1
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Find a getaway from Gatwick to Dublin. Departing this coming Friday and returning the following Monday. 2 adults." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "LGW",
+                "destination": "DUB",
+                "tripType": "round-trip",
+                "outboundDate": "2026-01-23",
+                "inboundDate": "2026-01-26",
+                "passengers": 2
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I need to fly one-way from Newark to Narita tomorrow. 1 passenger." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "EWR",
+                "destination": "NRT",
+                "tripType": "one-way",
+                "outboundDate": "2026-01-20",
+                "passengers": 1
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Search for a round-trip from Haneda to San Francisco. Leaving February 1st, 2026 and staying for 10 days. 1 person." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "HND",
+                "destination": "SFO",
+                "tripType": "round-trip",
+                "outboundDate": "2026-02-01",
+                "inboundDate": "2026-02-11",
+                "passengers": 1
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Find flights from LaGuardia to Pearson International. Leaving in 3 days, one way, for 4 people." }],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "origin": "LGA",
+                "destination": "YYZ",
+                "tripType": "one-way",
+                "outboundDate": "2026-01-22",
+                "passengers": 4
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I only want direct flights that are under $500." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "stops": [0],
+                "maxPrice": 500
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Show me flights on Delta or United that depart after 6 PM." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "airlines": ["DL", "UA"],
+                "departureTime": {
+                    "min": "18:00"
+                }
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I need a flight arriving at Heathrow or Gatwick between 9 AM and 1 PM." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "destinations": ["LHR", "LGW"],
+                "arrivalTime": {
+                    "min": "09:00",
+                    "max": "13:00"                    
+                }
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Filter for price between 300 and 800, and exclude flights with 2 or more stops." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "minPrice": 300,
+                "maxPrice": 800,
+                "stops": [0, 1]
+            }
+        }
+    },
+        {
+        "messages": [
+            { "role": "user", "type": "message", "content": "Filter for price between 300 and 800" },
+            { "role": "model", "type": "functioncall", "name": "filterFlights", "arguments": { "minPrice": 300, "maxPrice": 800 }},
+            { "role": "user", "type": "functionresponse", "name": "filterFlights", "response": {"result": "Filters successfully updated." }},
+            { "role": "user", "type": "message", "content": "Show me only direct flights" }
+        ],
+        
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "minPrice": 300,
+                "maxPrice": 800,
+                "stops": [0]
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Find me options departing from JFK or Newark that are direct and cost less than $1000." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "origins": ["JFK", "EWR"],
+                "stops": [0],
+                "maxPrice": 1000
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "I'm looking for a morning flight (6am to 11am) on British Airways." }],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "airlines": ["BA"],
+                "departureTime": {
+                    "min": "06:00",
+                    "max": "11:00"
+                }
+            }
+        }
+    },
+    {
+        "messages": [
+            { 
+                "role": "user",
+                "type": "message",
+                "content": "Book a round-trip flight for one person from LON to NYC next Monday to Friday for 1 person."
+            }, {
+                "role": "model",
+                "type": "functioncall",
+                "name": "searchFlights",
+                "arguments": {
+                    "origin": "LON",
+                    "tripType": "round-trip",
+                    "outboundDate": "2026-01-26",
+                    "inboundDate": "2026-01-30",
+                    "destination": "NYC",
+                    "passengers": 1
+                }
+            }, {
+                "role": "user",
+                "type": "functionresponse",
+                "name": "searchFlights",
+                "response" : {
+                    "result": "A new flight search was started."
+                }
+            },
+            {
+                "role": "model",
+                "type": "message",
+                "content": "OK. I have searched for a round-trip flight from LON to NYC for one person, departing on Monday, January 26, 2026 and returning on Friday, January 30, 2026."
+            },
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Show me only direct flights"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "filterFlights",
+            "arguments": {
+                "stops": [0]
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Search for a round-trip flight from LON to NYC departing on 2026-01-20 and returning on 2026-01-27 for 1 passenger"
+            },{
+                "role": "model",
+                "type": "functioncall",
+                "name": "searchFlights",
+                "arguments": {
+                    "destination":"NYC",
+                    "inboundDate":"2026-01-27",
+                    "origin":"LON",
+                    "outboundDate":"2026-01-20",
+                    "passengers":1,
+                    "tripType":"round-trip"
+                }
+            }, {
+                "role": "user",
+                "type": "functionresponse",
+                "name": "searchFlights",
+                "response" : {
+                    "result": "A new flight search was started."
+                }
+            },             {
+                "role": "model",
+                "type": "message",
+                "content": "OK. I have searched for a round-trip flight from LON to NYC for one person, departing on January 20, 2026 and returning on January 27, 2026."
+            },
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Change the origin to Bristol"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "destination":"NYC",
+                "inboundDate":"2026-01-27",
+                "origin":"BRS",
+                "outboundDate":"2026-01-20",
+                "passengers":1,
+                "tripType":"round-trip"
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Search for a round-trip flight from London to New York departing on 2026-01-20 and returning on 2026-01-27 for 1 passenger"
+            },{
+                "role": "model",
+                "type": "functioncall",
+                "name": "searchFlights",
+                "arguments": {
+                    "destination":"New York",
+                    "inboundDate":"2026-01-27",
+                    "origin":"LON",
+                    "outboundDate":"2026-01-20",
+                    "passengers":1,
+                    "tripType":"round-trip"
+                }
+            }, {
+                "role": "user",
+                "type": "functionresponse",
+                "name": "searchFlights",
+                "response" : {
+                    "result": "ERROR: destination must be a 3 letter IATA code"
+                }
+            }
+        ],
+        "expectedCall": {
+            "functionName": "searchFlights",
+            "arguments": {
+                "destination":"NYC",
+                "inboundDate":"2026-01-27",
+                "origin":"LON",
+                "outboundDate":"2026-01-20",
+                "passengers":1,
+                "tripType":"round-trip"
+            }
+        }
+    }    
+]
