@@ -1,0 +1,66 @@
+[
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Create an event for February 2nd, 2026 at 3 PM" }],
+        "expectedCall": {
+            "functionName": "createEvent",
+            "arguments": {
+                "date": "2026-02-02",
+                "time": "15:00"
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Create an event for February 2nd, 2026 at 3 PM at the London office with description \"discuss WebMCP\" and invite john@example.com and jane@example.com" }],
+        "expectedCall": {
+            "functionName": "createEvent",
+            "arguments": {
+                "date": "2026-02-02",
+                "time": "15:00",
+                "location": "London office",
+                "description": "discuss WebMCP",
+                "guest_emails": [
+                    "john@example.com",
+                    "jane@example.com"
+                ]
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Create an event for tomorrow at noon in the London office with description \"discuss WebMCP\"." }],
+        "expectedCall": {
+            "functionName": "createEvent",
+            "arguments": {
+                "date": "2026-01-20",
+                "time": "12:00",
+                "location": "London office",
+                "description": "discuss WebMCP"
+            }
+        }
+    },
+    {
+        "messages": [{ "role": "user", "type": "message", "content": "Create a restaurant reservation for three at Ginno's pizza for tomorrow at 7PM" }],
+        "expectedCall": null
+    },
+    {
+        "messages": [
+            { "role": "user", "type": "message", "content": "Create a restaurant reservation for three at Ginno's pizza for tomorrow at 7PM and then add to my calendar" },
+            { "role": "model", "type": "functioncall", "name": "bookRestaurant", "arguments": {
+                    "date": "2026-01-20",
+                    "time": "19:00",
+                    "restaurant": "Ginno's pizza",
+                    "guests": 3
+                }
+            },
+            { "role": "user", "type": "functionresponse", "name": "bookRestaurant", "response" : { "result": "A reservation for Ginno's pizza for 3 on 2026-01-20 at 19:00 was booked successfully" }}
+        ],
+        "expectedCall": {
+            "functionName": "createEvent",
+            "arguments": {
+                "date": "2026-01-20",
+                "time": "19:00",
+                "location": "Ginno's Pizza",
+                "description": "Restaurant reservation for 3 at Ginno's pizza"
+            }
+        }
+    }        
+]

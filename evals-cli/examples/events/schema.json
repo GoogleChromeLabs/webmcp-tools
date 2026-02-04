@@ -1,0 +1,45 @@
+{
+    "tools": [
+        {
+            "name": "createEvent",
+            "description": "This tool creates calendar events",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                        "description": "The date for when the event should be created, in the YYYY-MM-DD format"
+                    },
+                    "time": {
+                        "type": "string",
+                        "pattern": "^[0-9]{2}:[0-9]{2}$",                        
+                        "description": "The time of the day the event is scheduled for, using a 24 hour time format."
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "The location where the event will happen."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "The description of the event"
+                    },
+                    "guest_emails": {
+                        "type": "array",
+                        "describing": "The list of guests emails to be invited to the event",
+                        "items": {
+                            "type": "string",
+                            "description": "The email address for a guest",
+                            "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
+                        }
+                    }
+                },
+                "required": ["date", "time"]
+            },
+            "outputSchema": {
+                "type": "string",
+                "description": "A message describing the result of the event creation request"
+            }            
+        }
+    ]
+}
