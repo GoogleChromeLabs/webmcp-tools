@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Le Petit Bistro | WebMCP declarative demo</title>
+    <link href="style.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="booking-container">
+      <h2>Le Petit Bistro</h2>
+      <span class="subtitle">Table Reservations</span>
+
+      <form
+        id="reservationForm"
+        toolname="book_table_le_petit_bistro"
+        tooldescription="Creates a confirmed dining reservation at Le Petit Bistro. Accepts customer details, timing, and seating preferences."
+        novalidate
+      >
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="e.g. Alexander Hamilton"
+            required
+            minlength="2"
+            toolparamdescription="Customer's full name (min 2 chars)"
+          />
+          <span class="error-msg">Please enter a valid name (at least 2 characters).</span>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="(555) 000-0000"
+            required
+            toolparamdescription="Customer's phone number (min 10 digits)"
+          />
+          <span class="error-msg">Please enter a valid phone number (minimum 10 digits).</span>
+        </div>
+
+        <div class="form-group row">
+          <div class="col">
+            <label for="date">Date</label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              required
+              toolparamdescription="Reservation date (YYYY-MM-DD). Must be today or future."
+            />
+            <span class="error-msg">Please select a future date.</span>
+          </div>
+          <div class="col">
+            <label for="time">Time</label>
+            <input
+              type="time"
+              id="time"
+              name="time"
+              required
+              toolparamdescription="Reservation time (HH:MM)"
+            />
+            <span class="error-msg">Please select a valid time.</span>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <div class="col">
+            <label for="guests">Guests</label>
+            <select
+              id="guests"
+              name="guests"
+              required
+              toolparamdescription="Number of people dining. Must be a string value between '1' and '5', or '6' for parties of 6 or more."
+            >
+              <option value="1">1 Person</option>
+              <option value="2" selected>2 People</option>
+              <option value="3">3 People</option>
+              <option value="4">4 People</option>
+              <option value="5">5 People</option>
+              <option value="6">6 People or more</option>
+            </select>
+            <span class="error-msg">Please select a valid number of people dining.</span>
+          </div>
+          <div class="col">
+            <label for="seating">Seating Preference</label>
+            <select id="seating" name="seating" toolparamdescription="Preferred seating area">
+              <option value="Main Dining">Main Dining Room</option>
+              <option value="Terrace">Terrace (Outdoor)</option>
+              <option value="Private Booth">Private Booth</option>
+              <option value="Bar">Bar Counter</option>
+            </select>
+            <span class="error-msg">Please select a valid seating preference.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="requests">Special Requests</label>
+          <textarea
+            id="requests"
+            name="requests"
+            rows="2"
+            placeholder="Allergies, anniversaries, high chair..."
+            toolparamdescription="Special requests (allergies, occasions, etc.)"
+          ></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Request Reservation</button>
+      </form>
+    </div>
+
+    <dialog id="bookingDialog">
+      <h3 class="modal-title">Reservation Received</h3>
+      <p style="font-style: italic; color: #666; margin-top: 0">Bon Appétit!</p>
+
+      <div class="modal-details" id="modalDetails"></div>
+
+      <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
+    </dialog>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
