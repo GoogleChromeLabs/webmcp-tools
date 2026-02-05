@@ -4,8 +4,8 @@ This repository contains a suite of developer utilities and demos designed to su
 
 ## Developer Utilities
 
-- A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
-- A [CLI Tool](evals-cli/) to evaluate the tool-calling capabilities of LLMs by defining test cases and schemas to verify if an interactive agent correctly calls tools based on user inputs.
+- [**Model Context Tool Inspector**](https://github.com/beaufortfrancois/model-context-tool-inspector): A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
+- [**WebMCP Evals**](evals-cli/): A CLI Tool to evaluate the tool-calling capabilities of LLMs by defining test cases and schemas to verify if an interactive agent correctly calls tools based on user inputs.
 
 ## Demos
 
