@@ -1,0 +1,3 @@
+[submodule "model-context-tool-inspector"]
+	path = model-context-tool-inspector
+	url = git@github.com:beaufortfrancois/model-context-tool-inspector.git
