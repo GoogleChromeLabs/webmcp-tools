@@ -5,7 +5,7 @@
 
 import { Config } from "../types/config.js";
 import { Message, TestResult, TestResults } from "../types/evals.js";
-import { deepEqual } from "../utils.js";
+import { matchesArgument } from "../matcher.js";
 
 export function renderReport(config: Config, testResults: TestResults): string {
   return `
@@ -87,7 +87,7 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
       ? "pass"
       : "fail";
 
-  const argsOutcome = deepEqual(
+  const argsOutcome = matchesArgument(
     testResult.test.expectedCall?.arguments,
     testResult.response?.args,
   )
