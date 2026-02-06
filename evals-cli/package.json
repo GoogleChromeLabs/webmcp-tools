@@ -5,7 +5,8 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "tsc && node --test dist/test/matcher.test.js"
   },
   "devDependencies": {
     "@types/node": "^25.0.10",

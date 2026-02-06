@@ -58,8 +58,12 @@
             "arguments": {
                 "date": "2026-01-20",
                 "time": "19:00",
-                "location": "Ginno's Pizza",
-                "description": "Restaurant reservation for 3 at Ginno's pizza"
+                "location": {
+                    "$contains": "Ginno's"
+                },
+                "description": {
+                    "$contains": "Ginno's"
+                }
             }
         }
     }        

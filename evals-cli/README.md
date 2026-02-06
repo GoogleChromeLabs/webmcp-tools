@@ -62,6 +62,38 @@ node dist/bin/runevals.js --model=gemini-2.5-flash --tools=examples/travel/tools
 ```bash
 node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/tools_schema.json --evals=examples/travel/evals.json
 ```
+
+## Argument Constraints
+
+You can use constraint operators to match argument values flexibly. A constraint object is identified when **all** its keys start with `$`.
+
+### Supported Operators
+
+| Operator | Description | Example |
+|---|---|---|
+| **`$pattern`** | Regex match | `{"$pattern": "^2026-\\d{2}$"}` |
+| **`$contains`** | Substring match | `{"$contains": "York"}` |
+| **`$gt`**, **`$gte`** | Greater than (or equal) | `{"$gte": 1}` |
+| **`$lt`**, **`$lte`** | Less than (or equal) | `{"$lt": 100}` |
+| **`$type`** | Type check | `{"$type": "string"}` |
+| **`$any`** | Presence check | `{"$any": true}` |
+
+### Example
+
+```json
+{
+    "expectedCall": {
+        "functionName": "searchFlights",
+        "arguments": {
+            "destination": "NYC",
+            "outboundDate": { "$pattern": "^2026-01-\\d{2}$" },
+            "passengers": { "$gte": 1 },
+            "preferences": { "$any": true }
+        }
+    }
+}
+```
+
 ## License
 
 Apache-2.0
