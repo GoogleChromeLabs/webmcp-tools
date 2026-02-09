@@ -274,6 +274,7 @@ export const searchFlightsTool = {
         maxLength: 3,
       },
       tripType: {
+        type: "string",
         enum: ["one-way", "round-trip"],
         description: 'The trip type. Can be "one-way" or "round-trip".',
       },
