@@ -1,0 +1,55 @@
+{
+    "tools": [
+        {
+            "name": "fillInAddressForm",
+            "description": "Fills in an address form with contact details and location information. Do NOT infer any information (e.g., the country from the city).",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "description": "The first name of the person."
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "description": "The last name of the person."
+                    },
+                    "company": {
+                        "type": "string",
+                        "description": "The company or organization name."
+                    },
+                    "phoneNumber": {
+                        "type": "string",
+                        "description": "The phone number."
+                    },
+                    "addressLine1": {
+                        "type": "string",
+                        "description": "The first line of the address (e.g., street address)."
+                    },
+                    "addressLine2": {
+                        "type": "string",
+                        "description": "The second line of the address (e.g., apartment, suite, unit)."
+                    },
+                    "city": {
+                        "type": "string",
+                        "description": "The city or town."
+                    },
+                    "state": {
+                        "type": "string",
+                        "description": "The state, province, or region."
+                    },
+                    "zip": {
+                        "type": "string",
+                        "description": "The postal or zip code."
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "The country name."
+                    }
+                },
+                "required": []
+            },
+            "outputSchema": null
+        }
+    ]
+}
