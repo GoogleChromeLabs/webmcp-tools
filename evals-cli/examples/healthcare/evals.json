@@ -1,0 +1,126 @@
+[
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "I've had a weird rash on my arm for two days, can I see someone today?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "bookAppointment",
+      "arguments": {
+        "department": "Dermatology",
+        "priority": "Urgent"
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "I need to schedule my son's annual checkup. A video call is fine." 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "bookAppointment",
+      "arguments": {
+        "department": "Pediatrics",
+        "visitType": "Telehealth",
+        "priority": "Routine"
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "I need a dentist in 90210. Is there anything within 5 miles?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "findDoctorByLocation",
+      "arguments": {
+        "specialty": "Dentist",
+        "zipCode": "90210",
+        "maxDistance": 5
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "My blood sugar was 140 mg/dL this morning. Is that okay?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "checkLabResults",
+      "arguments": {
+        "testName": "Glucose",
+        "value": 140,
+        "unit": "mg/dL"
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "My chest is tight and I can't breathe, help!" 
+      }
+    ],
+    "expectedCall": null
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "Is an MRI for my knee covered under my current plan?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "checkInsuranceCoverage",
+      "arguments": {
+        "procedure": "MRI"
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "How much does 500mg of Amoxicillin cost at the local pharmacy?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "getPrescriptionPrice",
+      "arguments": {
+        "medicationName": "Amoxicillin",
+        "dosage": "500mg"
+      }
+    }
+  },
+  {
+    "messages": [
+      { 
+        "role": "user", 
+        "type": "message", 
+        "content": "Is Dr. Gregory House at Princeton-Plainsboro in my network?" 
+      }
+    ],
+    "expectedCall": {
+      "functionName": "checkProviderNetwork",
+      "arguments": {
+        "providerName": "Dr. Gregory House",
+        "facilityName": "Princeton-Plainsboro"
+      }
+    }
+  }
+]

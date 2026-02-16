@@ -1,0 +1,52 @@
+[
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Find me a family home in Austin for under $600k with at least 3 bedrooms and a pool." }],
+    "expectedCall": {
+      "functionName": "searchProperties",
+      "arguments": { "location": "Austin", "minBedrooms": 3, "maxPrice": 600000, "propertyType": "House", "amenities": ["Pool"] }
+    }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "What would my monthly payment be on a $500k loan at 7% interest?" }],
+    "expectedCall": { "functionName": "calculateMortgage", "arguments": { "loanAmount": 500000, "interestRate": 7 } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "How are the schools and public transit in 78704?" }],
+    "expectedCall": { "functionName": "getNeighborhoodStats", "arguments": { "zipCode": "78704", "metrics": ["schools", "transit"] } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Find a modern bachelor pad in NYC for under 5k a month." }],
+    "expectedCall": {
+      "functionName": "searchProperties",
+      "arguments": { "location": "NYC", "maxPrice": 5000, "propertyType": "Apartment", "amenities": ["Modern Kitchen"], "minBedrooms": 0 }
+    }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Are there any plots of land for sale near Austin?" }],
+    "expectedCall": { "functionName": "searchProperties", "arguments": { "location": "Austin", "propertyType": "Land" } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Find me a brand new house in Dallas for under $800k." }],
+    "expectedCall": { "functionName": "searchProperties", "arguments": { "location": "Dallas", "maxPrice": 800000, "propertyType": "House", "minYearBuilt": 2026 } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "How long would the drive be to Downtown from 75201?" }],
+    "expectedCall": { "functionName": "analyzeCommute", "arguments": { "destination": "Downtown", "mode": "driving" } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "I want to buy a house, but my budget is only $5,000. What's available?" }],
+    "expectedCall": null
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "I want a house in Austin, but definitely not a condo, and it must be at least $500k." }],
+    "expectedCall": { "functionName": "searchProperties", "arguments": { "location": "Austin", "propertyType": "House", "minPrice": 500000 } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Find me something within 10 miles of zip code 78704." }],
+    "expectedCall": { "functionName": "searchProperties", "arguments": { "location": "78704", "radius": 10 } }
+  },
+  {
+    "messages": [{ "role": "user", "type": "message", "content": "Find me a luxury estate in Beverly Hills for 15 million dollars." }],
+    "expectedCall": { "functionName": "searchProperties", "arguments": { "location": "Beverly Hills", "maxPrice": 15000000, "propertyType": "House" } }
+  }
+]
