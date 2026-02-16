@@ -1,10 +1,10 @@
 [
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "I've had a weird rash on my arm for two days, can I see someone today?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I've had a weird rash on my arm for two days, can I see someone today?"
       }
     ],
     "expectedCall": {
@@ -17,10 +17,10 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "I need to schedule my son's annual checkup. A video call is fine." 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I need to schedule my son's annual checkup. A video call is fine."
       }
     ],
     "expectedCall": {
@@ -34,10 +34,10 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "I need a dentist in 90210. Is there anything within 5 miles?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I need a dentist in 90210. Is there anything within 5 miles?"
       }
     ],
     "expectedCall": {
@@ -51,10 +51,10 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "My blood sugar was 140 mg/dL this morning. Is that okay?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "My blood sugar was 140 mg/dL this morning. Is that okay?"
       }
     ],
     "expectedCall": {
@@ -68,20 +68,20 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "My chest is tight and I can't breathe, help!" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "My chest is tight and I can't breathe, help!"
       }
     ],
     "expectedCall": null
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "Is an MRI for my knee covered under my current plan?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Is an MRI for my knee covered under my current plan?"
       }
     ],
     "expectedCall": {
@@ -93,10 +93,10 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "How much does 500mg of Amoxicillin cost at the local pharmacy?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "How much does 500mg of Amoxicillin cost at the local pharmacy?"
       }
     ],
     "expectedCall": {
@@ -109,10 +109,10 @@
   },
   {
     "messages": [
-      { 
-        "role": "user", 
-        "type": "message", 
-        "content": "Is Dr. Gregory House at Princeton-Plainsboro in my network?" 
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Is Dr. Gregory House at Princeton-Plainsboro in my network?"
       }
     ],
     "expectedCall": {

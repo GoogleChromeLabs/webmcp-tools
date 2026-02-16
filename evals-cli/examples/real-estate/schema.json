@@ -6,16 +6,51 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "location": { "type": "string", "description": "City, ZIP, or Neighborhood." },
-          "maxPrice": { "type": "number" },
-          "minPrice": { "type": "number" },
-          "minBedrooms": { "type": "number" },
-          "propertyType": { "type": "string", "enum": ["House", "Condo", "Townhouse", "Land", "Apartment"] },
-          "amenities": { "type": "array", "items": { "type": "string", "enum": ["Pool", "Garage", "Modern Kitchen"] } },
-          "minYearBuilt": { "type": "number" },
-          "radius": { "type": "number", "description": "Search radius in miles." }
+          "location": {
+            "type": "string",
+            "description": "City, ZIP, or Neighborhood."
+          },
+          "maxPrice": {
+            "type": "number"
+          },
+          "minPrice": {
+            "type": "number"
+          },
+          "minBedrooms": {
+            "type": "number"
+          },
+          "propertyType": {
+            "type": "string",
+            "enum": [
+              "House",
+              "Condo",
+              "Townhouse",
+              "Land",
+              "Apartment"
+            ]
+          },
+          "amenities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Pool",
+                "Garage",
+                "Modern Kitchen"
+              ]
+            }
+          },
+          "minYearBuilt": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number",
+            "description": "Search radius in miles."
+          }
         },
-        "required": ["location"]
+        "required": [
+          "location"
+        ]
       }
     },
     {
@@ -24,10 +59,17 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "loanAmount": { "type": "number" },
-          "interestRate": { "type": "number" }
+          "loanAmount": {
+            "type": "number"
+          },
+          "interestRate": {
+            "type": "number"
+          }
         },
-        "required": ["loanAmount", "interestRate"]
+        "required": [
+          "loanAmount",
+          "interestRate"
+        ]
       }
     },
     {
@@ -36,10 +78,24 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "zipCode": { "type": "string" },
-          "metrics": { "type": "array", "items": { "type": "string", "enum": ["schools", "crime", "transit"] } }
+          "zipCode": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "schools",
+                "crime",
+                "transit"
+              ]
+            }
+          }
         },
-        "required": ["zipCode"]
+        "required": [
+          "zipCode"
+        ]
       }
     },
     {
@@ -48,10 +104,21 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "destination": { "type": "string" },
-          "mode": { "type": "string", "enum": ["driving", "transit", "walking"] }
+          "destination": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "driving",
+              "transit",
+              "walking"
+            ]
+          }
         },
-        "required": ["destination"]
+        "required": [
+          "destination"
+        ]
       }
     }
   ]

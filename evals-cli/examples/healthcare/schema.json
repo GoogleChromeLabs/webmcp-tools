@@ -6,19 +6,36 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "department": { 
-            "type": "string", 
-            "enum": ["Cardiology", "Dermatology", "Pediatrics", "GP", "Psychiatry"],
+          "department": {
+            "type": "string",
+            "enum": [
+              "Cardiology",
+              "Dermatology",
+              "Pediatrics",
+              "GP",
+              "Psychiatry"
+            ],
             "description": "The medical specialty. Map 'heart' to Cardiology, 'skin/rash' to Dermatology, 'child' to Pediatrics."
           },
-          "priority": { 
-            "type": "string", 
-            "enum": ["Routine", "Urgent"],
+          "priority": {
+            "type": "string",
+            "enum": [
+              "Routine",
+              "Urgent"
+            ],
             "description": "The urgency of the appointment. Always specify 'Routine' for standard checkups or non-emergency visits unless 'Urgent' is clearly required."
-         },
-          "visitType": { "type": "string", "enum": ["In-Person", "Telehealth"] }
+          },
+          "visitType": {
+            "type": "string",
+            "enum": [
+              "In-Person",
+              "Telehealth"
+            ]
+          }
         },
-        "required": ["department"]
+        "required": [
+          "department"
+        ]
       }
     },
     {
@@ -27,84 +44,136 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "medicationName": { "type": "string" },
-          "userAllergies": { "type": "array", "items": { "type": "string" } }
+          "medicationName": {
+            "type": "string"
+          },
+          "userAllergies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
-        "required": ["medicationName"]
+        "required": [
+          "medicationName"
+        ]
       }
     },
     {
-        "name": "findDoctorByLocation",
-        "description": "Finds healthcare providers near the user. Use this if the user asks for a doctor 'near me' or provides a ZIP code.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-            "specialty": { "type": "string" },
-            "zipCode": { "type": "string", "pattern": "^[0-9]{5}$" },
-            "maxDistance": { "type": "number", "description": "Radius in miles." }
-            },
-            "required": ["zipCode"]
-        }
+      "name": "findDoctorByLocation",
+      "description": "Finds healthcare providers near the user. Use this if the user asks for a doctor 'near me' or provides a ZIP code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "specialty": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          },
+          "maxDistance": {
+            "type": "number",
+            "description": "Radius in miles."
+          }
+        },
+        "required": [
+          "zipCode"
+        ]
+      }
     },
     {
-        "name": "checkLabResults",
-        "description": "The formal clinical name of the lab test. Crucially, map 'blood sugar' or 'sugar' to 'Glucose', and 'cholesterol' or 'fats' to 'Lipid Panel'.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-            "testName": { "type": "string" },
-            "value": { "type": "number" },
-            "unit": { "type": "string" }
-            },
-            "required": ["testName", "value"]
-        }
+      "name": "checkLabResults",
+      "description": "The formal clinical name of the lab test. Crucially, map 'blood sugar' or 'sugar' to 'Glucose', and 'cholesterol' or 'fats' to 'Lipid Panel'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "testName": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "testName",
+          "value"
+        ]
+      }
     },
     {
-        "name": "checkInsuranceCoverage",
-        "description": "The formal medical procedure name only (e.g., 'MRI', 'X-Ray'). Do not include body parts or reasons for the test.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-            "procedure": { "type": "string", "description": "The medical service (e.g., 'MRI', 'Annual Exam')." },
-            "providerName": { "type": "string" }
-            },
-            "required": ["procedure"]
-        }
+      "name": "checkInsuranceCoverage",
+      "description": "The formal medical procedure name only (e.g., 'MRI', 'X-Ray'). Do not include body parts or reasons for the test.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "procedure": {
+            "type": "string",
+            "description": "The medical service (e.g., 'MRI', 'Annual Exam')."
+          },
+          "providerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "procedure"
+        ]
+      }
     },
     {
-            "name": "requestMedicationRefill",
-            "description": "Submits a request to the pharmacy for more of an existing prescription.",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                "medicationName": { "type": "string" },
-                "pharmacyPhone": { "type": "string" }
-                },
-                "required": ["medicationName"]
-            }
+      "name": "requestMedicationRefill",
+      "description": "Submits a request to the pharmacy for more of an existing prescription.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "medicationName": {
+            "type": "string"
+          },
+          "pharmacyPhone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "medicationName"
+        ]
+      }
     },
     {
-        "name": "getPrescriptionPrice",
-        "description": "Checks the price of a drug at different pharmacies. Useful for 'How much is this?' or 'Where is it cheapest?'",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-            "medicationName": { "type": "string" },
-            "dosage": { "type": "string", "description": "e.g., '10mg', '500mg'." }
-            },
-            "required": ["medicationName"]
-        }
+      "name": "getPrescriptionPrice",
+      "description": "Checks the price of a drug at different pharmacies. Useful for 'How much is this?' or 'Where is it cheapest?'",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "medicationName": {
+            "type": "string"
+          },
+          "dosage": {
+            "type": "string",
+            "description": "e.g., '10mg', '500mg'."
+          }
+        },
+        "required": [
+          "medicationName"
+        ]
+      }
     },
     {
-        "name": "checkProviderNetwork",
-        "description": "Checks if a specific doctor or facility is 'In-Network' for the user's insurance plan.",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-            "providerName": { "type": "string" },
-            "facilityName": { "type": "string" }
-            }
+      "name": "checkProviderNetwork",
+      "description": "Checks if a specific doctor or facility is 'In-Network' for the user's insurance plan.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "providerName": {
+            "type": "string"
+          },
+          "facilityName": {
+            "type": "string"
+          }
         }
+      }
     }
   ]
 }

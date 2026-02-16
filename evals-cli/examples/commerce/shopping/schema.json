@@ -4,7 +4,9 @@
             "name": "getProducts",
             "description": "Retrieves the full list of products available in the shop. Use this as the first step to show the user what is in stock.",
             "inputSchema": null,
-            "annotations": { "readOnlyHint": true }
+            "annotations": {
+                "readOnlyHint": true
+            }
         },
         {
             "name": "filterByPreferences",
@@ -18,7 +20,13 @@
                     },
                     "color": {
                         "type": "string",
-                        "enum": ["Red", "Blue", "Green", "Black", "White"],
+                        "enum": [
+                            "Red",
+                            "Blue",
+                            "Green",
+                            "Black",
+                            "White"
+                        ],
                         "description": "The primary color of the item. Map specific shades to these base colors (e.g., map 'midnight', 'navy', or 'azure' to 'Blue'; map 'crimson' to 'Red')."
                     },
                     "maxPrice": {
@@ -34,10 +42,18 @@
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "productId": { "type": "number", "description": "The unique ID of the product." },
-                    "quantity": { "type": "number", "default": 1 }
+                    "productId": {
+                        "type": "number",
+                        "description": "The unique ID of the product."
+                    },
+                    "quantity": {
+                        "type": "number",
+                        "default": 1
+                    }
                 },
-                "required": ["productId"]
+                "required": [
+                    "productId"
+                ]
             }
         },
         {
@@ -46,12 +62,14 @@
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                "productId": {
-                    "type": "number",
-                    "description": "The unique ID of the product to fetch reviews for."
-                }
+                    "productId": {
+                        "type": "number",
+                        "description": "The unique ID of the product to fetch reviews for."
+                    }
                 },
-                "required": ["productId"]
+                "required": [
+                    "productId"
+                ]
             },
             "annotations": {
                 "readOnlyHint": true
@@ -61,8 +79,8 @@
             "name": "getShippingAndLoyaltyInfo",
             "description": "Checks for user-specific benefits like free shipping eligibility, loyalty points balance, or available promo codes.",
             "inputSchema": null,
-            "annotations": { 
-                "readOnlyHint": true 
+            "annotations": {
+                "readOnlyHint": true
             }
         }
     ]

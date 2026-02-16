@@ -1,74 +1,177 @@
 [
   {
-    "messages": [{ "role": "user", "type": "message", "content": "I'm looking for Nike running shoes under $120." }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I'm looking for Nike running shoes under $120."
+      }
+    ],
     "expectedCall": {
       "functionName": "searchProducts",
-      "arguments": { "query": "running shoes", "brand": "Nike", "maxPrice": 120, "category": "Footwear" }
-    }
-  },
-  {
-    "messages": [{ "role": "user", "type": "message", "content": "Find me the cheapest iPhone 15." }],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": { "query": "iPhone 15", "brand": "Apple", "category": "Electronics", "sortBy": "price_low_to_high" }
-    }
-  },
-  {
-    "messages": [{ "role": "user", "type": "message", "content": "I need 10.5 inch blue sneakers available for pickup in 90210." }],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": { 
-        "query": "sneakers", 
-        "category": "Footwear",
-        "location": "90210",
-        "attributes": { "color": "blue", "size": "10.5 inch" }
+      "arguments": {
+        "query": "running shoes",
+        "brand": "Nike",
+        "maxPrice": 120,
+        "category": "Footwear"
       }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "Find a gaming laptop under $1500, but don't show me any Dell models." }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find me the cheapest iPhone 15."
+      }
+    ],
     "expectedCall": {
       "functionName": "searchProducts",
-      "arguments": { "query": "gaming laptop", "maxPrice": 1500, "category": "Electronics" }
+      "arguments": {
+        "query": "iPhone 15",
+        "brand": "Apple",
+        "category": "Electronics",
+        "sortBy": "price_low_to_high"
+      }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "Amazon has the Sony WH-1000XM5 for $299. Can you match that for ID 'SONY-XM5'?" }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I need 10.5 inch blue sneakers available for pickup in 90210."
+      }
+    ],
+    "expectedCall": {
+      "functionName": "searchProducts",
+      "arguments": {
+        "query": "sneakers",
+        "category": "Footwear",
+        "location": "90210",
+        "attributes": {
+          "color": "blue",
+          "size": "10.5 inch"
+        }
+      }
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find a gaming laptop under $1500, but don't show me any Dell models."
+      }
+    ],
+    "expectedCall": {
+      "functionName": "searchProducts",
+      "arguments": {
+        "query": "gaming laptop",
+        "maxPrice": 1500,
+        "category": "Electronics"
+      }
+    }
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Amazon has the Sony WH-1000XM5 for $299. Can you match that for ID 'SONY-XM5'?"
+      }
+    ],
     "expectedCall": {
       "functionName": "priceMatch",
-      "arguments": { "productId": "SONY-XM5", "competitorPrice": 299 }
+      "arguments": {
+        "productId": "SONY-XM5",
+        "competitorPrice": 299
+      }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "Show me top-rated 4K TV from Samsung." }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Show me top-rated 4K TV from Samsung."
+      }
+    ],
     "expectedCall": {
       "functionName": "searchProducts",
-      "arguments": { "query": "4K TV", "brand": "Samsung", "category": "Electronics", "sortBy": "rating" }
+      "arguments": {
+        "query": "4K TV",
+        "brand": "Samsung",
+        "category": "Electronics",
+        "sortBy": "rating"
+      }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "I need some black ink cartridges for my HP printer." }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I need some black ink cartridges for my HP printer."
+      }
+    ],
     "expectedCall": {
       "functionName": "searchProducts",
-      "arguments": { "query": "ink cartridges", "brand": "HP", "category": "Office Supplies", "attributes": { "color": "black" } }
+      "arguments": {
+        "query": "ink cartridges",
+        "brand": "HP",
+        "category": "Office Supplies",
+        "attributes": {
+          "color": "black"
+        }
+      }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "Is there a brand new MacBook Pro available at the store in Austin?" }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Is there a brand new MacBook Pro available at the store in Austin?"
+      }
+    ],
     "expectedCall": {
       "functionName": "searchProducts",
-      "arguments": { "query": "MacBook Pro", "brand": "Apple", "category": "Electronics", "location": "Austin", "attributes": { "isNew": true } }
+      "arguments": {
+        "query": "MacBook Pro",
+        "brand": "Apple",
+        "category": "Electronics",
+        "location": "Austin",
+        "attributes": {
+          "isNew": true
+        }
+      }
     }
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "I want to buy a yacht for $50. What can you find?" }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I want to buy a yacht for $50. What can you find?"
+      }
+    ],
     "expectedCall": null
   },
   {
-    "messages": [{ "role": "user", "type": "message", "content": "Do you have the Dyson V15 in stock at 10001? I want to pick it up today." }],
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Do you have the Dyson V15 in stock at 10001? I want to pick it up today."
+      }
+    ],
     "expectedCall": {
       "functionName": "checkInventory",
-      "arguments": { "productId": "Dyson V15", "zipCode": "10001" }
+      "arguments": {
+        "productId": "Dyson V15",
+        "zipCode": "10001"
+      }
     }
   }
 ]
