@@ -2,18 +2,18 @@
 
 Live Demo: https://policycheck.tools/webmcp-demo
 
-This demo introduces **third-party trust verification** as a WebMCP tool category. It shows how an AI agent shopping on behalf of a user can verify a seller's policies *before* completing a purchase, using the `check_seller_policy` tool alongside standard e-commerce tools.
+This demo introduces **user-installed third-party trust verification** as a WebMCP tool category. It shows how an AI agent shopping on behalf of a user can verify a seller's policies *before* completing a purchase, using the `check_seller_policy` tool alongside standard e-commerce tools.
 
 ## What It Demonstrates
 
-A simulated e-commerce store (VoltGear Electronics) exposes four WebMCP tools via `navigator.modelContext.registerTool()`:
+A simulated e-commerce store (VoltGear Electronics) alongside a user-installed trust verification tool:
 
-| Tool | Type | Description |
-|------|------|-------------|
-| `browse_products` | Seller | Browse the product catalog |
-| `add_to_cart` | Seller | Add items to cart |
-| `checkout` | Seller | Complete purchase |
-| `check_seller_policy` | **Trust Layer** | Analyze seller policies for risk before purchase |
+| Tool | Source | Type | Description |
+|------|--------|------|-------------|
+| `browse_products` | Seller's page | Seller | Browse the product catalog |
+| `add_to_cart` | Seller's page | Seller | Add items to cart |
+| `checkout` | Seller's page | Seller | Complete purchase |
+| `check_seller_policy` | **User's PolicyCheck extension** | Trust Layer | Analyze seller policies for risk before purchase |
 
 The `check_seller_policy` tool is the key addition. It calls [PolicyCheck](https://policycheck.tools) (a seller policy risk intelligence service) to return:
 
@@ -21,6 +21,19 @@ The `check_seller_policy` tool is the key addition. It calls [PolicyCheck](https
 - **Buyer protection rating** (A+ through F)
 - **Detected risk factors** with severity levels (binding arbitration, no-refund clauses, liability caps, etc.)
 - **Plain-language summary** for agent reasoning
+
+## Architecture: User-Side vs Seller-Side
+
+A critical design point: `check_seller_policy` is **not registered by the seller**. In production, it's provided by the user-installed [PolicyCheck Chrome extension](https://policycheck.tools), which injects the tool into any e-commerce page the user visits. The seller has no control over the analysis.
+
+This demo co-locates all tools in one HTML page for simplicity, but the real-world architecture is:
+
+- **Seller's page** registers: `browse_products`, `add_to_cart`, `checkout`
+- **User's PolicyCheck extension** injects: `check_seller_policy`
+
+The agent sees all tools via `listTools()` regardless of origin. PolicyCheck independently fetches and analyzes the seller's policies from its own servers — the seller cannot influence the risk assessment.
+
+This separation is what makes the trust verification meaningful. If the seller controlled `check_seller_policy`, they could simply return "no risks found" for every query.
 
 ## Agent Workflow
 
@@ -63,7 +76,9 @@ navigator.modelContext.registerTool({
 
 ## Why This Matters
 
-Existing WebMCP demos cover seller-provided tools (browsing, booking, purchasing). This demo adds a new category: **third-party verification tools** that operate independently of the seller. This pattern is critical for agentic commerce, where AI agents need to verify trust signals before executing transactions on behalf of users.
+Existing WebMCP demos show seller-provided tools. This demo introduces a new pattern: **user-installed third-party verification tools** that the agent can invoke on any site. The seller doesn't opt in — the user brings the verification tool with them via a browser extension.
+
+This pattern generalizes beyond PolicyCheck. Any user-installed verification service (price comparison, review aggregation, counterfeit detection) could inject tools following this same pattern, giving agents independent information sources alongside seller-provided tools.
 
 ## Running Locally
 

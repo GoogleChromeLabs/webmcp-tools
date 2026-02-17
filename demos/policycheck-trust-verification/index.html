@@ -106,6 +106,27 @@
   ::-webkit-scrollbar-track { background:transparent; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 
+  /* Tool origin divider */
+  .tool-origin-divider {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tool-origin-divider::before,
+  .tool-origin-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
   /* Warning overlay */
   .warn { position:fixed; inset:0; background:rgba(10,10,15,0.95); display:flex; align-items:center; justify-content:center; z-index:100; }
   .warn-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:36px; max-width:460px; text-align:center; }
@@ -177,6 +198,17 @@
 </div>
 
 <script>
+// === Architecture Note ===
+// In production, tools come from TWO separate sources:
+//   1. SELLER TOOLS (browse_products, add_to_cart, checkout) — registered by the seller's page
+//   2. TRUST TOOLS (check_seller_policy) — injected by the user's PolicyCheck Chrome extension
+//
+// The seller has NO control over check_seller_policy. PolicyCheck independently
+// fetches and analyzes the seller's policies from its own servers.
+//
+// This demo co-locates all tools in one page for simplicity, but in the real
+// world the trust verification tool is user-side, not seller-side.
+
 // === Config ===
 const SELLER_URL = 'https://voltgear-demo.shop';
 const POLICY_TEXT = 'Returns accepted within 14 days of delivery for unopened items only. A 20% restocking fee applies to all returns. Opened electronics are non-refundable. Shipping costs are non-refundable. Warranty claims must be filed within 30 days; all disputes are subject to binding arbitration in Wilmington, DE. Seller total liability shall not exceed the purchase price of the item. Free shipping on orders over $100; standard delivery 7-14 business days.';
@@ -290,17 +322,28 @@ const TOOL_META = [
   { name: 'browse_products', desc: 'Browse product catalog', type: 's', icon: '📦' },
   { name: 'add_to_cart', desc: 'Add items to cart', type: 's', icon: '🛒' },
   { name: 'checkout', desc: 'Complete purchase', type: 's', icon: '💳' },
-  { name: 'check_seller_policy', desc: 'Pre-purchase risk assessment', type: 'p', icon: '🛡️' },
+  { name: 'check_seller_policy', desc: 'Independent risk assessment (user extension)', type: 'p', icon: '🛡️' },
 ];
 
 function renderTools() {
-  document.getElementById('tools-ui').innerHTML = TOOL_META.map(t => `
-    <div class="tc ${t.type==='p'?'hl':''}" id="tc-${t.name}">
-      <div class="tc-icon ${t.type}">${t.icon}</div>
-      <div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></div>
-      <span class="tc-tag ${t.type==='p'?'tt':'st'}">${t.type==='p'?'TRUST LAYER':'SELLER'}</span>
-    </div>
-  `).join('');
+  const seller = TOOL_META.filter(t => t.type === 's');
+  const trust = TOOL_META.filter(t => t.type === 'p');
+  document.getElementById('tools-ui').innerHTML =
+    seller.map(t => `
+      <div class="tc" id="tc-${t.name}">
+        <div class="tc-icon s">${t.icon}</div>
+        <div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></div>
+        <span class="tc-tag st">SELLER</span>
+      </div>
+    `).join('') +
+    '<div class="tool-origin-divider">User-installed tools (PolicyCheck Extension)</div>' +
+    trust.map(t => `
+      <div class="tc hl" id="tc-${t.name}">
+        <div class="tc-icon p">${t.icon}</div>
+        <div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div><div style="font-size:9px;color:var(--accent);margin-top:2px;font-family:var(--mono);">Independent of seller · policycheck.tools</div></div>
+        <span class="tc-tag tt">USER TOOL</span>
+      </div>
+    `).join('');
 }
 
 function addLog(type, action, detail) {
@@ -342,9 +385,9 @@ async function runAgent() {
   await wait(700);
   if (wmReady && navigator.modelContextTesting) {
     const tools = await navigator.modelContextTesting.listTools();
-    addLog('result', `Discovered ${tools.length} tools`, tools.map(t => t.name || 'unknown').join(', '));
+    addLog('result', `Discovered ${tools.length} tools (3 seller + 1 user-installed trust tool)`, tools.map(t => t.name || 'unknown').join(', '));
   } else {
-    addLog('result', 'Discovered 4 tools (mock)', 'browse_products, add_to_cart, checkout, check_seller_policy');
+    addLog('result', 'Discovered 3 seller tools + 1 user-installed trust tool (PolicyCheck)', 'browse_products, add_to_cart, checkout, check_seller_policy');
   }
   await wait(500);
 
@@ -369,7 +412,7 @@ async function runAgent() {
   // 4. PolicyCheck — the key moment
   const tcEl = document.getElementById('tc-check_seller_policy');
   if (tcEl) tcEl.classList.add('active');
-  addLog('think', 'Agent: "Before checkout, let me verify this seller\'s policies."');
+  addLog('think', 'Agent: "Before checkout, let me use my PolicyCheck extension to independently verify this seller."');
   await wait(500);
   addLog('pc', 'executeTool("check_seller_policy", {seller_url, policy_text})', '');
   await wait(400);
