@@ -1,0 +1,101 @@
+{
+  "tools": [
+    {
+      "name": "searchProducts",
+      "description": "Searches for items. MUST map 'iPhone/MacBook' to brand 'Apple'. Adjectives (e.g., 'black', 'new') must go in 'attributes'. Ignore negative constraints (e.g., 'not Dell')—do not populate the brand field for them.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Base noun (e.g., 'laptop', 'shoes')."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "Electronics",
+              "Footwear",
+              "Apparel",
+              "Home Goods",
+              "Office Supplies"
+            ]
+          },
+          "maxPrice": {
+            "type": "number"
+          },
+          "brand": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "City or Store location."
+          },
+          "sortBy": {
+            "type": "string",
+            "enum": [
+              "price_low_to_high",
+              "price_high_to_low",
+              "rating"
+            ]
+          },
+          "attributes": {
+            "type": "object",
+            "properties": {
+              "color": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string",
+                "description": "Include units if mentioned (e.g., '10.5 inch')."
+              },
+              "isNew": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "required": [
+          "query",
+          "category"
+        ]
+      }
+    },
+    {
+      "name": "priceMatch",
+      "description": "Compares prices.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "competitorPrice": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "productId",
+          "competitorPrice"
+        ]
+      }
+    },
+    {
+      "name": "checkInventory",
+      "description": "Checks stock levels.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+[
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "What items do you have in stock?"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "getProducts",
+            "arguments": {}
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "I'm looking for a red dress, size 6, under 200 dollars."
+            }
+        ],
+        "expectedCall": {
+            "functionName": "filterByPreferences",
+            "arguments": {
+                "color": "Red",
+                "size": "EU 38",
+                "maxPrice": 200
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Show me something in midnight blue."
+            }
+        ],
+        "expectedCall": {
+            "functionName": "filterByPreferences",
+            "arguments": {
+                "color": "Blue"
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Add two of the first item (ID 1021) to my bag."
+            }
+        ],
+        "expectedCall": {
+            "functionName": "addToCart",
+            "arguments": {
+                "productId": 1021,
+                "quantity": 2
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "I like that dress (ID 1021), but what do other customers say about the quality?"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "getProductReviews",
+            "arguments": {
+                "productId": 1021
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "I'm ready to checkout. Do I have any rewards points or free shipping on this order?"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "getShippingAndLoyaltyInfo",
+            "arguments": {}
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Do you have this in Neon Yellow?"
+            }
+        ],
+        "expectedCall": null
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Show me red dresses."
+            },
+            {
+                "role": "model",
+                "type": "message",
+                "content": "I found: 1. Maxi Dress (ID 501), 2. Cocktail Dress (ID 502)."
+            },
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Add the second one to my cart."
+            }
+        ],
+        "expectedCall": {
+            "functionName": "addToCart",
+            "arguments": {
+                "productId": 502
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Find me a Black dress that has great reviews and costs less than $150."
+            }
+        ],
+        "expectedCall": {
+            "functionName": "filterByPreferences",
+            "arguments": {
+                "color": "Black",
+                "maxPrice": 150
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "I love it, add it to my cart!"
+            }
+        ],
+        "expectedCall": null
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Do you have anything in Green for under $50?"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "filterByPreferences",
+            "arguments": {
+                "color": "Green",
+                "maxPrice": 50
+            }
+        }
+    },
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Which has better reviews, the dress with ID 501 or 502?"
+            }
+        ],
+        "expectedCall": {
+            "functionName": "getProductReviews",
+            "arguments": {
+                "productId": 501
+            }
+        }
+    }
+]

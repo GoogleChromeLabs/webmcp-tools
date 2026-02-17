@@ -1,0 +1,125 @@
+{
+  "tools": [
+    {
+      "name": "searchProperties",
+      "description": "Finds residential listings. Handles 'near [City]' or '[X] miles of [ZIP]' as valid locations. Must map 'bachelor pad' to propertyType 'Apartment' and minBedrooms 0. Must map 'modern' to the 'Modern Kitchen' amenity.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City, ZIP, or Neighborhood."
+          },
+          "maxPrice": {
+            "type": "number"
+          },
+          "minPrice": {
+            "type": "number"
+          },
+          "minBedrooms": {
+            "type": "number"
+          },
+          "propertyType": {
+            "type": "string",
+            "enum": [
+              "House",
+              "Condo",
+              "Townhouse",
+              "Land",
+              "Apartment"
+            ]
+          },
+          "amenities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Pool",
+                "Garage",
+                "Modern Kitchen"
+              ]
+            }
+          },
+          "minYearBuilt": {
+            "type": "number"
+          },
+          "radius": {
+            "type": "number",
+            "description": "Search radius in miles."
+          }
+        },
+        "required": [
+          "location"
+        ]
+      }
+    },
+    {
+      "name": "calculateMortgage",
+      "description": "Calculates monthly payments. Must provide interestRate as a whole number (e.g., 7 for 7%), not a decimal fraction (e.g., not 0.07).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "loanAmount": {
+            "type": "number"
+          },
+          "interestRate": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "loanAmount",
+          "interestRate"
+        ]
+      }
+    },
+    {
+      "name": "getNeighborhoodStats",
+      "description": "Provides safety and school data.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "zipCode": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "schools",
+                "crime",
+                "transit"
+              ]
+            }
+          }
+        },
+        "required": [
+          "zipCode"
+        ]
+      }
+    },
+    {
+      "name": "analyzeCommute",
+      "description": "Use this when the user asks for travel time, distance, or 'how long is the drive' to a destination like 'Downtown'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "driving",
+              "transit",
+              "walking"
+            ]
+          }
+        },
+        "required": [
+          "destination"
+        ]
+      }
+    }
+  ]
+}

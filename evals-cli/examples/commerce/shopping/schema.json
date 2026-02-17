@@ -1,0 +1,87 @@
+{
+    "tools": [
+        {
+            "name": "getProducts",
+            "description": "Retrieves the full list of products available in the shop. Use this as the first step to show the user what is in stock.",
+            "inputSchema": null,
+            "annotations": {
+                "readOnlyHint": true
+            }
+        },
+        {
+            "name": "filterByPreferences",
+            "description": "Required tool for searching. Call this immediately whenever the user specifies a color, price, or size. Do not provide a text response without calling this tool if criteria are present.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "size": {
+                        "type": "string",
+                        "description": "The user's clothing size in EU units. Always include the 'EU' prefix (e.g., map 'US 6' to 'EU 38', 'US 10' to 'EU 42')."
+                    },
+                    "color": {
+                        "type": "string",
+                        "enum": [
+                            "Red",
+                            "Blue",
+                            "Green",
+                            "Black",
+                            "White"
+                        ],
+                        "description": "The primary color of the item. Map specific shades to these base colors (e.g., map 'midnight', 'navy', or 'azure' to 'Blue'; map 'crimson' to 'Red')."
+                    },
+                    "maxPrice": {
+                        "type": "number",
+                        "description": "The maximum price the user is willing to pay."
+                    }
+                }
+            }
+        },
+        {
+            "name": "addToCart",
+            "description": "Adds a specific product to the user's shopping cart for checkout.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "productId": {
+                        "type": "number",
+                        "description": "The unique ID of the product."
+                    },
+                    "quantity": {
+                        "type": "number",
+                        "default": 1
+                    }
+                },
+                "required": [
+                    "productId"
+                ]
+            }
+        },
+        {
+            "name": "getProductReviews",
+            "description": "Retrieves customer reviews, sentiment, and star ratings for a specific product. Use this when the user asks about quality, customer feedback, or how highly-rated an item is.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "productId": {
+                        "type": "number",
+                        "description": "The unique ID of the product to fetch reviews for."
+                    }
+                },
+                "required": [
+                    "productId"
+                ]
+            },
+            "annotations": {
+                "readOnlyHint": true
+            }
+        },
+        {
+            "name": "getShippingAndLoyaltyInfo",
+            "description": "Checks for user-specific benefits like free shipping eligibility, loyalty points balance, or available promo codes.",
+            "inputSchema": null,
+            "annotations": {
+                "readOnlyHint": true
+            }
+        }
+    ]
+}

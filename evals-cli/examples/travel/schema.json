@@ -73,7 +73,7 @@
         },
         {
             "name": "filterFlights",
-            "description": "Filters the full list of flights according to the provided criteria. Help users find the flights they are looking for in the page.",
+            "description": "Advanced filter tool to narrow down flight results. Use this whenever the user specifies airlines, price limits, number of stops, or specific origin / destination airports like JFK or Newark.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -86,7 +86,7 @@
                     },
                     "airlines": {
                         "type": "array",
-                        "description": "The list of airlines IATA codes to filter by.",
+                        "description": "A list of 2-letter airline IATA codes (e.g., 'DL' for Delta, 'AA' for American Airlines, 'UA' for United). Do not use full airline names.",
                         "items": {
                             "type": "string",
                             "pattern": "^[A-Z]{2}$"                            
