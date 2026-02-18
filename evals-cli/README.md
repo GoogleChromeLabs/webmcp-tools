@@ -17,7 +17,7 @@ The project is structured as follows:
     - `backend/`: Implementation of LLM backends (e.g., `googleai.ts`, `ollama.ts`).
     - `types/`: TypeScript definitions for tools, messages, and evaluations.
 - `examples/`: Detailed examples and test data.
-    - `travel/`: A travel agent example containing `tools_schema.json` and `evals.json`.
+    - `travel/`: A travel agent example containing `schema.json` and `evals.json`.
 
 ## Prerequisites
 
@@ -54,13 +54,13 @@ The project is structured as follows:
 ### Running the Travel Example
 
 ```bash
-node dist/bin/runevals.js --model=gemini-2.5-flash --tools=examples/travel/tools_schema.json --evals=examples/travel/evals.json
+node dist/bin/runevals.js --model=gemini-2.5-flash --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
 ### Running evals with Ollama
 
 ```bash
-node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/tools_schema.json --evals=examples/travel/evals.json
+node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
 ## Argument Constraints
