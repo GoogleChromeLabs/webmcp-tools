@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Config } from "../types/config.js";
+import { Config, WebmcpConfig } from "../types/config.js";
 import { Message, TestResult, TestResults } from "../types/evals.js";
 import { matchesArgument } from "../matcher.js";
 
@@ -173,4 +173,60 @@ function renderMessage(message: Message): string {
         <div>${message.role} - ${message.type}<div>
         <div>${content}<div>
     </li>`;
+}
+
+export function renderWebmcpReport(
+  config: WebmcpConfig,
+  testResults: TestResults,
+): string {
+  return `
+<!DOCTYPE html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+        }
+        .pass {
+            color: green;
+        }
+        .fail {
+            color: red;
+        }
+        .error {
+            color: orange;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eval Results</h1>
+    <div>
+        <h2>Test configuration</h2>
+        ${renderWebmcpConfiguration(config)}
+    </div>
+    <div>
+        <h2>Results</h2>
+        <h3>Summary</h3>
+        <div>
+            ${renderEvalsSummary(testResults)}
+        </div>
+        <div>
+            <h3>Details</h3>
+            ${renderDetails(testResults.results)}
+        </div>
+    </div>
+</body>
+`;
+}
+
+function renderWebmcpConfiguration(config: WebmcpConfig): string {
+  return `
+<ul>
+    <li>URL: <code>${config.url}</code></li>
+    <li>Evals: <code>${config.evalsFile}</li>
+    <li>Backend: <code>${config.backend}</code></li>
+    <li>Model: <code>${config.model}</code></li>
+</ul>`;
 }
