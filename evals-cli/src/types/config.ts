@@ -9,3 +9,10 @@ export type Config = {
   backend: string;
   model: string;
 };
+
+export type WebmcpConfig = {
+  url: string;
+  evalsFile: string;
+  backend: string;
+  model: string;
+};
