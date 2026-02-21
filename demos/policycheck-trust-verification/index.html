@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PolicyCheck × WebMCP — Trust Verification Demo</title>
+<meta name="description" content="Demo: Pre-purchase seller trust verification as a WebMCP tool for AI agent commerce workflows.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --border: #2a2a3a;
+    --border-hi: #3a3a5a;
+    --text: #e8e8f0;
+    --dim: #8888a0;
+    --faint: #55556a;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108,92,231,0.25);
+    --green: #00d2a0;
+    --red: #ff6b6b;
+    --yellow: #ffc845;
+    --blue: #4da6ff;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+
+  /* Header */
+  .hdr { padding:16px 28px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:var(--surface); }
+  .hdr-left { display:flex; align-items:center; gap:14px; }
+  .logo { width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg,var(--accent),#8b5cf6); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; }
+  .hdr-title { font-size:15px; font-weight:600; letter-spacing:-0.3px; }
+  .hdr-title span { color:var(--dim); font-weight:400; margin-left:8px; }
+  .tag { font-family:var(--mono); font-size:10px; padding:4px 10px; border-radius:16px; background:var(--surface-2); border:1px solid var(--border); color:var(--dim); letter-spacing:0.5px; text-transform:uppercase; }
+  .tag.on { color:var(--green); border-color:rgba(0,210,160,0.3); background:rgba(0,210,160,0.1); }
+  .tag.on::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); margin-right:6px; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Layout */
+  .layout { display:grid; grid-template-columns:1fr 400px; min-height:calc(100vh - 61px); }
+  @media(max-width:900px) { .layout { grid-template-columns:1fr; } }
+
+  /* Store */
+  .store { padding:28px; border-right:1px solid var(--border); overflow-y:auto; }
+  .store-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .store-name { font-size:20px; font-weight:700; letter-spacing:-0.4px; }
+  .store-url { font-family:var(--mono); font-size:11px; color:var(--dim); background:var(--surface-2); padding:5px 11px; border-radius:6px; border:1px solid var(--border); }
+  .lbl { font-size:10px; font-weight:600; letter-spacing:1.2px; text-transform:uppercase; color:var(--faint); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .lbl::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* Products */
+  .products { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:28px; }
+  .prod { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; transition:all 0.2s; cursor:default; }
+  .prod:hover { border-color:var(--border-hi); transform:translateY(-1px); }
+  .prod-icon { height:72px; border-radius:6px; background:var(--surface-2); margin-bottom:10px; display:flex; align-items:center; justify-content:center; font-size:30px; }
+  .prod-name { font-size:13px; font-weight:600; margin-bottom:3px; }
+  .prod-price { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--green); }
+
+  /* Tool cards */
+  .tools { margin-bottom:28px; }
+  .tc { background:var(--surface); border:1px solid var(--border); border-radius:9px; padding:12px 16px; margin-bottom:6px; display:flex; align-items:center; gap:11px; transition:all 0.3s; }
+  .tc.hl { border-color:var(--accent); background:linear-gradient(135deg,rgba(108,92,231,0.08),rgba(108,92,231,0.02)); box-shadow:0 0 20px var(--accent-glow); }
+  .tc.active { box-shadow:0 0 30px var(--accent-glow),inset 0 0 20px rgba(108,92,231,0.05); }
+  .tc-icon { width:30px; height:30px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+  .tc-icon.s { background:var(--surface-2); border:1px solid var(--border); }
+  .tc-icon.p { background:linear-gradient(135deg,var(--accent),#8b5cf6); }
+  .tc-name { font-family:var(--mono); font-size:11px; font-weight:500; }
+  .tc-desc { font-size:10px; color:var(--dim); margin-top:1px; }
+  .tc-tag { margin-left:auto; font-family:var(--mono); font-size:9px; padding:3px 7px; border-radius:4px; letter-spacing:0.5px; text-transform:uppercase; flex-shrink:0; }
+  .tc-tag.st { color:var(--dim); background:var(--surface-2); }
+  .tc-tag.tt { color:var(--accent); background:rgba(108,92,231,0.15); }
+
+  /* Policy excerpt */
+  .pol { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; }
+  .pol h3 { font-size:12px; font-weight:600; margin-bottom:10px; }
+  .pol-text { font-size:11px; line-height:1.7; color:var(--dim); }
+  .pol-text .rf { color:var(--red); font-weight:500; background:rgba(255,107,107,0.12); padding:1px 5px; border-radius:3px; }
+
+  /* Agent panel */
+  .ap { background:var(--surface); display:flex; flex-direction:column; }
+  .ap-hdr { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .ap-hdr h2 { font-size:13px; font-weight:600; }
+  .ap-log { flex:1; overflow-y:auto; padding:14px; }
+  .le { margin-bottom:14px; animation:fadeIn 0.35s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .le-time { font-family:var(--mono); font-size:9px; color:var(--faint); margin-bottom:4px; }
+  .le-act { font-size:11px; font-weight:500; display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .le-det { font-family:var(--mono); font-size:10px; color:var(--dim); background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:10px 12px; line-height:1.6; white-space:pre-wrap; word-break:break-all; max-height:180px; overflow-y:auto; }
+  .le-det.risk { border-color:var(--accent); background:linear-gradient(135deg,rgba(108,92,231,0.06),var(--bg)); }
+
+  /* Controls */
+  .ap-ctrl { padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:8px; }
+  .btn { font-family:var(--sans); font-size:12px; font-weight:600; padding:9px 18px; border-radius:7px; border:1px solid var(--border); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:7px; }
+  .btn-p { background:linear-gradient(135deg,var(--accent),#8b5cf6); color:#fff; border:none; flex:1; justify-content:center; }
+  .btn-p:hover { transform:translateY(-1px); box-shadow:0 4px 20px var(--accent-glow); }
+  .btn-p:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-s { background:var(--surface-2); color:var(--dim); }
+  .btn-s:hover { color:var(--text); border-color:var(--border-hi); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  /* Tool origin divider */
+  .tool-origin-divider {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 12px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tool-origin-divider::before,
+  .tool-origin-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
+  /* Warning overlay */
+  .warn { position:fixed; inset:0; background:rgba(10,10,15,0.95); display:flex; align-items:center; justify-content:center; z-index:100; }
+  .warn-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:36px; max-width:460px; text-align:center; }
+  .warn-box h2 { font-size:18px; margin-bottom:10px; }
+  .warn-box p { color:var(--dim); font-size:13px; line-height:1.6; margin-bottom:8px; }
+  .warn-box code { font-family:var(--mono); font-size:11px; background:var(--bg); padding:3px 8px; border-radius:4px; color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo">PC</div>
+    <div class="hdr-title">PolicyCheck<span>× WebMCP Demo</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <span class="tag" id="wm-status">CHECKING…</span>
+    <span class="tag" id="t-count">0 TOOLS</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="store">
+    <div class="store-top">
+      <div class="store-name">⚡ VoltGear Electronics</div>
+      <div class="store-url">voltgear-demo.shop</div>
+    </div>
+
+    <div class="lbl">Products</div>
+    <div class="products">
+      <div class="prod"><div class="prod-icon">🎧</div><div class="prod-name">Wireless Headphones Pro</div><div class="prod-price">$249</div></div>
+      <div class="prod"><div class="prod-icon">⌨️</div><div class="prod-name">Mechanical Keyboard RGB</div><div class="prod-price">$179</div></div>
+      <div class="prod"><div class="prod-icon">🖱️</div><div class="prod-name">Ergonomic Mouse</div><div class="prod-price">$89</div></div>
+      <div class="prod"><div class="prod-icon">🖥️</div><div class="prod-name">4K UltraWide Monitor</div><div class="prod-price">$599</div></div>
+    </div>
+
+    <div class="lbl">WebMCP Registered Tools</div>
+    <div class="tools" id="tools-ui"></div>
+
+    <div class="lbl">Seller Policy Excerpt</div>
+    <div class="pol">
+      <h3>VoltGear Electronics — Terms of Sale</h3>
+      <div class="pol-text">
+        Returns accepted within <strong>14 days</strong> of delivery for unopened items only. A <strong>20% restocking fee</strong> applies to all returns. Opened electronics are <span class="rf">non-refundable</span>. Shipping costs are non-refundable. Warranty claims must be filed within 30 days; all disputes are subject to <span class="rf">binding arbitration</span> in Wilmington, DE. Seller's <span class="rf">total liability shall not exceed the purchase price</span> of the item. Free shipping on orders over $100; standard delivery 7–14 business days.
+      </div>
+    </div>
+  </div>
+
+  <div class="ap">
+    <div class="ap-hdr">
+      <h2>🤖 Agent Activity Log</h2>
+      <span class="tag on" id="a-status">READY</span>
+    </div>
+    <div class="ap-log" id="log"></div>
+    <div class="ap-ctrl">
+      <button class="btn btn-p" id="run" onclick="runAgent()">▶ Run Agent Purchase Flow</button>
+      <button class="btn btn-s" onclick="document.getElementById('log').innerHTML=''">Clear</button>
+    </div>
+  </div>
+</div>
+
+<div class="warn" id="warn" style="display:none">
+  <div class="warn-box">
+    <h2>WebMCP Not Detected</h2>
+    <p>This demo requires <strong>Chrome Canary 146+</strong> with the WebMCP flag enabled.</p>
+    <p>Enable at <code>chrome://flags/#enable-webmcp-testing</code></p>
+    <p style="margin-top:14px"><button class="btn btn-p" onclick="document.getElementById('warn').style.display='none'">Continue in Mock Mode</button></p>
+  </div>
+</div>
+
+<script>
+// === Architecture Note ===
+// In production, tools come from TWO separate sources:
+//   1. SELLER TOOLS (browse_products, add_to_cart, checkout) — registered by the seller's page
+//   2. TRUST TOOLS (check_seller_policy) — injected by the user's PolicyCheck Chrome extension
+//
+// The seller has NO control over check_seller_policy. PolicyCheck independently
+// fetches and analyzes the seller's policies from its own servers.
+//
+// This demo co-locates all tools in one page for simplicity, but in the real
+// world the trust verification tool is user-side, not seller-side.
+
+// === Config ===
+const SELLER_URL = 'https://voltgear-demo.shop';
+const POLICY_TEXT = 'Returns accepted within 14 days of delivery for unopened items only. A 20% restocking fee applies to all returns. Opened electronics are non-refundable. Shipping costs are non-refundable. Warranty claims must be filed within 30 days; all disputes are subject to binding arbitration in Wilmington, DE. Seller total liability shall not exceed the purchase price of the item. Free shipping on orders over $100; standard delivery 7-14 business days.';
+
+const PRODUCTS = {
+  'WH-1000': { name: 'Wireless Headphones Pro', price: 249, stock: 12 },
+  'KB-500':  { name: 'Mechanical Keyboard RGB', price: 179, stock: 8 },
+  'MS-300':  { name: 'Ergonomic Mouse', price: 89, stock: 23 },
+  'MN-27':   { name: '4K UltraWide Monitor', price: 599, stock: 3 },
+};
+
+const cart = [];
+let wmReady = false;
+
+// === PolicyCheck mock response ===
+const MOCK_RESULT = {
+  seller_url: SELLER_URL,
+  risk_score: 6.2,
+  risk_level: 'medium',
+  buyer_protection_rating: 'C+',
+  risk_factors: [
+    { factor: 'binding_arbitration', severity: 'high', detail: 'All disputes subject to binding arbitration in Wilmington, DE' },
+    { factor: 'restocking_fee', severity: 'medium', detail: '20% restocking fee on all returns' },
+    { factor: 'no_refund_opened', severity: 'high', detail: 'Opened electronics are non-refundable' },
+    { factor: 'liability_cap', severity: 'medium', detail: 'Total liability capped at purchase price' },
+    { factor: 'short_return_window', severity: 'low', detail: '14-day return window (industry avg: 30 days)' }
+  ],
+  positives: ['Free shipping on orders over $100', '30-day warranty claim period', 'Express shipping option available'],
+  summary: 'VoltGear Electronics presents MEDIUM risk. Key concerns: binding arbitration clause removes right to sue, opened items cannot be returned, and a 20% restocking fee applies. The liability cap and short return window add further risk. Proceed with caution for high-value purchases.',
+  analyzed_at: new Date().toISOString()
+};
+
+// === Register WebMCP tools ===
+async function init() {
+  if (!navigator.modelContext) {
+    document.getElementById('warn').style.display = 'flex';
+    document.getElementById('wm-status').textContent = 'NO WEBMCP';
+    document.getElementById('wm-status').className = 'tag';
+    renderTools();
+    return;
+  }
+
+  wmReady = true;
+  document.getElementById('wm-status').textContent = 'WEBMCP ACTIVE';
+  document.getElementById('wm-status').className = 'tag on';
+
+  // Seller tools
+  navigator.modelContext.registerTool({
+    name: 'browse_products',
+    description: 'Browse available products at VoltGear Electronics. Returns product catalog with names, prices, and stock levels.',
+    inputSchema: { type: 'object', properties: { category: { type: 'string', description: 'Optional category filter' } } },
+    annotations: { readOnlyHint: 'true' },
+    async execute({ category }) {
+      const items = Object.entries(PRODUCTS).map(([id, p]) => ({ id, ...p }));
+      return { content: [{ type: 'text', text: JSON.stringify({ products: items, total: items.length }) }] };
+    }
+  });
+
+  navigator.modelContext.registerTool({
+    name: 'add_to_cart',
+    description: 'Add a product to the shopping cart by product ID and quantity.',
+    inputSchema: { type: 'object', properties: { productId: { type: 'string', description: 'Product identifier (e.g. "WH-1000")' }, quantity: { type: 'number', description: 'Number of items (default 1)' } }, required: ['productId'] },
+    annotations: { readOnlyHint: 'false' },
+    async execute({ productId, quantity = 1 }) {
+      const p = PRODUCTS[productId];
+      if (!p) return { content: [{ type: 'text', text: `Error: Product ${productId} not found` }] };
+      cart.push({ productId, name: p.name, price: p.price, quantity });
+      return { content: [{ type: 'text', text: JSON.stringify({ added: p.name, quantity, cartTotal: cart.reduce((s, i) => s + i.price * i.quantity, 0), itemsInCart: cart.length }) }] };
+    }
+  });
+
+  navigator.modelContext.registerTool({
+    name: 'checkout',
+    description: 'Complete the purchase. Processes payment for all items in cart. Irreversible action.',
+    inputSchema: { type: 'object', properties: { paymentMethod: { type: 'string', description: '"credit_card", "paypal", or "crypto"' }, shippingSpeed: { type: 'string', description: '"standard" (7-14 days) or "express" (2-3 days, +$15)' } }, required: ['paymentMethod'] },
+    annotations: { readOnlyHint: 'false' },
+    async execute({ paymentMethod, shippingSpeed = 'standard' }) {
+      const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+      const shipping = shippingSpeed === 'express' ? 15 : (total >= 100 ? 0 : 9.99);
+      return { content: [{ type: 'text', text: JSON.stringify({ status: 'order_confirmed', orderId: 'VG-' + Math.random().toString(36).substr(2, 8).toUpperCase(), items: cart.length, subtotal: total, shipping, grandTotal: total + shipping, paymentMethod, shippingSpeed, estimatedDelivery: shippingSpeed === 'express' ? '2-3 business days' : '7-14 business days' }) }] };
+    }
+  });
+
+  // PolicyCheck trust verification tool
+  navigator.modelContext.registerTool({
+    name: 'check_seller_policy',
+    description: "Analyze a seller's policies to provide a risk assessment and buyer protection rating before purchase. Returns risk scores, detected risk factors like binding arbitration or no-refund clauses, and a plain-language summary. Use this tool before completing any e-commerce purchase to verify seller trustworthiness.",
+    inputSchema: { type: 'object', properties: { seller_url: { type: 'string', description: 'The URL of the seller or product page to analyze' }, policy_text: { type: 'string', description: 'Raw policy text if already available (returns policy, terms, etc.)' } }, required: ['seller_url'] },
+    annotations: { readOnlyHint: 'true' },
+    async execute({ seller_url, policy_text }) {
+      try {
+        const r = await fetch('https://policycheck.tools/api/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ seller_url, policy_text }) });
+        if (r.ok) { const d = await r.json(); return { content: [{ type: 'text', text: JSON.stringify(d) }] }; }
+      } catch (e) { /* fallback */ }
+      return { content: [{ type: 'text', text: JSON.stringify(MOCK_RESULT) }] };
+    }
+  });
+
+  // Verify
+  if (navigator.modelContextTesting) {
+    const tools = await navigator.modelContextTesting.listTools();
+    addLog('sys', 'WebMCP initialized', `${tools.length} tools registered via navigator.modelContext`);
+  }
+
+  document.getElementById('t-count').textContent = '4 TOOLS';
+  renderTools();
+}
+
+// === UI ===
+const TOOL_META = [
+  { name: 'browse_products', desc: 'Browse product catalog', type: 's', icon: '📦' },
+  { name: 'add_to_cart', desc: 'Add items to cart', type: 's', icon: '🛒' },
+  { name: 'checkout', desc: 'Complete purchase', type: 's', icon: '💳' },
+  { name: 'check_seller_policy', desc: 'Independent risk assessment (user extension)', type: 'p', icon: '🛡️' },
+];
+
+function renderTools() {
+  const seller = TOOL_META.filter(t => t.type === 's');
+  const trust = TOOL_META.filter(t => t.type === 'p');
+  document.getElementById('tools-ui').innerHTML =
+    seller.map(t => `
+      <div class="tc" id="tc-${t.name}">
+        <div class="tc-icon s">${t.icon}</div>
+        <div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div></div>
+        <span class="tc-tag st">SELLER</span>
+      </div>
+    `).join('') +
+    '<div class="tool-origin-divider">User-installed tools (PolicyCheck Extension)</div>' +
+    trust.map(t => `
+      <div class="tc hl" id="tc-${t.name}">
+        <div class="tc-icon p">${t.icon}</div>
+        <div><div class="tc-name">${t.name}</div><div class="tc-desc">${t.desc}</div><div style="font-size:9px;color:var(--accent);margin-top:2px;font-family:var(--mono);">Independent of seller · policycheck.tools</div></div>
+        <span class="tc-tag tt">USER TOOL</span>
+      </div>
+    `).join('');
+}
+
+function addLog(type, action, detail) {
+  const el = document.getElementById('log');
+  const t = new Date().toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const colors = { call:'var(--blue)', result:'var(--green)', pc:'var(--accent)', risk:'var(--yellow)', sys:'var(--faint)', think:'var(--text)' };
+  const icons = { call:'→', result:'←', pc:'🛡️', risk:'⚠️', sys:'•', think:'🤖' };
+  const d = document.createElement('div');
+  d.className = 'le';
+  d.innerHTML = `<div class="le-time">${t}</div><div class="le-act" style="color:${colors[type]||'var(--text)'}">${icons[type]||'•'} ${esc(action)}</div>${detail?`<div class="le-det ${type==='pc'||type==='risk'?'risk':''}">${esc(detail)}</div>`:''}`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// === Agent workflow ===
+async function runAgent() {
+  const btn = document.getElementById('run');
+  btn.disabled = true; btn.textContent = '⏳ Running…';
+  document.getElementById('log').innerHTML = '';
+  cart.length = 0;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+
+  const exec = async (name, args) => {
+    if (wmReady && navigator.modelContextTesting) {
+      return await navigator.modelContextTesting.executeTool(name, JSON.stringify(args));
+    }
+    // Mock fallback
+    if (name === 'browse_products') return JSON.stringify({ products: Object.entries(PRODUCTS).map(([id, p]) => ({ id, ...p })), total: 4 });
+    if (name === 'add_to_cart') { cart.push({ productId: args.productId, name: PRODUCTS[args.productId].name, price: PRODUCTS[args.productId].price, quantity: args.quantity || 1 }); return JSON.stringify({ added: PRODUCTS[args.productId].name, quantity: 1, cartTotal: 249, itemsInCart: 1 }); }
+    if (name === 'check_seller_policy') return JSON.stringify(MOCK_RESULT);
+    if (name === 'checkout') return JSON.stringify({ status:'order_confirmed', orderId:'VG-'+Math.random().toString(36).substr(2,8).toUpperCase(), items:1, subtotal:249, shipping:0, grandTotal:249, paymentMethod:args.paymentMethod, shippingSpeed:'standard', estimatedDelivery:'7-14 business days' });
+    return '{}';
+  };
+
+  // 1. Discover
+  addLog('sys', 'Agent connects to page', 'Discovering tools via navigator.modelContextTesting.listTools()…');
+  await wait(700);
+  if (wmReady && navigator.modelContextTesting) {
+    const tools = await navigator.modelContextTesting.listTools();
+    addLog('result', `Discovered ${tools.length} tools (3 seller + 1 user-installed trust tool)`, tools.map(t => t.name || 'unknown').join(', '));
+  } else {
+    addLog('result', 'Discovered 3 seller tools + 1 user-installed trust tool (PolicyCheck)', 'browse_products, add_to_cart, checkout, check_seller_policy');
+  }
+  await wait(500);
+
+  // 2. Browse
+  addLog('think', 'Agent: "User wants headphones. Let me browse products."');
+  await wait(400);
+  addLog('call', 'executeTool("browse_products", {})', '');
+  await wait(300);
+  const browse = await exec('browse_products', {});
+  addLog('result', 'browse_products →', typeof browse === 'string' ? browse : JSON.stringify(browse));
+  await wait(500);
+
+  // 3. Add to cart
+  addLog('think', 'Agent: "Found Wireless Headphones Pro — $249. Adding to cart."');
+  await wait(400);
+  addLog('call', 'executeTool("add_to_cart", {productId:"WH-1000"})', '');
+  await wait(300);
+  const cartRes = await exec('add_to_cart', { productId: 'WH-1000', quantity: 1 });
+  addLog('result', 'add_to_cart →', typeof cartRes === 'string' ? cartRes : JSON.stringify(cartRes));
+  await wait(700);
+
+  // 4. PolicyCheck — the key moment
+  const tcEl = document.getElementById('tc-check_seller_policy');
+  if (tcEl) tcEl.classList.add('active');
+  addLog('think', 'Agent: "Before checkout, let me use my PolicyCheck extension to independently verify this seller."');
+  await wait(500);
+  addLog('pc', 'executeTool("check_seller_policy", {seller_url, policy_text})', '');
+  await wait(400);
+  const policyRaw = await exec('check_seller_policy', { seller_url: SELLER_URL, policy_text: POLICY_TEXT });
+  const p = typeof policyRaw === 'string' ? JSON.parse(policyRaw) : policyRaw;
+  await wait(400);
+
+  const factors = (p.risk_factors || []).map(f => `  [${f.severity.toUpperCase()}] ${f.factor}: ${f.detail}`).join('\n');
+  const pos = (p.positives || []).map(x => `  ✓ ${x}`).join('\n');
+  addLog('risk', `PolicyCheck — Risk: ${(p.risk_level||'medium').toUpperCase()} (${p.risk_score||6.2}/10) — Rating: ${p.buyer_protection_rating||'C+'}`,
+    `Risk Factors:\n${factors}\n\nPositives:\n${pos}\n\nSummary: ${p.summary || ''}`);
+  await wait(900);
+
+  // 5. Informed decision
+  addLog('think', `Agent: "PolicyCheck found ${(p.risk_factors||[]).length} risk factors including binding arbitration and non-refundable opened items. Risk level: ${(p.risk_level||'medium').toUpperCase()}. Recommending PayPal for buyer protection."`);
+  await wait(700);
+
+  // 6. Checkout
+  addLog('call', 'executeTool("checkout", {paymentMethod:"paypal"})', '');
+  await wait(300);
+  const order = await exec('checkout', { paymentMethod: 'paypal', shippingSpeed: 'standard' });
+  addLog('result', 'checkout →', typeof order === 'string' ? order : JSON.stringify(order));
+  await wait(400);
+
+  addLog('sys', 'Workflow complete', 'Agent verified seller policies BEFORE purchase, chose PayPal for buyer protection, and informed user of risks.');
+  if (tcEl) tcEl.classList.remove('active');
+
+  btn.disabled = false; btn.textContent = '▶ Run Agent Purchase Flow';
+}
+
+init();
+</script>
+</body>
+</html>
