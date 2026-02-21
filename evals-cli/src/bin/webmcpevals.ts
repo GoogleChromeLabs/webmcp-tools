@@ -3,26 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleAiBackend } from "../backend/googleai.js";
 import { readFile, writeFile } from "fs/promises";
+import { resolve } from "path";
 import * as dotenv from "dotenv";
-import { functionCallOutcome } from "../utils.js";
-import { Eval, TestResult } from "../types/evals.js";
-import { OllamaBackend } from "../backend/ollama.js";
+import { Eval } from "../types/evals.js";
 import { SingleBar } from "cli-progress";
 import minimist from "minimist";
 import { WebmcpConfig } from "../types/config.js";
 import { renderWebmcpReport } from "../report/report.js";
 import { listToolsFromPage } from "../browser/webmcp.js";
-
-const SYSTEM_PROMPT = `
-# INSTRUCTIONS
-You are an agent helping a user navigate a page via the tools made available to you. You must
-use the tools available to help the user.
-
-# ADDITIONAL CONTEXT
-Today's date is: Monday 19th of January, 2026.
-`;
+import { executeEvals } from "../evaluator.js";
 
 dotenv.config();
 
@@ -55,62 +45,31 @@ const config: WebmcpConfig = {
 const tools = await listToolsFromPage(config.url);
 
 const tests: Array<Eval> = JSON.parse(
-  await readFile(config.evalsFile, "utf-8"),
+  await readFile(resolve(process.cwd(), config.evalsFile), "utf-8"),
 );
-
-let backend;
-switch (config.backend) {
-  case "ollama":
-    backend = new OllamaBackend(
-      process.env.OLLAMA_HOST!,
-      config.model,
-      SYSTEM_PROMPT,
-      tools,
-    );
-    break;
-  default:
-    backend = new GoogleAiBackend(
-      process.env.GOOGLE_AI!,
-      config.model,
-      SYSTEM_PROMPT,
-      tools,
-    );
-}
 
 const progressBar = new SingleBar({
   format:
     "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
 });
-progressBar.start(tests.length, 0, { accuracy: "0.00" });
-let testCount = 0;
+
 let passCount = 0;
-let failCount = 0;
-let errorCount = 0;
-const testResults: Array<TestResult> = [];
-for (const test of tests) {
-  testCount++;
-  try {
-    const response = await backend.execute(test.messages);
-    const outcome = functionCallOutcome(test.expectedCall, response);
-    testResults.push({ test, response, outcome });
-    outcome === "pass" ? passCount++ : failCount++;
-  } catch (e) {
-    console.warn("Error running test:", e);
-    errorCount++;
+const finalResults = await executeEvals(tests, tools, config, (event) => {
+  if (event.type === 'start') {
+    progressBar.start(event.total, 0, { accuracy: "0.00" });
+  } else if (event.type === 'progress') {
+    if (event.result.outcome === "pass") passCount++;
+    progressBar.update(event.testNumber, {
+      accuracy: ((passCount / event.testNumber) * 100).toFixed(2),
+    });
   }
-  progressBar.update(testCount, {
-    accuracy: ((passCount / testCount) * 100).toFixed(2),
-  });
-}
-
-const report = renderWebmcpReport(config, {
-  results: testResults,
-  testCount,
-  errorCount,
-  failCount,
-  passCount,
 });
+progressBar.stop();
 
-await writeFile("report.html", report);
-console.log("\nReport saved to report.html");
+const report = renderWebmcpReport(config, finalResults);
+
+const reportName = `report-${Date.now()}.html`;
+
+await writeFile(reportName, report);
+console.log(`\nReport saved to ${reportName}`);
 process.exit();

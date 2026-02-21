@@ -1,0 +1,134 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+:root {
+  font-family: 'Roboto', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #f8f9fa; /* Google light background */
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --primary-color: #1a73e8;
+  --primary-hover: #1765cc;
+  --surface-color: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --border-color: #dadce0;
+  --error-color: #d93025;
+  --success-color: #188038;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    background-color: #202124;
+    --surface-color: #303134;
+    --text-primary: #e8eaed;
+    --text-secondary: #9aa0a6;
+    --border-color: #5f6368;
+    --primary-color: #8ab4f8;
+    --primary-hover: #aecbfa;
+    --error-color: #f28b82;
+    --success-color: #81c995;
+  }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--text-primary);
+  background: var(--background-color);
+}
+
+h1, h2, h3 {
+  color: var(--text-primary);
+  margin-top: 0;
+  font-weight: 500;
+}
+
+p, span, div {
+  color: var(--text-primary);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* --- Refactored Component Styles --- */
+
+.log-viewer-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.log-link {
+  color: var(--primary-color);
+}
+
+.website-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.url-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.config-inputs-row {
+  display: flex;
+  gap: 16px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.config-error-text {
+  color: var(--error-color);
+  margin-left: 10px;
+  font-size: 12px;
+}
+
+.editor-container {
+  height: 300px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.editor-container.has-error {
+  border-color: var(--error-color);
+}
+
+.tab-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.tool-card-summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.tool-card-pre {
+  margin-top: 8px;
+  overflow-x: auto;
+  font-size: 11px;
+}

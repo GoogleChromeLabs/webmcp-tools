@@ -15,11 +15,12 @@ The project is structured as follows:
 - `src/`: Source code.
   - `bin/runevals.ts`: Entry point that loads tool schemas from a JSON file and runs the evaluation loop.
   - `bin/webmcpevals.ts`: Entry point that loads tool schemas live from a browser page via the WebMCP API.
+  - `bin/serve.ts`: Entry point that starts the WebMCP Evals Web UI sidecar.
   - `backend/`: Implementation of LLM backends (e.g., `googleai.ts`, `ollama.ts`).
   - `browser/`: Browser automation for WebMCP tool discovery (`webmcp.ts`).
   - `types/`: TypeScript definitions for tools, messages, and evaluations.
 - `examples/`: Detailed examples and test data.
-    - `travel/`: A travel agent example containing `schema.json` and `evals.json`.
+  - `travel/`: A travel agent example containing `schema.json` and `evals.json`.
 
 ## Prerequisites
 
@@ -59,7 +60,7 @@ The project is structured as follows:
 Loads tool schemas from a local JSON file.
 
 ```bash
-node dist/bin/runevals.js --model=gemini-2.5-flash --tools=examples/travel/schema.json --evals=examples/travel/evals.json
+node dist/bin/runevals.js --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
 With Ollama:
@@ -89,6 +90,18 @@ node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=exa
 | `--evals`   | Yes      | —                  | Path to the evals JSON file           |
 | `--backend` | No       | `gemini`           | Backend to use (`gemini` or `ollama`) |
 | `--model`   | No       | `gemini-2.5-flash` | Model name                            |
+
+### `serve` — WebMCP Evals UI sidecar
+
+Starts a local web server to provide a visual interface for configuring and running evaluations.
+
+```bash
+node dist/bin/serve.js --port=8080
+```
+
+| Argument | Required | Default | Description               |
+| -------- | -------- | ------- | ------------------------- |
+| `--port` | No       | `8080`  | Port to run the server on |
 
 ## Argument Constraints
 

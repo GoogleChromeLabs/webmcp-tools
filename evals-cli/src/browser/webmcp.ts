@@ -31,6 +31,7 @@ const CHROME_CANARY_PATHS: string[] = [
   // Linux unstable channel
   "/usr/bin/google-chrome-unstable",
   "/opt/google/chrome-unstable/google-chrome",
+  "/usr/bin/google-chrome-canary"
 ];
 
 function findChromePath(): string {

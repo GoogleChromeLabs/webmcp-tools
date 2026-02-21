@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test dist/test/matcher.test.js"
+    "test": "tsc && node --test dist/test/matcher.test.js",
+    "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^25.0.10",
     "typescript": "^5.9.3"
   },
@@ -17,7 +20,9 @@
     "@types/cli-progress": "^3.11.6",
     "@types/minimist": "^1.2.5",
     "cli-progress": "^3.12.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "minimist": "^1.2.8",
     "ollama": "^0.6.3",
     "puppeteer-core": "^24.37.5"
