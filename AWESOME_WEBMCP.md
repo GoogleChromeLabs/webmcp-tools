@@ -17,6 +17,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "I want to book a flight from New York to Los Angeles for two people on next Thursday."
 - [Animal Viewer](https://65s6dw.csb.app/) - A simple codesandbox demo page that shows either a dog or a cat image.
   - **Example Prompt:** "Show me a dog on this page"
+- **Moving Beyond Screen Scraping**: A hands-on example of using WebMCP to create an agentic first experience with 10x fewer tokens
+  - [Article](https://lnkd.in/daPRAtMX) | [Code](https://lnkd.in/dkZ3Jizn)
 
 ## Contributing
 
