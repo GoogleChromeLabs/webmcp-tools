@@ -5,7 +5,7 @@
 
 /**
  * Checks if the actual argument matches the expected argument, supporting both exact matching and constraints.
- * 
+ *
  * If the expected argument is a constraint object (all keys start with `$`), it evaluates the constraints.
  * Otherwise, it performs a recursive deep equality check, allowing nested constraints.
  *
