@@ -20,7 +20,7 @@ A curated list of awesome WebMCP demos.
 - [React Chess](https://matipojo.github.io/WebMCP-React-Chess) - A chess game that exposes WebMCP tools (`get-board-state`, `make-move`, `get-possible-moves`, `restart-game`, `promote-pawn`) so an AI agent can play chess through `navigator.modelContext`.
   - **Example Prompt:** "Let's play chess. You play white. Make your opening move."
 - **Moving Beyond Screen Scraping**: A hands-on example of using WebMCP to create an agentic first experience with 10x fewer tokens
-  - [Article](https://lnkd.in/daPRAtMX) | [Code](https://lnkd.in/dkZ3Jizn)
+  - [Article](https://medium.com/data-science-collective/moving-beyond-screen-scraping-creating-an-agent-native-web-app-with-webmcp-4818552e1e11) | [Code](https://github.com/hugozanini/air-bird-booking-web-mcp)
 
 ## Contributing
 
