@@ -1,0 +1,30 @@
+[
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "I want to buy a leather jacket. Please find one, add it to my cart, and then checkout."
+            }
+        ],
+        "expectedCall": [
+            {
+                "functionName": "searchProducts",
+                "arguments": {
+                    "query": "leather jacket"
+                }
+            },
+            {
+                "functionName": "addToCart",
+                "arguments": {
+                    "productId": "p3",
+                    "quantity": 1
+                }
+            },
+            {
+                "functionName": "checkout",
+                "arguments": {}
+            }
+        ]
+    }
+]

@@ -49,7 +49,14 @@ export function useEvalsRunner() {
              } else if (data.type === 'progress') {
                 const r = data.result;
                 const logType = r.outcome === 'pass' ? 'success' : 'error';
-                newLogs.push({ msg: `[${data.testNumber}] Test ${r.outcome}: Expected ${r.test.expectedCall.functionName}, got ${r.response?.functionName}`, type: logType });
+
+               if (r.outcome === 'pass') {
+                 newLogs.push({ msg: `[${data.testNumber}] Test pass: ${r.test.expectedCall.functionName}`, type: 'success' });
+               } else {
+                 newLogs.push({ msg: `[${data.testNumber}] Test fail: ${r.test.expectedCall.functionName}`, type: 'error' });
+                 newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(r.test.expectedCall.arguments)}, got ${JSON.stringify(r.response?.arguments)}`, type: logType });
+               }
+
              } else if (data.type === 'completed') {
                 const res = data.results;
                 newLogs.push({ msg: `\nCompleted! Passed: ${res.passCount}, Failed: ${res.failCount}, Errors: ${res.errorCount}`, type: 'info' });

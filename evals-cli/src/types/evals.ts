@@ -31,8 +31,8 @@ export type FunctionResponseMessage = {
 };
 
 export type Eval = {
-  messages: [Message];
-  expectedCall: FunctionCall | null;
+  messages: Message[];
+  expectedCall: FunctionCall | FunctionCall[] | null;
 };
 
 export type FunctionCall = {

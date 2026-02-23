@@ -20,7 +20,7 @@ export class GoogleAiBackend implements Backend {
     this.googleGenAI = new GoogleGenAI({ apiKey });
   }
 
-  async execute(messages: [Message]): Promise<ToolCall | null> {
+  async execute(messages: Message[]): Promise<ToolCall | null> {
     const functionDeclarations: Array<FunctionDeclaration> = this.tools.map(
       (t) => {
         return {
@@ -46,7 +46,7 @@ export class GoogleAiBackend implements Backend {
               {
                 functionCall: {
                   name: m.name,
-                  arguments: m.arguments,
+                  args: m.arguments as Record<string, unknown>,
                 },
               },
             ],
@@ -77,6 +77,7 @@ export class GoogleAiBackend implements Backend {
     };
 
     const response = await this.googleGenAI.models.generateContent(request);
+
     if (!response.functionCalls) {
       return null;
     }

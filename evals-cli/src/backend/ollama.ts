@@ -20,7 +20,7 @@ export class OllamaBackend implements Backend {
     this.ollama = new Ollama({ host });
   }
 
-  async execute(messages: [Message]): Promise<ToolCall | null> {
+  async execute(messages: Message[]): Promise<ToolCall | null> {
     let ollamaTools: Array<OllamaTool> = this.tools.map((t) => {
       return {
         function: {

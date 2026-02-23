@@ -1,0 +1,45 @@
+[
+    {
+        "messages": [
+            {
+                "role": "user",
+                "type": "message",
+                "content": "Search for a jacket, add it to the cart (the Bomber Jacket). Then search for a hat, add the Baseball Cap to the cart. Finally, checkout."
+            }
+        ],
+        "expectedCall": [
+            {
+                "functionName": "searchProducts",
+                "arguments": {
+                    "query": {
+                        "$pattern": "[Jj]acket"
+                    }
+                }
+            },
+            {
+                "functionName": "addToCart",
+                "arguments": {
+                    "productId": "p3"
+                }
+            },
+            {
+                "functionName": "searchProducts",
+                "arguments": {
+                    "query": {
+                        "$pattern": "[Hh]at"
+                    }
+                }
+            },
+            {
+                "functionName": "addToCart",
+                "arguments": {
+                    "productId": "p4"
+                }
+            },
+            {
+                "functionName": "checkout",
+                "arguments": {}
+            }
+        ]
+    }
+]

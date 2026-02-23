@@ -106,23 +106,22 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     }
 
     const rawTools = await page.evaluate(async () => {
-      if (
-        typeof (navigator as unknown as Record<string, unknown>)[
-          "modelContextTesting"
-        ] === "undefined"
-      ) {
+      let mct = null;
+      if (typeof (navigator as any).modelContext?.listTools === 'function') {
+        mct = (navigator as any).modelContext;
+      } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
+        mct = (navigator as any).modelContextTesting;
+      }
+
+      if (!mct) {
         return null;
       }
-      return await (
-        navigator as unknown as {
-          modelContextTesting: { listTools: () => Promise<unknown> };
-        }
-      ).modelContextTesting.listTools();
+      return await mct.listTools();
     });
 
     if (rawTools === null) {
       throw new Error(
-        "The WebMCP API (window.navigator.modelContextTesting) is not available on this page.\n" +
+        "The WebMCP API (window.navigator.modelContext or modelContextTesting) is not available on this page.\n" +
           "Please ensure:\n" +
           "  1. You are using Chrome Canary version 146 or later.\n" +
           "  2. The flag chrome://flags/#enable-webmcp-testing is enabled.\n" +
@@ -133,7 +132,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     if (!Array.isArray(rawTools) || rawTools.length === 0) {
       throw new Error(
         `The WebMCP API returned no tools from ${url}. ` +
-          "Ensure the page exposes tools via modelContextTesting.listTools().",
+        "Ensure the page exposes tools via modelContext.listTools().",
       );
     }
 

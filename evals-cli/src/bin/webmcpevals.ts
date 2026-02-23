@@ -12,7 +12,7 @@ import minimist from "minimist";
 import { WebmcpConfig } from "../types/config.js";
 import { renderWebmcpReport } from "../report/report.js";
 import { listToolsFromPage } from "../browser/webmcp.js";
-import { executeEvals } from "../evaluator.js";
+import { executeInBrowserEvals, executeEvals } from "../evaluator.js";
 
 dotenv.config();
 
@@ -54,7 +54,7 @@ const progressBar = new SingleBar({
 });
 
 let passCount = 0;
-const finalResults = await executeEvals(tests, tools, config, (event) => {
+const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
   if (event.type === 'start') {
     progressBar.start(event.total, 0, { accuracy: "0.00" });
   } else if (event.type === 'progress') {

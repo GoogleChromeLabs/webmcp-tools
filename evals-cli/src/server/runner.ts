@@ -10,7 +10,7 @@ import { Config, WebmcpConfig } from "../types/config.js";
 import { listToolsFromPage } from "../browser/webmcp.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import * as dotenv from "dotenv";
-import { executeEvals, RunEvent } from "../evaluator.js";
+import { executeInBrowserEvals, executeEvals, RunEvent } from "../evaluator.js";
 
 export { RunEvent };
 
@@ -30,7 +30,7 @@ export async function runEvaluations(
       const tests: Array<Eval> = JSON.parse(
         await readFile(config.evalsFile, "utf-8"),
       );
-      finalResults = await executeEvals(tests, tools, config, onEvent);
+      finalResults = await executeInBrowserEvals(tests, tools, config, onEvent);
       reportHtml = renderWebmcpReport(config as WebmcpConfig, finalResults);
 
     } else {
