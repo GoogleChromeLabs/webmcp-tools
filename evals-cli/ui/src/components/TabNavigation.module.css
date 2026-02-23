@@ -1,0 +1,44 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+.tab {
+  padding: 12px 24px;
+  background: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  margin-bottom: -1px;
+  z-index: 1;
+}
+
+.tab:hover {
+  background-color: rgba(26, 115, 232, 0.04);
+  color: var(--text-primary);
+}
+
+.active {
+  color: var(--primary-color);
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+  border-bottom-color: var(--surface-color);
+}
+
+.icon {
+  margin-right: 8px;
+  vertical-align: middle;
+}

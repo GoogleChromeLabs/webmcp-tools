@@ -1,0 +1,67 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  background-color: var(--surface-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+  align-self: start;
+}
+
+.card:hover {
+  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.name {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.params {
+  font-size: 0.75rem;
+  background-color: rgba(0,0,0,0.03);
+  padding: 8px;
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  .params {
+    background-color: rgba(255,255,255,0.05);
+  }
+}
+
+.summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.pre {
+  margin-top: 8px;
+  overflow-x: auto;
+  font-size: 11px;
+}

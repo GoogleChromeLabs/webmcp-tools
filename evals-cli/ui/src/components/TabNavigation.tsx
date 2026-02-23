@@ -5,6 +5,7 @@
 
 import { FiSettings, FiGlobe } from 'react-icons/fi';
 import type { Tab } from '../types';
+import styles from './TabNavigation.module.css';
 
 interface TabNavigationProps {
   activeTab: Tab;
@@ -13,19 +14,19 @@ interface TabNavigationProps {
 
 export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
   return (
-    <div className="tabs-container">
-      <div className="tabs">
+    <div className={styles.container}>
+      <div className={styles.tabs}>
         <button
-          className={`tab ${activeTab === 'local' ? 'active' : ''}`}
+          className={`${styles.tab} ${activeTab === 'local' ? styles.active : ''}`}
           onClick={() => setActiveTab('local')}
         >
-          <FiSettings className="tab-icon" /> Local Tools
+          <FiSettings className={styles.icon} /> Local Tools
         </button>
         <button
-          className={`tab ${activeTab === 'website' ? 'active' : ''}`}
+          className={`${styles.tab} ${activeTab === 'website' ? styles.active : ''}`}
           onClick={() => setActiveTab('website')}
         >
-          <FiGlobe className="tab-icon" /> Website Tools
+          <FiGlobe className={styles.icon} /> Website Tools
         </button>
       </div>
     </div>

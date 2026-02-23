@@ -13,7 +13,6 @@ import { ConfigPanel } from './components/ConfigPanel';
 import { WebsitePanel } from './components/WebsitePanel';
 import { LogViewer } from './components/LogViewer';
 import styles from './App.module.css';
-import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('local');
@@ -48,7 +47,7 @@ function App() {
   };
 
   return (
-    <div className={styles.appContainer}>
+    <div className={styles.container}>
       <Toaster position="top-right" />
       <div className={styles.leftColumn}>
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />

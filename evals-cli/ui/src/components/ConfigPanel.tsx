@@ -6,6 +6,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import type { AppConfig } from '../types';
+import styles from './ConfigPanel.module.css';
 
 interface ConfigPanelProps {
   config: AppConfig;
@@ -67,9 +68,9 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
     <div className="form-group config-panel">
       <label>
         JSON Configuration
-        {errorMsg && <span className="config-error-text">{errorMsg}</span>}
+        {errorMsg && <span className={styles.errorText}>{errorMsg}</span>}
       </label>
-      <div className={`editor-container ${errorMsg ? 'has-error' : ''}`}>
+      <div className={`${styles.editorContainer} ${errorMsg ? styles.hasError : ''}`}>
         <Editor
           height="100%"
           defaultLanguage="json"

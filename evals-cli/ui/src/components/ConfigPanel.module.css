@@ -1,0 +1,21 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+ 
+ .errorText {
+  color: var(--error-color);
+  margin-left: 10px;
+  font-size: 12px;
+}
+
+.editorContainer {
+  height: 300px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.editorContainer.hasError {
+  border-color: var(--error-color);
+}

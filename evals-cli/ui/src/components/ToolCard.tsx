@@ -5,6 +5,7 @@
 
 import { FiCode } from 'react-icons/fi';
 import type { ToolDef } from '../types';
+import styles from './ToolCard.module.css';
 
 interface ToolCardProps {
   tool: ToolDef;
@@ -12,19 +13,19 @@ interface ToolCardProps {
 
 export function ToolCard({ tool }: ToolCardProps) {
   return (
-    <div className="tool-card">
-      <div className="tool-header">
+    <div className={styles.card}>
+      <div className={styles.header}>
         <FiCode color="var(--primary-color)" />
-        <span className="tool-name">{tool.functionName}</span>
+        <span className={styles.name}>{tool.functionName}</span>
       </div>
-      <div className="tool-desc">{tool.description}</div>
+      <div className={styles.desc}>{tool.description}</div>
       {tool.parameters && Object.keys(tool.parameters).length > 0 && (
-        <div className="tool-params">
+        <div className={styles.params}>
           <details>
-            <summary className="tool-card-summary">
+            <summary className={styles.summary}>
               Parameters Schema
             </summary>
-            <pre className="tool-card-pre">
+            <pre className={styles.pre}>
               {JSON.stringify(tool.parameters, null, 2)}
             </pre>
           </details>

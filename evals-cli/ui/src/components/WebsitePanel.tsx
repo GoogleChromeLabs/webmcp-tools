@@ -7,6 +7,7 @@ import { FiCloudLightning } from 'react-icons/fi';
 import { useWebsiteTools } from '../hooks/useWebsiteTools';
 import { ToolCard } from './ToolCard';
 import type { AppConfig } from '../types';
+import styles from './WebsitePanel.module.css';
 
 interface WebsitePanelProps {
   config: AppConfig;
@@ -22,10 +23,10 @@ export function WebsitePanel({
   const { tools, fetchingTools, fetchToolsForWebsite } = useWebsiteTools();
 
   return (
-    <div className="website-panel">
+    <div className={styles.container}>
       <div className="form-group">
         <label>Target Website URL</label>
-        <div className="url-input-group">
+        <div className={styles.urlInputGroup}>
           <input
             type="text"
             value={config.url || ''}
@@ -43,8 +44,8 @@ export function WebsitePanel({
         </div>
       </div>
 
-      <div className="config-inputs-row">
-        <div className="form-group flex-1">
+      <div className={styles.configInputsRow}>
+        <div className={`form-group ${styles.flex1}`}>
           <label>Evals File Path</label>
           <input
             type="text"
@@ -53,7 +54,7 @@ export function WebsitePanel({
             disabled={running}
           />
         </div>
-        <div className="form-group flex-1">
+        <div className={`form-group ${styles.flex1}`}>
           <label>Model</label>
           <input
             type="text"
@@ -65,9 +66,9 @@ export function WebsitePanel({
       </div>
 
       {tools.length > 0 && (
-        <div className="tools-preview mt-16">
+        <div className={`tools-preview ${styles.mt16}`}>
           <h3>Discovered Tools ({tools.length})</h3>
-          <div className="tools-grid">
+          <div className={styles.toolsGrid}>
             {tools.map((t, idx) => (
               <ToolCard key={idx} tool={t} />
             ))}

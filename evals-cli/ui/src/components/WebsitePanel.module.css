@@ -1,0 +1,36 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.urlInputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.configInputsRow {
+  display: flex;
+  gap: 16px;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.mt16 {
+  margin-top: 16px;
+}
+
+.toolsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
