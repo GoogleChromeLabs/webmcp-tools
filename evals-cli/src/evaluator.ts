@@ -3,47 +3,88 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleAiBackend } from "./backend/googleai.js";
-import { OllamaBackend } from "./backend/ollama.js";
-import { functionCallOutcome } from "./utils.js";
-import { Eval, FunctionCall, TestResult, TestResults } from "./types/evals.js";
+import { functionCallOutcome, findChromePath } from "./utils.js";
+import { Eval, TestResult, TestResults } from "./types/evals.js";
 import { Tool } from "./types/tools.js";
 import { Config, WebmcpConfig } from "./types/config.js";
 import puppeteer, { Browser, Page } from "puppeteer-core";
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
+import { ToolLoopAgent, generateText, tool as defineTool, jsonSchema } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 
-const CHROME_CANARY_PATHS: string[] = [
-  // Windows
-  path.join(
-    os.homedir(),
-    "AppData",
-    "Local",
-    "Google",
-    "Chrome SxS",
-    "Application",
-    "chrome.exe",
-  ),
-  // macOS
-  "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-  // Linux unstable channel
-  "/usr/bin/google-chrome-unstable",
-  "/opt/google/chrome-unstable/google-chrome",
-  "/usr/bin/google-chrome-canary"
-];
-
-function findChromePath(): string {
-  for (const candidate of CHROME_CANARY_PATHS) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
+function getModel(config: Config | WebmcpConfig) {
+  if (config.backend === "openai") {
+    return createOpenAI({ apiKey: process.env.OPENAI_API_KEY })(config.model);
+  } else if (config.backend === "anthropic") {
+    return createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY })(config.model);
+  } else {
+    return createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_AI || process.env.GEMINI_API_KEY })(config.model);
   }
-  throw new Error(
-    "Chrome Canary not found. Please install Chrome Canary (version 146+).\n" +
-    "Checked paths:\n" +
-    CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
-  );
+}
+
+function convertToAITools(rawTools: Tool[]): Record<string, any> {
+  const aiTools: Record<string, any> = {};
+  for (const t of rawTools) {
+    aiTools[t.functionName] = defineTool({
+      description: t.description,
+      parameters: jsonSchema(t.parameters || {}) as any,
+    } as any);
+  }
+  return aiTools;
+}
+
+function mapMessages(messages: any[]): any[] {
+  return messages.map(m => {
+    if (m.type === 'functioncall') {
+      return {
+        role: 'assistant',
+        content: [{ type: 'tool-call', toolName: m.name, toolCallId: 'call-' + m.name, args: m.arguments }]
+      };
+    } else if (m.type === 'functionresponse') {
+      return {
+        role: 'tool',
+        content: [{ type: 'tool-result', toolName: m.name, toolCallId: 'call-' + m.name, result: m.response?.result ?? m.response }]
+      };
+    } else {
+      return { role: (m.role === 'model' ? 'assistant' : m.role) as any, content: m.content || '' };
+    }
+  });
+}
+
+function createBrowserTool(t: any, page: Page): any {
+  return defineTool({
+    description: t.description,
+    parameters: jsonSchema(t.parameters || {}) as any,
+    execute: async (args: any) => {
+      console.log("Executing tool in browser:", t.functionName);
+      const executionResult: any = await page.evaluate(async (name, args) => {
+        try {
+          let mct = null;
+          if (typeof (navigator as any).modelContext?.executeTool === 'function') {
+            mct = (navigator as any).modelContext;
+          } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function') {
+            mct = (navigator as any).modelContextTesting;
+          }
+          if (!mct) return { error: "modelContext not found" };
+          const result = await mct.executeTool(name, args || {});
+          await new Promise(r => setTimeout(r, 3000));
+          return { result };
+        } catch (e: any) {
+          return { error: e.message || String(e) };
+        }
+      }, t.functionName, args);
+
+      let r = executionResult.result;
+      if (typeof r === 'string') {
+        try { r = JSON.parse(r); } catch (e) { }
+      }
+      if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
+        return r.content[0].text;
+      }
+      return r || executionResult.error || "Success";
+    }
+  } as any);
 }
 
 const SYSTEM_PROMPT = `
@@ -67,24 +108,7 @@ export async function executeEvals(
   config: Config | WebmcpConfig,
   onEvent?: (event: RunEvent) => void
 ): Promise<TestResults> {
-  let backend;
-  switch (config.backend) {
-    case "ollama":
-      backend = new OllamaBackend(
-        process.env.OLLAMA_HOST!,
-        config.model,
-        SYSTEM_PROMPT,
-        tools,
-      );
-      break;
-    default:
-      backend = new GoogleAiBackend(
-        process.env.GOOGLE_AI!,
-        config.model,
-        SYSTEM_PROMPT,
-        tools,
-      );
-  }
+  const model = getModel(config);
 
   if (onEvent) {
     onEvent({ type: 'start', total: tests.length });
@@ -99,7 +123,25 @@ export async function executeEvals(
   for (const test of tests) {
     testCount++;
     try {
-      const response = await backend.execute(test.messages);
+      const aiMessages = mapMessages(test.messages);
+      const aiTools = convertToAITools(tools);
+      const aiResult = await generateText({
+        model,
+        system: SYSTEM_PROMPT,
+        messages: aiMessages,
+        tools: aiTools,
+      });
+
+      let response: any = null;
+      if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
+        const call: any = aiResult.toolCalls[0];
+        response = {
+          functionName: call.toolName,
+          args: call.args || call.arguments || {}
+        };
+      } else {
+        response = { text: aiResult.text };
+      }
       const outcome = functionCallOutcome(Array.isArray(test.expectedCall) ? test.expectedCall[0] : test.expectedCall, response);
       const result: TestResult = { test, response, outcome };
       testResults.push(result);
@@ -189,89 +231,32 @@ export async function executeInBrowserEvals(
     for (let i = 0; i < numIterations; i++) {
       const currentFunctionCall = expectedCalls[i] || null;
       try {
-        let backend;
-        switch (config.backend) {
-          case "ollama":
-            backend = new OllamaBackend(
-              process.env.OLLAMA_HOST!,
-              config.model,
-              SYSTEM_PROMPT,
-              currentTools,
-            );
-            break;
-          default:
-            backend = new GoogleAiBackend(
-              process.env.GOOGLE_AI!,
-              config.model,
-              SYSTEM_PROMPT,
-              currentTools,
-            );
+        const model = getModel(config);
+
+        const aiToolsWithExecution: Record<string, any> = {};
+        for (const t of currentTools) {
+          aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
         }
 
-        const response = await backend.execute(currentMessages);
-        const outcome = functionCallOutcome(currentFunctionCall, response);
-
-        // Execute the actual tool in the browser if LLM generated a call
-        let browserExecutionResult = null;
-        if (response && response.functionName) {
-          console.log("Executing tool in browser:", response.functionName);
-          browserExecutionResult = await page.evaluate(async (name, args) => {
-            try {
-              let modelContext = null;
-              if (typeof (navigator as any).modelContext?.executeTool === 'function' && typeof (navigator as any).modelContext?.listTools === 'function') {
-                modelContext = (navigator as any).modelContext;
-              } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function' && typeof (navigator as any).modelContextTesting?.listTools === 'function') {
-                modelContext = (navigator as any).modelContextTesting;
+        const agentWithExec = new ToolLoopAgent({
+          model,
+          tools: aiToolsWithExecution,
+          instructions: SYSTEM_PROMPT,
+          prepareCall: async (_opts: any): Promise<any> => {
+            // Reload tools
+            const rawTools = await page!.evaluate(async () => {
+              let mct = null;
+              if (typeof (navigator as any).modelContext?.listTools === 'function') {
+                mct = (navigator as any).modelContext;
+              } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
+                mct = (navigator as any).modelContextTesting;
               }
-
-              if (!modelContext) return { error: "modelContext or modelContextTesting not found with required methods" };
-
-              const result = await modelContext.executeTool(name, args || {});
-
-              await new Promise(r => setTimeout(r, 3000));
-
-              // After execution finishes, grab the new state of tools
-              const newTools = await modelContext.listTools();
-
-              return { result, newTools };
-            } catch (e: any) {
-              return { error: e.message || String(e) };
-            }
-          }, response.functionName, response.args || {});
-
-          currentMessages.push({
-            role: "model",
-            type: "functioncall",
-            name: response.functionName,
-            arguments: response.args || {}
-          });
-
-          if (browserExecutionResult) {
-            currentMessages.push({
-              role: "user",
-              type: "functionresponse",
-              name: response.functionName,
-              response: {
-                result: (() => {
-                  let r = browserExecutionResult.result;
-                  if (typeof r === 'string') {
-                    try {
-                      r = JSON.parse(r);
-                    } catch (e) {
-                      // ignore parse errors, keep as string
-                    }
-                  }
-
-                  if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
-                    return r.content[0].text;
-                  }
-                  return r || browserExecutionResult.error || "Success"
-                })()
-              }
+              if (!mct) return null;
+              return await mct.listTools();
             });
 
-            if (browserExecutionResult.newTools && Array.isArray(browserExecutionResult.newTools)) {
-              currentTools = browserExecutionResult.newTools.map((t: any) => {
+            if (rawTools && Array.isArray(rawTools)) {
+              currentTools = rawTools.map((t: any) => {
                 const schema = t.inputSchema;
                 const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
                 return {
@@ -281,16 +266,55 @@ export async function executeInBrowserEvals(
                 };
               });
             }
+
+            // We need to re-bind the execute methods to the newly loaded tools
+            const updatedAiTools: Record<string, any> = {};
+            for (const t of currentTools) {
+              updatedAiTools[t.functionName] = createBrowserTool(t, page!);
+            }
+
+            return { tools: updatedAiTools };
+          }
+        });
+
+        // Let the agent loop run
+        const promptMsg: any = test.messages[0];
+        const promptString = promptMsg?.content || "No prompt provided";
+        const resultPayload = await agentWithExec.generate({ prompt: promptString });
+
+        let response: any = null;
+        let lastToolCall = null;
+
+        // Try to reconstruct the expected response format for validate logic
+        if (resultPayload.steps && resultPayload.steps.length > 0) {
+          for (const step of resultPayload.steps) {
+            if (step.toolCalls && step.toolCalls.length > 0) {
+              lastToolCall = step.toolCalls[step.toolCalls.length - 1];
+            }
           }
         }
 
-        // FIXME: Should gracefully handle multiple expected calls
-        const result: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
-        testResults.push(result);
+        if (lastToolCall) {
+          const call: any = lastToolCall;
+          response = {
+            functionName: call.toolName,
+            args: call.args || call.arguments || {}
+          };
+        } else {
+          response = { text: resultPayload.text };
+        }
+
+        const outcome = functionCallOutcome(currentFunctionCall, response);
+
+        // Convert currentMessages back to Eval messages if needed...
+        // For TestResult, we used to pass object, let's build a dummy result object that matches runner output.
+        const mockResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
+
+        testResults.push(mockResult);
         outcome === "pass" ? passCount++ : failCount++;
 
         if (onEvent) {
-          onEvent({ type: 'progress', testNumber: testCount, result });
+          onEvent({ type: 'progress', testNumber: testCount, result: mockResult });
         }
       } catch (e: any) {
         console.warn("Error running test:", e);
