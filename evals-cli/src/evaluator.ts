@@ -10,40 +10,7 @@ import { Eval, FunctionCall, TestResult, TestResults } from "./types/evals.js";
 import { Tool } from "./types/tools.js";
 import { Config, WebmcpConfig } from "./types/config.js";
 import puppeteer, { Browser, Page } from "puppeteer-core";
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
-
-const CHROME_CANARY_PATHS: string[] = [
-  // Windows
-  path.join(
-    os.homedir(),
-    "AppData",
-    "Local",
-    "Google",
-    "Chrome SxS",
-    "Application",
-    "chrome.exe",
-  ),
-  // macOS
-  "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-  // Linux unstable channel
-  "/usr/bin/google-chrome-unstable",
-  "/opt/google/chrome-unstable/google-chrome",
-  "/usr/bin/google-chrome-canary"
-];
-
-function findChromePath(): string {
-  for (const candidate of CHROME_CANARY_PATHS) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
   }
-  throw new Error(
-    "Chrome Canary not found. Please install Chrome Canary (version 146+).\n" +
-    "Checked paths:\n" +
-    CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
-  );
 }
 
 const SYSTEM_PROMPT = `
