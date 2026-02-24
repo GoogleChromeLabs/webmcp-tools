@@ -69,7 +69,6 @@ function createBrowserTool(t: any, page: Page): any {
     description: t.description,
     parameters: jsonSchema(t.parameters || {}) as any,
     execute: async (args: any) => {
-      console.log("Executing tool in browser:", t.functionName);
       const executionResult: any = await page.evaluate(async (name, args) => {
         try {
           let mct = null;
@@ -192,7 +191,7 @@ export async function executeInBrowserEvals(
   config: WebmcpConfig,
   onEvent?: (event: RunEvent) => void
 ): Promise<TestResults> {
-  console.log("Executing actual evals for config:", config);
+  console.log("Executing in-browser evals for config:", config);
   const executablePath = findChromePath();
   let browser: Browser | null = null;
   let page: Page | null = null;
@@ -285,7 +284,7 @@ export async function executeInBrowserEvals(
               updatedAiTools[t.functionName] = createBrowserTool(t, page!);
             }
 
-            return { tools: updatedAiTools };
+            return { ..._opts, tools: updatedAiTools };
           }
         });
 
