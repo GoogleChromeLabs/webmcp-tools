@@ -41,42 +41,47 @@ export function useEvalsRunner() {
         onmessage(msg) {
           if (msg.event === 'close') return;
           try {
-             // SSE parsing is safe with fetch-event-source
-             const data = JSON.parse(msg.data);
-             let newLogs: LogEntry[] = [];
-             if (data.type === 'start') {
-               newLogs.push({ msg: `Started evaluation: ${data.total} tests total.`, type: 'info' });
-             } else if (data.type === 'progress') {
-                const r = data.result;
-                const logType = r.outcome === 'pass' ? 'success' : 'error';
+            // SSE parsing is safe with fetch-event-source
+            const data = JSON.parse(msg.data);
+            let newLogs: LogEntry[] = [];
+            if (data.type === 'start') {
+              newLogs.push({ msg: `Started evaluation: ${data.total} tests total.`, type: 'info' });
+            } else if (data.type === 'progress') {
+              const r = data.result;
+              const logType = r.outcome === 'pass' ? 'success' : 'error';
 
-               if (r.outcome === 'pass') {
-                 newLogs.push({ msg: `[${data.testNumber}] Test pass: ${r.test.expectedCall.functionName}`, type: 'success' });
-               } else {
-                 newLogs.push({ msg: `[${data.testNumber}] Test fail: ${r.test.expectedCall.functionName}`, type: 'error' });
-                 newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(r.test.expectedCall.arguments)}, got ${JSON.stringify(r.response?.arguments)}`, type: logType });
-               }
+              // FIXME: Add graceful handling of expected calls
+              const expectedCall = r.test.expectedCall?.[0];
+              const expectedArgs = expectedCall?.arguments;
+              const actualArgs = r.response?.arguments;
 
-             } else if (data.type === 'completed') {
-                const res = data.results;
-                newLogs.push({ msg: `\nCompleted! Passed: ${res.passCount}, Failed: ${res.failCount}, Errors: ${res.errorCount}`, type: 'info' });
-               const reportUrl = data.reportFile ? `/${data.reportFile}` : '/report.html';
-               newLogs.push({ msg: `\nReport generated. `, type: 'info', isLink: true, linkUrl: reportUrl });
-                setRunning(false);
-                checkAbort.abort();
-             } else if (data.type === 'error') {
-                newLogs.push({ msg: `ERROR: ${data.message}`, type: 'error' });
-                setRunning(false);
-                checkAbort.abort();
-             }
-             
-             if (newLogs.length > 0) {
-                 // Batch updates to reduce re-renders
-                 logsRef.current = [...logsRef.current, ...newLogs];
-                 setLogs([...logsRef.current]);
-             }
-          } catch(e) {
-             console.error("Failed to parse message", e);
+              if (r.outcome === 'pass') {
+                newLogs.push({ msg: `[${data.testNumber}] Test pass: ${expectedCall?.functionName}`, type: 'success' });
+              } else {
+                newLogs.push({ msg: `[${data.testNumber}] Test fail: ${expectedCall?.functionName}`, type: 'error' });
+                newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(actualArgs)}`, type: logType });
+              }
+
+            } else if (data.type === 'completed') {
+              const res = data.results;
+              newLogs.push({ msg: `\nCompleted! Passed: ${res.passCount}, Failed: ${res.failCount}, Errors: ${res.errorCount}`, type: 'info' });
+              const reportUrl = data.reportFile ? `/${data.reportFile}` : '/report.html';
+              newLogs.push({ msg: `\nReport generated. `, type: 'info', isLink: true, linkUrl: reportUrl });
+              setRunning(false);
+              checkAbort.abort();
+            } else if (data.type === 'error') {
+              newLogs.push({ msg: `ERROR: ${data.message}`, type: 'error' });
+              setRunning(false);
+              checkAbort.abort();
+            }
+
+            if (newLogs.length > 0) {
+              // Batch updates to reduce re-renders
+              logsRef.current = [...logsRef.current, ...newLogs];
+              setLogs([...logsRef.current]);
+            }
+          } catch (e) {
+            console.error("Failed to parse message", e);
           }
         },
         onerror(err) {
@@ -97,9 +102,9 @@ export function useEvalsRunner() {
       if (e instanceof Error) {
         if (e.message.includes('abort')) return;
         toast.error(`Error: ${e.message}`);
-        setLogs(l => [...l, { msg: `Error: ${e.message}`, type: 'error'}]);
+        setLogs(l => [...l, { msg: `Error: ${e.message}`, type: 'error' }]);
       } else {
-         toast.error(`An unknown error occurred`);
+        toast.error(`An unknown error occurred`);
       }
       setRunning(false);
     }

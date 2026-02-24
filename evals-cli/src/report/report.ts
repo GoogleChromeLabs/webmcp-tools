@@ -79,71 +79,70 @@ function renderConfiguration(config: Config): string {
 function renderDetails(testResults: Array<TestResult>): string {
   return `<ul>${testResults.map((t, i) => renderDetail(i, t)).join("")}</ul>`;
 }
+
+// FIXME: Add graceful handling of expected calls
 function renderDetail(testNumber: number, testResult: TestResult): string {
-    return ""
+  const functionNameOutcome =
+    testResult.test.expectedCall?.[0].functionName ===
+      testResult.response?.functionName
+      ? "pass"
+      : "fail";
+
+  const argsOutcome = matchesArgument(
+    testResult.test.expectedCall?.[0].arguments,
+    testResult.response?.args,
+  )
+    ? "pass"
+    : "fail";
+  return `<li>
+        <details>
+            <summary>
+                <span>Test #${testNumber}:</span>
+                <span class="${testResult.outcome}">${testResult.outcome.toUpperCase()}</span>
+            </summary>
+            <div>
+                <details>
+                    <summary>Messages</summary>
+                    ${renderMessages(testResult.test.messages)}
+                </details>
+
+                <div>
+                    <h4><a href="#result-${testNumber}">Result</a></h4>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Expected</th>
+                            <th>Actual</th>
+                            <th>Pass</th>
+                        </tr>
+                        <tr>
+                            <th>Function</th>
+                            <td><code>${testResult.test.expectedCall?.[0].functionName || null}</code></td>
+                            <td><code>${testResult.response?.functionName || null}</code></td>
+                            <td class="${functionNameOutcome}">
+                                ${functionNameOutcome.toUpperCase()}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Arguments</th>
+                            <td>
+                                <code>
+                                    <pre>${JSON.stringify(testResult.test.expectedCall?.[0].arguments || null, null, 2)}</pre>
+                                </code>
+                            </td>
+                            <td>
+                                <code>
+                                    <pre>${JSON.stringify(testResult.response?.args || null, null, 2)}</pre>
+                                </code>
+                            </td>
+                            <td class="${argsOutcome}">${argsOutcome.toUpperCase()}</td></tr>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </details>
+    </li>`;
 }
-// function renderDetail2(testNumber: number, testResult: TestResult): string {
-//   const functionNameOutcome =
-//     testResult.test.expectedCall?.functionName ===
-//     testResult.response?.functionName
-//       ? "pass"
-//       : "fail";
-
-//   const argsOutcome = matchesArgument(
-//     testResult.test.expectedCall?.arguments,
-//     testResult.response?.args,
-//   )
-//     ? "pass"
-//     : "fail";
-//   return `<li>
-//         <details>
-//             <summary>
-//                 <span>Test #${testNumber}:</span>
-//                 <span class="${testResult.outcome}">${testResult.outcome.toUpperCase()}</span>
-//             </summary>
-//             <div>
-//                 <details>
-//                     <summary>Messages</summary>
-//                     ${renderMessages(testResult.test.messages)}
-//                 </details>
-
-//                 <div>
-//                     <h4><a href="#result-${testNumber}">Result</a></h4>
-//                     <table>
-//                         <tr>
-//                             <th></th>
-//                             <th>Expected</th>
-//                             <th>Actual</th>
-//                             <th>Pass</th>
-//                         </tr>
-//                         <tr>
-//                             <th>Function</th>
-//                             <td><code>${testResult.test.expectedCall?.functionName || null}</code></td>
-//                             <td><code>${testResult.response?.functionName || null}</code></td>
-//                             <td class="${functionNameOutcome}">
-//                                 ${functionNameOutcome.toUpperCase()}
-//                             </td>
-//                         </tr>
-//                         <tr>
-//                             <th>Arguments</th>
-//                             <td>
-//                                 <code>
-//                                     <pre>${JSON.stringify(testResult.test.expectedCall?.arguments || null, null, 2)}</pre>
-//                                 </code>
-//                             </td>
-//                             <td>
-//                                 <code>
-//                                     <pre>${JSON.stringify(testResult.response?.args || null, null, 2)}</pre>
-//                                 </code>
-//                             </td>
-//                             <td class="${argsOutcome}">${argsOutcome.toUpperCase()}</td></tr>
-//                         </tr>
-//                     </table>
-//                 </div>
-//             </div>
-//         </details>
-//     </li>`;
-// }
 
 function renderMessages(messages: Array<Message>): string {
   return `<ul>${messages.map(renderMessage).join("")}</ul>`;

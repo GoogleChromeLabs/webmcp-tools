@@ -217,21 +217,21 @@ export async function executeInBrowserEvals(
           console.log("Executing tool in browser:", response.functionName);
           browserExecutionResult = await page.evaluate(async (name, args) => {
             try {
-              let mct = null;
+              let modelContext = null;
               if (typeof (navigator as any).modelContext?.executeTool === 'function' && typeof (navigator as any).modelContext?.listTools === 'function') {
-                mct = (navigator as any).modelContext;
+                modelContext = (navigator as any).modelContext;
               } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function' && typeof (navigator as any).modelContextTesting?.listTools === 'function') {
-                mct = (navigator as any).modelContextTesting;
+                modelContext = (navigator as any).modelContextTesting;
               }
 
-              if (!mct) return { error: "modelContext or modelContextTesting not found with required methods" };
+              if (!modelContext) return { error: "modelContext or modelContextTesting not found with required methods" };
 
-              const result = await mct.executeTool(name, args || {});
+              const result = await modelContext.executeTool(name, args || {});
 
               await new Promise(r => setTimeout(r, 3000));
 
               // After execution finishes, grab the new state of tools
-              const newTools = await mct.listTools();
+              const newTools = await modelContext.listTools();
 
               return { result, newTools };
             } catch (e: any) {
@@ -285,7 +285,7 @@ export async function executeInBrowserEvals(
         }
 
         // FIXME: Should gracefully handle multiple expected calls
-        const result: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall }, response, outcome };
+        const result: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
         testResults.push(result);
         outcome === "pass" ? passCount++ : failCount++;
 
