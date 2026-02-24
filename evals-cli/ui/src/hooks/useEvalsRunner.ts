@@ -53,13 +53,12 @@ export function useEvalsRunner() {
               // FIXME: Add graceful handling of expected calls
               const expectedCall = r.test.expectedCall?.[0];
               const expectedArgs = expectedCall?.arguments;
-              const actualArgs = r.response?.arguments;
 
               if (r.outcome === 'pass') {
-                newLogs.push({ msg: `[${data.testNumber}] Test pass: ${expectedCall?.functionName}`, type: 'success' });
+                newLogs.push({ msg: `[${data.testNumber}] Test pass: ${expectedCall?.functionName}, got ${JSON.stringify(r.response)}`, type: 'success' });
               } else {
                 newLogs.push({ msg: `[${data.testNumber}] Test fail: ${expectedCall?.functionName}`, type: 'error' });
-                newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(actualArgs)}`, type: logType });
+                newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(r.response)}`, type: logType });
               }
 
             } else if (data.type === 'completed') {
