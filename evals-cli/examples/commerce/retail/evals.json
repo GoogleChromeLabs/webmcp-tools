@@ -7,15 +7,17 @@
         "content": "I'm looking for Nike running shoes under $120."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "running shoes",
-        "brand": "Nike",
-        "maxPrice": 120,
-        "category": "Footwear"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "running shoes",
+          "brand": "Nike",
+          "maxPrice": 120,
+          "category": "Footwear"
+        }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -25,15 +27,17 @@
         "content": "Find me the cheapest iPhone 15."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "iPhone 15",
-        "brand": "Apple",
-        "category": "Electronics",
-        "sortBy": "price_low_to_high"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "iPhone 15",
+          "brand": "Apple",
+          "category": "Electronics",
+          "sortBy": "price_low_to_high"
+        }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -43,18 +47,20 @@
         "content": "I need 10.5 inch blue sneakers available for pickup in 90210."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "sneakers",
-        "category": "Footwear",
-        "location": "90210",
-        "attributes": {
-          "color": "blue",
-          "size": "10.5 inch"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "sneakers",
+          "category": "Footwear",
+          "location": "90210",
+          "attributes": {
+            "color": "blue",
+            "size": "10.5 inch"
+          }
         }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -64,14 +70,16 @@
         "content": "Find a gaming laptop under $1500, but don't show me any Dell models."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "gaming laptop",
-        "maxPrice": 1500,
-        "category": "Electronics"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "gaming laptop",
+          "maxPrice": 1500,
+          "category": "Electronics"
+        }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -81,13 +89,15 @@
         "content": "Amazon has the Sony WH-1000XM5 for $299. Can you match that for ID 'SONY-XM5'?"
       }
     ],
-    "expectedCall": {
-      "functionName": "priceMatch",
-      "arguments": {
-        "productId": "SONY-XM5",
-        "competitorPrice": 299
+    "expectedCall": [
+      {
+        "functionName": "priceMatch",
+        "arguments": {
+          "productId": "SONY-XM5",
+          "competitorPrice": 299
+        }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -97,15 +107,17 @@
         "content": "Show me top-rated 4K TV from Samsung."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "4K TV",
-        "brand": "Samsung",
-        "category": "Electronics",
-        "sortBy": "rating"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "4K TV",
+          "brand": "Samsung",
+          "category": "Electronics",
+          "sortBy": "rating"
+        }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -115,17 +127,19 @@
         "content": "I need some black ink cartridges for my HP printer."
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "ink cartridges",
-        "brand": "HP",
-        "category": "Office Supplies",
-        "attributes": {
-          "color": "black"
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "ink cartridges",
+          "brand": "HP",
+          "category": "Office Supplies",
+          "attributes": {
+            "color": "black"
+          }
         }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -135,18 +149,20 @@
         "content": "Is there a brand new MacBook Pro available at the store in Austin?"
       }
     ],
-    "expectedCall": {
-      "functionName": "searchProducts",
-      "arguments": {
-        "query": "MacBook Pro",
-        "brand": "Apple",
-        "category": "Electronics",
-        "location": "Austin",
-        "attributes": {
-          "isNew": true
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "MacBook Pro",
+          "brand": "Apple",
+          "category": "Electronics",
+          "location": "Austin",
+          "attributes": {
+            "isNew": true
+          }
         }
       }
-    }
+    ]
   },
   {
     "messages": [
@@ -166,12 +182,14 @@
         "content": "Do you have the Dyson V15 in stock at 10001? I want to pick it up today."
       }
     ],
-    "expectedCall": {
-      "functionName": "checkInventory",
-      "arguments": {
-        "productId": "Dyson V15",
-        "zipCode": "10001"
+    "expectedCall": [
+      {
+        "functionName": "checkInventory",
+        "arguments": {
+          "productId": "Dyson V15",
+          "zipCode": "10001"
+        }
       }
-    }
+    ]
   }
 ]
