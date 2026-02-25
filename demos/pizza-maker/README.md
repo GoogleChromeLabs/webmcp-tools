@@ -24,9 +24,8 @@ navigator.modelContext.registerTool({
     required: ['topping'],
   },
   execute: ({ topping, count }) => {
-    const num = count || 5;
-    addTopping(topping, size, num);
-    return `Added ${num} ${topping} topping(s)`;
+    addTopping(topping, size, count);
+    return `Added ${count} ${topping} topping(s)`;
   },
 });
 ```

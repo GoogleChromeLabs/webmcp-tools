@@ -47,7 +47,7 @@ function toggleLayer(layerId, action = 'toggle') {
   }
 }
 
-function addTopping(emoji, size = 'Medium', count = 1) {
+function addTopping(emoji, size = 'Medium', count = 5) {
   for (let i = 0; i < count; i++) {
     const topping = document.createElement('div');
     topping.className = 'topping';
@@ -236,9 +236,8 @@ if (window.navigator.modelContext) {
       required: ['topping'],
     },
     execute: ({ topping, size, count }) => {
-      const num = count || 5;
-      addTopping(topping, size, num);
-      return `Added ${num} ${topping} topping(s)`;
+      addTopping(topping, size, count);
+      return `Added ${count} ${topping} topping(s)`;
     },
   });
 
