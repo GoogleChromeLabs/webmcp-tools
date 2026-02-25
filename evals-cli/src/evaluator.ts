@@ -35,17 +35,6 @@ function getModel(config: Config | WebmcpConfig) {
   return google(modelId.replace("google:", ""));
 }
 
-function convertToAITools(rawTools: Tool[]): Record<string, any> {
-  const aiTools: Record<string, any> = {};
-  for (const t of rawTools) {
-    aiTools[t.functionName] = defineTool({
-      description: t.description,
-      parameters: jsonSchema(t.parameters || {}) as any,
-    } as any);
-  }
-  return aiTools;
-}
-
 function mapMessages(messages: any[]): any[] {
   return messages.map(m => {
     if (m.type === 'functioncall') {
@@ -68,6 +57,7 @@ function createBrowserTool(t: any, page: Page): any {
   return defineTool({
     description: t.description,
     parameters: jsonSchema(t.parameters || {}) as any,
+    inputSchema: jsonSchema(t.parameters || {}) as any,
     execute: async (args: any) => {
       const executionResult: any = await page.evaluate(async (name, args) => {
         try {
@@ -113,6 +103,22 @@ export type RunEvent =
   | { type: 'completed'; results: TestResults; reportFile?: string }
   | { type: 'error'; message: string };
 
+function mapJsonSchemaToVercelTools(inputTools: any): Record<string, any> {
+  const tools: Record<string, any> = {};
+  inputTools.forEach((toolDef: any) => {
+    const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
+    const parameters = hasParams ? toolDef.parameters : { type: 'object', properties: {} };
+
+    tools[toolDef.functionName] = {
+      description: toolDef.description,
+      parameters: jsonSchema(parameters),
+      inputSchema: jsonSchema(parameters),
+    };
+  });
+
+  return tools;
+}
+
 export async function executeEvals(
   tests: Array<Eval>,
   tools: Array<Tool>,
@@ -135,12 +141,11 @@ export async function executeEvals(
     testCount++;
     try {
       const aiMessages = mapMessages(test.messages);
-      const aiTools = convertToAITools(tools);
       const aiResult = await generateText({
         model,
         system: SYSTEM_PROMPT,
         messages: aiMessages,
-        tools: aiTools,
+        tools: mapJsonSchemaToVercelTools(tools)
       });
 
       let response: any = null;
@@ -148,7 +153,7 @@ export async function executeEvals(
         const call: any = aiResult.toolCalls[0];
         response = {
           functionName: call.toolName,
-          args: call.args || call.arguments || {}
+          args: call.input || call.args || call.arguments || {}
         };
       } else {
         response = { text: aiResult.text };
@@ -162,7 +167,6 @@ export async function executeEvals(
         onEvent({ type: 'progress', testNumber: testCount, result });
       }
     } catch (e: any) {
-      console.warn("Error running test:", e);
       errorCount++;
       const result: TestResult = {
         test,
@@ -235,110 +239,119 @@ export async function executeInBrowserEvals(
 
     testCount++;
     const expectedCalls = Array.isArray(test.expectedCall) ? test.expectedCall : [test.expectedCall];
-    const numIterations = expectedCalls.length;
     let currentMessages = [...test.messages];
     let currentTools = [...tools];
 
-    for (let i = 0; i < numIterations; i++) {
-      const currentFunctionCall = expectedCalls[i] || null;
-      try {
-        const model = getModel(config);
+    try {
+      const model = getModel(config);
 
-        const aiToolsWithExecution: Record<string, any> = {};
-        for (const t of currentTools) {
-          aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
-        }
+      const aiToolsWithExecution: Record<string, any> = {};
+      for (const t of currentTools) {
+        aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+      }
 
-        const agentWithExec = new ToolLoopAgent({
-          model,
-          tools: aiToolsWithExecution,
-          instructions: SYSTEM_PROMPT,
-          prepareCall: async (_opts: any): Promise<any> => {
-            // Reload tools
-            const rawTools = await page!.evaluate(async () => {
-              let mct = null;
-              if (typeof (navigator as any).modelContext?.listTools === 'function') {
-                mct = (navigator as any).modelContext;
-              } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
-                mct = (navigator as any).modelContextTesting;
-              }
-              if (!mct) return null;
-              return await mct.listTools();
+      const agentWithExec = new ToolLoopAgent({
+        model,
+        tools: aiToolsWithExecution,
+        instructions: SYSTEM_PROMPT,
+        prepareCall: async (_opts: any): Promise<any> => {
+          // Reload tools
+          const rawTools = await page!.evaluate(async () => {
+            let mct = null;
+            if (typeof (navigator as any).modelContext?.listTools === 'function') {
+              mct = (navigator as any).modelContext;
+            } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
+              mct = (navigator as any).modelContextTesting;
+            }
+            if (!mct) return null;
+            return await mct.listTools();
+          });
+
+          if (rawTools && Array.isArray(rawTools)) {
+            currentTools = rawTools.map((t: any) => {
+              const schema = t.inputSchema;
+              const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
+              return {
+                description: t.description,
+                functionName: t.name,
+                parameters,
+              };
             });
+          }
 
-            if (rawTools && Array.isArray(rawTools)) {
-              currentTools = rawTools.map((t: any) => {
-                const schema = t.inputSchema;
-                const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
-                return {
-                  description: t.description,
-                  functionName: t.name,
-                  parameters,
-                };
+          // We need to re-bind the execute methods to the newly loaded tools
+          const updatedAiTools: Record<string, any> = {};
+          for (const t of currentTools) {
+            updatedAiTools[t.functionName] = createBrowserTool(t, page!);
+          }
+
+          return { ..._opts, tools: updatedAiTools };
+        }
+      });
+
+      // Let the agent loop run
+      const promptMsg: any = test.messages[0];
+      const promptString = promptMsg?.content || "No prompt provided";
+      const resultPayload = await agentWithExec.generate({ prompt: promptString });
+
+      // Gather executed tool calls across all steps
+      const executedCalls: any[] = [];
+      if (resultPayload.steps && resultPayload.steps.length > 0) {
+        for (const step of resultPayload.steps) {
+          if (step.toolCalls && step.toolCalls.length > 0) {
+            for (const call of step.toolCalls) {
+              executedCalls.push({
+                functionName: call.toolName,
+                args: (call as any).input || (call as any).args || (call as any).arguments || {}
               });
             }
-
-            // We need to re-bind the execute methods to the newly loaded tools
-            const updatedAiTools: Record<string, any> = {};
-            for (const t of currentTools) {
-              updatedAiTools[t.functionName] = createBrowserTool(t, page!);
-            }
-
-            return { ..._opts, tools: updatedAiTools };
-          }
-        });
-
-        // Let the agent loop run
-        const promptMsg: any = test.messages[0];
-        const promptString = promptMsg?.content || "No prompt provided";
-        const resultPayload = await agentWithExec.generate({ prompt: promptString });
-
-        let response: any = null;
-        let lastToolCall = null;
-
-        // Try to reconstruct the expected response format for validate logic
-        if (resultPayload.steps && resultPayload.steps.length > 0) {
-          for (const step of resultPayload.steps) {
-            if (step.toolCalls && step.toolCalls.length > 0) {
-              lastToolCall = step.toolCalls[step.toolCalls.length - 1];
-            }
           }
         }
+      }
 
-        if (lastToolCall) {
-          const call: any = lastToolCall;
-          response = {
-            functionName: call.toolName,
-            args: call.args || call.arguments || {}
-          };
-        } else {
-          response = { text: resultPayload.text };
-        }
-
-        const outcome = functionCallOutcome(currentFunctionCall, response);
-
-        // Convert currentMessages back to Eval messages if needed...
-        // For TestResult, we used to pass object, let's build a dummy result object that matches runner output.
-        const mockResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
-
+      // If no tool was called at all, record a failure against the first expected call
+      if (executedCalls.length === 0) {
+        const response: any = { text: resultPayload.text };
+        const mockResult: TestResult = { test, response, outcome: "fail" };
         testResults.push(mockResult);
-        outcome === "pass" ? passCount++ : failCount++;
-
+        failCount++;
         if (onEvent) {
           onEvent({ type: 'progress', testNumber: testCount, result: mockResult });
         }
-      } catch (e: any) {
-        console.warn("Error running test:", e);
-        errorCount++;
-        const result: TestResult = {
-          test,
-          response: null as any,
-          outcome: "error"
-        };
-        testResults.push(result);
-        if (onEvent) {
-          onEvent({ type: 'progress', testNumber: testCount, result });
+      } else {
+        // Evaluate each expected call sequentially against what was executed
+        for (let i = 0; i < expectedCalls.length; i++) {
+          const currentFunctionCall = expectedCalls[i] || null;
+          const currentExecutionCall = executedCalls.length > i ? executedCalls[i] : null;
+          let response = currentExecutionCall;
+
+          if (!response) {
+            // Did not execute enough tools
+            response = { missing: "Did not execute this step" };
+          }
+
+          const outcome = functionCallOutcome(currentFunctionCall, response);
+          const mockResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
+          testResults.push(mockResult);
+          outcome === "pass" ? passCount++ : failCount++;
+
+          if (onEvent) {
+            onEvent({ type: 'progress', testNumber: testCount, result: mockResult });
+          }
         }
+      }
+
+    } catch (e: any) {
+      console.warn("Error running test:", e);
+      errorCount++;
+      const result: TestResult = {
+        test,
+        response: null as any,
+        outcome: "error"
+      };
+      testResults.push(result);
+      if (onEvent) {
+        onEvent({ type: 'progress', testNumber: testCount, result });
       }
     }
   }
