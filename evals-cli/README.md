@@ -4,7 +4,7 @@ A TypeScript framework for evaluating the tool-calling capabilities of Large Lan
 
 ## Features
 
-- **Backends**: Supports Google GenAI (Gemini) and has experimental support for Ollama.
+- **Backends**: Supports Google GenAI (Gemini) and has experimental support for the OpenAI API, Anthropic API, and Ollama.
 - **Evaluation Loop**: Automatically runs defined test cases against the model and compares actual tool calls with expected ones.
 - **Extensible**: Easy to add new backends or evaluation sets.
 
@@ -13,19 +13,26 @@ A TypeScript framework for evaluating the tool-calling capabilities of Large Lan
 The project is structured as follows:
 
 - `src/`: Source code.
-  - `bin/runevals.ts`: Entry point that loads tool schemas from a JSON file and runs the evaluation loop.
-  - `bin/webmcpevals.ts`: Entry point that loads tool schemas live from a browser page via the WebMCP API.
-  - `bin/serve.ts`: Entry point that starts the WebMCP Evals Web UI sidecar.
-  - `backend/`: Implementation of LLM backends (e.g., `googleai.ts`, `ollama.ts`).
-  - `browser/`: Browser automation for WebMCP tool discovery (`webmcp.ts`).
-  - `types/`: TypeScript definitions for tools, messages, and evaluations.
+  - `bin/`: CLI command entry points.
+    - `runevals.ts`: Runs the evaluation loop using static tool schemas from a JSON file.
+    - `webmcpevals.ts`: Runs the evaluation loop by fetching tool schemas live from a browser page via the WebMCP API.
+    - `serve.ts`: Starts the WebMCP Evals Web UI sidecar.
+  - `evaluator/`: The core evaluation engine.
+    - `index.ts`: Orchestrates the evaluation execution loops.
+    - `models.ts`: LLM instantiation mappings (Gemini, OpenAI, Anthropic, Ollama).
+    - `browser.ts`: Browser automation (Puppeteer) for testing and discovering WebMCP tools.
+    - `mappers.ts` & `prompts.ts`: Data standardization utilities and system prompts.
+  - `server/`: Express backend for the sidecar Web UI.
+  - `report/`: Generates HTML execution reports.
+  - `types/`: TypeScript definitions for configurations, evaluations, and tool schemas.
+  - `matcher.ts`: Evaluates the correctness of AI-generated tool calls against expected constraints.
 - `examples/`: Detailed examples and test data.
   - `travel/`: A travel agent example containing `schema.json` and `evals.json`.
 
 ## Prerequisites
 
 - Node.js (v18+ recommended)
-- A Google AI Studio API Key (for Gemini models)
+- Appropriate API Keys (Google GenAI, OpenAI, or Anthropic, depending on the backend used)
 - Chrome Canary 146+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
 
 ## Setup
@@ -38,11 +45,13 @@ The project is structured as follows:
 
 2.  **Configure Environment**
 
-    Create a `.env` file in the root directory and add your Google AI API key:
+    Create a `.env` file in the root directory and add any required configuration or API keys:
 
     ```bash
-    GOOGLE_AI=your_api_key_here
-    # OLLAMA_HOST=http://localhost:11434 (if using Ollama)
+    GOOGLE_AI=your_gemini_api_key
+    OPENAI_API_KEY=your_openai_api_key
+    ANTHROPIC_API_KEY=your_anthropic_api_key
+    # OLLAMA_HOST=http://localhost:11434 (if using a remote or non-standard port Ollama)
     ```
 
 3.  **Build the Project**
@@ -50,7 +59,7 @@ The project is structured as follows:
     Compile the TypeScript code to JavaScript:
 
     ```bash
-    npx tsc
+    npm run build
     ```
 
 ## Usage
@@ -69,12 +78,12 @@ With Ollama:
 node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
-| Argument    | Required | Default            | Description                           |
-| ----------- | -------- | ------------------ | ------------------------------------- |
-| `--tools`   | Yes      | —                  | Path to the tool schema JSON file     |
-| `--evals`   | Yes      | —                  | Path to the evals JSON file           |
-| `--backend` | No       | `gemini`           | Backend to use (`gemini` or `ollama`) |
-| `--model`   | No       | `gemini-2.5-flash` | Model name                            |
+| Argument    | Required | Default            | Description                                                  |
+| ----------- | -------- | ------------------ | ------------------------------------------------------------ |
+| `--tools`   | Yes      | —                  | Path to the tool schema JSON file                            |
+| `--evals`   | Yes      | —                  | Path to the evals JSON file                                  |
+| `--backend` | No       | `gemini`           | Backend to use (`gemini`, `openai`, `anthropic` or `ollama`) |
+| `--model`   | No       | `gemini-2.5-flash` | Model name                                                   |
 
 ### `webmcpevals` — live tool schemas via WebMCP
 
@@ -84,12 +93,12 @@ Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas l
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
 ```
 
-| Argument    | Required | Default            | Description                           |
-| ----------- | -------- | ------------------ | ------------------------------------- |
-| `--url`     | Yes      | —                  | URL of the page exposing WebMCP tools |
-| `--evals`   | Yes      | —                  | Path to the evals JSON file           |
-| `--backend` | No       | `gemini`           | Backend to use (`gemini` or `ollama`) |
-| `--model`   | No       | `gemini-2.5-flash` | Model name                            |
+| Argument    | Required | Default            | Description                                                  |
+| ----------- | -------- | ------------------ | ------------------------------------------------------------ |
+| `--url`     | Yes      | —                  | URL of the page exposing WebMCP tools                        |
+| `--evals`   | Yes      | —                  | Path to the evals JSON file                                  |
+| `--backend` | No       | `gemini`           | Backend to use (`gemini`, `openai`, `anthropic` or `ollama`) |
+| `--model`   | No       | `gemini-2.5-flash` | Model name                                                   |
 
 ### `serve` — WebMCP Evals UI sidecar
 

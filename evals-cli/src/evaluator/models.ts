@@ -18,6 +18,14 @@ export function getModel(config: Config | WebmcpConfig) {
     return createAnthropic({ apiKey })(modelId.replace("anthropic:", ""));
   }
 
+  if (config.backend === "ollama" || modelId.startsWith("ollama:")) {
+    const ollama = createOpenAI({
+      baseURL: process.env.OLLAMA_HOST || "http://127.0.0.1:11434/v1",
+      apiKey: "ollama", // Required by standard but ignored by Ollama locally
+    });
+    return ollama(modelId.replace("ollama:", ""));
+  }
+
   // Default to Google
   const apiKey = process.env.GOOGLE_AI || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) console.warn("Warning: Missing Google/Gemini API key");
