@@ -6,12 +6,17 @@ export function mapMessages(messages: any[]): any[] {
     if (m.type === 'functioncall') {
       return {
         role: 'assistant',
-        content: [{ type: 'tool-call', toolName: m.name, toolCallId: 'call-' + m.name, args: m.arguments }]
+        content: [{ type: 'tool-call', toolName: m.name, toolCallId: 'call-' + m.name, input: m.arguments }]
       };
     } else if (m.type === 'functionresponse') {
       return {
         role: 'tool',
-        content: [{ type: 'tool-result', toolName: m.name, toolCallId: 'call-' + m.name, result: m.response?.result ?? m.response }]
+        content: [{
+          type: 'tool-result',
+          toolName: m.name,
+          toolCallId: 'call-' + m.name,
+          output: { type: 'json', value: m.response?.result ?? m.response }
+        }]
       };
     } else {
       return { role: (m.role === 'model' ? 'assistant' : m.role) as any, content: m.content || '' };

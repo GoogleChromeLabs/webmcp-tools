@@ -4,7 +4,7 @@ A TypeScript framework for evaluating the tool-calling capabilities of Large Lan
 
 ## Features
 
-- **Backends**: Supports Google GenAI (Gemini) and has experimental support for the OpenAI API, Anthropic API, and Ollama.
+- **Backends**: Execution support for `@google/genai` (`gemini`). Integrations for local models (`ollama`), as well as full **Vercel AI SDK** (`vercel`) integration for robust multi-provider support (OpenAI, Anthropic) are available but currently considered experimental.
 - **Evaluation Loop**: Automatically runs defined test cases against the model and compares actual tool calls with expected ones.
 - **Extensible**: Easy to add new backends or evaluation sets.
 
@@ -78,12 +78,13 @@ With Ollama:
 node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
-| Argument    | Required | Default            | Description                                                  |
-| ----------- | -------- | ------------------ | ------------------------------------------------------------ |
-| `--tools`   | Yes      | —                  | Path to the tool schema JSON file                            |
-| `--evals`   | Yes      | —                  | Path to the evals JSON file                                  |
-| `--backend` | No       | `gemini`           | Backend to use (`gemini`, `openai`, `anthropic` or `ollama`) |
-| `--model`   | No       | `gemini-2.5-flash` | Model name                                                   |
+| Argument     | Required | Default            | Description                                                              |
+| ------------ | -------- | ------------------ | ------------------------------------------------------------------------ |
+| `--tools`    | Yes      | —                  | Path to the tool schema JSON file                                        |
+| `--evals`    | Yes      | —                  | Path to the evals JSON file                                              |
+| `--backend`  | No       | `gemini`           | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
+| `--provider` | No       | `google`           | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
+| `--model`    | No       | `gemini-2.5-flash` | Model name                                                               |
 
 ### `webmcpevals` — live tool schemas via WebMCP
 
@@ -93,12 +94,13 @@ Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas l
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
 ```
 
-| Argument    | Required | Default            | Description                                                  |
-| ----------- | -------- | ------------------ | ------------------------------------------------------------ |
-| `--url`     | Yes      | —                  | URL of the page exposing WebMCP tools                        |
-| `--evals`   | Yes      | —                  | Path to the evals JSON file                                  |
-| `--backend` | No       | `gemini`           | Backend to use (`gemini`, `openai`, `anthropic` or `ollama`) |
-| `--model`   | No       | `gemini-2.5-flash` | Model name                                                   |
+| Argument     | Required | Default            | Description                                                            |
+| ------------ | -------- | ------------------ | ---------------------------------------------------------------------- |
+| `--url`      | Yes      | —                  | URL of the page exposing WebMCP tools                                  |
+| `--evals`    | Yes      | —                  | Path to the evals JSON file                                            |
+| `--backend`  | No       | `vercel`           | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`)    |
+| `--provider` | No       | `gemini`           | Model provider to use with Vercel (e.g., `openai`, `anthropic`)        |
+| `--model`    | No       | `gemini-2.5-flash` | Model name                                                             |
 
 ### `serve` — WebMCP Evals UI sidecar
 

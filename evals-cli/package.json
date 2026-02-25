@@ -19,6 +19,7 @@
     "@ai-sdk/anthropic": "^3.0.47",
     "@ai-sdk/google": "^3.0.31",
     "@ai-sdk/openai": "^3.0.33",
+    "@google/genai": "^1.38.0",
     "@types/cli-progress": "^3.11.6",
     "@types/minimist": "^1.2.5",
     "ai": "^6.0.98",
@@ -27,6 +28,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "minimist": "^1.2.8",
+    "ollama": "^0.6.3",
     "puppeteer-core": "^24.37.5",
     "zod": "^4.3.6"
   }

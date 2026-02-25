@@ -11,7 +11,7 @@ import { WebmcpConfig } from "../types/config.js";
 import { SingleBar } from "cli-progress";
 import minimist from "minimist";
 import { renderWebmcpReport } from "../report/report.js";
-import { executeInBrowserEvals, executeEvals, listToolsFromPage } from "../evaluator/index.js";
+import { executeInBrowserEvals, listToolsFromPage } from "../evaluator/index.js";
 
 dotenv.config();
 
@@ -37,7 +37,8 @@ if (args.backend && args.backend === "ollama" && !args.model) {
 const config: WebmcpConfig = {
   url: args.url,
   evalsFile: args.evals,
-  backend: args.backend || "gemini",
+  backend: args.backend || "vercel",
+  provider: args.provider || "gemini",
   model: args.model || "gemini-2.5-flash",
 };
 
@@ -56,6 +57,7 @@ let passCount = 0;
 let stepCount = 0;
 const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
   if (event.type === 'start') {
+    console.log(event.message);
     progressBar.start(event.total, 0, { accuracy: "0.00" });
   } else if (event.type === 'progress') {
     stepCount++;

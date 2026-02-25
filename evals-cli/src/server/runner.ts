@@ -7,11 +7,11 @@ import { readFile, writeFile } from "fs/promises";
 import { Eval, TestResults } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import { Config, WebmcpConfig } from "../types/config.js";
-import { executeInBrowserEvals, executeEvals, RunEvent, listToolsFromPage } from "../evaluator/index.js";
+import { executeInBrowserEvals, executeLocalEvals, listToolsFromPage } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import * as dotenv from "dotenv";
+import { RunEvent } from "../backends/index.js";
 
-export { RunEvent };
 
 export async function runEvaluations(
   config: Config | WebmcpConfig,
@@ -47,7 +47,7 @@ export async function runEvaluations(
       const tests: Array<Eval> = JSON.parse(
         await readFile(config.evalsFile, "utf-8"),
       );
-      finalResults = await executeEvals(tests, tools, config, onEvent);
+      finalResults = await executeLocalEvals(tests, tools, config, onEvent);
       reportHtml = renderReport(config as Config, finalResults);
     }
 

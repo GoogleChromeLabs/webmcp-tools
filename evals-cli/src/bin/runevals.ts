@@ -12,7 +12,7 @@ import { SingleBar } from "cli-progress";
 import minimist from "minimist";
 import { Config } from "../types/config.js";
 import { renderReport } from "../report/report.js";
-import { executeEvals } from "../evaluator/index.js";
+import { executeLocalEvals } from "../evaluator/index.js";
 
 dotenv.config();
 
@@ -38,6 +38,7 @@ const config: Config = {
   toolSchemaFile: args.tools,
   evalsFile: args.evals,
   backend: args.backend || "gemini",
+  provider: args.provider,
   model: args.model || "gemini-2.5-flash",
 };
 
@@ -62,8 +63,9 @@ const progressBar = new SingleBar({
 
 let passCount = 0;
 let stepCount = 0;
-const finalResults = await executeEvals(tests, tools, config, (event) => {
+const finalResults = await executeLocalEvals(tests, tools, config, (event) => {
   if (event.type === 'start') {
+    console.log(event.message);
     progressBar.start(event.total, 0, { accuracy: "0.00" });
   } else if (event.type === 'progress') {
     stepCount++;

@@ -63,6 +63,18 @@ export function WebsitePanel({
             disabled={running}
           />
         </div>
+        <div className={`form-group ${styles.flex1}`}>
+          <label>Backend</label>
+          <select
+            value={config.backend || 'gemini'}
+            onChange={(e) => setConfig({ ...config, backend: e.target.value })}
+            disabled={running}
+          >
+            <option value="vercel">Vercel</option>
+            <option value="gemini">Gemini</option>
+            <option value="ollama">Ollama</option>
+          </select>
+        </div>
       </div>
 
       {tools.length > 0 && (

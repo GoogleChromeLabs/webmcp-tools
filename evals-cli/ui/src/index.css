@@ -97,6 +97,7 @@ p, span, div {
 }
 
 textarea,
+select,
 input[type="text"] {
   width: 100%;
   padding: 12px;
@@ -109,7 +110,14 @@ input[type="text"] {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+select {
+  appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
 textarea:focus,
+select:focus,
 input[type="text"]:focus {
   outline: none;
   border-color: var(--primary-color);
