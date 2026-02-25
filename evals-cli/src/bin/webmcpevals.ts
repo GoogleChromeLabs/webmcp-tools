@@ -7,12 +7,11 @@ import { readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
 import * as dotenv from "dotenv";
 import { Eval } from "../types/evals.js";
+import { WebmcpConfig } from "../types/config.js";
 import { SingleBar } from "cli-progress";
 import minimist from "minimist";
-import { WebmcpConfig } from "../types/config.js";
 import { renderWebmcpReport } from "../report/report.js";
-import { listToolsFromPage } from "../browser/webmcp.js";
-import { executeInBrowserEvals, executeEvals } from "../evaluator.js";
+import { executeInBrowserEvals, executeEvals, listToolsFromPage } from "../evaluator/index.js";
 
 dotenv.config();
 

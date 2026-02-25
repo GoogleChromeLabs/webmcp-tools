@@ -12,7 +12,7 @@ import { SingleBar } from "cli-progress";
 import minimist from "minimist";
 import { Config } from "../types/config.js";
 import { renderReport } from "../report/report.js";
-import { executeEvals } from "../evaluator.js";
+import { executeEvals } from "../evaluator/index.js";
 
 dotenv.config();
 

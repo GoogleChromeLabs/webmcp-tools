@@ -8,7 +8,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { runEvaluations } from './runner.js';
-import { listToolsFromPage } from '../browser/webmcp.js';
+import { listToolsFromPage } from '../evaluator/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

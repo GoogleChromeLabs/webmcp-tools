@@ -7,10 +7,9 @@ import { readFile, writeFile } from "fs/promises";
 import { Eval, TestResults } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import { Config, WebmcpConfig } from "../types/config.js";
-import { listToolsFromPage } from "../browser/webmcp.js";
+import { executeInBrowserEvals, executeEvals, RunEvent, listToolsFromPage } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import * as dotenv from "dotenv";
-import { executeInBrowserEvals, executeEvals, RunEvent } from "../evaluator.js";
 
 export { RunEvent };
 

@@ -1,123 +1,22 @@
-/**
- * Copyright 2026 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { functionCallOutcome, findChromePath } from "./utils.js";
-import { Eval, TestResult, TestResults } from "./types/evals.js";
-import { Tool } from "./types/tools.js";
-import { Config, WebmcpConfig } from "./types/config.js";
+import { generateText, ToolLoopAgent } from "ai";
 import puppeteer, { Browser, Page } from "puppeteer-core";
-import { ToolLoopAgent, generateText, tool as defineTool, jsonSchema } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenAI } from "@ai-sdk/openai";
-import { createAnthropic } from "@ai-sdk/anthropic";
+import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { Tool } from "../types/tools.js";
+import { Config, WebmcpConfig } from "../types/config.js";
+import { functionCallOutcome, findChromePath } from "../utils.js";
 
-function getModel(config: Config | WebmcpConfig) {
-  const modelId = config.model || "google:gemini-2.5-flash";
+import { getModel } from "./models.js";
+import { SYSTEM_PROMPT } from "./prompts.js";
+import { mapMessages, mapJsonSchemaToVercelTools, mapRawBrowserToolsToConfig } from "./mappers.js";
+import { createBrowserTool, listToolsFromPage } from "./browser.js";
 
-  if (config.backend === "openai" || modelId.startsWith("openai:")) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) console.warn("Warning: OPENAI_API_KEY is missing for OpenAI provider.");
-    return createOpenAI({ apiKey })(modelId.replace("openai:", ""));
-  }
-
-  if (config.backend === "anthropic" || modelId.startsWith("anthropic:")) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) console.warn("Warning: ANTHROPIC_API_KEY is missing for Anthropic provider.");
-    return createAnthropic({ apiKey })(modelId.replace("anthropic:", ""));
-  }
-
-  // Default to Google
-  const apiKey = process.env.GOOGLE_AI || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (!apiKey) console.warn("Warning: Missing Google/Gemini API key");
-  const google = createGoogleGenerativeAI({ apiKey });
-  return google(modelId.replace("google:", ""));
-}
-
-function mapMessages(messages: any[]): any[] {
-  return messages.map(m => {
-    if (m.type === 'functioncall') {
-      return {
-        role: 'assistant',
-        content: [{ type: 'tool-call', toolName: m.name, toolCallId: 'call-' + m.name, args: m.arguments }]
-      };
-    } else if (m.type === 'functionresponse') {
-      return {
-        role: 'tool',
-        content: [{ type: 'tool-result', toolName: m.name, toolCallId: 'call-' + m.name, result: m.response?.result ?? m.response }]
-      };
-    } else {
-      return { role: (m.role === 'model' ? 'assistant' : m.role) as any, content: m.content || '' };
-    }
-  });
-}
-
-function createBrowserTool(t: any, page: Page): any {
-  return defineTool({
-    description: t.description,
-    parameters: jsonSchema(t.parameters || {}) as any,
-    inputSchema: jsonSchema(t.parameters || {}) as any,
-    execute: async (args: any) => {
-      const executionResult: any = await page.evaluate(async (name, args) => {
-        try {
-          let mct = null;
-          if (typeof (navigator as any).modelContext?.executeTool === 'function') {
-            mct = (navigator as any).modelContext;
-          } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function') {
-            mct = (navigator as any).modelContextTesting;
-          }
-          if (!mct) return { error: "modelContext not found" };
-          const result = await mct.executeTool(name, args || {});
-          await new Promise(r => setTimeout(r, 3000));
-          return { result };
-        } catch (e: any) {
-          return { error: e.message || String(e) };
-        }
-      }, t.functionName, args);
-
-      let r = executionResult.result;
-      if (typeof r === 'string') {
-        try { r = JSON.parse(r); } catch (e) { }
-      }
-      if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
-        return r.content[0].text;
-      }
-      return r || executionResult.error || "Success";
-    }
-  } as any);
-}
-
-const SYSTEM_PROMPT = `
-# INSTRUCTIONS
-You are an agent helping a user navigate a page via the tools made available to you. You must
-use the tools available to help the user.
-
-# ADDITIONAL CONTEXT
-Today's date is: Monday 19th of January, 2026.
-`;
+export { listToolsFromPage };
 
 export type RunEvent =
   | { type: 'start'; total: number }
   | { type: 'progress'; testNumber: number; result: TestResult }
   | { type: 'completed'; results: TestResults; reportFile?: string }
   | { type: 'error'; message: string };
-
-function mapJsonSchemaToVercelTools(inputTools: any): Record<string, any> {
-  const tools: Record<string, any> = {};
-  inputTools.forEach((toolDef: any) => {
-    const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
-    const parameters = hasParams ? toolDef.parameters : { type: 'object', properties: {} };
-
-    tools[toolDef.functionName] = {
-      description: toolDef.description,
-      parameters: jsonSchema(parameters),
-      inputSchema: jsonSchema(parameters),
-    };
-  });
-
-  return tools;
-}
 
 export async function executeEvals(
   tests: Array<Eval>,
@@ -255,7 +154,7 @@ export async function executeInBrowserEvals(
         tools: aiToolsWithExecution,
         instructions: SYSTEM_PROMPT,
         prepareCall: async (_opts: any): Promise<any> => {
-          // Reload tools
+          // Dynamically fetch tools from the browser extension integration framework
           const rawTools = await page!.evaluate(async () => {
             let mct = null;
             if (typeof (navigator as any).modelContext?.listTools === 'function') {
@@ -267,17 +166,7 @@ export async function executeInBrowserEvals(
             return await mct.listTools();
           });
 
-          if (rawTools && Array.isArray(rawTools)) {
-            currentTools = rawTools.map((t: any) => {
-              const schema = t.inputSchema;
-              const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
-              return {
-                description: t.description,
-                functionName: t.name,
-                parameters,
-              };
-            });
-          }
+          currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
 
           // We need to re-bind the execute methods to the newly loaded tools
           const updatedAiTools: Record<string, any> = {};

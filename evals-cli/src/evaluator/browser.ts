@@ -1,48 +1,60 @@
-/**
- * Copyright 2026 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import puppeteer, { Browser } from "puppeteer-core";
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
+import puppeteer, { Browser, Page } from "puppeteer-core";
+import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
-
-type WebMcpToolSchema = {
-  name: string;
-  description: string;
-  inputSchema: object | null;
-};
-
+import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { findChromePath } from "../utils.js";
-function mapToTools(rawTools: WebMcpToolSchema[]): Tool[] {
-  return rawTools.map((t) => {
-    const schema = t.inputSchema;
-    const parameters =
-      typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
-    return {
-      description: t.description,
-      functionName: t.name,
-      parameters,
-    };
-  });
+
+/**
+ * Creates a server-side AI SDK tool wrapper that executes arbitrary
+ * WebMCP bindings inside the puppeteer browser execution context.
+ */
+export function createBrowserTool(t: Tool, page: Page): any {
+  return defineTool({
+    description: t.description,
+    parameters: jsonSchema(t.parameters || {}) as any,
+    inputSchema: jsonSchema(t.parameters || {}) as any,
+    execute: async (args: any) => {
+      const executionResult: any = await page.evaluate(async (name, args) => {
+        try {
+          let mct = null;
+          if (typeof (navigator as any).modelContext?.executeTool === 'function') {
+            mct = (navigator as any).modelContext;
+          } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function') {
+            mct = (navigator as any).modelContextTesting;
+          }
+          if (!mct) return { error: "modelContext not found" };
+          const result = await mct.executeTool(name, args || {});
+          
+          // Slight backoff for DOM layout recalculations if UI changes
+          await new Promise(r => setTimeout(r, 3000));
+          
+          return { result };
+        } catch (e: any) {
+          return { error: e.message || String(e) };
+        }
+      }, t.functionName, args);
+
+      let r = executionResult.result;
+      if (typeof r === 'string') {
+        try { r = JSON.parse(r); } catch (e) { }
+      }
+      
+      // Attempt to drill down into structured responses
+      if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
+        return r.content[0].text;
+      }
+      return r || executionResult.error || "Success";
+    }
+  } as any);
 }
 
 /**
  * Launches Chrome Canary, navigates to the given URL, and retrieves the list
- * of tools exposed by the page via the WebMCP API
- * (`navigator.modelContextTesting.listTools()`).
+ * of tools exposed by the page via the WebMCP API.
  *
  * Requires Chrome Canary 146+ with the `chrome://flags/#enable-webmcp-testing`
  * flag enabled. The browser is always closed after the tools are retrieved,
  * even if an error occurs.
- *
- * @param url - The URL of the page to load. The page must implement the WebMCP
- *   API and expose at least one tool.
- * @returns A promise that resolves to the list of tools exposed by the page.
- * @throws If Chrome Canary is not found, the page fails to load, the WebMCP
- *   API is unavailable, or no tools are returned.
  */
 export async function listToolsFromPage(url: string): Promise<Tool[]> {
   const executablePath = findChromePath();
@@ -75,17 +87,17 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     }
 
     const rawTools = await page.evaluate(async () => {
-      let mct = null;
+      let modelContext = null;
       if (typeof (navigator as any).modelContext?.listTools === 'function') {
-        mct = (navigator as any).modelContext;
+        modelContext = (navigator as any).modelContext;
       } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
-        mct = (navigator as any).modelContextTesting;
+        modelContext = (navigator as any).modelContextTesting;
       }
 
-      if (!mct) {
+      if (!modelContext) {
         return null;
       }
-      return await mct.listTools();
+      return await modelContext.listTools();
     });
 
     if (rawTools === null) {
@@ -106,7 +118,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     }
 
     console.log(`Found ${rawTools.length} tool(s) via WebMCP API.`);
-    return mapToTools(rawTools as WebMcpToolSchema[]);
+    return mapRawBrowserToolsToConfig(rawTools, []);
   } finally {
     if (browser) {
       await browser.close();
