@@ -19,6 +19,7 @@ const styles = {
   Bianca: { crust: '#e6c27b', sauce: '#fff3e0', cheese: '#fff9c4' },
   BBQ: { crust: '#d4a342', sauce: '#5d4037', cheese: '#ffab00' },
   Pesto: { crust: '#c5e1a5', sauce: '#388e3c', cheese: '#f1f8e9' },
+  Wales: { crust: '#53d442', sauce: '#d32f2f', cheese: '#ffffff' },
 };
 
 function setPizzaStyle(styleName) {
@@ -28,6 +29,9 @@ function setPizzaStyle(styleName) {
     document.documentElement.style.setProperty('--crust', style.crust);
     document.documentElement.style.setProperty('--sauce', style.sauce);
     document.documentElement.style.setProperty('--cheese', style.cheese);
+    if (styleName === 'Wales') {
+      addTopping('🐑', 'Medium', 10);
+    }
   }
 }
 
@@ -104,9 +108,7 @@ function resetPizza() {
 function getPizzaState() {
   const sauceVisible = document.getElementById('sauce-layer').style.display === 'block';
   const cheeseVisible = document.getElementById('cheese-layer').style.display === 'block';
-  const toppings = Array.from(document.querySelectorAll('.topping span')).map(
-    (s) => s.innerText,
-  );
+  const toppings = Array.from(document.querySelectorAll('.topping span')).map((s) => s.innerText);
 
   return {
     size: sizeText.innerText,
@@ -116,7 +118,7 @@ function getPizzaState() {
   };
 }
 
-function sharePizza() {
+function sharePizza(agentInvoked = false) {
   const state = getPizzaState();
   const jsonString = JSON.stringify(state);
   // Correctly handle Unicode (emojis) with btoa
@@ -126,7 +128,15 @@ function sharePizza() {
   const params = new URLSearchParams(url.search);
   params.set('share', base64);
   url.search = params.toString();
-  return url.toString();
+  const shareUrl = url.toString();
+
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    if (!agentInvoked) {
+      alert('Link copied to clipboard!');
+    }
+  });
+
+  return shareUrl;
 }
 
 function loadPizzaStateFromURL() {
@@ -186,7 +196,7 @@ if (window.navigator.modelContext) {
     inputSchema: {
       type: 'object',
       properties: {
-        style: { type: 'string', enum: ['Classic', 'Bianca', 'BBQ', 'Pesto'] },
+        style: { type: 'string', enum: ['Classic', 'Bianca', 'BBQ', 'Pesto', 'Wales'] },
       },
       required: ['style'],
     },
@@ -224,7 +234,7 @@ if (window.navigator.modelContext) {
       properties: {
         topping: {
           type: 'string',
-          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️'],
+          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️', '🐑'],
         },
         size: { type: 'string', enum: ['Small', 'Medium', 'Large', 'Extra Large'] },
         count: {
@@ -249,7 +259,7 @@ if (window.navigator.modelContext) {
       properties: {
         topping: {
           type: 'string',
-          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️'],
+          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️', '🐑'],
         },
         all: {
           type: 'boolean',

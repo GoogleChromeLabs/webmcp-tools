@@ -32,7 +32,7 @@ navigator.modelContext.registerTool({
 
 When an AI agent is active, it can:
 - **Change Size**: Adjust the pizza size from Small to "Too Large".
-- **Set Style**: Switch between Classic, Bianca, BBQ, and Pesto themes.
+- **Set Style**: Switch between Classic, Bianca, BBQ, Pesto, and Wales themes.
 - **Manage Layers**: Add or remove sauce and cheese.
 - **Add/Remove Toppings**: Place various emoji-based toppings on the pizza with realistic animations.
 - **Share**: Generate a shareable URL that encodes the current pizza state.
