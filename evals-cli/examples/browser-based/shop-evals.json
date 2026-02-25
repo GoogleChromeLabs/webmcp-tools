@@ -1,0 +1,73 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I want to buy a leather jacket. Please find one, add it to my cart, and then checkout."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "leather jacket"
+        }
+      },
+      {
+        "functionName": "addToCart",
+        "arguments": {
+          "productId": "p3",
+          "quantity": 1
+        }
+      },
+      {
+        "functionName": "checkout",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Search for a jacket, add it to the cart (the Bomber Jacket). Then search for a hat, add the Baseball Cap to the cart. Finally, checkout."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": {
+            "$pattern": "[Jj]acket"
+          }
+        }
+      },
+      {
+        "functionName": "addToCart",
+        "arguments": {
+          "productId": "p3"
+        }
+      },
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": {
+            "$pattern": "[Hh]at"
+          }
+        }
+      },
+      {
+        "functionName": "addToCart",
+        "arguments": {
+          "productId": "p4"
+        }
+      },
+      {
+        "functionName": "checkout",
+        "arguments": {}
+      }
+    ]
+  }
+]
