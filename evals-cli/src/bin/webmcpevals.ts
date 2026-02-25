@@ -53,13 +53,15 @@ const progressBar = new SingleBar({
 });
 
 let passCount = 0;
+let stepCount = 0;
 const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
   if (event.type === 'start') {
     progressBar.start(event.total, 0, { accuracy: "0.00" });
   } else if (event.type === 'progress') {
+    stepCount++;
     if (event.result.outcome === "pass") passCount++;
-    progressBar.update(event.testNumber, {
-      accuracy: ((passCount / event.testNumber) * 100).toFixed(2),
+    progressBar.update(stepCount, {
+      accuracy: ((passCount / stepCount) * 100).toFixed(2),
     });
   }
 });

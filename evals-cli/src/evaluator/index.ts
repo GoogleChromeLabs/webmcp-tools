@@ -26,8 +26,12 @@ export async function executeEvals(
 ): Promise<TestResults> {
   const model = getModel(config);
 
+  const totalSteps = tests.reduce((sum, test) => {
+    return sum + (Array.isArray(test.expectedCall) ? test.expectedCall.length : 1);
+  }, 0);
+
   if (onEvent) {
-    onEvent({ type: 'start', total: tests.length });
+    onEvent({ type: 'start', total: totalSteps });
   }
 
   let testCount = 0;
@@ -116,8 +120,12 @@ export async function executeInBrowserEvals(
     throw new Error(`Failed to initialize browser for actual evals: ${error}`);
   }
 
+  const totalSteps = tests.reduce((sum, test) => {
+    return sum + (Array.isArray(test.expectedCall) ? test.expectedCall.length : 1);
+  }, 0);
+
   if (onEvent) {
-    onEvent({ type: 'start', total: tests.length });
+    onEvent({ type: 'start', total: totalSteps });
   }
 
   let testCount = 0;
