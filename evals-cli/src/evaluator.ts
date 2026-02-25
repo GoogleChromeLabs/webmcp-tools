@@ -312,11 +312,11 @@ export async function executeInBrowserEvals(
       // If no tool was called at all, record a failure against the first expected call
       if (executedCalls.length === 0) {
         const response: any = { text: resultPayload.text };
-        const mockResult: TestResult = { test, response, outcome: "fail" };
-        testResults.push(mockResult);
+        const stepResult: TestResult = { test, response, outcome: "fail" };
+        testResults.push(stepResult);
         failCount++;
         if (onEvent) {
-          onEvent({ type: 'progress', testNumber: testCount, result: mockResult });
+          onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
         }
       } else {
         // Evaluate each expected call sequentially against what was executed
@@ -331,12 +331,12 @@ export async function executeInBrowserEvals(
           }
 
           const outcome = functionCallOutcome(currentFunctionCall, response);
-          const mockResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
-          testResults.push(mockResult);
+          const stepResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome };
+          testResults.push(stepResult);
           outcome === "pass" ? passCount++ : failCount++;
 
           if (onEvent) {
-            onEvent({ type: 'progress', testNumber: testCount, result: mockResult });
+            onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
           }
         }
       }
