@@ -156,14 +156,14 @@ export async function executeInBrowserEvals(
         prepareCall: async (_opts: any): Promise<any> => {
           // Dynamically fetch tools from the browser extension integration framework
           const rawTools = await page!.evaluate(async () => {
-            let mct = null;
+            let modelContext = null;
             if (typeof (navigator as any).modelContext?.listTools === 'function') {
-              mct = (navigator as any).modelContext;
+              modelContext = (navigator as any).modelContext;
             } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
-              mct = (navigator as any).modelContextTesting;
+              modelContext = (navigator as any).modelContextTesting;
             }
-            if (!mct) return null;
-            return await mct.listTools();
+            if (!modelContext) return null;
+            return await modelContext.listTools();
           });
 
           currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
