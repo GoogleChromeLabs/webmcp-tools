@@ -42,6 +42,8 @@ The project is structured as follows:
     ```bash
     npm install
     ```
+    
+    *Note: This will also automatically install dependencies for the `ui` sub-project via a `postinstall` script.*
 
 2.  **Configure Environment**
 
