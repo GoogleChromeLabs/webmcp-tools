@@ -4,7 +4,7 @@
  */
 
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Message, TestResult, TestResults } from "../types/evals.js";
+import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.js";
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
@@ -104,13 +104,13 @@ function renderDetails(testResults: Array<TestResult>): string {
 // FIXME: Add graceful handling of expected calls
 function renderDetail(testNumber: number, testResult: TestResult): string {
   const functionNameOutcome =
-    testResult.test.expectedCall?.[0].functionName ===
+    (testResult.test.expectedCall?.[0] as FunctionCall)?.functionName ===
       testResult.response?.functionName
       ? "pass"
       : "fail";
 
   const argsOutcome = matchesArgument(
-    testResult.test.expectedCall?.[0].arguments,
+    (testResult.test.expectedCall?.[0] as FunctionCall)?.arguments,
     testResult.response?.args,
   )
     ? "pass"
@@ -159,7 +159,7 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
                             <tbody class="divide-y divide-slate-100">
                                 <tr class="hover:bg-slate-50/50">
                                     <td class="px-4 py-3 font-medium text-slate-700 whitespace-nowrap">Function</td>
-                                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${testResult.test.expectedCall?.[0].functionName || null}</code></td>
+                                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(testResult.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
                                     <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${testResult.response?.functionName || null}</code></td>
                                     <td class="px-4 py-3">
                                         <span class="${functionNameOutcome === 'pass' ? 'text-emerald-600' : 'text-rose-600'} font-semibold text-xs">
@@ -171,7 +171,7 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
                                     <td class="px-4 py-3 font-medium text-slate-700 whitespace-nowrap align-top">Arguments</td>
                                     <td class="px-4 py-3">
                                         <div class="bg-slate-800 rounded p-3 overflow-x-auto">
-                                            <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys(testResult.test.expectedCall?.[0].arguments) || null, null, 2)}</pre>
+                                            <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys((testResult.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2)}</pre>
                                         </div>
                                     </td>
                                     <td class="px-4 py-3">

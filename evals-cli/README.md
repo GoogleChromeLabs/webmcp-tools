@@ -116,6 +116,32 @@ node dist/bin/serve.js --port=8080
 | -------- | -------- | ------- | ------------------------- |
 | `--port` | No       | `8080`  | Port to run the server on |
 
+## Expected Call Evaluation
+
+By default, an array of expected tool calls in `expectedCall` are checked in the exact sequential order they appear (an implicit `ordered` list).
+
+You can use explicit `ordered` and `unordered` wrappers to validate trajectories that may occur in a different, non-sequential order, and nest them as deeply as needed.
+
+### Complex Orderings Example
+
+```json
+{
+  "expectedCall": [
+    { "functionName": "login" },
+    {
+      "unordered": [
+        { "functionName": "set_pizza_style", "arguments": { "style": "Pesto" } },
+        { "functionName": "set_pizza_size", "arguments": { "size": "Small" } }
+      ]
+    },
+    { "functionName": "checkout" }
+  ]
+}
+```
+
+- **`ordered`**: Validates that all nested models must be executed in exactly the sequential order provided.
+- **`unordered`**: Validates that all nested models must be executed, but they can arrive in any order.
+
 ## Argument Constraints
 
 You can use constraint operators to match argument values flexibly. A constraint object is identified when **all** its keys start with `$`.

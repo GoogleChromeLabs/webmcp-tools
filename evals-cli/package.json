@@ -7,7 +7,7 @@
   "scripts": {
     "postinstall": "npm install --prefix ui",
     "build": "tsc",
-    "test": "tsc && node --test dist/test/matcher.test.js",
+    "test": "tsc && node --test dist/test/*.test.js",
     "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js"
   },
   "devDependencies": {

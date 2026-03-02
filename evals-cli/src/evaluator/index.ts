@@ -1,7 +1,7 @@
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
-import { Tool } from "../types/tools.js";
-import { functionCallOutcome } from "../utils.js";
+import { Tool, ToolCall } from "../types/tools.js";
+import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
 import { GeminiBackend } from "../backends/gemini.js";
 import { Backend, RunEvent } from "../backends/index.js";
@@ -22,7 +22,7 @@ export async function executeLocalEvals(
   const model = getModel(config);
 
   const totalSteps = tests.reduce((sum, test) => {
-    return sum + (Array.isArray(test.expectedCall) ? test.expectedCall.length : 1);
+    return sum + countExpectedCalls(test.expectedCall);
   }, 0);
 
   let testCount = 0;
@@ -52,13 +52,35 @@ export async function executeLocalEvals(
     try {
       const response = await backendImpl.executeLocalEvals(test);
 
-      const outcome = functionCallOutcome(Array.isArray(test.expectedCall) ? test.expectedCall[0] : test.expectedCall, response);
-      const result: TestResult = { test, response, outcome };
-      testResults.push(result);
-      outcome === "pass" ? passCount++ : failCount++;
+      let executedCalls: ToolCall[] = [];
+      if (response && response.functionName) {
+        executedCalls = [response as ToolCall];
+      }
 
-      if (onEvent) {
-        onEvent({ type: 'progress', testNumber: testCount, result });
+      const trajectories = evaluateExecutionTrajectory(test.expectedCall, executedCalls);
+
+      if (trajectories.length === 0) {
+        // No expected calls and no actual calls
+        const result: TestResult = { test, response: null, outcome: "pass" };
+        testResults.push(result);
+        passCount++;
+        if (onEvent) {
+          onEvent({ type: 'progress', testNumber: testCount, result });
+        }
+      } else {
+        for (const traj of trajectories) {
+          const stepResult: TestResult = {
+            test: { messages: test.messages, expectedCall: traj.expected ? [traj.expected] : null },
+            response: traj.actual,
+            outcome: traj.outcome
+          };
+          testResults.push(stepResult);
+          traj.outcome === "pass" ? passCount++ : failCount++;
+
+          if (onEvent) {
+            onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
+          }
+        }
       }
     } catch (e: any) {
       errorCount++;

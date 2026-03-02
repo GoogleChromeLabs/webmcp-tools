@@ -30,9 +30,11 @@ export type FunctionResponseMessage = {
   response: object;
 };
 
+export type ExpectedCallNode = FunctionCall | { unordered: ExpectedCallNode[] } | { ordered: ExpectedCallNode[] };
+
 export type Eval = {
   messages: Message[];
-  expectedCall: FunctionCall[] | null;
+  expectedCall: ExpectedCallNode[] | null;
 };
 
 export type FunctionCall = {

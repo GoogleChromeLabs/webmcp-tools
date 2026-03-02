@@ -1,0 +1,29 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I'd like a small Pesto pizza."
+      }
+    ],
+    "expectedCall": [
+      {
+        "unordered": [
+          {
+            "functionName": "set_pizza_style",
+            "arguments": {
+              "style": "Pesto"
+            }
+          },
+          {
+            "functionName": "set_pizza_size",
+            "arguments": {
+              "size": "Small"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -7,8 +7,8 @@ import { generateText, ToolLoopAgent } from "ai";
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
-import { Tool } from "../types/tools.js";
-import { findChromePath, functionCallOutcome } from "../utils.js";
+import { Tool, ToolCall } from "../types/tools.js";
+import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
 import { Backend, RunEvent } from "../backends/index.js";
 import { createBrowserTool } from "../evaluator/browser.js";
@@ -83,7 +83,7 @@ export class VercelBackend implements Backend {
     }
 
     const totalSteps = tests.reduce((sum, test) => {
-      return sum + (Array.isArray(test.expectedCall) ? test.expectedCall.length : 1);
+      return sum + countExpectedCalls(test.expectedCall);
     }, 0);
 
     if (onEvent) {
@@ -170,36 +170,39 @@ export class VercelBackend implements Backend {
 
         const trajectory = resultPayload.steps || [];
 
-        // If no tool was called at all, record a failure against the first expected call
-        if (executedCalls.length === 0) {
+        const trajectories = evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[]);
+
+        if (trajectories.length === 0) {
           const response: any = { text: resultPayload.text };
-          const stepResult: TestResult = { test, response, outcome: "fail", trajectory };
+          const stepResult: TestResult = { test, response, outcome: "pass", trajectory };
           testResults.push(stepResult);
-          failCount++;
+          passCount++;
           if (onEvent) {
             onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
           }
         } else {
-          // Evaluate each expected call sequentially against what was executed
-          for (let i = 0; i < expectedCalls.length; i++) {
-            const currentFunctionCall = expectedCalls[i] || null;
-            const currentExecutionCall = executedCalls.length > i ? executedCalls[i] : null;
-            let response = currentExecutionCall;
-
-            if (!response) {
-              // Did not execute enough tools
+          for (const traj of trajectories) {
+            let response: any = traj.actual;
+            if (!response && executedCalls.length === 0 && resultPayload.text) {
+              response = { text: resultPayload.text };
+            } else if (!response) {
               response = { missing: "Did not execute this step" };
             }
 
-            const outcome = functionCallOutcome(currentFunctionCall, response);
-            const stepResult: TestResult = { test: { messages: currentMessages, expectedCall: currentFunctionCall ? [currentFunctionCall] : null }, response, outcome, trajectory };
-            testResults.push(stepResult);
-            outcome === "pass" ? passCount++ : failCount++;
+             const stepResult: TestResult = {
+               test: { messages: currentMessages, expectedCall: traj.expected ? [traj.expected] : null },
+               response,
+               outcome: traj.outcome,
+               trajectory
+             };
 
-            if (onEvent) {
-              onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
-            }
-          }
+             testResults.push(stepResult);
+             traj.outcome === "pass" ? passCount++ : failCount++;
+
+             if (onEvent) {
+               onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
+             }
+           }
         }
 
       } catch (e: any) {

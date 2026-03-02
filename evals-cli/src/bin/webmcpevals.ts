@@ -6,7 +6,7 @@
 import { readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
 import * as dotenv from "dotenv";
-import { Eval } from "../types/evals.js";
+import { Eval, FunctionCall } from "../types/evals.js";
 import { WebmcpConfig } from "../types/config.js";
 import ora from "ora";
 import chalk from "chalk";
@@ -106,7 +106,7 @@ for (let i = 0; i < finalResults.results.length; i++) {
   table.push([
     i + 1,
     passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
-    res.test.expectedCall?.[0]?.functionName || "-",
+    (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
     res.response?.functionName || "-",
   ]);
 }
