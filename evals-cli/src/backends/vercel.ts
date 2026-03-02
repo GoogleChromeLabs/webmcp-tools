@@ -149,9 +149,9 @@ export class VercelBackend implements Backend {
         });
 
         // Let the agent loop run
-        const promptMsg: any = test.messages[0];
-        const promptString = promptMsg?.content || "No prompt provided";
-        const resultPayload = await agentWithExec.generate({ prompt: promptString });
+        const aiMessages = mapMessages(test.messages);
+
+        const resultPayload = await agentWithExec.generate({ messages: aiMessages });
 
         // Gather executed tool calls across all steps
         const executedCalls: any[] = [];
