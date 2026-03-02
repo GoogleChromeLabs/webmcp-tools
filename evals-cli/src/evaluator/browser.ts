@@ -23,7 +23,8 @@ export function createBrowserTool(t: Tool, page: Page): any {
             mct = (navigator as any).modelContextTesting;
           }
           if (!mct) return { error: "modelContext not found" };
-          const result = await mct.executeTool(name, args || {});
+          const payload = typeof args === 'string' ? args : JSON.stringify(args || {});
+          const result = await mct.executeTool(name, payload);
           
           // Slight backoff for DOM layout recalculations if UI changes
           await new Promise(r => setTimeout(r, 3000));
