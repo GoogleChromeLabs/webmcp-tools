@@ -61,7 +61,7 @@ export class VercelBackend implements Backend {
     onEvent?: (event: RunEvent) => void
   ): Promise<TestResults> {
     console.log("Executing in-browser evals for config:", config);
-    const executablePath = findChromePath();
+    const executablePath = await findChromePath();
     let browser: Browser | null = null;
     let page: Page | null = null;
 
@@ -83,7 +83,7 @@ export class VercelBackend implements Backend {
     }
 
     const totalSteps = tests.reduce((sum, test) => {
-      return sum + countExpectedCalls(test.expectedCall);
+      return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
     }, 0);
 
     if (onEvent) {
@@ -170,7 +170,9 @@ export class VercelBackend implements Backend {
 
         const trajectory = resultPayload.steps || [];
 
-        const trajectories = evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[]);
+        const trajectories = test.expectedCall ?
+          evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[]) :
+          evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
 
         if (trajectories.length === 0) {
           const response: any = { text: resultPayload.text };

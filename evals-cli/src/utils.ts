@@ -6,9 +6,9 @@
 import { ExpectedCallNode, FunctionCall } from "./types/evals.js";
 import { ToolCall } from "./types/tools.js";
 import { matchesArgument } from "./matcher.js";
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
+import os from "node:os";
+import path from "node:path";
+import fs from "node:fs/promises";
 
 export const CHROME_CANARY_PATHS: string[] = [
   // Windows
@@ -29,10 +29,13 @@ export const CHROME_CANARY_PATHS: string[] = [
   "/usr/bin/google-chrome-canary"
 ];
 
-export function findChromePath(): string {
+export async function findChromePath(): Promise<string> {
   for (const candidate of CHROME_CANARY_PATHS) {
-    if (fs.existsSync(candidate)) {
+    try {
+      await fs.access(candidate);
       return candidate;
+    } catch {
+      // file does not exist or cannot be accessed, continue to next candidate
     }
   }
   throw new Error(
@@ -42,220 +45,268 @@ export function findChromePath(): string {
   );
 }
 
-
 export function functionCallOutcome(
   expected: FunctionCall | null,
   actual: ToolCall | null,
 ): "pass" | "fail" {
-  if (expected === null && actual === null) {
-    return "pass";
-  }
+  if (expected === null && actual === null) return "pass";
+  if (!expected || !actual) return "fail";
 
-  if (!expected || !actual) {
-    return "fail";
-  }
+  return expected.functionName === actual.functionName &&
+    matchesArgument(expected.arguments, actual.args)
+    ? "pass"
+    : "fail";
+}
 
-  if (expected.functionName !== actual.functionName) {
-    return "fail";
-  }
-
-  if (!matchesArgument(expected.arguments, actual?.args)) {
-    return "fail";
-  }
-
-  return "pass";
+export interface TrajectoryResult {
+  expected: FunctionCall | null;
+  actual: ToolCall | null;
+  outcome: "pass" | "fail";
 }
 
 export interface MatchResult {
   matches: boolean;
   consumed: number;
-  mappedResults: { expected: FunctionCall | null, actual: ToolCall | null, outcome: "pass" | "fail" }[];
+  mappedResults: TrajectoryResult[];
 }
 
-export function countExpectedCalls(nodes: ExpectedCallNode[] | null): number {
-  if (nodes === null) return 1;
-  let count = 0;
-  for (const node of nodes) {
-    if ('unordered' in node) {
-      count += countExpectedCalls(node.unordered);
-    } else if ('ordered' in node) {
-      count += countExpectedCalls(node.ordered);
-    } else {
-      count += 1;
-    }
-  }
-  return count;
+export function isUnorderedGroup(node: ExpectedCallNode): node is { unordered: ExpectedCallNode[] } {
+  return node !== null && typeof node === 'object' && 'unordered' in node;
+}
+
+export function isOrderedGroup(node: ExpectedCallNode): node is { ordered: ExpectedCallNode[] } {
+  return node !== null && typeof node === 'object' && 'ordered' in node;
+}
+
+export function isFunctionCall(node: ExpectedCallNode): node is FunctionCall {
+  // Positive type guard checking for the presence of the property instead of negatively inferring
+  return node !== null && typeof node === 'object' && 'functionName' in node;
+}
+
+export function countExpectedCalls(nodes: ExpectedCallNode[]): number {
+  return nodes.reduce((count, node) => {
+    if (isUnorderedGroup(node)) return count + countExpectedCalls(node.unordered);
+    if (isOrderedGroup(node)) return count + countExpectedCalls(node.ordered);
+    return count + 1;
+  }, 0);
 }
 
 function hasNestedCalls(nodes: ExpectedCallNode[]): boolean {
-  return nodes.some(n => 'unordered' in n || 'ordered' in n);
+  return nodes.some(node => isUnorderedGroup(node) || isOrderedGroup(node));
 }
 
 export function matchUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
-  const poolSize = countExpectedCalls(nodes);
-
   if (!hasNestedCalls(nodes)) {
-    const pool = executions.slice(startIndex, startIndex + poolSize);
-    const matchedIndices = new Set<number>();
-    const mappedExpected = new Set<ExpectedCallNode>();
-    let allMatched = true;
-    const mappedResults: { expected: FunctionCall | null, actual: ToolCall | null, outcome: "pass" | "fail" }[] = [];
-
-    // Assign perfectly matching pairs first
-    for (const node of nodes) {
-      const expected = node as FunctionCall;
-      let foundIndex = -1;
-      for (let i = 0; i < pool.length; i++) {
-        if (!matchedIndices.has(i) && functionCallOutcome(expected, pool[i]) === "pass") {
-          foundIndex = i;
-          break;
-        }
-      }
-      if (foundIndex !== -1) {
-        matchedIndices.add(foundIndex);
-        mappedExpected.add(node);
-        mappedResults.push({ expected, actual: pool[foundIndex], outcome: "pass" });
-      }
-    }
-
-    // Assign unused elements 1-to-1 with remaining expectations
-    const unmatchedPool = pool.filter((_, idx) => !matchedIndices.has(idx));
-    let unmatchedIndex = 0;
-
-    for (const node of nodes) {
-      if (!mappedExpected.has(node)) {
-        allMatched = false;
-        const expected = node as FunctionCall;
-        if (unmatchedIndex < unmatchedPool.length) {
-          mappedResults.push({ expected, actual: unmatchedPool[unmatchedIndex], outcome: "fail" });
-          unmatchedIndex++;
-        } else {
-          mappedResults.push({ expected, actual: null, outcome: "fail" });
-        }
-      }
-    }
-
-    return {
-      matches: allMatched && matchedIndices.size === pool.length && pool.length === nodes.length,
-      consumed: poolSize,
-      mappedResults
-    };
+    return matchSimpleUnorderedGroup(nodes, executions, startIndex);
   }
 
-  let bestResult: MatchResult | null = null;
+  const poolSize = countExpectedCalls(nodes);
+  return matchNestedUnorderedGroup(nodes, executions, startIndex, poolSize);
+}
 
-  // We use an explicit stack to convert the backtracking recursion into an iterative approach.
-  // Each item in the stack represents a distinct state in our depth-first search (DFS) path.
-  type SearchState = {
-    usedIndices: Set<number>;
-    currentIndex: number;
-    mappedResults: { expected: FunctionCall | null, actual: ToolCall | null, outcome: "pass" | "fail" }[];
+function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
+  const expectedNodesCount = nodes.length;
+  const executionPoolSize = Math.max(0, Math.min(expectedNodesCount, executions.length - startIndex));
+
+  // Create bipartite graph of expected indices mapping to all potentially matching actual executions
+  const adjacencyList: number[][] = [];
+  for (let i = 0; i < expectedNodesCount; i++) {
+    const expected = nodes[i];
+    if (!isFunctionCall(expected)) {
+      throw new Error("Expected FunctionCall in simple unordered group");
+    }
+
+    const matches: number[] = [];
+    for (let j = 0; j < executionPoolSize; j++) {
+      if (functionCallOutcome(expected, executions[startIndex + j]) === "pass") {
+        matches.push(j);
+      }
+    }
+    adjacencyList.push(matches);
+  }
+
+  const executionToExpectedMatchMap = new Array(executionPoolSize).fill(-1);
+
+  // Maximum Bipartite Matching algorithm (Hopcroft-Karp / DFS based)
+  // Needed due to argument `constraints` matching unequally against similar executions
+  function findAugmentingPath(expectedIndex: number, visited: boolean[]): boolean {
+    for (const executionIndex of adjacencyList[expectedIndex]) {
+      if (!visited[executionIndex]) {
+        visited[executionIndex] = true;
+
+        const previousExpectedMatch = executionToExpectedMatchMap[executionIndex];
+        // If execution is unassigned OR we can reassign its current expected match to another execution
+        if (previousExpectedMatch < 0 || findAugmentingPath(previousExpectedMatch, visited)) {
+          executionToExpectedMatchMap[executionIndex] = expectedIndex;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  let matchesCount = 0;
+  const visited = new Array(executionPoolSize);
+  for (let i = 0; i < expectedNodesCount; i++) {
+    visited.fill(false);
+    if (findAugmentingPath(i, visited)) {
+      matchesCount++;
+    }
+  }
+
+  const allMatched = matchesCount === expectedNodesCount && executionPoolSize === expectedNodesCount;
+
+  // Track which expected nodes were successfully matched
+  const matchedExpectedIndices = new Set<number>();
+  for (let i = 0; i < executionPoolSize; i++) {
+    const expIndex = executionToExpectedMatchMap[i];
+    if (expIndex !== -1) {
+      matchedExpectedIndices.add(expIndex);
+    }
+  }
+
+  // Get unmatched expected nodes
+  const unmatchedExpectedNodes = nodes.filter((_, index) => !matchedExpectedIndices.has(index)) as FunctionCall[];
+
+  // Map result array
+  const mappedResults: TrajectoryResult[] = [];
+  for (let j = 0; j < executionPoolSize; j++) {
+    const expectedIndex = executionToExpectedMatchMap[j];
+    const actual = executions[startIndex + j];
+    if (expectedIndex !== -1) {
+      mappedResults.push({ expected: nodes[expectedIndex] as FunctionCall, actual, outcome: "pass" });
+    } else {
+      // Execution has no matching expected call, assign from unmatched pool if available
+      mappedResults.push({ expected: unmatchedExpectedNodes.shift() || null, actual, outcome: "fail" });
+    }
+  }
+
+  // Any leftover unmatched expected nodes are added as failures with no actual execution
+  for (const expected of unmatchedExpectedNodes) {
+    mappedResults.push({ expected, actual: null, outcome: "fail" });
+  }
+
+  return {
+    matches: allMatched,
+    consumed: expectedNodesCount,
+    mappedResults
+  };
+}
+
+function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number, expectedTotalConsumed: number): MatchResult {
+  const n = nodes.length;
+  // Guard against performance bottlenecks from combinatorial explosion
+  if (n > 15) {
+    throw new Error(`Unordered group too large (${n} nodes). Max length is 15.`);
+  }
+
+  const bestState = {
+    matches: false,
+    maxPasses: -1,
+    mappedResults: [] as TrajectoryResult[]
   };
 
-  // Initialize the stack with our starting state: nothing matched, starting at 'startIndex'
-  const stack: SearchState[] = [{
-    usedIndices: new Set(),
-    currentIndex: startIndex,
-    mappedResults: []
-  }];
+  const visited = new Array<boolean>(n).fill(false);
+  const matchCache = new Map<string, MatchResult>();
 
-  // Keep processing path states until we either find a perfect match or run out of permutations
-  while (stack.length > 0) {
-    // Pop the most recently added state (Depth-First Search mapping)
-    const currentState = stack.pop()!;
+  function getMatch(nodeIndex: number, execIndex: number): MatchResult {
+    const key = `${nodeIndex}:${execIndex}`;
+    let res = matchCache.get(key);
+    if (!res) {
+      res = matchExpectedNode(nodes[nodeIndex], executions, execIndex);
+      matchCache.set(key, res);
+    }
+    return res;
+  }
 
-    // STEP 1: Check if this state has successfully matched all the nodes in the unordered group
-    if (currentState.usedIndices.size === nodes.length) {
-      const allPassed = currentState.mappedResults.every(r => r.outcome === "pass");
-
-      const res: MatchResult = {
-        matches: allPassed,
-        consumed: currentState.currentIndex - startIndex,
-        mappedResults: currentState.mappedResults
-      };
-
-      // STEP 2: If we found a perfect sequence that passes all expectations, we short-circuit immediately!
-      if (res.matches) {
-        return res;
+  function backtrack(
+    nodesProcessed: number,
+    currentConsumed: number,
+    currentMatches: boolean,
+    currentPasses: number,
+    currentMappedResults: TrajectoryResult[]
+  ): void {
+    // Base case: all groups/nodes matched
+    if (nodesProcessed === n) {
+      if (currentPasses > bestState.maxPasses) {
+        bestState.maxPasses = currentPasses;
+        bestState.matches = currentMatches;
+        bestState.mappedResults = [...currentMappedResults];
       }
-
-      // STEP 3: Even if it wasn't a perfect match, we save it if it's the "best" partial match we've seen.
-      // This is crucial for rendering accurate partial-failure reports to the user.
-      if (!bestResult) {
-        bestResult = res;
-      } else {
-        const currentPasses = res.mappedResults.filter(r => r.outcome === "pass").length;
-        const bestPasses = bestResult.mappedResults.filter(r => r.outcome === "pass").length;
-        if (currentPasses > bestPasses) {
-          bestResult = res;
-        }
-      }
-
-      // We finished evaluating this specific permutation branch, continue to the next one from the stack
-      continue;
+      return;
     }
 
-    // STEP 4: Branch out to test every remaining unordered node at this state's execution index.
-    // We iterate backwards so the first items are pushed last, meaning they pop off the stack first
-    // This preserves a left-to-right verification ordering similar to actual human logic.
-    for (let i = nodes.length - 1; i >= 0; i--) {
-      if (!currentState.usedIndices.has(i)) {
+    const currentIndex = startIndex + currentConsumed;
 
-        // Clone the used indices set and mark this node as historically 'used' for this specific branch
-        const nextUsedIndices = new Set(currentState.usedIndices);
-        nextUsedIndices.add(i);
+    for (let i = 0; i < n; i++) {
+      if (visited[i]) continue;
 
-        // Advance the parser by evaluating this newly selected node against the executions
-        const nodeRes = matchExpectedNode(nodes[i], executions, currentState.currentIndex);
+      visited[i] = true;
+      const nodeRes = getMatch(i, currentIndex);
 
-        // Collect all mapped rows resulting from this node evaluation
-        const nextMappedResults = [...currentState.mappedResults, ...nodeRes.mappedResults];
+      const nodePasses = nodeRes.mappedResults.filter(r => r.outcome === "pass").length;
+      currentMappedResults.push(...nodeRes.mappedResults);
 
-        // Push this new potential pathway onto the stack to evaluate deeper in the next loop evaluation
-        stack.push({
-          usedIndices: nextUsedIndices,
-          currentIndex: currentState.currentIndex + nodeRes.consumed,
-          mappedResults: nextMappedResults
-        });
-      }
+      backtrack(
+        nodesProcessed + 1,
+        currentConsumed + nodeRes.consumed,
+        currentMatches && nodeRes.matches,
+        currentPasses + nodePasses,
+        currentMappedResults
+      );
+
+      // Undo modifications for backtracking
+      currentMappedResults.length -= nodeRes.mappedResults.length;
+      visited[i] = false;
     }
   }
 
-  return bestResult || { matches: false, consumed: poolSize, mappedResults: [] };
+  backtrack(0, 0, true, 0, []);
+
+  return {
+    matches: bestState.matches,
+    consumed: expectedTotalConsumed,
+    mappedResults: bestState.mappedResults
+  };
 }
 
 export function matchExpectedNode(node: ExpectedCallNode, executions: ToolCall[], startIndex: number): MatchResult {
-  if ('unordered' in node) {
+  if (isUnorderedGroup(node)) {
     return matchUnorderedGroup(node.unordered, executions, startIndex);
-  } else if ('ordered' in node) {
+  } else if (isOrderedGroup(node)) {
     return matchSequence(node.ordered, executions, startIndex);
-  } else {
+  } else if (isFunctionCall(node)) {
     if (startIndex >= executions.length) {
       return {
         matches: false,
         consumed: 1,
-        mappedResults: [{ expected: node as FunctionCall, actual: null, outcome: "fail" }]
+        mappedResults: [{ expected: node, actual: null, outcome: "fail" }]
       };
     }
     const actual = executions[startIndex];
-    const outcome = functionCallOutcome(node as FunctionCall, actual);
+    const outcome = functionCallOutcome(node, actual);
     return {
       matches: outcome === "pass",
       consumed: 1,
-      mappedResults: [{ expected: node as FunctionCall, actual, outcome }]
+      mappedResults: [{ expected: node, actual, outcome }]
     };
   }
+
+  // Fallback for an unknown or unmapped node type (e.g. if the signature changes)
+  return { matches: false, consumed: 0, mappedResults: [] };
 }
 
 export function matchSequence(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
   let currentIndex = startIndex;
   let allMatched = true;
-  const mappedResults: { expected: FunctionCall | null, actual: ToolCall | null, outcome: "pass" | "fail" }[] = [];
+  let mappedResults: TrajectoryResult[] = [];
 
+  // Walking through standard sequential tree configurations
   for (const node of nodes) {
     const res = matchExpectedNode(node, executions, currentIndex);
     if (!res.matches) allMatched = false;
     currentIndex += res.consumed;
+
     mappedResults.push(...res.mappedResults);
   }
 
@@ -266,45 +317,58 @@ export function matchSequence(nodes: ExpectedCallNode[], executions: ToolCall[],
   };
 }
 
-export function evaluateExecutionTrajectory(expectedCalls: ExpectedCallNode[] | null, executions: ToolCall[]): { expected: FunctionCall | null, actual: ToolCall | null, outcome: "pass" | "fail" }[] {
-  if (expectedCalls === null) {
+export function evaluateExecutionTrajectory(expectedCalls: ExpectedCallNode[] | null, executions: ToolCall[]): TrajectoryResult[] {
+  if (!expectedCalls || expectedCalls.length === 0) {
     if (executions.length === 0) {
-      return [{ expected: null, actual: null, outcome: "pass" }];
+      return expectedCalls === null ? [{ expected: null, actual: null, outcome: "pass" }] : [];
     } else {
-      return [{ expected: null, actual: executions[0], outcome: "fail" }];
+      return executions.map(actual => ({ expected: null, actual, outcome: "fail" }));
     }
   }
 
-  if (expectedCalls.length === 0) {
-    return [];
-  }
+  const { mappedResults, consumed } = matchSequence(expectedCalls, executions, 0);
 
-  const { mappedResults } = matchSequence(expectedCalls, executions, 0);
-  return mappedResults;
+  return [
+    ...mappedResults,
+    ...executions.slice(consumed).map(actual => ({
+      expected: null,
+      actual,
+      outcome: "fail" as const
+    }))
+  ];
 }
 
-export function sortObjectKeys(obj: any): any {
-  if (typeof obj === 'string') {
-    try {
-      const parsed = JSON.parse(obj);
-      if (typeof parsed === 'object' && parsed !== null) {
-        obj = parsed;
-      }
-    } catch (e) {
-      // not JSON string, return as is
-    }
-  }
-
+export function sortObjectKeys<T>(obj: T, visited = new WeakMap<object, unknown>()): T {
+  // Return primitives and null immediately
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
+
+  // Prevent infinite loops on circular references
+  if (visited.has(obj)) {
+    return visited.get(obj) as T;
+  }
+
   if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys);
+    const res: unknown[] = [];
+    visited.set(obj, res);
+    for (const item of obj) {
+      res.push(sortObjectKeys(item, visited));
+    }
+    return res as unknown as T;
   }
+
+  // Prevent destruction of non-plain JS objects (Date, RegExp, Buffer, Error, etc.).
+  if (Object.getPrototypeOf(obj) !== Object.prototype && Object.getPrototypeOf(obj) !== null) {
+    return obj;
+  }
+
+  // Sort keys alphabetically
+  const res: Record<string, unknown> = {};
+  visited.set(obj, res);
   const sortedKeys = Object.keys(obj).sort();
-  const res: any = {};
-  for (const k of sortedKeys) {
-    res[k] = sortObjectKeys(obj[k]);
+  for (const key of sortedKeys) {
+    res[key] = sortObjectKeys((obj as Record<string, unknown>)[key], visited);
   }
-  return res;
+  return res as T;
 }

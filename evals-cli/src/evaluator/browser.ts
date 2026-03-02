@@ -58,7 +58,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
  * even if an error occurs.
  */
 export async function listToolsFromPage(url: string): Promise<Tool[]> {
-  const executablePath = findChromePath();
+  const executablePath = await findChromePath();
   let browser: Browser | null = null;
 
   try {

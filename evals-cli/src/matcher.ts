@@ -134,7 +134,7 @@ function matchesRecursive(expected: any, actual: any): boolean {
   }
 
   for (const key of keys1) {
-    if (!keys2.includes(key) || !matchesArgument(expected[key], actual[key])) {
+    if (!Object.prototype.hasOwnProperty.call(actual, key) || !matchesArgument(expected[key], actual[key])) {
       return false;
     }
   }

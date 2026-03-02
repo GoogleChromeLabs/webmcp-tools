@@ -22,7 +22,7 @@ export async function executeLocalEvals(
   const model = getModel(config);
 
   const totalSteps = tests.reduce((sum, test) => {
-    return sum + countExpectedCalls(test.expectedCall);
+    return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
   }, 0);
 
   let testCount = 0;
@@ -57,7 +57,9 @@ export async function executeLocalEvals(
         executedCalls = [response as ToolCall];
       }
 
-      const trajectories = evaluateExecutionTrajectory(test.expectedCall, executedCalls);
+      const trajectories = test.expectedCall ?
+        evaluateExecutionTrajectory(test.expectedCall, executedCalls) :
+        evaluateExecutionTrajectory([], executedCalls);
 
       if (trajectories.length === 0) {
         // No expected calls and no actual calls
