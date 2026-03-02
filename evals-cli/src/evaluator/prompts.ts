@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 export const SYSTEM_PROMPT = `
 # INSTRUCTIONS
 You are an agent helping a user navigate a page via the tools made available to you. You must

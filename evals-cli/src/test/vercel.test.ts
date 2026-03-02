@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as assert from "node:assert";
 import fs from "node:fs/promises";
 import { describe, it } from "node:test";
@@ -23,7 +28,7 @@ describe("VercelBackend", () => {
           }
         }
       ];
-      
+
       let capturedPayload: any = null;
       class TestableVercelBackend extends VercelBackend {
         
