@@ -20,7 +20,9 @@ export function createBrowserTool(t: Tool, page: Page): any {
     parameters: jsonSchema(sanitizedParams) as any,
     inputSchema: jsonSchema(sanitizedParams) as any,
     execute: async (args: any) => {
-      const executionResult: any = await page.evaluate(
+      let executionResult: any;
+
+      executionResult = await page.evaluate(
         async (name, args) => {
           try {
             let mct = null;
@@ -33,19 +35,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
             const payload = typeof args === "string" ? args : JSON.stringify(args || {});
             let result = await mct.executeTool(name, payload);
 
-            let crossDocument = false;
-
-            // If executeTool returns null, it means a navigation happened.
-            // Fall back by calling getCrossDocumentScriptToolResult to get the tool result.
-            if (result === null && typeof mct.getCrossDocumentScriptToolResult === "function") {
-              result = await mct.getCrossDocumentScriptToolResult();
-              crossDocument = true;
-            }
-
-            // Slight backoff for DOM layout recalculations if UI changes
-            await new Promise((r) => setTimeout(r, 3000));
-
-            return { result, crossDocument };
+            return { result };
           } catch (e: any) {
             return { error: e.message || String(e) };
           }
@@ -53,6 +43,29 @@ export function createBrowserTool(t: Tool, page: Page): any {
         t.functionName,
         args,
       );
+
+      // If executionResult.result is null, it might be due to a navigation happening,
+      // so fall back to using getCrossDocumentScriptToolResult().
+      if (!executionResult.result) {
+        await page.waitForNavigation();
+        executionResult = await page.evaluate(async () => {
+          try {
+            let mct = null;
+            if (typeof (navigator as any).modelContext?.executeTool === "function") {
+              mct = (navigator as any).modelContext;
+            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+              mct = (navigator as any).modelContextTesting;
+            }
+
+            if (!mct) return { error: "modelContext not found" };
+
+            const result = await mct.getCrossDocumentScriptToolResult();
+            return { result, crossDocument: true };
+          } catch (e: any) {
+            return { error: e.message || String(e) };
+          }
+        });
+      }
 
       let r = executionResult.result;
       if (typeof r === "string") {
