@@ -1,0 +1,124 @@
+{
+  "tools": [
+    {
+      "name": "set_pizza_size",
+      "description": "Set the pizza size directly or infer it based on the number of people.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "string",
+            "enum": ["Small", "Medium", "Large", "Extra Large"],
+            "description": "The specific size name."
+          },
+          "number_of_persons": {
+            "type": "number",
+            "description": "The number of people eating to help infer the correct size."
+          }
+        }
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "set_pizza_style",
+      "description": "Set the style of the pizza (colors/theme)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "style": {
+            "type": "string",
+            "enum": ["Classic", "Bianca", "BBQ", "Pesto", "Wales"]
+          }
+        },
+        "required": ["style"]
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "toggle_layer",
+      "description": "Control pizza layers (sauce, cheese). Use \"add\", \"remove\", or \"toggle\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "layer": {
+            "type": "string",
+            "enum": ["sauce-layer", "cheese-layer"]
+          },
+          "action": {
+            "type": "string",
+            "enum": ["add", "remove", "toggle"]
+          }
+        },
+        "required": ["layer"]
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "add_topping",
+      "description": "Add one or more toppings to the pizza",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topping": {
+            "type": "string",
+            "enum": ["\ud83c\udf55", "\ud83c\udf44", "\ud83c\udf3f", "\ud83c\udf4d", "\ud83e\uded1", "\ud83e\udd53", "\ud83e\uddc5", "\ud83e\uded2", "\ud83c\udf3d", "\ud83c\udf36\ufe0f", "\ud83d\udc11"]
+          },
+          "size": {
+            "type": "string",
+            "enum": ["Small", "Medium", "Large", "Extra Large"]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of toppings to add"
+          }
+        },
+        "required": ["topping"]
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "remove_topping",
+      "description": "Remove a specific topping from the pizza",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topping": {
+            "type": "string",
+            "enum": ["\ud83c\udf55", "\ud83c\udf44", "\ud83c\udf3f", "\ud83c\udf4d", "\ud83e\uded1", "\ud83e\udd53", "\ud83e\uddc5", "\ud83e\uded2", "\ud83c\udf3d", "\ud83c\udf36\ufe0f", "\ud83d\udc11"]
+          },
+          "all": {
+            "type": "boolean",
+            "description": "Remove all toppings of this type"
+          }
+        },
+        "required": ["topping"]
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "manage_pizza",
+      "description": "Manage pizza state",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["remove_last", "reset"]
+          }
+        },
+        "required": ["action"]
+      },
+      "outputSchema": null
+    },
+    {
+      "name": "share_pizza",
+      "description": "Get a shareable URL for the current pizza creation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": null
+    }
+  ]
+}

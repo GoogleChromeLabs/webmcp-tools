@@ -17,14 +17,14 @@ export type FunctionCallMessage = {
   role: "model";
   type: "functioncall";
   name: string;
-  arguments: object;
+  arguments: Record<string, unknown>;
 };
 
 export type FunctionResponseMessage = {
   role: "user";
   type: "functionresponse";
   name: string;
-  response: object;
+  response: Record<string, unknown>;
 };
 
 export type ExpectedCallNode =
@@ -39,14 +39,14 @@ export type Eval = {
 
 export type FunctionCall = {
   functionName: string;
-  arguments: object;
+  arguments: Record<string, unknown>;
 };
 
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
   outcome: "pass" | "fail" | "error";
-  trajectory?: any[];
+  trajectory?: unknown[];
 };
 
 export type TestResults = {

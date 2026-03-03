@@ -6,7 +6,7 @@
 import { generateText, ToolLoopAgent } from "ai";
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { Eval, FunctionCall, TestResult, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
@@ -20,34 +20,65 @@ import {
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
 
+function isFunctionCallExpectation(value: unknown): value is FunctionCall {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const call = value as Partial<FunctionCall>;
+  return (
+    typeof call.functionName === "string" &&
+    typeof call.arguments === "object" &&
+    call.arguments !== null &&
+    !Array.isArray(call.arguments)
+  );
+}
+
 export class VercelBackend implements Backend {
-  private aiModel: any;
+  private aiModel: ReturnType<typeof getModel>;
   private modelName: string;
+  private systemPrompt: string;
 
   constructor(
     config: Config | WebmcpConfig,
     private tools: Array<Tool>,
+    systemPrompt?: string,
   ) {
     this.modelName = config.model || "gemini-2.5-flash";
     this.aiModel = getModel(config);
+    this.systemPrompt = systemPrompt || SYSTEM_PROMPT;
   }
 
   async executeLocalEvals(test: Eval): Promise<any> {
     const aiMessages = mapMessages(test.messages);
-    let aiResult;
 
-    aiResult = await generateText({
+    const aiResult = await generateText({
       model: this.aiModel,
-      system: SYSTEM_PROMPT,
+      system: this.systemPrompt,
       messages: aiMessages,
       tools: mapJsonSchemaToVercelTools(this.tools),
     });
 
     if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-      const call: any = aiResult.toolCalls[0];
+      const call = aiResult.toolCalls[0] as {
+        toolName?: string;
+        input?: unknown;
+        args?: unknown;
+        arguments?: unknown;
+      };
+      const rawArgs = call.input ?? call.args ?? call.arguments;
+      const args: Record<string, unknown> =
+        typeof rawArgs === "object" && rawArgs !== null && !Array.isArray(rawArgs)
+          ? (rawArgs as Record<string, unknown>)
+          : {};
+
+      if (typeof call.toolName !== "string") {
+        return { text: aiResult.text };
+      }
+
       return {
         functionName: call.toolName,
-        args: call.input || call.args || call.arguments || {},
+        args,
       };
     } else {
       return { text: aiResult.text };
@@ -107,7 +138,7 @@ export class VercelBackend implements Backend {
       });
 
       testCount++;
-      let currentMessages = [...test.messages];
+      const currentMessages = [...test.messages];
       let currentTools = [...tools];
 
       try {
@@ -121,7 +152,7 @@ export class VercelBackend implements Backend {
         const agentWithExec = new ToolLoopAgent({
           model,
           tools: aiToolsWithExecution,
-          instructions: SYSTEM_PROMPT,
+          instructions: this.systemPrompt,
           prepareCall: async (_opts: any): Promise<any> => {
             // Dynamically fetch tools from the browser extension integration framework
             const rawTools = await page!.evaluate(async () => {
@@ -153,14 +184,24 @@ export class VercelBackend implements Backend {
         const resultPayload = await agentWithExec.generate({ messages: aiMessages });
 
         // Gather executed tool calls across all steps
-        const executedCalls: any[] = [];
+        const executedCalls: ToolCall[] = [];
         if (resultPayload.steps && resultPayload.steps.length > 0) {
           for (const step of resultPayload.steps) {
             if (step.toolCalls && step.toolCalls.length > 0) {
               for (const call of step.toolCalls) {
+                const rawArgs =
+                  (call as { input?: unknown; args?: unknown; arguments?: unknown }).input ??
+                  (call as { input?: unknown; args?: unknown; arguments?: unknown }).args ??
+                  (call as { input?: unknown; args?: unknown; arguments?: unknown }).arguments;
+                const args: Record<string, unknown> =
+                  typeof rawArgs === "object" &&
+                  rawArgs !== null &&
+                  !Array.isArray(rawArgs)
+                    ? (rawArgs as Record<string, unknown>)
+                    : {};
                 executedCalls.push({
                   functionName: call.toolName,
-                  args: (call as any).input || (call as any).args || (call as any).arguments || {},
+                  args,
                 });
               }
             }
@@ -170,8 +211,8 @@ export class VercelBackend implements Backend {
         const trajectory = resultPayload.steps || [];
 
         const trajectories = test.expectedCall
-          ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
-          : evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
+          ? evaluateExecutionTrajectory(test.expectedCall, executedCalls)
+          : evaluateExecutionTrajectory([], executedCalls);
 
         if (trajectories.length === 0) {
           const response: any = { text: resultPayload.text };

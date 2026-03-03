@@ -64,6 +64,85 @@
       </div>
     </div>
 
+    <script type="agent-context">
+---
+name: pizza-maker
+description: Build and customize pizzas with the interactive zaMaker app.
+tools:
+  - set_pizza_size
+  - set_pizza_style
+  - toggle_layer
+  - add_topping
+  - remove_topping
+  - manage_pizza
+  - share_pizza
+---
+Create pizzas by choosing a size, style, layers (sauce and cheese), and toppings.
+Pizzas can be edited after building, and shared via a link.
+
+Resources:
+- [build-pizza](references/build-pizza) — Recommended build order and tool sequence.
+- [topping-reference](references/topping-reference) — Emoji mapping for `add_topping`.
+- [style-guide](references/style-guide) — Pizza style options for `set_pizza_style`.
+    </script>
+
+    <script type="agent-context/reference" data-skill="pizza-maker" data-name="build-pizza">
+## Recommended Build Order
+
+For best results, build a pizza in this order:
+1. `set_pizza_size` — Set the size
+2. `set_pizza_style` — Choose a style
+3. `toggle_layer` — Add sauce and cheese layers
+4. `add_topping` — Add toppings on top of the layers
+5. `share_pizza` — Share the finished pizza
+
+Always add sauce and cheese layers before toppings unless the user says otherwise.
+
+## Size Inference
+
+When the user mentions a party size, infer the pizza size for `set_pizza_size`:
+
+| Party size | Pizza size  |
+|------------|-------------|
+| 1-2 people | Small       |
+| 3-4 people | Medium      |
+| 5-6 people | Large       |
+| 7+ people  | Extra Large |
+    </script>
+
+    <script type="agent-context/reference" data-skill="pizza-maker" data-name="topping-reference">
+## Topping Emoji Mapping
+
+Map user requests to the correct emoji for `add_topping`. Use this table exactly —
+some mappings are not obvious (e.g. pepperoni uses the pizza-slice emoji 🍕, not a meat emoji).
+
+| User says    | Emoji |
+|--------------|-------|
+| Pepperoni    | 🍕    |
+| Mushrooms    | 🍄    |
+| Basil        | 🌿    |
+| Pineapple    | 🍍    |
+| Peppers      | 🫑    |
+| Bacon        | 🥓    |
+| Onion        | 🧅    |
+| Olive        | 🫒    |
+| Corn         | 🌽    |
+| Hot Pepper   | 🌶️   |
+| Sheep        | 🐑    |
+    </script>
+
+    <script type="agent-context/reference" data-skill="pizza-maker" data-name="style-guide">
+## Style Options
+
+Pass one of these values to `set_pizza_style`:
+
+- **Classic** — Traditional tomato sauce and mozzarella base.
+- **Bianca** — White pizza with cream-colored sauce instead of tomato.
+- **BBQ** — BBQ sauce base with a smoky flavor.
+- **Pesto** — Green pesto sauce base.
+- **Wales** — Automatically adds sheep (🐑) toppings — no need to call `add_topping` separately.
+    </script>
+
     <script type="module" src="script.js"></script>
   </body>
 </html>

@@ -131,6 +131,46 @@
 
       <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
     </dialog>
+    <script type="agent-context">
+---
+name: french-bistro-reservations
+description: Book a table at Le Petit Bistro restaurant.
+tools:
+  - book_table_le_petit_bistro
+---
+Make dining reservations using `book_table_le_petit_bistro` by providing customer
+details, date and time, party size, and optional seating preference or special requests.
+
+Resources:
+- [booking-guidelines](references/booking-guidelines) — How to interpret user input for `book_table_le_petit_bistro` parameters.
+    </script>
+
+    <script type="agent-context/reference" data-skill="french-bistro-reservations" data-name="booking-guidelines">
+## Date Handling
+
+The `date` parameter for `book_table_le_petit_bistro` must be today or in the future (YYYY-MM-DD).
+Past dates trigger a validation error.
+When the user says "tomorrow" or "next Friday", calculate the exact YYYY-MM-DD date.
+
+## Special Requests
+
+If the user mentions any of these, pass them in the `special_requests` parameter:
+- Dietary needs or allergies
+- Occasions (anniversaries, birthdays)
+- Accessibility requirements (wheelchair, high chair)
+
+## Seating Recommendations
+
+Use these to infer the `seating` parameter when the user doesn't specify:
+
+| Scenario              | Suggested seating |
+|-----------------------|-------------------|
+| Romantic dinner       | Private Booth     |
+| Nice weather / outdoor| Terrace           |
+| Quick meal / drinks   | Bar               |
+| Default / unspecified | Main Dining       |
+    </script>
+
     <script type="module" src="script.js"></script>
   </body>
 </html>

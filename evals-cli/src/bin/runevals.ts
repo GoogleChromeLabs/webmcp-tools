@@ -14,6 +14,8 @@ import { Config } from "../types/config.js";
 import { renderReport } from "../report/report.js";
 import { executeLocalEvals } from "../evaluator/index.js";
 import { cleanOldReports } from "../utils.js";
+import type { ResolvedSkill } from "agent-skills-ts-sdk";
+import { loadSkillFromFile } from "../evaluator/skill.js";
 
 dotenv.config();
 
@@ -55,6 +57,21 @@ const tests: Array<Eval> = JSON.parse(
   await readFile(resolve(process.cwd(), config.evalsFile), "utf-8"),
 );
 
+let systemPrompt: string | undefined;
+let skill: ResolvedSkill | undefined;
+if (typeof args.skill === "string") {
+  try {
+    const loadedSkill = await loadSkillFromFile(args.skill);
+    skill = loadedSkill.skill;
+    systemPrompt = loadedSkill.systemPrompt;
+    tools.push(loadedSkill.readTool);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exit(1);
+  }
+}
+
 const progressBar = new SingleBar({
   format: "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
 });
@@ -72,7 +89,7 @@ const finalResults = await executeLocalEvals(tests, tools, config, (event) => {
       accuracy: ((passCount / stepCount) * 100).toFixed(2),
     });
   }
-});
+}, systemPrompt, skill);
 progressBar.stop();
 
 const report = renderReport(config, finalResults);
