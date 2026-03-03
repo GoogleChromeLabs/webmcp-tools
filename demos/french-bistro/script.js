@@ -134,9 +134,22 @@ function validateForm() {
   validateField(seatingInput, seatingInput.selectedIndex !== -1);
 }
 
-window.addEventListener('toolactivated', ({ toolName }) => {
-  if (toolName !== 'book_table_le_petit_bistro') return;
+window.addEventListener('toolactivated', (e) => {
+  if (e.toolName !== 'book_table_le_petit_bistro') return;
   validateForm();
+
+  if (formValidationErrors.length && e.respondWith) {
+    e.respondWith(formValidationErrors);
+    return;
+  }
+
+  if (isCrossDocument) {
+    // Trigger native form submission to navigate to result.html
+    form.requestSubmit();
+  } else {
+    showModal();
+    if (e.respondWith) e.respondWith(modalDetails.textContent);
+  }
 });
 
 // On result.html, fill the modal with the reservation details.
