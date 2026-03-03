@@ -1,0 +1,86 @@
+[
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Add pepperoni to my pizza" }
+    ],
+    "expectedCall": [
+      { "functionName": "add_topping", "arguments": { "topping": "🍕" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I'd like some fresh basil on top" }
+    ],
+    "expectedCall": [
+      { "functionName": "add_topping", "arguments": { "topping": "🌿" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Add olives please" }
+    ],
+    "expectedCall": [
+      { "functionName": "add_topping", "arguments": { "topping": "🫒" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Can you put some bell peppers on there?" }
+    ],
+    "expectedCall": [
+      { "functionName": "add_topping", "arguments": { "topping": "🫑" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Remove the corn" }
+    ],
+    "expectedCall": [
+      { "functionName": "remove_topping", "arguments": { "topping": "🌽" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Make me a large BBQ pizza with mushrooms" }
+    ],
+    "expectedCall": [
+      { "functionName": "set_pizza_size", "arguments": { "size": "Large" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Build me a small pesto pizza" }
+    ],
+    "expectedCall": [
+      { "functionName": "set_pizza_size", "arguments": { "size": "Small" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "We're 12 people, make us a pizza" }
+    ],
+    "expectedCall": [
+      { "functionName": "set_pizza_size", "arguments": { "number_of_persons": 12 } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Give me the Welsh special" }
+    ],
+    "expectedCall": [
+      { "functionName": "set_pizza_style", "arguments": { "style": "Wales" } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I want a large pizza" },
+      { "role": "model", "type": "functioncall", "name": "set_pizza_size", "arguments": { "size": "Large" } },
+      { "role": "user", "type": "functionresponse", "name": "set_pizza_size", "response": { "result": "Set pizza size to Large." } },
+      { "role": "model", "type": "message", "content": "Done! Your pizza is now Large. What next?" },
+      { "role": "user", "type": "message", "content": "Make it a BBQ pizza with pepperoni" }
+    ],
+    "expectedCall": [
+      { "functionName": "set_pizza_style", "arguments": { "style": "BBQ" } }
+    ]
+  }
+]

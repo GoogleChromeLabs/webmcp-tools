@@ -31,7 +31,7 @@ The project is structured as follows:
 
 ## Prerequisites
 
-- Node.js (v18+ recommended)
+- Node.js (v22.12+)
 - Appropriate API Keys (Google GenAI, OpenAI, or Anthropic, depending on the backend used)
 - Chrome Canary 146+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
 
@@ -53,6 +53,7 @@ The project is structured as follows:
     GOOGLE_AI=your_gemini_api_key
     OPENAI_API_KEY=your_openai_api_key
     ANTHROPIC_API_KEY=your_anthropic_api_key
+    # WEBMCP_EVAL_DATE=Monday, January 19, 2026 (optional prompt date override)
     # OLLAMA_HOST=http://localhost:11434 (if using a remote or non-standard port Ollama)
     ```
 
@@ -87,6 +88,26 @@ node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/tra
 | `--backend`  | No       | `gemini`           | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
 | `--provider` | No       | `google`           | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
 | `--model`    | No       | `gemini-2.5-flash` | Model name                                                               |
+| `--skill`    | No       | —                  | Path to a `SKILL.md` file used for progressive disclosure during evals      |
+
+### Skill Benchmark Mode
+
+Run the same eval set twice — baseline and `--skill` — to measure the impact of skill context.
+
+```bash
+# Baseline
+node dist/bin/runevals.js \
+  --tools=examples/travel/schema.json \
+  --evals=examples/travel/skill-evals.json \
+  --backend=gemini
+
+# With skill
+node dist/bin/runevals.js \
+  --tools=examples/travel/schema.json \
+  --evals=examples/travel/skill-evals.json \
+  --backend=gemini \
+  --skill=examples/travel/skill/SKILL.md
+```
 
 ### `webmcpevals` — live tool schemas via WebMCP
 

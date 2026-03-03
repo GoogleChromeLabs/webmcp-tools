@@ -1,0 +1,80 @@
+[
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show only JetBlue flights." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["B6"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Filter for Spirit Airlines only." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["NK"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show me Frontier flights under $500." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["F9"], "maxPrice": 500 } }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Search for flights from London to New York on 2026-03-15, round-trip returning 2026-03-22, for 2 passengers."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchFlights",
+        "arguments": {
+          "origin": "LON",
+          "destination": "NYC",
+          "tripType": "round-trip",
+          "outboundDate": "2026-03-15",
+          "inboundDate": "2026-03-22",
+          "passengers": 2
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show flights departing from Stansted." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "origins": ["STN"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I only want flights arriving at LaGuardia or Newark." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "destinations": ["LGA", "EWR"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Filter departures between 06:00 and 09:00." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "departureTime": { "min": "06:00", "max": "09:00" } } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Filter arrivals between 06:00 and 12:00." }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "arrivalTime": { "min": "06:00", "max": "12:00" } } }
+    ]
+  }
+]

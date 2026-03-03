@@ -8,6 +8,109 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <script type="agent-context">
+---
+name: flight-search
+description: Search and filter flights on the WebMCP Travel demo app.
+tools:
+  - searchFlights
+  - listFlights
+  - setFilters
+  - resetFilters
+---
+Find flights by searching with origin, destination, dates, and passengers,
+then narrow results using filters like price, stops, airlines, and departure time.
+
+Resources:
+- [flight-search-guide](references/flight-search-guide) — Supported routes, workflow, and tool usage.
+- [airport-codes](references/airport-codes) — IATA code conventions, available airports and airlines.
+- [filter-guide](references/filter-guide) — `setFilters` parameters and time format.
+    </script>
+
+    <script type="agent-context/reference" data-skill="flight-search" data-name="flight-search-guide">
+## Supported Routes
+
+This demo only returns results for **London to New York, round-trip**.
+Use city codes LON (origin) and NYC (destination) with `searchFlights`.
+Other routes will return no results.
+
+## Workflow
+
+1. **Search** — Call `searchFlights` with origin, destination, dates, trip type, and passenger count
+2. **Browse** — Call `listFlights` to see all available results
+3. **Filter** — Call `setFilters` to narrow down by stops, airlines, price, time, airports, etc.
+4. **Reset** — Call `resetFilters` to clear all filters and start fresh
+    </script>
+
+    <script type="agent-context/reference" data-skill="flight-search" data-name="airport-codes">
+## IATA Code Conventions
+
+- Use **city codes** when the user names a city (e.g., "LON" for London, "NYC" for New York)
+- Use **airport codes** when the user names a specific airport (e.g., "JFK", "LHR")
+- All codes must be exactly 3 uppercase letters
+- `searchFlights` uses codes for `origin` and `destination`
+- `setFilters` uses codes for `origins` and `destinations` arrays
+
+## Available Airports
+
+| Code | Airport               | City       |
+|------|-----------------------|------------|
+| LHR  | London Heathrow       | London     |
+| STN  | London Stansted       | London     |
+| LGW  | London Gatwick        | London     |
+| LTN  | London Luton          | London     |
+| JFK  | New York JFK          | New York   |
+| LGA  | New York LaGuardia    | New York   |
+| EWR  | Newark Liberty        | New York   |
+
+## Available Airlines
+
+| Code | Airline              |
+|------|----------------------|
+| UA   | United Airlines      |
+| DL   | Delta Air Lines      |
+| AA   | American Airlines    |
+| WN   | Southwest Airlines   |
+| B6   | JetBlue Airways      |
+| NK   | Spirit Airlines      |
+| AS   | Alaska Airlines      |
+| F9   | Frontier Airlines    |
+    </script>
+
+    <script type="agent-context/reference" data-skill="flight-search" data-name="filter-guide">
+## setFilters Parameters
+
+`setFilters` accepts any combination of these filters:
+
+- **stops** — Array of stop counts (e.g., `[0]` for non-stop, `[0, 1]` for non-stop or one stop)
+- **airlines** — Array of 2-letter IATA airline codes (e.g., `["B6", "DL"]`)
+- **origins** — Array of 3-letter IATA origin airport codes (e.g., `["LHR", "STN"]`)
+- **destinations** — Array of 3-letter IATA destination airport codes (e.g., `["JFK", "EWR"]`)
+- **minPrice** / **maxPrice** — Price range in USD
+- **departureTime** — Array of two numbers `[min, max]` in minutes from midnight (0-1439)
+- **arrivalTime** — Array of two numbers `[min, max]` in minutes from midnight (0-1439)
+- **flightIds** — Array of specific flight IDs
+
+## Time Format
+
+Times are expressed as minutes from the start of the day (0 = midnight, 1439 = 11:59 PM).
+
+| Time        | Minutes |
+|-------------|---------|
+| 6:00 AM     | 360     |
+| 9:00 AM     | 540     |
+| 12:00 PM    | 720     |
+| 3:00 PM     | 900     |
+| 5:00 PM     | 1020    |
+| 11:59 PM    | 1439    |
+
+Examples:
+- Morning flights: `{ "departureTime": [360, 720] }`
+- After 3 PM: `{ "departureTime": [900, 1439] }`
+- 9 AM to 5 PM: `{ "departureTime": [540, 1020] }`
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

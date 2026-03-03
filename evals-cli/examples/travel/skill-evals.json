@@ -1,0 +1,115 @@
+[
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show me flights departing between 6am and 9am" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "departureTime": { "min": "06:00", "max": "09:00" } } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I want flights departing after 3pm" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "departureTime": { "min": "15:00" } } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Filter for flights arriving between 6am and noon" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "arrivalTime": { "min": "06:00", "max": "12:00" } } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show evening departures only" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "departureTime": { "min": "18:00" } } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Only show JetBlue flights" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["B6"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Filter for Spirit Airlines" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["NK"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show me Frontier flights under $500" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["F9"], "maxPrice": 500 } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Search for flights from London to New York on 2026-03-15, round-trip returning 2026-03-22, for 2 passengers" }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchFlights",
+        "arguments": {
+          "origin": { "$pattern": "^(LON|LHR|LGW|STN|LTN)$" },
+          "destination": { "$pattern": "^(NYC|JFK|LGA|EWR)$" },
+          "tripType": "round-trip",
+          "outboundDate": "2026-03-15",
+          "inboundDate": "2026-03-22",
+          "passengers": 2
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Show flights departing from Stansted" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "origins": ["STN"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I only want flights arriving at LaGuardia or Newark" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "destinations": ["LGA", "EWR"] } }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "I want an early morning JetBlue flight departing from Heathrow" }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "filterFlights",
+        "arguments": {
+          "airlines": ["B6"],
+          "origins": ["LHR"],
+          "departureTime": { "max": "09:00" }
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      { "role": "user", "type": "message", "content": "Find afternoon Alaska Airlines flights" }
+    ],
+    "expectedCall": [
+      { "functionName": "filterFlights", "arguments": { "airlines": ["AS"] } }
+    ]
+  }
+]
