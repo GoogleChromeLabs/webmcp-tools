@@ -67,12 +67,7 @@ function matchesConstraint(constraint: any, actual: any): boolean {
       } else if (type === "null") {
         if (actual !== null) return false;
       } else if (type === "object") {
-        if (
-          typeof actual !== "object" ||
-          actual === null ||
-          Array.isArray(actual)
-        )
-          return false;
+        if (typeof actual !== "object" || actual === null || Array.isArray(actual)) return false;
       } else {
         if (typeof actual !== type) return false;
       }
@@ -134,7 +129,10 @@ function matchesRecursive(expected: any, actual: any): boolean {
   }
 
   for (const key of keys1) {
-    if (!Object.prototype.hasOwnProperty.call(actual, key) || !matchesArgument(expected[key], actual[key])) {
+    if (
+      !Object.prototype.hasOwnProperty.call(actual, key) ||
+      !matchesArgument(expected[key], actual[key])
+    ) {
       return false;
     }
   }

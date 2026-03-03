@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FiCloudLightning } from 'react-icons/fi';
-import { useWebsiteTools } from '../hooks/useWebsiteTools';
-import { ToolCard } from './ToolCard';
-import type { AppConfig } from '../types';
-import styles from './WebsitePanel.module.css';
+import { FiCloudLightning } from "react-icons/fi";
+import { useWebsiteTools } from "../hooks/useWebsiteTools";
+import { ToolCard } from "./ToolCard";
+import type { AppConfig } from "../types";
+import styles from "./WebsitePanel.module.css";
 
 interface WebsitePanelProps {
   config: AppConfig;
@@ -15,11 +15,7 @@ interface WebsitePanelProps {
   running: boolean;
 }
 
-export function WebsitePanel({
-  config,
-  setConfig,
-  running,
-}: WebsitePanelProps) {
+export function WebsitePanel({ config, setConfig, running }: WebsitePanelProps) {
   const { tools, fetchingTools, fetchToolsForWebsite } = useWebsiteTools();
 
   return (
@@ -29,17 +25,17 @@ export function WebsitePanel({
         <div className={styles.urlInputGroup}>
           <input
             type="text"
-            value={config.url || ''}
+            value={config.url || ""}
             onChange={(e) => setConfig({ ...config, url: e.target.value })}
             disabled={running}
             placeholder="https://example.com"
           />
           <button
             className="secondary"
-            onClick={() => fetchToolsForWebsite(config.url || '')}
+            onClick={() => fetchToolsForWebsite(config.url || "")}
             disabled={fetchingTools || running || !config.url}
           >
-            <FiCloudLightning /> {fetchingTools ? 'Fetching...' : 'Fetch Tools'}
+            <FiCloudLightning /> {fetchingTools ? "Fetching..." : "Fetch Tools"}
           </button>
         </div>
       </div>
@@ -66,7 +62,7 @@ export function WebsitePanel({
         <div className={`form-group ${styles.flex1}`}>
           <label>Backend</label>
           <select
-            value={config.backend || 'gemini'}
+            value={config.backend || "gemini"}
             onChange={(e) => setConfig({ ...config, backend: e.target.value })}
             disabled={running}
           >

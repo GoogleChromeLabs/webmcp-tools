@@ -106,9 +106,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "stops": [
-            0
-          ]
+          "stops": [0]
         }
       }
     ]
@@ -125,9 +123,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "origins": [
-            "LHR"
-          ]
+          "origins": ["LHR"]
         }
       }
     ]
@@ -159,10 +155,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "airlines": [
-            "DL",
-            "AA"
-          ],
+          "airlines": ["DL", "AA"],
           "maxPrice": 600
         }
       }
@@ -241,10 +234,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "flightIds": [
-            101,
-            205
-          ]
+          "flightIds": [101, 205]
         }
       }
     ]
@@ -325,9 +315,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "origins": [
-            "STN"
-          ]
+          "origins": ["STN"]
         }
       }
     ]
@@ -406,10 +394,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "destinations": [
-            "JFK",
-            "LGA"
-          ]
+          "destinations": ["JFK", "LGA"]
         }
       }
     ]
@@ -534,9 +519,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "stops": [
-            0
-          ],
+          "stops": [0],
           "maxPrice": 500
         }
       }
@@ -554,10 +537,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "airlines": [
-            "DL",
-            "UA"
-          ],
+          "airlines": ["DL", "UA"],
           "departureTime": {
             "min": "18:00"
           }
@@ -577,10 +557,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "destinations": [
-            "LHR",
-            "LGW"
-          ],
+          "destinations": ["LHR", "LGW"],
           "arrivalTime": {
             "min": "09:00",
             "max": "13:00"
@@ -603,10 +580,7 @@
         "arguments": {
           "minPrice": 300,
           "maxPrice": 800,
-          "stops": [
-            0,
-            1
-          ]
+          "stops": [0, 1]
         }
       }
     ]
@@ -647,9 +621,7 @@
         "arguments": {
           "minPrice": 300,
           "maxPrice": 800,
-          "stops": [
-            0
-          ]
+          "stops": [0]
         }
       }
     ]
@@ -666,13 +638,8 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "origins": [
-            "JFK",
-            "EWR"
-          ],
-          "stops": [
-            0
-          ],
+          "origins": ["JFK", "EWR"],
+          "stops": [0],
           "maxPrice": 1000
         }
       }
@@ -690,9 +657,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "airlines": [
-            "BA"
-          ],
+          "airlines": ["BA"],
           "departureTime": {
             "min": "06:00",
             "max": "11:00"
@@ -744,9 +709,7 @@
       {
         "functionName": "filterFlights",
         "arguments": {
-          "stops": [
-            0
-          ]
+          "stops": [0]
         }
       }
     ]

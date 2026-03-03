@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useRef } from 'react';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
-import toast from 'react-hot-toast';
-import { api } from '../utils/api';
+import { useState, useRef } from "react";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import toast from "react-hot-toast";
+import { api } from "../utils/api";
 
 export interface LogEntry {
   msg: string;
@@ -29,8 +29,8 @@ export function useEvalsRunner() {
 
     try {
       await fetchEventSource(api.runEvals(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedConfig),
         signal: checkAbort.signal,
         async onopen(response) {
@@ -39,37 +39,53 @@ export function useEvalsRunner() {
           }
         },
         onmessage(msg) {
-          if (msg.event === 'close') return;
+          if (msg.event === "close") return;
           try {
             // SSE parsing is safe with fetch-event-source
             const data = JSON.parse(msg.data);
             let newLogs: LogEntry[] = [];
-            if (data.type === 'start') {
-              newLogs.push({ msg: `Started evaluation: ${data.total} tests total.`, type: 'info' });
-            } else if (data.type === 'progress') {
+            if (data.type === "start") {
+              newLogs.push({ msg: `Started evaluation: ${data.total} tests total.`, type: "info" });
+            } else if (data.type === "progress") {
               const r = data.result;
-              const logType = r.outcome === 'pass' ? 'success' : 'error';
+              const logType = r.outcome === "pass" ? "success" : "error";
 
               // FIXME: Add graceful handling of expected calls
               const expectedCall = r.test.expectedCall?.[0];
               const expectedArgs = expectedCall?.arguments;
 
-              if (r.outcome === 'pass') {
-                newLogs.push({ msg: `[${data.testNumber}] Test pass: ${expectedCall?.functionName}, got ${JSON.stringify(r.response)}`, type: 'success' });
+              if (r.outcome === "pass") {
+                newLogs.push({
+                  msg: `[${data.testNumber}] Test pass: ${expectedCall?.functionName}, got ${JSON.stringify(r.response)}`,
+                  type: "success",
+                });
               } else {
-                newLogs.push({ msg: `[${data.testNumber}] Test fail: ${expectedCall?.functionName}`, type: 'error' });
-                newLogs.push({ msg: `---- Arguments: Expected ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(r.response)}`, type: logType });
+                newLogs.push({
+                  msg: `[${data.testNumber}] Test fail: ${expectedCall?.functionName}`,
+                  type: "error",
+                });
+                newLogs.push({
+                  msg: `---- Arguments: Expected ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(r.response)}`,
+                  type: logType,
+                });
               }
-
-            } else if (data.type === 'completed') {
+            } else if (data.type === "completed") {
               const res = data.results;
-              newLogs.push({ msg: `\nCompleted! Passed: ${res.passCount}, Failed: ${res.failCount}, Errors: ${res.errorCount}`, type: 'info' });
-              const reportUrl = data.reportFile ? `/${data.reportFile}` : '/report.html';
-              newLogs.push({ msg: `\nReport generated. `, type: 'info', isLink: true, linkUrl: reportUrl });
+              newLogs.push({
+                msg: `\nCompleted! Passed: ${res.passCount}, Failed: ${res.failCount}, Errors: ${res.errorCount}`,
+                type: "info",
+              });
+              const reportUrl = data.reportFile ? `/${data.reportFile}` : "/report.html";
+              newLogs.push({
+                msg: `\nReport generated. `,
+                type: "info",
+                isLink: true,
+                linkUrl: reportUrl,
+              });
               setRunning(false);
               checkAbort.abort();
-            } else if (data.type === 'error') {
-              newLogs.push({ msg: `ERROR: ${data.message}`, type: 'error' });
+            } else if (data.type === "error") {
+              newLogs.push({ msg: `ERROR: ${data.message}`, type: "error" });
               setRunning(false);
               checkAbort.abort();
             }
@@ -95,13 +111,13 @@ export function useEvalsRunner() {
         },
         onclose() {
           setRunning(false);
-        }
+        },
       });
     } catch (e: unknown) {
       if (e instanceof Error) {
-        if (e.message.includes('abort')) return;
+        if (e.message.includes("abort")) return;
         toast.error(`Error: ${e.message}`);
-        setLogs(l => [...l, { msg: `Error: ${e.message}`, type: 'error' }]);
+        setLogs((l) => [...l, { msg: `Error: ${e.message}`, type: "error" }]);
       } else {
         toast.error(`An unknown error occurred`);
       }

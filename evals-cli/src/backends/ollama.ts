@@ -26,14 +26,19 @@ export class OllamaBackend implements Backend {
     if (toolCall) {
       return {
         functionName: toolCall.functionName,
-        args: toolCall.args || {}
+        args: toolCall.args || {},
       };
     } else {
       return { text: "No tool calls generated." };
     }
   }
 
-  executeInBrowserEvals(tests: Array<Eval>, tools: Array<Tool>, config: WebmcpConfig, onEvent?: (event: RunEvent) => void): Promise<TestResults> {
+  executeInBrowserEvals(
+    _tests: Array<Eval>,
+    _tools: Array<Tool>,
+    _config: WebmcpConfig,
+    _onEvent?: (event: RunEvent) => void,
+  ): Promise<TestResults> {
     throw new Error("Method not implemented.");
   }
 

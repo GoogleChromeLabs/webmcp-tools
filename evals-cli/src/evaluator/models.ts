@@ -32,7 +32,8 @@ export function getModel(config: Config | WebmcpConfig) {
   }
 
   // Default to Google
-  const apiKey = process.env.GOOGLE_AI || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  const apiKey =
+    process.env.GOOGLE_AI || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) console.warn("Warning: Missing Google/Gemini API key");
   const google = createGoogleGenerativeAI({ apiKey });
   return google(modelId.replace("google:", ""));

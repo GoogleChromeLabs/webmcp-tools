@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type Tab = 'local' | 'website';
+export type Tab = "local" | "website";
 
 export interface ToolDef {
   functionName: string;

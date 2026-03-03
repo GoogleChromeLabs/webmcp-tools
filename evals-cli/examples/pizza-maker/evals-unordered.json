@@ -4,7 +4,7 @@
       {
         "role": "user",
         "type": "message",
-        "content": "I'd like a small Pesto pizza."
+        "content": "I'd like a small Pesto pizza with extra sauce, and add bell peppers and onions. Share this pizza!"
       }
     ],
     "expectedCall": [
@@ -12,17 +12,29 @@
         "unordered": [
           {
             "functionName": "set_pizza_style",
-            "arguments": {
-              "style": "Pesto"
-            }
+            "arguments": { "style": "Pesto" }
           },
           {
             "functionName": "set_pizza_size",
-            "arguments": {
-              "size": "Small"
-            }
+            "arguments": { "size": "Small" }
+          },
+          {
+            "functionName": "toggle_layer",
+            "arguments": { "layer": "sauce-layer", "action": "add" }
+          },
+          {
+            "functionName": "add_topping",
+            "arguments": { "topping": "🫑" }
+          },
+          {
+            "functionName": "add_topping",
+            "arguments": { "topping": "🧅" }
           }
         ]
+      },
+      {
+        "functionName": "share_pizza",
+        "arguments": {}
       }
     ]
   }

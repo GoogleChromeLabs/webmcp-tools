@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FiCode } from 'react-icons/fi';
-import type { ToolDef } from '../types';
-import styles from './ToolCard.module.css';
+import { FiCode } from "react-icons/fi";
+import type { ToolDef } from "../types";
+import styles from "./ToolCard.module.css";
 
 interface ToolCardProps {
   tool: ToolDef;
@@ -22,12 +22,8 @@ export function ToolCard({ tool }: ToolCardProps) {
       {tool.parameters && Object.keys(tool.parameters).length > 0 && (
         <div className={styles.params}>
           <details>
-            <summary className={styles.summary}>
-              Parameters Schema
-            </summary>
-            <pre className={styles.pre}>
-              {JSON.stringify(tool.parameters, null, 2)}
-            </pre>
+            <summary className={styles.summary}>Parameters Schema</summary>
+            <pre className={styles.pre}>{JSON.stringify(tool.parameters, null, 2)}</pre>
           </details>
         </div>
       )}

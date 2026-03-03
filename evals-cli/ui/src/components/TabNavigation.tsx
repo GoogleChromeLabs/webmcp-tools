@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FiSettings, FiGlobe } from 'react-icons/fi';
-import type { Tab } from '../types';
-import styles from './TabNavigation.module.css';
+import { FiSettings, FiGlobe } from "react-icons/fi";
+import type { Tab } from "../types";
+import styles from "./TabNavigation.module.css";
 
 interface TabNavigationProps {
   activeTab: Tab;
@@ -17,14 +17,14 @@ export function TabNavigation({ activeTab, setActiveTab }: TabNavigationProps) {
     <div className={styles.container}>
       <div className={styles.tabs}>
         <button
-          className={`${styles.tab} ${activeTab === 'local' ? styles.active : ''}`}
-          onClick={() => setActiveTab('local')}
+          className={`${styles.tab} ${activeTab === "local" ? styles.active : ""}`}
+          onClick={() => setActiveTab("local")}
         >
           <FiSettings className={styles.icon} /> Local Tools
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'website' ? styles.active : ''}`}
-          onClick={() => setActiveTab('website')}
+          className={`${styles.tab} ${activeTab === "website" ? styles.active : ""}`}
+          onClick={() => setActiveTab("website")}
         >
           <FiGlobe className={styles.icon} /> Website Tools
         </button>

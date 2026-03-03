@@ -12,7 +12,11 @@ import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from 
 
 import { Backend, RunEvent } from "../backends/index.js";
 import { createBrowserTool } from "../evaluator/browser.js";
-import { mapJsonSchemaToVercelTools, mapMessages, mapRawBrowserToolsToConfig } from "../evaluator/mappers.js";
+import {
+  mapJsonSchemaToVercelTools,
+  mapMessages,
+  mapRawBrowserToolsToConfig,
+} from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
 
@@ -29,28 +33,24 @@ export class VercelBackend implements Backend {
   }
 
   async executeLocalEvals(test: Eval): Promise<any> {
-    try {
-      const aiMessages = mapMessages(test.messages);
-      let aiResult;
+    const aiMessages = mapMessages(test.messages);
+    let aiResult;
 
-      aiResult = await generateText({
-        model: this.aiModel,
-        system: SYSTEM_PROMPT,
-        messages: aiMessages,
-        tools: mapJsonSchemaToVercelTools(this.tools)
-      });
+    aiResult = await generateText({
+      model: this.aiModel,
+      system: SYSTEM_PROMPT,
+      messages: aiMessages,
+      tools: mapJsonSchemaToVercelTools(this.tools),
+    });
 
-      if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-        const call: any = aiResult.toolCalls[0];
-        return {
-          functionName: call.toolName,
-          args: call.input || call.args || call.arguments || {}
-        };
-      } else {
-        return { text: aiResult.text };
-      }
-    } catch (error) {
-      throw error;
+    if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
+      const call: any = aiResult.toolCalls[0];
+      return {
+        functionName: call.toolName,
+        args: call.input || call.args || call.arguments || {},
+      };
+    } else {
+      return { text: aiResult.text };
     }
   }
 
@@ -58,7 +58,7 @@ export class VercelBackend implements Backend {
     tests: Array<Eval>,
     tools: Array<Tool>,
     config: WebmcpConfig,
-    onEvent?: (event: RunEvent) => void
+    onEvent?: (event: RunEvent) => void,
   ): Promise<TestResults> {
     console.log("Executing in-browser evals for config:", config);
     const executablePath = await findChromePath();
@@ -69,11 +69,7 @@ export class VercelBackend implements Backend {
       browser = await puppeteer.launch({
         executablePath,
         headless: true,
-        args: [
-          "--enable-features=WebMCPTesting",
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-        ],
+        args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
       });
 
       console.log("Browser initialized for actual evals");
@@ -87,7 +83,11 @@ export class VercelBackend implements Backend {
     }, 0);
 
     if (onEvent) {
-      onEvent({ type: 'start', total: totalSteps, message: `Running evals using ${this.describe()}` });
+      onEvent({
+        type: "start",
+        total: totalSteps,
+        message: `Running evals using ${this.describe()}`,
+      });
     }
 
     let testCount = 0;
@@ -107,7 +107,6 @@ export class VercelBackend implements Backend {
       });
 
       testCount++;
-      const expectedCalls = Array.isArray(test.expectedCall) ? test.expectedCall : [test.expectedCall];
       let currentMessages = [...test.messages];
       let currentTools = [...tools];
 
@@ -127,9 +126,9 @@ export class VercelBackend implements Backend {
             // Dynamically fetch tools from the browser extension integration framework
             const rawTools = await page!.evaluate(async () => {
               let modelContext = null;
-              if (typeof (navigator as any).modelContext?.listTools === 'function') {
+              if (typeof (navigator as any).modelContext?.listTools === "function") {
                 modelContext = (navigator as any).modelContext;
-              } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
+              } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
                 modelContext = (navigator as any).modelContextTesting;
               }
               if (!modelContext) return null;
@@ -145,7 +144,7 @@ export class VercelBackend implements Backend {
             }
 
             return { ..._opts, tools: updatedAiTools };
-          }
+          },
         });
 
         // Let the agent loop run
@@ -161,7 +160,7 @@ export class VercelBackend implements Backend {
               for (const call of step.toolCalls) {
                 executedCalls.push({
                   functionName: call.toolName,
-                  args: (call as any).input || (call as any).args || (call as any).arguments || {}
+                  args: (call as any).input || (call as any).args || (call as any).arguments || {},
                 });
               }
             }
@@ -170,9 +169,9 @@ export class VercelBackend implements Backend {
 
         const trajectory = resultPayload.steps || [];
 
-        const trajectories = test.expectedCall ?
-          evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[]) :
-          evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
+        const trajectories = test.expectedCall
+          ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
+          : evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
 
         if (trajectories.length === 0) {
           const response: any = { text: resultPayload.text };
@@ -180,7 +179,7 @@ export class VercelBackend implements Backend {
           testResults.push(stepResult);
           passCount++;
           if (onEvent) {
-            onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
+            onEvent({ type: "progress", testNumber: testCount, result: stepResult });
           }
         } else {
           for (const traj of trajectories) {
@@ -191,33 +190,39 @@ export class VercelBackend implements Backend {
               response = { missing: "Did not execute this step" };
             }
 
-             const stepResult: TestResult = {
-               test: { messages: currentMessages, expectedCall: traj.expected ? [traj.expected] : null },
-               response,
-               outcome: traj.outcome,
-               trajectory
-             };
+            const stepResult: TestResult = {
+              test: {
+                messages: currentMessages,
+                expectedCall: traj.expected ? [traj.expected] : null,
+              },
+              response,
+              outcome: traj.outcome,
+              trajectory,
+            };
 
-             testResults.push(stepResult);
-             traj.outcome === "pass" ? passCount++ : failCount++;
+            testResults.push(stepResult);
+            if (traj.outcome === "pass") {
+              passCount++;
+            } else {
+              failCount++;
+            }
 
-             if (onEvent) {
-               onEvent({ type: 'progress', testNumber: testCount, result: stepResult });
-             }
-           }
+            if (onEvent) {
+              onEvent({ type: "progress", testNumber: testCount, result: stepResult });
+            }
+          }
         }
-
       } catch (e: any) {
         console.warn("Error running test:", e);
         errorCount++;
         const result: TestResult = {
           test,
           response: null as any,
-          outcome: "error"
+          outcome: "error",
         };
         testResults.push(result);
         if (onEvent) {
-          onEvent({ type: 'progress', testNumber: testCount, result });
+          onEvent({ type: "progress", testNumber: testCount, result });
         }
       }
     }
@@ -231,7 +236,7 @@ export class VercelBackend implements Backend {
       testCount,
       passCount,
       failCount,
-      errorCount
+      errorCount,
     };
   }
 

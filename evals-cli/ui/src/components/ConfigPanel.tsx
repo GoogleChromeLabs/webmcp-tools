@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
-import type { AppConfig } from '../types';
-import styles from './ConfigPanel.module.css';
+import { useState, useCallback, useEffect } from "react";
+import Editor from "@monaco-editor/react";
+import type { AppConfig } from "../types";
+import styles from "./ConfigPanel.module.css";
 
 interface ConfigPanelProps {
   config: AppConfig;
@@ -17,41 +17,56 @@ interface ConfigPanelProps {
 
 export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPanelProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [jsonStr, setJsonStr] = useState(() => JSON.stringify({
-    evalsFile: config.evalsFile,
-    toolSchemaFile: config.toolSchemaFile,
-    model: config.model,
-    backend: config.backend
-  }, null, 2));
+  const [jsonStr, setJsonStr] = useState(() =>
+    JSON.stringify(
+      {
+        evalsFile: config.evalsFile,
+        toolSchemaFile: config.toolSchemaFile,
+        model: config.model,
+        backend: config.backend,
+      },
+      null,
+      2,
+    ),
+  );
 
   useEffect(() => {
     try {
       const parsed = JSON.parse(jsonStr);
       if (parsed.model !== config.model || parsed.evalsFile !== config.evalsFile) {
-        setJsonStr(JSON.stringify({
-          evalsFile: config.evalsFile,
-          toolSchemaFile: config.toolSchemaFile,
-          model: config.model,
-          backend: config.backend
-        }, null, 2));
+        setJsonStr(
+          JSON.stringify(
+            {
+              evalsFile: config.evalsFile,
+              toolSchemaFile: config.toolSchemaFile,
+              model: config.model,
+              backend: config.backend,
+            },
+            null,
+            2,
+          ),
+        );
       }
     } catch {
       // invalid JSON, do not overwrite user's typing
     }
   }, [config.model, config.evalsFile, config.toolSchemaFile, config.backend, jsonStr]);
 
-  const handleValidation = useCallback((markers: any[]) => {
-    if (markers.length > 0) {
-      setIsValid(false);
-      setErrorMsg('Invalid JSON configuration');
-    } else {
-      setIsValid(true);
-      setErrorMsg(null);
-    }
-  }, [setIsValid]);
+  const handleValidation = useCallback(
+    (markers: any[]) => {
+      if (markers.length > 0) {
+        setIsValid(false);
+        setErrorMsg("Invalid JSON configuration");
+      } else {
+        setIsValid(true);
+        setErrorMsg(null);
+      }
+    },
+    [setIsValid],
+  );
 
   const handleChange = (value: string | undefined) => {
-    const val = value || '';
+    const val = value || "";
     setJsonStr(val);
     try {
       const parsed = JSON.parse(val);
@@ -60,7 +75,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
       setErrorMsg(null);
     } catch {
       setIsValid(false);
-      setErrorMsg('Invalid JSON');
+      setErrorMsg("Invalid JSON");
     }
   };
 
@@ -70,7 +85,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
         JSON Configuration
         {errorMsg && <span className={styles.errorText}>{errorMsg}</span>}
       </label>
-      <div className={`${styles.editorContainer} ${errorMsg ? styles.hasError : ''}`}>
+      <div className={`${styles.editorContainer} ${errorMsg ? styles.hasError : ""}`}>
         <Editor
           height="100%"
           defaultLanguage="json"
@@ -81,7 +96,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
             minimap: { enabled: false },
             readOnly: running,
             scrollBeyondLastLine: false,
-            wordWrap: 'on'
+            wordWrap: "on",
           }}
           theme="vs-dark"
         />

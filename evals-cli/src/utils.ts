@@ -12,21 +12,13 @@ import fs from "node:fs/promises";
 
 export const CHROME_CANARY_PATHS: string[] = [
   // Windows
-  path.join(
-    os.homedir(),
-    "AppData",
-    "Local",
-    "Google",
-    "Chrome SxS",
-    "Application",
-    "chrome.exe",
-  ),
+  path.join(os.homedir(), "AppData", "Local", "Google", "Chrome SxS", "Application", "chrome.exe"),
   // macOS
   "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
   // Linux unstable channel
   "/usr/bin/google-chrome-unstable",
   "/opt/google/chrome-unstable/google-chrome",
-  "/usr/bin/google-chrome-canary"
+  "/usr/bin/google-chrome-canary",
 ];
 
 export async function findChromePath(): Promise<string> {
@@ -40,8 +32,8 @@ export async function findChromePath(): Promise<string> {
   }
   throw new Error(
     "Chrome Canary not found. Please install Chrome Canary (version 146+).\n" +
-    "Checked paths:\n" +
-    CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
+      "Checked paths:\n" +
+      CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
   );
 }
 
@@ -70,17 +62,19 @@ export interface MatchResult {
   mappedResults: TrajectoryResult[];
 }
 
-export function isUnorderedGroup(node: ExpectedCallNode): node is { unordered: ExpectedCallNode[] } {
-  return node !== null && typeof node === 'object' && 'unordered' in node;
+export function isUnorderedGroup(
+  node: ExpectedCallNode,
+): node is { unordered: ExpectedCallNode[] } {
+  return node !== null && typeof node === "object" && "unordered" in node;
 }
 
 export function isOrderedGroup(node: ExpectedCallNode): node is { ordered: ExpectedCallNode[] } {
-  return node !== null && typeof node === 'object' && 'ordered' in node;
+  return node !== null && typeof node === "object" && "ordered" in node;
 }
 
 export function isFunctionCall(node: ExpectedCallNode): node is FunctionCall {
   // Positive type guard checking for the presence of the property instead of negatively inferring
-  return node !== null && typeof node === 'object' && 'functionName' in node;
+  return node !== null && typeof node === "object" && "functionName" in node;
 }
 
 export function countExpectedCalls(nodes: ExpectedCallNode[]): number {
@@ -92,10 +86,14 @@ export function countExpectedCalls(nodes: ExpectedCallNode[]): number {
 }
 
 function hasNestedCalls(nodes: ExpectedCallNode[]): boolean {
-  return nodes.some(node => isUnorderedGroup(node) || isOrderedGroup(node));
+  return nodes.some((node) => isUnorderedGroup(node) || isOrderedGroup(node));
 }
 
-export function matchUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
+export function matchUnorderedGroup(
+  nodes: ExpectedCallNode[],
+  executions: ToolCall[],
+  startIndex: number,
+): MatchResult {
   if (!hasNestedCalls(nodes)) {
     return matchSimpleUnorderedGroup(nodes, executions, startIndex);
   }
@@ -104,9 +102,16 @@ export function matchUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolC
   return matchNestedUnorderedGroup(nodes, executions, startIndex, poolSize);
 }
 
-function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
+function matchSimpleUnorderedGroup(
+  nodes: ExpectedCallNode[],
+  executions: ToolCall[],
+  startIndex: number,
+): MatchResult {
   const expectedNodesCount = nodes.length;
-  const executionPoolSize = Math.max(0, Math.min(expectedNodesCount, executions.length - startIndex));
+  const executionPoolSize = Math.max(
+    0,
+    Math.min(expectedNodesCount, executions.length - startIndex),
+  );
 
   // Create bipartite graph of expected indices mapping to all potentially matching actual executions
   const adjacencyList: number[][] = [];
@@ -125,7 +130,7 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
     adjacencyList.push(matches);
   }
 
-  const executionToExpectedMatchMap = new Array(executionPoolSize).fill(-1);
+  const executionToExpectedMatchMap: Array<number> = Array.from({ length: executionPoolSize });
 
   // Maximum Bipartite Matching algorithm (Hopcroft-Karp / DFS based)
   // Needed due to argument `constraints` matching unequally against similar executions
@@ -146,7 +151,7 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
   }
 
   let matchesCount = 0;
-  const visited = new Array(executionPoolSize);
+  const visited: Array<boolean> = Array.from({ length: executionPoolSize });
   for (let i = 0; i < expectedNodesCount; i++) {
     visited.fill(false);
     if (findAugmentingPath(i, visited)) {
@@ -154,7 +159,8 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
     }
   }
 
-  const allMatched = matchesCount === expectedNodesCount && executionPoolSize === expectedNodesCount;
+  const allMatched =
+    matchesCount === expectedNodesCount && executionPoolSize === expectedNodesCount;
 
   // Track which expected nodes were successfully matched
   const matchedExpectedIndices = new Set<number>();
@@ -166,7 +172,9 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
   }
 
   // Get unmatched expected nodes
-  const unmatchedExpectedNodes = nodes.filter((_, index) => !matchedExpectedIndices.has(index)) as FunctionCall[];
+  const unmatchedExpectedNodes = nodes.filter(
+    (_, index) => !matchedExpectedIndices.has(index),
+  ) as FunctionCall[];
 
   // Map result array
   const mappedResults: TrajectoryResult[] = [];
@@ -174,10 +182,18 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
     const expectedIndex = executionToExpectedMatchMap[j];
     const actual = executions[startIndex + j];
     if (expectedIndex !== -1) {
-      mappedResults.push({ expected: nodes[expectedIndex] as FunctionCall, actual, outcome: "pass" });
+      mappedResults.push({
+        expected: nodes[expectedIndex] as FunctionCall,
+        actual,
+        outcome: "pass",
+      });
     } else {
       // Execution has no matching expected call, assign from unmatched pool if available
-      mappedResults.push({ expected: unmatchedExpectedNodes.shift() || null, actual, outcome: "fail" });
+      mappedResults.push({
+        expected: unmatchedExpectedNodes.shift() || null,
+        actual,
+        outcome: "fail",
+      });
     }
   }
 
@@ -189,11 +205,16 @@ function matchSimpleUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
   return {
     matches: allMatched,
     consumed: expectedNodesCount,
-    mappedResults
+    mappedResults,
   };
 }
 
-function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number, expectedTotalConsumed: number): MatchResult {
+function matchNestedUnorderedGroup(
+  nodes: ExpectedCallNode[],
+  executions: ToolCall[],
+  startIndex: number,
+  expectedTotalConsumed: number,
+): MatchResult {
   const n = nodes.length;
   // Guard against performance bottlenecks from combinatorial explosion
   if (n > 15) {
@@ -203,10 +224,10 @@ function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
   const bestState = {
     matches: false,
     maxPasses: -1,
-    mappedResults: [] as TrajectoryResult[]
+    mappedResults: [] as TrajectoryResult[],
   };
 
-  const visited = new Array<boolean>(n).fill(false);
+  const visited = Array.from({ length: n }).fill(false);
   const matchCache = new Map<string, MatchResult>();
 
   function getMatch(nodeIndex: number, execIndex: number): MatchResult {
@@ -224,7 +245,7 @@ function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
     currentConsumed: number,
     currentMatches: boolean,
     currentPasses: number,
-    currentMappedResults: TrajectoryResult[]
+    currentMappedResults: TrajectoryResult[],
   ): void {
     // Base case: all groups/nodes matched
     if (nodesProcessed === n) {
@@ -244,7 +265,7 @@ function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
       visited[i] = true;
       const nodeRes = getMatch(i, currentIndex);
 
-      const nodePasses = nodeRes.mappedResults.filter(r => r.outcome === "pass").length;
+      const nodePasses = nodeRes.mappedResults.filter((r) => r.outcome === "pass").length;
       currentMappedResults.push(...nodeRes.mappedResults);
 
       backtrack(
@@ -252,7 +273,7 @@ function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
         currentConsumed + nodeRes.consumed,
         currentMatches && nodeRes.matches,
         currentPasses + nodePasses,
-        currentMappedResults
+        currentMappedResults,
       );
 
       // Undo modifications for backtracking
@@ -266,11 +287,15 @@ function matchNestedUnorderedGroup(nodes: ExpectedCallNode[], executions: ToolCa
   return {
     matches: bestState.matches,
     consumed: expectedTotalConsumed,
-    mappedResults: bestState.mappedResults
+    mappedResults: bestState.mappedResults,
   };
 }
 
-export function matchExpectedNode(node: ExpectedCallNode, executions: ToolCall[], startIndex: number): MatchResult {
+export function matchExpectedNode(
+  node: ExpectedCallNode,
+  executions: ToolCall[],
+  startIndex: number,
+): MatchResult {
   if (isUnorderedGroup(node)) {
     return matchUnorderedGroup(node.unordered, executions, startIndex);
   } else if (isOrderedGroup(node)) {
@@ -280,7 +305,7 @@ export function matchExpectedNode(node: ExpectedCallNode, executions: ToolCall[]
       return {
         matches: false,
         consumed: 1,
-        mappedResults: [{ expected: node, actual: null, outcome: "fail" }]
+        mappedResults: [{ expected: node, actual: null, outcome: "fail" }],
       };
     }
     const actual = executions[startIndex];
@@ -288,7 +313,7 @@ export function matchExpectedNode(node: ExpectedCallNode, executions: ToolCall[]
     return {
       matches: outcome === "pass",
       consumed: 1,
-      mappedResults: [{ expected: node, actual, outcome }]
+      mappedResults: [{ expected: node, actual, outcome }],
     };
   }
 
@@ -296,7 +321,11 @@ export function matchExpectedNode(node: ExpectedCallNode, executions: ToolCall[]
   return { matches: false, consumed: 0, mappedResults: [] };
 }
 
-export function matchSequence(nodes: ExpectedCallNode[], executions: ToolCall[], startIndex: number): MatchResult {
+export function matchSequence(
+  nodes: ExpectedCallNode[],
+  executions: ToolCall[],
+  startIndex: number,
+): MatchResult {
   let currentIndex = startIndex;
   let allMatched = true;
   let mappedResults: TrajectoryResult[] = [];
@@ -313,16 +342,19 @@ export function matchSequence(nodes: ExpectedCallNode[], executions: ToolCall[],
   return {
     matches: allMatched,
     consumed: currentIndex - startIndex,
-    mappedResults
+    mappedResults,
   };
 }
 
-export function evaluateExecutionTrajectory(expectedCalls: ExpectedCallNode[] | null, executions: ToolCall[]): TrajectoryResult[] {
+export function evaluateExecutionTrajectory(
+  expectedCalls: ExpectedCallNode[] | null,
+  executions: ToolCall[],
+): TrajectoryResult[] {
   if (!expectedCalls || expectedCalls.length === 0) {
     if (executions.length === 0) {
       return expectedCalls === null ? [{ expected: null, actual: null, outcome: "pass" }] : [];
     } else {
-      return executions.map(actual => ({ expected: null, actual, outcome: "fail" }));
+      return executions.map((actual) => ({ expected: null, actual, outcome: "fail" }));
     }
   }
 
@@ -330,17 +362,17 @@ export function evaluateExecutionTrajectory(expectedCalls: ExpectedCallNode[] | 
 
   return [
     ...mappedResults,
-    ...executions.slice(consumed).map(actual => ({
+    ...executions.slice(consumed).map((actual) => ({
       expected: null,
       actual,
-      outcome: "fail" as const
-    }))
+      outcome: "fail" as const,
+    })),
   ];
 }
 
 export function sortObjectKeys<T>(obj: T, visited = new WeakMap<object, unknown>()): T {
   // Return primitives and null immediately
-  if (obj === null || typeof obj !== 'object') {
+  if (obj === null || typeof obj !== "object") {
     return obj;
   }
 
@@ -371,4 +403,18 @@ export function sortObjectKeys<T>(obj: T, visited = new WeakMap<object, unknown>
     res[key] = sortObjectKeys((obj as Record<string, unknown>)[key], visited);
   }
   return res as T;
+}
+
+export async function cleanOldReports(): Promise<void> {
+  const dir = process.cwd();
+  try {
+    const files = await fs.readdir(dir);
+    for (const file of files) {
+      if (file.startsWith("report-") && file.endsWith(".html")) {
+        await fs.unlink(path.join(dir, file));
+      }
+    }
+  } catch (error) {
+    // Ignore errors during cleanup
+  }
 }

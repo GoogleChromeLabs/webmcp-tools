@@ -8,34 +8,20 @@
         "properties": {
           "department": {
             "type": "string",
-            "enum": [
-              "Cardiology",
-              "Dermatology",
-              "Pediatrics",
-              "GP",
-              "Psychiatry"
-            ],
+            "enum": ["Cardiology", "Dermatology", "Pediatrics", "GP", "Psychiatry"],
             "description": "The medical specialty. Map 'heart' to Cardiology, 'skin/rash' to Dermatology, 'child' to Pediatrics."
           },
           "priority": {
             "type": "string",
-            "enum": [
-              "Routine",
-              "Urgent"
-            ],
+            "enum": ["Routine", "Urgent"],
             "description": "The urgency of the appointment. Always specify 'Routine' for standard checkups or non-emergency visits unless 'Urgent' is clearly required."
           },
           "visitType": {
             "type": "string",
-            "enum": [
-              "In-Person",
-              "Telehealth"
-            ]
+            "enum": ["In-Person", "Telehealth"]
           }
         },
-        "required": [
-          "department"
-        ]
+        "required": ["department"]
       }
     },
     {
@@ -54,9 +40,7 @@
             }
           }
         },
-        "required": [
-          "medicationName"
-        ]
+        "required": ["medicationName"]
       }
     },
     {
@@ -77,9 +61,7 @@
             "description": "Radius in miles."
           }
         },
-        "required": [
-          "zipCode"
-        ]
+        "required": ["zipCode"]
       }
     },
     {
@@ -98,10 +80,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "testName",
-          "value"
-        ]
+        "required": ["testName", "value"]
       }
     },
     {
@@ -118,9 +97,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "procedure"
-        ]
+        "required": ["procedure"]
       }
     },
     {
@@ -136,9 +113,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "medicationName"
-        ]
+        "required": ["medicationName"]
       }
     },
     {
@@ -155,9 +130,7 @@
             "description": "e.g., '10mg', '500mg'."
           }
         },
-        "required": [
-          "medicationName"
-        ]
+        "required": ["medicationName"]
       }
     },
     {

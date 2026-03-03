@@ -26,14 +26,19 @@ export class GeminiBackend implements Backend {
     if (toolCall) {
       return {
         functionName: toolCall.functionName,
-        args: toolCall.args || {}
+        args: toolCall.args || {},
       };
     } else {
       return { text: "No tool calls generated." };
     }
   }
 
-  executeInBrowserEvals(tests: Array<Eval>, tools: Array<Tool>, config: WebmcpConfig, onEvent?: (event: RunEvent) => void): Promise<TestResults> {
+  executeInBrowserEvals(
+    _tests: Array<Eval>,
+    _tools: Array<Tool>,
+    _config: WebmcpConfig,
+    _onEvent?: (event: RunEvent) => void,
+  ): Promise<TestResults> {
     throw new Error("Method not implemented.");
   }
 
@@ -42,15 +47,13 @@ export class GeminiBackend implements Backend {
   }
 
   async execute(messages: Message[]): Promise<ToolCall | null> {
-    const functionDeclarations: Array<FunctionDeclaration> = this.tools.map(
-      (t) => {
-        return {
-          name: t.functionName,
-          description: t.description,
-          parametersJsonSchema: t.parameters,
-        };
-      },
-    );
+    const functionDeclarations: Array<FunctionDeclaration> = this.tools.map((t) => {
+      return {
+        name: t.functionName,
+        description: t.description,
+        parametersJsonSchema: t.parameters,
+      };
+    });
 
     const contents: Array<Content> = messages.map((m) => {
       switch (m.type) {

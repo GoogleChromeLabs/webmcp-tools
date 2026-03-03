@@ -13,6 +13,7 @@ import minimist from "minimist";
 import { Config } from "../types/config.js";
 import { renderReport } from "../report/report.js";
 import { executeLocalEvals } from "../evaluator/index.js";
+import { cleanOldReports } from "../utils.js";
 
 dotenv.config();
 
@@ -28,9 +29,7 @@ if (!args.evals) {
 }
 
 if (args.backend && args.backend === "ollama" && !args.model) {
-  console.error(
-    "The 'model' argument is required when 'backend' is set to 'ollama'.",
-  );
+  console.error("The 'model' argument is required when 'backend' is set to 'ollama'.");
   process.exit(1);
 }
 
@@ -57,17 +56,16 @@ const tests: Array<Eval> = JSON.parse(
 );
 
 const progressBar = new SingleBar({
-  format:
-    "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
+  format: "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
 });
 
 let passCount = 0;
 let stepCount = 0;
 const finalResults = await executeLocalEvals(tests, tools, config, (event) => {
-  if (event.type === 'start') {
+  if (event.type === "start") {
     console.log(event.message);
     progressBar.start(event.total, 0, { accuracy: "0.00" });
-  } else if (event.type === 'progress') {
+  } else if (event.type === "progress") {
     stepCount++;
     if (event.result.outcome === "pass") passCount++;
     progressBar.update(stepCount, {
@@ -81,6 +79,7 @@ const report = renderReport(config, finalResults);
 
 const reportName = `report-${Date.now()}.html`;
 
+await cleanOldReports();
 await writeFile(reportName, report);
 console.log(`\nReport saved to ${reportName}`);
 process.exit();

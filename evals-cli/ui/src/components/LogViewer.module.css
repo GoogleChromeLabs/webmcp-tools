@@ -14,11 +14,11 @@
   color: var(--surface-color);
   padding: 16px;
   border-radius: 4px;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.875rem;
   flex: 1;
   overflow-y: auto;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,9 +37,15 @@
   margin-bottom: 0;
 }
 
-.success { color: var(--success-color); }
-.error { color: var(--error-color); }
-.info { color: #8ab4f8; }
+.success {
+  color: var(--success-color);
+}
+.error {
+  color: var(--error-color);
+}
+.info {
+  color: #8ab4f8;
+}
 
 .empty {
   color: var(--text-secondary);

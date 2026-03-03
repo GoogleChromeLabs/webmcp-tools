@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": ["eslint-plugin-license-header"],
+  "rules": {
+    "license-header/header": [
+      "error",
+      ["/**", " * Copyright 2026 Google LLC", " * SPDX-License-Identifier: Apache-2.0", " */"]
+    ]
+  }
+}
