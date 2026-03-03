@@ -29,11 +29,14 @@ export function createBrowserTool(t: Tool, page: Page): any {
           }
           if (!mct) return { error: "modelContext not found" };
           const payload = typeof args === 'string' ? args : JSON.stringify(args || {});
-          const result = await mct.executeTool(name, payload);
-          
-          // Slight backoff for DOM layout recalculations if UI changes
-          await new Promise(r => setTimeout(r, 3000));
-          
+          let result = await mct.executeTool(name, payload);
+
+          // If executeTool returns null, it means a navigation happened.
+          // Fall back by calling getCrossDocumentScriptToolResult to get the tool result.
+          if (result === null && typeof mct.getCrossDocumentScriptToolResult === 'function') {
+            result = await mct.getCrossDocumentScriptToolResult();
+          }
+
           return { result };
         } catch (e: any) {
           return { error: e.message || String(e) };
