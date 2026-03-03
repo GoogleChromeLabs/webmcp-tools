@@ -13,6 +13,7 @@ import minimist from "minimist";
 import { Config } from "../types/config.js";
 import { renderReport } from "../report/report.js";
 import { executeLocalEvals } from "../evaluator/index.js";
+import { cleanOldReports } from "../utils.js";
 
 dotenv.config();
 
@@ -81,6 +82,7 @@ const report = renderReport(config, finalResults);
 
 const reportName = `report-${Date.now()}.html`;
 
+await cleanOldReports();
 await writeFile(reportName, report);
 console.log(`\nReport saved to ${reportName}`);
 process.exit();

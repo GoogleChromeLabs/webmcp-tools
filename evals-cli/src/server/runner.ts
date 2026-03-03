@@ -9,6 +9,7 @@ import { Tool, ToolsSchema } from "../types/tools.js";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { executeInBrowserEvals, executeLocalEvals, listToolsFromPage } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
+import { cleanOldReports } from "../utils.js";
 import * as dotenv from "dotenv";
 import { RunEvent } from "../backends/index.js";
 
@@ -52,6 +53,7 @@ export async function runEvaluations(
     }
 
     const reportName = `report-${Date.now()}.html`;
+    await cleanOldReports();
     await writeFile(reportName, reportHtml);
 
     onEvent({

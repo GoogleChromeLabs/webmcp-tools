@@ -372,3 +372,18 @@ export function sortObjectKeys<T>(obj: T, visited = new WeakMap<object, unknown>
   }
   return res as T;
 }
+
+export async function cleanOldReports(): Promise<void> {
+  const dir = process.cwd();
+  try {
+    const files = await fs.readdir(dir);
+    for (const file of files) {
+      if (file.startsWith('report-') && file.endsWith('.html')) {
+        await fs.unlink(path.join(dir, file));
+      }
+    }
+  } catch (error) {
+    // Ignore errors during cleanup
+  }
+}
+
