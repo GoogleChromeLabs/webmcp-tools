@@ -130,7 +130,7 @@ function matchSimpleUnorderedGroup(
     adjacencyList.push(matches);
   }
 
-  const executionToExpectedMatchMap: Array<number> = Array.from({ length: executionPoolSize });
+  const executionToExpectedMatchMap: Array<number> = Array(executionPoolSize).fill(-1);
 
   // Maximum Bipartite Matching algorithm (Hopcroft-Karp / DFS based)
   // Needed due to argument `constraints` matching unequally against similar executions
