@@ -116,7 +116,7 @@ describe("VercelBackend", () => {
           close: async () => {},
           evaluate: async () => [],
         }),
-        close: async () => { },
+        close: async () => {},
       }));
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it

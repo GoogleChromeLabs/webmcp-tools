@@ -32,8 +32,8 @@ export async function findChromePath(): Promise<string> {
   }
   throw new Error(
     "Chrome Canary not found. Please install Chrome Canary (version 146+).\n" +
-    "Checked paths:\n" +
-    CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
+      "Checked paths:\n" +
+      CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
   );
 }
 

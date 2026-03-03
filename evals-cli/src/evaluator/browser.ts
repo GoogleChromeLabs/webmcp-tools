@@ -48,7 +48,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
       if (typeof r === "string") {
         try {
           r = JSON.parse(r);
-        } catch { }
+        } catch {}
       }
 
       // Attempt to drill down into structured responses
@@ -121,7 +121,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     if (!Array.isArray(rawTools) || rawTools.length === 0) {
       throw new Error(
         `The WebMCP API returned no tools from ${url}. ` +
-        "Ensure the page exposes tools via modelContextTesting.listTools().",
+          "Ensure the page exposes tools via modelContextTesting.listTools().",
       );
     }
 
