@@ -130,7 +130,7 @@ function matchSimpleUnorderedGroup(
     adjacencyList.push(matches);
   }
 
-  const executionToExpectedMatchMap: Array<number> = Array.from({ length: executionPoolSize });
+  const executionToExpectedMatchMap: Array<number> = Array(executionPoolSize).fill(-1);
 
   // Maximum Bipartite Matching algorithm (Hopcroft-Karp / DFS based)
   // Needed due to argument `constraints` matching unequally against similar executions
@@ -410,7 +410,7 @@ export async function cleanOldReports(): Promise<void> {
   try {
     const files = await fs.readdir(dir);
     for (const file of files) {
-      if (file.startsWith('report-') && file.endsWith('.html')) {
+      if (file.startsWith("report-") && file.endsWith(".html")) {
         await fs.unlink(path.join(dir, file));
       }
     }
@@ -418,4 +418,3 @@ export async function cleanOldReports(): Promise<void> {
     // Ignore errors during cleanup
   }
 }
-
