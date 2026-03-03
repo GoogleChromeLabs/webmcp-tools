@@ -12,13 +12,7 @@
           },
           "category": {
             "type": "string",
-            "enum": [
-              "Electronics",
-              "Footwear",
-              "Apparel",
-              "Home Goods",
-              "Office Supplies"
-            ]
+            "enum": ["Electronics", "Footwear", "Apparel", "Home Goods", "Office Supplies"]
           },
           "maxPrice": {
             "type": "number"
@@ -32,11 +26,7 @@
           },
           "sortBy": {
             "type": "string",
-            "enum": [
-              "price_low_to_high",
-              "price_high_to_low",
-              "rating"
-            ]
+            "enum": ["price_low_to_high", "price_high_to_low", "rating"]
           },
           "attributes": {
             "type": "object",
@@ -54,10 +44,7 @@
             }
           }
         },
-        "required": [
-          "query",
-          "category"
-        ]
+        "required": ["query", "category"]
       }
     },
     {
@@ -73,10 +60,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "productId",
-          "competitorPrice"
-        ]
+        "required": ["productId", "competitorPrice"]
       }
     },
     {
@@ -92,9 +76,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "productId"
-        ]
+        "required": ["productId"]
       }
     }
   ]

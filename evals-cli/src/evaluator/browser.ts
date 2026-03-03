@@ -19,38 +19,44 @@ export function createBrowserTool(t: Tool, page: Page): any {
     parameters: jsonSchema(t.parameters || {}) as any,
     inputSchema: jsonSchema(t.parameters || {}) as any,
     execute: async (args: any) => {
-      const executionResult: any = await page.evaluate(async (name, args) => {
-        try {
-          let mct = null;
-          if (typeof (navigator as any).modelContext?.executeTool === 'function') {
-            mct = (navigator as any).modelContext;
-          } else if (typeof (navigator as any).modelContextTesting?.executeTool === 'function') {
-            mct = (navigator as any).modelContextTesting;
+      const executionResult: any = await page.evaluate(
+        async (name, args) => {
+          try {
+            let mct = null;
+            if (typeof (navigator as any).modelContext?.executeTool === "function") {
+              mct = (navigator as any).modelContext;
+            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+              mct = (navigator as any).modelContextTesting;
+            }
+            if (!mct) return { error: "modelContext not found" };
+            const payload = typeof args === "string" ? args : JSON.stringify(args || {});
+            const result = await mct.executeTool(name, payload);
+
+            // Slight backoff for DOM layout recalculations if UI changes
+            await new Promise((r) => setTimeout(r, 3000));
+
+            return { result };
+          } catch (e: any) {
+            return { error: e.message || String(e) };
           }
-          if (!mct) return { error: "modelContext not found" };
-          const payload = typeof args === 'string' ? args : JSON.stringify(args || {});
-          const result = await mct.executeTool(name, payload);
-          
-          // Slight backoff for DOM layout recalculations if UI changes
-          await new Promise(r => setTimeout(r, 3000));
-          
-          return { result };
-        } catch (e: any) {
-          return { error: e.message || String(e) };
-        }
-      }, t.functionName, args);
+        },
+        t.functionName,
+        args,
+      );
 
       let r = executionResult.result;
-      if (typeof r === 'string') {
-        try { r = JSON.parse(r); } catch (e) { }
+      if (typeof r === "string") {
+        try {
+          r = JSON.parse(r);
+        } catch { }
       }
-      
+
       // Attempt to drill down into structured responses
       if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
         return r.content[0].text;
       }
       return r || executionResult.error || "Success";
-    }
+    },
   } as any);
 }
 
@@ -71,11 +77,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     browser = await puppeteer.launch({
       executablePath,
       headless: true,
-      args: [
-        "--enable-features=WebMCPTesting",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-      ],
+      args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -94,9 +96,9 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
 
     const rawTools = await page.evaluate(async () => {
       let modelContext = null;
-      if (typeof (navigator as any).modelContext?.listTools === 'function') {
+      if (typeof (navigator as any).modelContext?.listTools === "function") {
         modelContext = (navigator as any).modelContext;
-      } else if (typeof (navigator as any).modelContextTesting?.listTools === 'function') {
+      } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
         modelContext = (navigator as any).modelContextTesting;
       }
 

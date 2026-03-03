@@ -42,8 +42,8 @@ The project is structured as follows:
     ```bash
     npm install
     ```
-    
-    *Note: This will also automatically install dependencies for the `ui` sub-project via a `postinstall` script.*
+
+    _Note: This will also automatically install dependencies for the `ui` sub-project via a `postinstall` script._
 
 2.  **Configure Environment**
 
@@ -96,13 +96,13 @@ Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas l
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
 ```
 
-| Argument     | Required | Default            | Description                                                            |
-| ------------ | -------- | ------------------ | ---------------------------------------------------------------------- |
-| `--url`      | Yes      | —                  | URL of the page exposing WebMCP tools                                  |
-| `--evals`    | Yes      | —                  | Path to the evals JSON file                                            |
-| `--backend`  | No       | `vercel`           | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`)    |
-| `--provider` | No       | `gemini`           | Model provider to use with Vercel (e.g., `openai`, `anthropic`)        |
-| `--model`    | No       | `gemini-2.5-flash` | Model name                                                             |
+| Argument     | Required | Default            | Description                                                         |
+| ------------ | -------- | ------------------ | ------------------------------------------------------------------- |
+| `--url`      | Yes      | —                  | URL of the page exposing WebMCP tools                               |
+| `--evals`    | Yes      | —                  | Path to the evals JSON file                                         |
+| `--backend`  | No       | `vercel`           | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`) |
+| `--provider` | No       | `gemini`           | Model provider to use with Vercel (e.g., `openai`, `anthropic`)     |
+| `--model`    | No       | `gemini-2.5-flash` | Model name                                                          |
 
 ### `serve` — WebMCP Evals UI sidecar
 

@@ -13,13 +13,13 @@ describe("evaluateExecutionTrajectory", () => {
   it("matches simple ordered calls", () => {
     const expected: ExpectedCallNode[] = [
       { functionName: "login", arguments: {} },
-      { functionName: "logout", arguments: {} }
+      { functionName: "logout", arguments: {} },
     ];
     const actual: ToolCall[] = [
       { functionName: "login", args: {} },
-      { functionName: "logout", args: {} }
+      { functionName: "logout", args: {} },
     ];
-    
+
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 2);
     assert.strictEqual(result[0].outcome, "pass");
@@ -27,11 +27,9 @@ describe("evaluateExecutionTrajectory", () => {
   });
 
   it("handles empty executions against expected", () => {
-    const expected: ExpectedCallNode[] = [
-      { functionName: "login", arguments: {} }
-    ];
+    const expected: ExpectedCallNode[] = [{ functionName: "login", arguments: {} }];
     const actual: ToolCall[] = [];
-    
+
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 1);
     assert.strictEqual(result[0].outcome, "fail");
@@ -51,9 +49,7 @@ describe("evaluateExecutionTrajectory", () => {
 
   it("handles null expectedCalls with actual executions (fail)", () => {
     const expected: ExpectedCallNode[] | null = null;
-    const actual: ToolCall[] = [
-      { functionName: "login", args: {} }
-    ];
+    const actual: ToolCall[] = [{ functionName: "login", args: {} }];
 
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 1);
@@ -67,18 +63,21 @@ describe("evaluateExecutionTrajectory", () => {
       {
         unordered: [
           { functionName: "step_a", arguments: {} },
-          { functionName: "step_b", arguments: {} }
-        ]
-      }
+          { functionName: "step_b", arguments: {} },
+        ],
+      },
     ];
     const actual: ToolCall[] = [
       { functionName: "step_b", args: {} },
-      { functionName: "step_a", args: {} }
+      { functionName: "step_a", args: {} },
     ];
-    
+
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 2);
-    assert.strictEqual(result.every(r => r.outcome === "pass"), true);
+    assert.strictEqual(
+      result.every((r) => r.outcome === "pass"),
+      true,
+    );
   });
 
   it("assigns remaining unmatched items 1-to-1 in flat unordered failures", () => {
@@ -86,21 +85,21 @@ describe("evaluateExecutionTrajectory", () => {
       {
         unordered: [
           { functionName: "step_a", arguments: {} },
-          { functionName: "step_b", arguments: {} }
-        ]
-      }
+          { functionName: "step_b", arguments: {} },
+        ],
+      },
     ];
     // LLM retries A twice, never calls B
     const actual: ToolCall[] = [
       { functionName: "step_a", args: {} },
-      { functionName: "step_a", args: {} }
+      { functionName: "step_a", args: {} },
     ];
-    
+
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 2);
     // One should pass (the first A), one should fail (B vs the second A)
-    const passes = result.filter(r => r.outcome === "pass");
-    const fails = result.filter(r => r.outcome === "fail");
+    const passes = result.filter((r) => r.outcome === "pass");
+    const fails = result.filter((r) => r.outcome === "fail");
     assert.strictEqual(passes.length, 1);
     assert.strictEqual(fails.length, 1);
     assert.strictEqual(fails[0].expected?.functionName, "step_b");
@@ -111,31 +110,32 @@ describe("evaluateExecutionTrajectory", () => {
       {
         unordered: [
           { functionName: "update", arguments: { id: 1 } },
-          { functionName: "update", arguments: { id: 2 } }
-        ]
-      }
+          { functionName: "update", arguments: { id: 2 } },
+        ],
+      },
     ];
     const actual: ToolCall[] = [
       { functionName: "update", args: { id: 2 } },
-      { functionName: "update", args: { id: 1 } }
+      { functionName: "update", args: { id: 1 } },
     ];
 
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 2);
-    assert.strictEqual(result.every(r => r.outcome === "pass"), true);
+    assert.strictEqual(
+      result.every((r) => r.outcome === "pass"),
+      true,
+    );
   });
 
   it("handles extra actual executions after an unordered group", () => {
     const expected: ExpectedCallNode[] = [
       {
-        unordered: [
-          { functionName: "step_a", arguments: {} }
-        ]
-      }
+        unordered: [{ functionName: "step_a", arguments: {} }],
+      },
     ];
     const actual: ToolCall[] = [
       { functionName: "step_a", args: {} },
-      { functionName: "step_extra", args: {} }
+      { functionName: "step_extra", args: {} },
     ];
 
     const result = evaluateExecutionTrajectory(expected, actual);
@@ -154,41 +154,50 @@ describe("evaluateExecutionTrajectory", () => {
           {
             ordered: [
               { functionName: "b1", arguments: {} },
-              { functionName: "b2", arguments: {} }
-            ]
-          }
-        ]
-      }
+              { functionName: "b2", arguments: {} },
+            ],
+          },
+        ],
+      },
     ];
-    
+
     // Valid trajectory: B1 -> B2 -> A
     const actual1: ToolCall[] = [
       { functionName: "b1", args: {} },
       { functionName: "b2", args: {} },
-      { functionName: "a", args: {} }
+      { functionName: "a", args: {} },
     ];
     const res1 = evaluateExecutionTrajectory(expected, actual1);
     assert.strictEqual(res1.length, 3);
-    assert.strictEqual(res1.every(r => r.outcome === "pass"), true);
+    assert.strictEqual(
+      res1.every((r) => r.outcome === "pass"),
+      true,
+    );
 
     // Valid trajectory: A -> B1 -> B2
     const actual2: ToolCall[] = [
       { functionName: "a", args: {} },
       { functionName: "b1", args: {} },
-      { functionName: "b2", args: {} }
+      { functionName: "b2", args: {} },
     ];
     const res2 = evaluateExecutionTrajectory(expected, actual2);
     assert.strictEqual(res2.length, 3);
-    assert.strictEqual(res2.every(r => r.outcome === "pass"), true);
+    assert.strictEqual(
+      res2.every((r) => r.outcome === "pass"),
+      true,
+    );
 
     // Invalid trajectory: B1 -> A -> B2 (violates ordering of b1 then b2)
     const actual3: ToolCall[] = [
       { functionName: "b1", args: {} },
       { functionName: "a", args: {} },
-      { functionName: "b2", args: {} }
+      { functionName: "b2", args: {} },
     ];
     const res3 = evaluateExecutionTrajectory(expected, actual3);
-    assert.strictEqual(res3.some(r => r.outcome === "fail"), true);
+    assert.strictEqual(
+      res3.some((r) => r.outcome === "fail"),
+      true,
+    );
   });
 
   it("handles mismatched nested actuals in unordered group without crashing", () => {
@@ -199,22 +208,25 @@ describe("evaluateExecutionTrajectory", () => {
           {
             ordered: [
               { functionName: "step_a", arguments: {} },
-              { functionName: "step_b", arguments: {} }
-            ]
-          }
-        ]
-      }
+              { functionName: "step_b", arguments: {} },
+            ],
+          },
+        ],
+      },
     ];
     const actual: ToolCall[] = [
       { functionName: "step_a", args: {} },
       { functionName: "step_c", args: {} },
-      { functionName: "step_b", args: {} }
+      { functionName: "step_b", args: {} },
     ];
 
     // Order mismatch (A->C->B should fail the ordered A->B requirement or fail the pool)
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 3);
-    assert.strictEqual(result.some(r => r.outcome === "fail"), true);
+    assert.strictEqual(
+      result.some((r) => r.outcome === "fail"),
+      true,
+    );
   });
 
   it("handles when fewer executions are provided to simple unordered group", () => {
@@ -222,18 +234,16 @@ describe("evaluateExecutionTrajectory", () => {
       {
         unordered: [
           { functionName: "step_a", arguments: {} },
-          { functionName: "step_b", arguments: {} }
-        ]
-      }
+          { functionName: "step_b", arguments: {} },
+        ],
+      },
     ];
-    const actual: ToolCall[] = [
-      { functionName: "step_a", args: {} }
-    ];
+    const actual: ToolCall[] = [{ functionName: "step_a", args: {} }];
 
     const result = evaluateExecutionTrajectory(expected, actual);
     assert.strictEqual(result.length, 2);
-    const passes = result.filter(r => r.outcome === "pass");
-    const fails = result.filter(r => r.outcome === "fail");
+    const passes = result.filter((r) => r.outcome === "pass");
+    const fails = result.filter((r) => r.outcome === "fail");
     assert.strictEqual(passes.length, 1);
     assert.strictEqual(fails.length, 1);
     assert.strictEqual(fails[0].expected?.functionName, "step_b");
@@ -245,9 +255,9 @@ describe("evaluateExecutionTrajectory", () => {
       {
         unordered: Array.from({ length: 16 }).map((_, i) => ({
           functionName: `step_${i}`,
-          arguments: {}
-        }))
-      }
+          arguments: {},
+        })),
+      },
     ];
     // Inject nested call to trigger matchNestedUnorderedGroup
     (expected[0] as any).unordered[0] = { ordered: [{ functionName: "nested", arguments: {} }] };
@@ -266,7 +276,7 @@ describe("countExpectedCalls", () => {
   it("counts simple expected calls", () => {
     const expected: ExpectedCallNode[] = [
       { functionName: "a", arguments: {} },
-      { functionName: "b", arguments: {} }
+      { functionName: "b", arguments: {} },
     ];
     assert.strictEqual(countExpectedCalls(expected), 2);
   });
@@ -280,11 +290,11 @@ describe("countExpectedCalls", () => {
           {
             unordered: [
               { functionName: "c", arguments: {} },
-              { functionName: "d", arguments: {} }
-            ]
-          }
-        ]
-      }
+              { functionName: "d", arguments: {} },
+            ],
+          },
+        ],
+      },
     ];
     assert.strictEqual(countExpectedCalls(expected), 4);
   });
@@ -313,7 +323,10 @@ describe("sortObjectKeys", () => {
   });
 
   it("sorts object keys alphabetically within arrays", () => {
-    const obj = [{ b: 2, a: 1 }, { d: 4, c: 3 }];
+    const obj = [
+      { b: 2, a: 1 },
+      { d: 4, c: 3 },
+    ];
     const sorted = sortObjectKeys(obj) as any[];
     assert.deepStrictEqual(Object.keys(sorted[0]), ["a", "b"]);
     assert.deepStrictEqual(Object.keys(sorted[1]), ["c", "d"]);

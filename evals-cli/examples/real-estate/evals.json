@@ -15,9 +15,7 @@
           "minBedrooms": 3,
           "maxPrice": 600000,
           "propertyType": "House",
-          "amenities": [
-            "Pool"
-          ]
+          "amenities": ["Pool"]
         }
       }
     ]
@@ -53,10 +51,7 @@
         "functionName": "getNeighborhoodStats",
         "arguments": {
           "zipCode": "78704",
-          "metrics": [
-            "schools",
-            "transit"
-          ]
+          "metrics": ["schools", "transit"]
         }
       }
     ]
@@ -76,9 +71,7 @@
           "location": "NYC",
           "maxPrice": 5000,
           "propertyType": "Apartment",
-          "amenities": [
-            "Modern Kitchen"
-          ],
+          "amenities": ["Modern Kitchen"],
           "minBedrooms": 0
         }
       }

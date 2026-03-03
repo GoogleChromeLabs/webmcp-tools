@@ -21,23 +21,13 @@
           },
           "propertyType": {
             "type": "string",
-            "enum": [
-              "House",
-              "Condo",
-              "Townhouse",
-              "Land",
-              "Apartment"
-            ]
+            "enum": ["House", "Condo", "Townhouse", "Land", "Apartment"]
           },
           "amenities": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "Pool",
-                "Garage",
-                "Modern Kitchen"
-              ]
+              "enum": ["Pool", "Garage", "Modern Kitchen"]
             }
           },
           "minYearBuilt": {
@@ -48,9 +38,7 @@
             "description": "Search radius in miles."
           }
         },
-        "required": [
-          "location"
-        ]
+        "required": ["location"]
       }
     },
     {
@@ -66,10 +54,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "loanAmount",
-          "interestRate"
-        ]
+        "required": ["loanAmount", "interestRate"]
       }
     },
     {
@@ -85,17 +70,11 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": [
-                "schools",
-                "crime",
-                "transit"
-              ]
+              "enum": ["schools", "crime", "transit"]
             }
           }
         },
-        "required": [
-          "zipCode"
-        ]
+        "required": ["zipCode"]
       }
     },
     {
@@ -109,16 +88,10 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "driving",
-              "transit",
-              "walking"
-            ]
+            "enum": ["driving", "transit", "walking"]
           }
         },
-        "required": [
-          "destination"
-        ]
+        "required": ["destination"]
       }
     }
   ]

@@ -16,7 +16,7 @@ import * as ai from "ai";
 
 describe("VercelBackend", () => {
   describe("executeLocalEvals prompt generation", () => {
-    it("should map multi-turn message arrays correctly", async (t) => {
+    it("should map multi-turn message arrays correctly", async () => {
       // Setup mock Tool
       const dummyTools: Tool[] = [
         {
@@ -24,20 +24,19 @@ describe("VercelBackend", () => {
           description: "Adds a topping",
           parameters: {
             type: "object",
-            properties: { topping: { type: "string" } }
-          }
-        }
+            properties: { topping: { type: "string" } },
+          },
+        },
       ];
 
       let capturedPayload: any = null;
       class TestableVercelBackend extends VercelBackend {
-        
         async executeLocalEvals(test: Eval): Promise<any> {
-            // Re-implement the exact lines we want to test to capture the mapped payload
-            const { mapMessages } = await import("../evaluator/mappers.js");
-            const aiMessages = mapMessages(test.messages);
-            capturedPayload = { messages: aiMessages };
-            return { text: "mock" };
+          // Re-implement the exact lines we want to test to capture the mapped payload
+          const { mapMessages } = await import("../evaluator/mappers.js");
+          const aiMessages = mapMessages(test.messages);
+          capturedPayload = { messages: aiMessages };
+          return { text: "mock" };
         }
       }
 
@@ -47,11 +46,21 @@ describe("VercelBackend", () => {
       const evalTest: Eval = {
         messages: [
           { role: "user", type: "message", content: "Add one onion" },
-          { role: "model", type: "functioncall", name: "add_topping", arguments: { topping: "onion" } },
-          { role: "user", type: "functionresponse", name: "add_topping", response: { result: "Added." } },
-          { role: "user", type: "message", content: "Remove it." }
+          {
+            role: "model",
+            type: "functioncall",
+            name: "add_topping",
+            arguments: { topping: "onion" },
+          },
+          {
+            role: "user",
+            type: "functionresponse",
+            name: "add_topping",
+            response: { result: "Added." },
+          },
+          { role: "user", type: "message", content: "Remove it." },
         ],
-        expectedCall: []
+        expectedCall: [],
       };
 
       await backend.executeLocalEvals(evalTest);
@@ -59,20 +68,24 @@ describe("VercelBackend", () => {
       // Validate the payload was given the FULL message array, not just the first prompt
       assert.ok(capturedPayload, "generateText was not called");
       assert.ok(capturedPayload.messages, "messages array was missing from payload");
-      assert.strictEqual(capturedPayload.messages.length, 4, "Should have passed all 4 messages to the model");
-      
+      assert.strictEqual(
+        capturedPayload.messages.length,
+        4,
+        "Should have passed all 4 messages to the model",
+      );
+
       // Validate the mapper converted them to correct AI SDK roles
       assert.strictEqual(capturedPayload.messages[0].role, "user");
       assert.strictEqual(capturedPayload.messages[0].content, "Add one onion");
-      
+
       // Function call mapping
       assert.strictEqual(capturedPayload.messages[1].role, "assistant");
       assert.strictEqual(capturedPayload.messages[1].content[0].type, "tool-call");
-      
+
       // Function response mapping
       assert.strictEqual(capturedPayload.messages[2].role, "tool");
       assert.strictEqual(capturedPayload.messages[2].content[0].type, "tool-result");
-      
+
       // Final user message
       assert.strictEqual(capturedPayload.messages[3].role, "user");
       assert.strictEqual(capturedPayload.messages[3].content, "Remove it.");
@@ -88,9 +101,9 @@ describe("VercelBackend", () => {
           description: "Adds a topping",
           parameters: {
             type: "object",
-            properties: { topping: { type: "string" } }
-          }
-        }
+            properties: { topping: { type: "string" } },
+          },
+        },
       ];
 
       // Mock file system access so findChromePath succeeds
@@ -101,9 +114,9 @@ describe("VercelBackend", () => {
         newPage: async () => ({
           goto: async () => {},
           close: async () => {},
-          evaluate: async () => []
+          evaluate: async () => [],
         }),
-        close: async () => {}
+        close: async () => { },
       }));
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it
@@ -113,25 +126,44 @@ describe("VercelBackend", () => {
         return { steps: [], text: "mock text" };
       });
 
-      const backend = new VercelBackend({ model: "gemini-2.5-flash", url: "http://localhost:3000" } as any, dummyTools);
+      const backend = new VercelBackend(
+        { model: "gemini-2.5-flash", url: "http://localhost:3000" } as any,
+        dummyTools,
+      );
 
       // Create a multi-turn eval test message sequence
       const evalTest: Eval = {
         messages: [
           { role: "user", type: "message", content: "Add one onion" },
-          { role: "model", type: "functioncall", name: "add_topping", arguments: { topping: "onion" } },
-          { role: "user", type: "functionresponse", name: "add_topping", response: { result: "Added." } },
-          { role: "user", type: "message", content: "Remove it." }
+          {
+            role: "model",
+            type: "functioncall",
+            name: "add_topping",
+            arguments: { topping: "onion" },
+          },
+          {
+            role: "user",
+            type: "functionresponse",
+            name: "add_topping",
+            response: { result: "Added." },
+          },
+          { role: "user", type: "message", content: "Remove it." },
         ],
-        expectedCall: []
+        expectedCall: [],
       };
 
-      await backend.executeInBrowserEvals([evalTest], dummyTools, { url: "http://localhost:3000" } as any);
+      await backend.executeInBrowserEvals([evalTest], dummyTools, {
+        url: "http://localhost:3000",
+      } as any);
 
       // Validate the payload received by agentWithExec.generate
       assert.ok(capturedPayload, "ToolLoopAgent.generate was not called");
       assert.ok(capturedPayload.messages, "messages array was missing from payload");
-      assert.strictEqual(capturedPayload.messages.length, 4, "Should have passed all 4 messages to the model");
+      assert.strictEqual(
+        capturedPayload.messages.length,
+        4,
+        "Should have passed all 4 messages to the model",
+      );
 
       // Validate the mapper array values
       assert.strictEqual(capturedPayload.messages[0].role, "user");

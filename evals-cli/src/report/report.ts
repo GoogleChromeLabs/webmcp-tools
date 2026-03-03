@@ -105,7 +105,7 @@ function renderDetails(testResults: Array<TestResult>): string {
 function renderDetail(testNumber: number, testResult: TestResult): string {
   const functionNameOutcome =
     (testResult.test.expectedCall?.[0] as FunctionCall)?.functionName ===
-      testResult.response?.functionName
+    testResult.response?.functionName
       ? "pass"
       : "fail";
 
@@ -115,12 +115,13 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
   )
     ? "pass"
     : "fail";
-    
-  const badgeClass = testResult.outcome === 'pass' 
-    ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
-    : testResult.outcome === 'fail'
-      ? 'bg-rose-100 text-rose-800 border-rose-200'
-      : 'bg-amber-100 text-amber-800 border-amber-200';
+
+  const badgeClass =
+    testResult.outcome === "pass"
+      ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+      : testResult.outcome === "fail"
+        ? "bg-rose-100 text-rose-800 border-rose-200"
+        : "bg-amber-100 text-amber-800 border-amber-200";
 
   return `
     <div class="border border-slate-200 rounded-lg bg-white overflow-hidden">
@@ -162,7 +163,7 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
                                     <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(testResult.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
                                     <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${testResult.response?.functionName || null}</code></td>
                                     <td class="px-4 py-3">
-                                        <span class="${functionNameOutcome === 'pass' ? 'text-emerald-600' : 'text-rose-600'} font-semibold text-xs">
+                                        <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-semibold text-xs">
                                             ${functionNameOutcome.toUpperCase()}
                                         </span>
                                     </td>
@@ -180,7 +181,7 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 align-top">
-                                        <span class="${argsOutcome === 'pass' ? 'text-emerald-600' : 'text-rose-600'} font-semibold text-xs mt-2 inline-block">
+                                        <span class="${argsOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-semibold text-xs mt-2 inline-block">
                                             ${argsOutcome.toUpperCase()}
                                         </span>
                                     </td>
@@ -198,37 +199,51 @@ function renderDetail(testNumber: number, testResult: TestResult): string {
 
 function renderTrajectory(trajectory?: any[]): string {
   if (!trajectory || trajectory.length === 0) return "";
-  
+
   return `
     <details class="group/traj bg-white rounded border border-slate-200 mt-6">
       <summary class="p-3 font-medium text-sm text-slate-700 cursor-pointer hover:bg-slate-50 border-b border-transparent group-open/traj:border-slate-200">
         Trajectory
       </summary>
       <div class="p-4 space-y-6">
-        ${trajectory.map((step, index) => {
-          let html = '<div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0">' +
-                     '<div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div>' +
-                     '<strong class="block text-sm text-slate-900 font-semibold mb-2">Step ' + (index + 1) + '</strong>';
-          
-          if (step.text) {
-            html += '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
-                    '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' + step.text + '</pre></div>';
-          }
-          if (step.toolCalls && step.toolCalls.length > 0) {
-            html += '<div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em>' +
-                    '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
-                    '<pre class="text-xs text-blue-300 font-mono m-0">' + JSON.stringify(step.toolCalls, null, 2) + '</pre>' +
-                    '</div></div>';
-          }
-          if (step.toolResults && step.toolResults.length > 0) {
-            html += '<div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em>' +
-                    '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
-                    '<pre class="text-xs text-emerald-300 font-mono m-0">' + JSON.stringify(step.toolResults, null, 2) + '</pre>' +
-                    '</div></div>';
-          }
-          html += '</div>';
-          return html;
-        }).join("")}
+        ${trajectory
+          .map((step, index) => {
+            let html =
+              '<div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0">' +
+              '<div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div>' +
+              '<strong class="block text-sm text-slate-900 font-semibold mb-2">Step ' +
+              (index + 1) +
+              "</strong>";
+
+            if (step.text) {
+              html +=
+                '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
+                '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
+                step.text +
+                "</pre></div>";
+            }
+            if (step.toolCalls && step.toolCalls.length > 0) {
+              html +=
+                '<div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em>' +
+                '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
+                '<pre class="text-xs text-blue-300 font-mono m-0">' +
+                JSON.stringify(step.toolCalls, null, 2) +
+                "</pre>" +
+                "</div></div>";
+            }
+            if (step.toolResults && step.toolResults.length > 0) {
+              html +=
+                '<div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em>' +
+                '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
+                '<pre class="text-xs text-emerald-300 font-mono m-0">' +
+                JSON.stringify(step.toolResults, null, 2) +
+                "</pre>" +
+                "</div></div>";
+            }
+            html += "</div>";
+            return html;
+          })
+          .join("")}
       </div>
     </details>
   `;
@@ -240,8 +255,11 @@ function renderMessages(messages: Array<Message>): string {
 
 function renderMessage(message: Message): string {
   let content;
-  let roleBadgeClass = message.role === "user" ? "bg-purple-100 text-purple-800 border-purple-200" : "bg-blue-100 text-blue-800 border-blue-200";
-  
+  let roleBadgeClass =
+    message.role === "user"
+      ? "bg-purple-100 text-purple-800 border-purple-200"
+      : "bg-blue-100 text-blue-800 border-blue-200";
+
   switch (message.type) {
     case "message":
       content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${message.content}</div>`;
@@ -271,10 +289,7 @@ function renderMessage(message: Message): string {
     </li>`;
 }
 
-export function renderWebmcpReport(
-  config: WebmcpConfig,
-  testResults: TestResults,
-): string {
+export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResults): string {
   return `
 <!DOCTYPE html>
 <html lang="en">

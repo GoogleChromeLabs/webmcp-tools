@@ -8,13 +8,9 @@
     "postinstall": "npm install --prefix ui",
     "build": "tsc",
     "test": "tsc && node --test dist/test/*.test.js",
-    "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.0.10",
-    "typescript": "^5.9.3"
+    "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js",
+    "lint": "oxlint",
+    "format": "oxfmt --write"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.47",
@@ -36,5 +32,14 @@
     "ora": "^9.3.0",
     "puppeteer-core": "^24.37.5",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "eslint-plugin-license-header": "^0.9.0",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "typescript": "^5.9.3"
   }
 }

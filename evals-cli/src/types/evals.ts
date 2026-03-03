@@ -5,10 +5,7 @@
 
 import { ToolCall } from "./tools.js";
 
-export type Message =
-  | ContentMessage
-  | FunctionCallMessage
-  | FunctionResponseMessage;
+export type Message = ContentMessage | FunctionCallMessage | FunctionResponseMessage;
 
 export type ContentMessage = {
   role: "user" | "model";
@@ -30,7 +27,10 @@ export type FunctionResponseMessage = {
   response: object;
 };
 
-export type ExpectedCallNode = FunctionCall | { unordered: ExpectedCallNode[] } | { ordered: ExpectedCallNode[] };
+export type ExpectedCallNode =
+  | FunctionCall
+  | { unordered: ExpectedCallNode[] }
+  | { ordered: ExpectedCallNode[] };
 
 export type Eval = {
   messages: Message[];

@@ -33,10 +33,7 @@
           "time": "15:00",
           "location": "London office",
           "description": "discuss WebMCP",
-          "guest_emails": [
-            "john@example.com",
-            "jane@example.com"
-          ]
+          "guest_emails": ["john@example.com", "jane@example.com"]
         }
       }
     ]

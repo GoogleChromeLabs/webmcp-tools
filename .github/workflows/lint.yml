@@ -1,0 +1,33 @@
+name: Lint and Format
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-and-format:
+    name: Run oxlint and oxfmt
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: ./evals-cli
+        run: npm install
+
+      - name: Run Lint
+        working-directory: ./evals-cli
+        run: npm run lint
+
+      - name: Run Format Check
+        working-directory: ./evals-cli
+        run: npx oxfmt --check

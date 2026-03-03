@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { api } from '../utils/api';
-import type { ToolDef } from '../types';
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { api } from "../utils/api";
+import type { ToolDef } from "../types";
 
 export function useWebsiteTools() {
   const [tools, setTools] = useState<ToolDef[]>([]);
@@ -18,9 +18,9 @@ export function useWebsiteTools() {
     setTools([]);
     try {
       const response = await fetch(api.fetchTools(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: websiteUrl })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: websiteUrl }),
       });
       if (!response.ok) {
         throw new Error(`Failed to fetch tools: ${response.statusText}`);
@@ -32,7 +32,7 @@ export function useWebsiteTools() {
       if (e instanceof Error) {
         toast.error(`Error fetching tools: ${e.message}`);
       } else {
-        toast.error('An unknown error occurred while fetching tools');
+        toast.error("An unknown error occurred while fetching tools");
       }
     } finally {
       setFetchingTools(false);

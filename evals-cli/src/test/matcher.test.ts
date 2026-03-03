@@ -23,17 +23,11 @@ describe("matcher", () => {
 
     it("matches objects deeply", () => {
       assert.strictEqual(matchesArgument({ a: 1 }, { a: 1 }), true);
-      assert.strictEqual(
-        matchesArgument({ a: { b: 2 } }, { a: { b: 2 } }),
-        true,
-      );
+      assert.strictEqual(matchesArgument({ a: { b: 2 } }, { a: { b: 2 } }), true);
 
       assert.strictEqual(matchesArgument({ a: 1 }, { a: 2 }), false);
       assert.strictEqual(matchesArgument({ a: 1 }, { b: 1 }), false);
-      assert.strictEqual(
-        matchesArgument({ a: { b: 2 } }, { a: { b: 3 } }),
-        false,
-      );
+      assert.strictEqual(matchesArgument({ a: { b: 2 } }, { a: { b: 3 } }), false);
     });
 
     it("matches arrays deeply", () => {
@@ -48,23 +42,11 @@ describe("matcher", () => {
   describe("constraints", () => {
     describe("$pattern", () => {
       it("matches strings against regex", () => {
-        assert.strictEqual(
-          matchesArgument({ $pattern: "^2026-\\d{2}$" }, "2026-01"),
-          true,
-        );
-        assert.strictEqual(
-          matchesArgument({ $pattern: "foo" }, "foobar"),
-          true,
-        );
+        assert.strictEqual(matchesArgument({ $pattern: "^2026-\\d{2}$" }, "2026-01"), true);
+        assert.strictEqual(matchesArgument({ $pattern: "foo" }, "foobar"), true);
 
-        assert.strictEqual(
-          matchesArgument({ $pattern: "^2026-\\d{2}$" }, "2025-01"),
-          false,
-        );
-        assert.strictEqual(
-          matchesArgument({ $pattern: "^foo$" }, "foobar"),
-          false,
-        );
+        assert.strictEqual(matchesArgument({ $pattern: "^2026-\\d{2}$" }, "2025-01"), false);
+        assert.strictEqual(matchesArgument({ $pattern: "^foo$" }, "foobar"), false);
       });
 
       it("fails if actual is not a string", () => {
@@ -75,16 +57,10 @@ describe("matcher", () => {
 
     describe("$contains", () => {
       it("matches strings containing substring", () => {
-        assert.strictEqual(
-          matchesArgument({ $contains: "bar" }, "foobar"),
-          true,
-        );
+        assert.strictEqual(matchesArgument({ $contains: "bar" }, "foobar"), true);
         assert.strictEqual(matchesArgument({ $contains: "foo" }, "foo"), true);
 
-        assert.strictEqual(
-          matchesArgument({ $contains: "baz" }, "foobar"),
-          false,
-        );
+        assert.strictEqual(matchesArgument({ $contains: "baz" }, "foobar"), false);
       });
 
       it("fails if actual is not a string", () => {
@@ -146,32 +122,17 @@ describe("matcher", () => {
           a: { $gt: 10 },
           b: { c: { $contains: "hello" } },
         };
-        assert.strictEqual(
-          matchesArgument(schema, { a: 11, b: { c: "hello world" } }),
-          true,
-        );
-        assert.strictEqual(
-          matchesArgument(schema, { a: 10, b: { c: "hello world" } }),
-          false,
-        );
-        assert.strictEqual(
-          matchesArgument(schema, { a: 11, b: { c: "bye world" } }),
-          false,
-        );
+        assert.strictEqual(matchesArgument(schema, { a: 11, b: { c: "hello world" } }), true);
+        assert.strictEqual(matchesArgument(schema, { a: 10, b: { c: "hello world" } }), false);
+        assert.strictEqual(matchesArgument(schema, { a: 11, b: { c: "bye world" } }), false);
       });
 
       it("matches array elements with constraints", () => {
         const schema = {
           list: [{ $gt: 10 }, { $type: "string" }],
         };
-        assert.strictEqual(
-          matchesArgument(schema, { list: [11, "foo"] }),
-          true,
-        );
-        assert.strictEqual(
-          matchesArgument(schema, { list: [10, "foo"] }),
-          false,
-        );
+        assert.strictEqual(matchesArgument(schema, { list: [11, "foo"] }), true);
+        assert.strictEqual(matchesArgument(schema, { list: [10, "foo"] }), false);
         assert.strictEqual(matchesArgument(schema, { list: [11, 123] }), false);
       });
     });

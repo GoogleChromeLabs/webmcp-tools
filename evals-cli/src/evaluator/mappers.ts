@@ -7,24 +7,28 @@ import { jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
 
 export function mapMessages(messages: any[]): any[] {
-  return messages.map(m => {
-    if (m.type === 'functioncall') {
+  return messages.map((m) => {
+    if (m.type === "functioncall") {
       return {
-        role: 'assistant',
-        content: [{ type: 'tool-call', toolName: m.name, toolCallId: 'call-' + m.name, input: m.arguments }]
+        role: "assistant",
+        content: [
+          { type: "tool-call", toolName: m.name, toolCallId: "call-" + m.name, input: m.arguments },
+        ],
       };
-    } else if (m.type === 'functionresponse') {
+    } else if (m.type === "functionresponse") {
       return {
-        role: 'tool',
-        content: [{
-          type: 'tool-result',
-          toolName: m.name,
-          toolCallId: 'call-' + m.name,
-          output: { type: 'json', value: m.response?.result ?? m.response }
-        }]
+        role: "tool",
+        content: [
+          {
+            type: "tool-result",
+            toolName: m.name,
+            toolCallId: "call-" + m.name,
+            output: { type: "json", value: m.response?.result ?? m.response },
+          },
+        ],
       };
     } else {
-      return { role: (m.role === 'model' ? 'assistant' : m.role) as any, content: m.content || '' };
+      return { role: (m.role === "model" ? "assistant" : m.role) as any, content: m.content || "" };
     }
   });
 }
@@ -33,7 +37,7 @@ export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, a
   const tools: Record<string, any> = {};
   inputTools.forEach((toolDef: any) => {
     const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
-    const parameters = hasParams ? toolDef.parameters : { type: 'object', properties: {} };
+    const parameters = hasParams ? toolDef.parameters : { type: "object", properties: {} };
 
     tools[toolDef.functionName] = {
       description: toolDef.description,
