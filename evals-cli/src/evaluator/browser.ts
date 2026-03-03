@@ -6,7 +6,7 @@
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
-import { mapRawBrowserToolsToConfig } from "./mappers.js";
+import { mapRawBrowserToolsToConfig, sanitizeSchema } from "./mappers.js";
 import { findChromePath } from "../utils.js";
 
 /**
@@ -14,10 +14,11 @@ import { findChromePath } from "../utils.js";
  * WebMCP bindings inside the puppeteer browser execution context.
  */
 export function createBrowserTool(t: Tool, page: Page): any {
+  const sanitizedParams = sanitizeSchema(t.parameters || {});
   return defineTool({
     description: t.description,
-    parameters: jsonSchema(t.parameters || {}) as any,
-    inputSchema: jsonSchema(t.parameters || {}) as any,
+    parameters: jsonSchema(sanitizedParams) as any,
+    inputSchema: jsonSchema(sanitizedParams) as any,
     execute: async (args: any) => {
       const executionResult: any = await page.evaluate(
         async (name, args) => {
@@ -32,16 +33,19 @@ export function createBrowserTool(t: Tool, page: Page): any {
             const payload = typeof args === "string" ? args : JSON.stringify(args || {});
             let result = await mct.executeTool(name, payload);
 
+            let crossDocument = false;
+
             // If executeTool returns null, it means a navigation happened.
             // Fall back by calling getCrossDocumentScriptToolResult to get the tool result.
             if (result === null && typeof mct.getCrossDocumentScriptToolResult === "function") {
               result = await mct.getCrossDocumentScriptToolResult();
+              crossDocument = true;
             }
 
             // Slight backoff for DOM layout recalculations if UI changes
             await new Promise((r) => setTimeout(r, 3000));
 
-            return { result };
+            return { result, crossDocument };
           } catch (e: any) {
             return { error: e.message || String(e) };
           }

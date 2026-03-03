@@ -33,11 +33,37 @@ export function mapMessages(messages: any[]): any[] {
   });
 }
 
+/**
+ * Sanitizes WebMCP JSON schema by removing oneOf and anyOf keywords.
+ *
+ * Prevents "only allowed for STRING type" errors when passing the
+ * jsonSchema()-converted schema to the AI SDK.
+ */
+export function sanitizeSchema(obj: any): any {
+  if (!obj || typeof obj !== "object") return obj;
+  const clone = JSON.parse(JSON.stringify(obj));
+  function sanitize(node: any) {
+    if (!node || typeof node !== "object") return;
+    if (Array.isArray(node)) {
+      node.forEach(sanitize);
+      return;
+    }
+    if (node.oneOf) delete node.oneOf;
+    if (node.anyOf) delete node.anyOf;
+    for (const key of Object.keys(node)) {
+      sanitize(node[key]);
+    }
+  }
+  sanitize(clone);
+  return clone;
+}
+
 export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, any> {
   const tools: Record<string, any> = {};
   inputTools.forEach((toolDef: any) => {
     const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
-    const parameters = hasParams ? toolDef.parameters : { type: "object", properties: {} };
+    const rawParams = hasParams ? toolDef.parameters : { type: "object", properties: {} };
+    const parameters = sanitizeSchema(rawParams);
 
     tools[toolDef.functionName] = {
       description: toolDef.description,

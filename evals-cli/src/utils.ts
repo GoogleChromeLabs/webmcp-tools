@@ -414,7 +414,7 @@ export async function cleanOldReports(): Promise<void> {
         await fs.unlink(path.join(dir, file));
       }
     }
-  } catch (error) {
+  } catch {
     // Ignore errors during cleanup
   }
 }
