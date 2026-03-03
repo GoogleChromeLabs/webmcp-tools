@@ -7,15 +7,23 @@ const form = document.getElementById('reservationForm');
 const dialog = document.getElementById('bookingDialog');
 const closeBtn = document.getElementById('closeDialogBtn');
 const modalDetails = document.getElementById('modalDetails');
+const params = new URLSearchParams(window.location.search);
+const isCrossDocument = params.get('crossdocument') !== null;
+
+if (isCrossDocument) {
+  form.setAttribute('action', './result.html');
+}
 
 let formValidationErrors = []; // Array to collect validation error messages to send back to the Agent.
 
 const dateInput = document.getElementById('date');
 const today = new Date().toISOString().split('T')[0];
-dateInput.setAttribute('min', today);
+dateInput?.setAttribute('min', today);
 
-form.addEventListener('submit', function (e) {
-  e.preventDefault();
+form?.addEventListener('submit', function (e) {
+  if (!isCrossDocument) {
+    e.preventDefault();
+  }
 
   validateForm();
 
@@ -23,6 +31,12 @@ form.addEventListener('submit', function (e) {
     if (e.agentInvoked) {
       e.respondWith(formValidationErrors);
     }
+
+    e.preventDefault();
+    return;
+  }
+
+  if (isCrossDocument) {
     return;
   }
 
@@ -124,3 +138,18 @@ window.addEventListener('toolactivated', ({ toolName }) => {
   if (toolName !== 'book_table_le_petit_bistro') return;
   validateForm();
 });
+
+// On result.html, fill the modal with the reservation details.
+if (location.pathname.includes('/result.html')) {
+  const name = params.get('name');
+  const time = params.get('time');
+  const guests = params.get('guests');
+  const seating = params.get('seating');
+  const dateStr = params.get('date');
+  modalDetails.innerHTML = `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`;
+
+  const jsonLd = document.querySelector('script[type="application/ld+json"]');
+  const data = JSON.parse(jsonLd.textContent);
+  data.text = modalDetails.innerText;
+  jsonLd.textContent = JSON.stringify(data);
+}
