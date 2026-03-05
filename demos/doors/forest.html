@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Whispering Woods</title>
+    <style>
+        body {
+            background: #2d5a27;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .animal {
+            font-size: 5rem;
+        }
+
+        .bubble {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>The Whispering Woods</h1>
+    <div class="animal">🦊</div>
+    <div id="speech" class="bubble">Careful where you step, human...</div>
+    <br>
+    <button onclick="talk('What are you?')">"What are you?"</button>
+    <button onclick="talk('Give me a gift')">"Give me a gift"</button>
+    <br><br>
+
+    <form action="index.html" toolautosubmit toolname="returnToHallway" tooldescription="Return to Hallway.">
+        <button>Return to Hallway</button>
+    </form>
+
+    <script>
+        function talk(choice) {
+            const speech = document.getElementById('speech');
+            if (choice.includes('What')) {
+                speech.innerText = "I am the keeper of the ferns.";
+                return;
+            }
+            if (choice.includes('gift')) {
+                speech.innerText = "Here is a magical acorn! 🌰";
+                return;
+            }
+            speech.innerText = "Ask me anything else...";
+        }
+
+        navigator.modelContext.registerTool({
+            name: 'talk',
+            description: 'Talk with the animal. You can ask "What are you?" or say "Give me a gift"',
+            inputSchema: {
+                type: "object",
+                properties: {
+                    choice: {
+                        type: "string",
+                        description: "What the user has chosen to say to the animal.",
+                    },
+                }
+            },
+            execute: async ({ choice }) => {
+                talk(choice);
+                await new Promise(r => setTimeout(r, 1000));
+                return document.getElementById('speech').innerText;
+            },
+        });
+    </script>
+</body>
+
+</html>
