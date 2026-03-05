@@ -18,6 +18,9 @@
             "$pattern": "555.*123.*4567"
           },
           "time": "18:30",
+          "date": {
+            "$type": "string"
+          },
           "guests": "2",
           "seating": "Terrace",
           "requests": {
@@ -40,7 +43,11 @@
         "functionName": "book_table_le_petit_bistro",
         "arguments": {
           "name": "Alice Wong",
+          "phone": "555-987-6543",
           "time": "20:00",
+          "date": {
+            "$type": "string"
+          },
           "guests": "6",
           "seating": "Private Booth"
         }
