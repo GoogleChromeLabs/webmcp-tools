@@ -101,6 +101,7 @@ export class VercelBackend implements Backend {
         await page.close();
       }
       page = await browser!.newPage();
+
       await page.goto(config.url, {
         waitUntil: "networkidle2",
         timeout: 30000,
@@ -122,28 +123,37 @@ export class VercelBackend implements Backend {
           model,
           tools: aiToolsWithExecution,
           instructions: SYSTEM_PROMPT,
-          prepareCall: async (_opts: any): Promise<any> => {
-            // Dynamically fetch tools from the browser extension integration framework
-            const rawTools = await page!.evaluate(async () => {
-              let modelContext = null;
-              if (typeof (navigator as any).modelContext?.listTools === "function") {
-                modelContext = (navigator as any).modelContext;
-              } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
-                modelContext = (navigator as any).modelContextTesting;
-              }
-              if (!modelContext) return null;
-              return await modelContext.listTools();
-            });
+          prepareStep: async (_opts: any): Promise<any> => {
+            let rawTools: any = [];
+
+            try {
+              rawTools = await page!.evaluate(async () => {
+                const nav = navigator as any;
+                let mct = null;
+                if (typeof nav.modelContext?.listTools === "function") {
+                  mct = nav.modelContext;
+                } else if (typeof nav.modelContextTesting?.listTools === "function") {
+                  mct = nav.modelContextTesting;
+                }
+                return mct ? mct.listTools() : [];
+              });
+            } catch (err: any) {
+              console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);
+            }
 
             currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
 
-            // We need to re-bind the execute methods to the newly loaded tools
-            const updatedAiTools: Record<string, any> = {};
-            for (const t of currentTools) {
-              updatedAiTools[t.functionName] = createBrowserTool(t, page!);
+            // Clear the object
+            for (const key in aiToolsWithExecution) {
+              delete aiToolsWithExecution[key];
             }
 
-            return { ..._opts, tools: updatedAiTools };
+            // Re-populate it
+            for (const t of currentTools) {
+              aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+            }
+
+            return _opts;
           },
         });
 

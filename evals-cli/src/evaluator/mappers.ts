@@ -56,7 +56,12 @@ export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[
   if (rawTools && Array.isArray(rawTools)) {
     return rawTools.map((t: any) => {
       const schema = t.inputSchema;
-      const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
+      let parameters;
+      try {
+        parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
+      } catch (e) {
+        parameters = {};
+      }
       return {
         description: t.description,
         functionName: t.name,
