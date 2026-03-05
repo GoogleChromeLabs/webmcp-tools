@@ -1,0 +1,66 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open the first mystery door."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor1",
+        "arguments": { }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Number 2."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor2",
+        "arguments": { }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "3"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor3",
+        "arguments": { }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open first door, then talk to the animal and ask what it is."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor1",
+        "arguments": { }
+      },
+      {
+        "functionName": "talk",
+        "arguments": { "choice": "What are you?" }
+      }
+    ]
+  }
+]
