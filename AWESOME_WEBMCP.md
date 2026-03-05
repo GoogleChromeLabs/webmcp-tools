@@ -15,6 +15,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Search flights from LON to NYC leaving next Monday and returning after a week for 2 passengers."
 - [WebMCP zaMaker!](https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/) - An interactive pizza builder demonstrating imperative tool registration, allowing AI models to make custom pizzas.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
+- [Mystery Doors](https://googlechromelabs.github.io/webmcp-tools/demos/doors/) - A simple multi-page demo showcasing WebMCP capabilities using both declarative and imperative approaches.
+  - **Example Prompt:** "Explore the rooms"
 - [Flight booking](https://webmcp-flight-demo.netlify.app/) / [Flight booking (declarative)](https://webmcp-flight-demo.netlify.app/declarative.html) - Find the best flights for your journey.
   - **Example Prompt:** "I want to book a flight from New York to Los Angeles for two people on next Thursday."
 - [Animal Viewer](https://65s6dw.csb.app/) - A simple codesandbox demo page that shows either a dog or a cat image.

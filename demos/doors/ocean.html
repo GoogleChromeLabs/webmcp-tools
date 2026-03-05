@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>The Coral Cove</title>
+    <style>
+        body {
+            background: #1a4e6e;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .animal {
+            font-size: 5rem;
+            transition: 0.5s;
+        }
+
+        .bubble {
+            background: #e0f7fa;
+            color: #006064;
+            padding: 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>The Coral Cove</h1>
+    <div id="octo" class="animal">🐙</div>
+    <div id="speech" class="bubble">Blub! Do you like my garden?</div>
+    <br />
+    <button onclick="action('dance')">Dance with him</button>
+    <button onclick="action('hide')">Play Hide & Seek</button>
+    <br /><br />
+
+    <form action="index.html" toolautosubmit toolname="returnToHallway" tooldescription="Return to Hallway.">
+        <button>Return to Hallway</button>
+    </form>
+
+    <script>
+        function action(type) {
+            const octo = document.getElementById('octo');
+            const speech = document.getElementById('speech');
+            if (type === 'dance') {
+                octo.style.transform = 'rotate(360deg)';
+                speech.innerText = 'Wheee! Look at me go!';
+            } else {
+                octo.style.opacity = '0.2';
+                speech.innerText = "You can't see me...";
+            }
+        }
+
+        async function executeAction(type) {
+            action(type);
+            await new Promise((r) => setTimeout(r, 1000));
+            return document.getElementById('speech').innerText;
+        }
+
+        navigator.modelContext.registerTool({
+            name: 'dance',
+            description: 'Dance with him',
+            execute: () => {
+                return executeAction('dance');
+            },
+        });
+
+        navigator.modelContext.registerTool({
+            name: 'hide',
+            description: 'Play Hide & Seek',
+            execute: () => {
+                return executeAction('hide');
+            },
+        });
+    </script>
+</body>
+
+</html>
