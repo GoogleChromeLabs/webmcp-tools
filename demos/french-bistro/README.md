@@ -19,3 +19,8 @@ When the tool is activated by an AI agent:
 1. **Validation**: The `script.js` listens for the `toolactivated` event to run pre-submission checks.
 2. **Visual Cues**: CSS classes like `*:tool-form-active` and `*:tool-submit-active` provide visual feedback to the user that an agent is currently manipulating the form.
 3. **Submission**: On submit, if errors exist, they are returned to the Agent as an array. If successful, the confirmation text from the modal is returned to the Agent.
+
+
+### Variation
+
+When visiting `index.html?crossdocument`, the form submission triggers a navigation to `result.html`. This can be used to demonstrate cross-document tool execution.

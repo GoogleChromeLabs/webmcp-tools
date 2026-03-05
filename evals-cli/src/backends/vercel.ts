@@ -23,6 +23,7 @@ import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
 export class VercelBackend implements Backend {
   private aiModel: any;
   private modelName: string;
+  private debug: boolean;
 
   constructor(
     config: Config | WebmcpConfig,
@@ -30,6 +31,7 @@ export class VercelBackend implements Backend {
   ) {
     this.modelName = config.model || "gemini-2.5-flash";
     this.aiModel = getModel(config);
+    this.debug = !!config.debug;
   }
 
   async executeLocalEvals(test: Eval): Promise<any> {
@@ -41,6 +43,34 @@ export class VercelBackend implements Backend {
       system: SYSTEM_PROMPT,
       messages: aiMessages,
       tools: mapJsonSchemaToVercelTools(this.tools),
+      experimental_onToolCallStart: this.debug
+        ? (event) => {
+            console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+            console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+              depth: null,
+              colors: true,
+            });
+          }
+        : undefined,
+      experimental_onToolCallFinish: this.debug
+        ? (event) => {
+            if (event.success) {
+              console.log(
+                `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+              );
+              if (event.output) console.dir(event.output, { depth: null, colors: true });
+            } else {
+              console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+            }
+          }
+        : undefined,
+      onStepFinish: this.debug
+        ? (event) => {
+            console.log(
+              `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+            );
+          }
+        : undefined,
     });
 
     if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
@@ -122,6 +152,34 @@ export class VercelBackend implements Backend {
           model,
           tools: aiToolsWithExecution,
           instructions: SYSTEM_PROMPT,
+          experimental_onToolCallStart: config.debug
+            ? (event) => {
+                console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+                console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+                  depth: null,
+                  colors: true,
+                });
+              }
+            : undefined,
+          experimental_onToolCallFinish: config.debug
+            ? (event) => {
+                if (event.success) {
+                  console.log(
+                    `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+                  );
+                  if (event.output) console.dir(event.output, { depth: null, colors: true });
+                } else {
+                  console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+                }
+              }
+            : undefined,
+          onStepFinish: config.debug
+            ? (event) => {
+                console.log(
+                  `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+                );
+              }
+            : undefined,
           prepareCall: async (_opts: any): Promise<any> => {
             // Dynamically fetch tools from the browser extension integration framework
             const rawTools = await page!.evaluate(async () => {

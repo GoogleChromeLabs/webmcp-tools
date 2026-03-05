@@ -58,7 +58,7 @@ const tests: Array<Eval> = JSON.parse(
   await readFile(resolve(process.cwd(), config.evalsFile), "utf-8"),
 );
 
-const spinner = ora({ discardStdin: false });
+const spinner = ora({ discardStdin: false, isSilent: config.debug });
 const resultsList: any[] = [];
 
 const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {

@@ -6,7 +6,7 @@
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
-import { mapRawBrowserToolsToConfig } from "./mappers.js";
+import { mapRawBrowserToolsToConfig, sanitizeSchema } from "./mappers.js";
 import { findChromePath } from "../utils.js";
 
 /**
@@ -14,12 +14,15 @@ import { findChromePath } from "../utils.js";
  * WebMCP bindings inside the puppeteer browser execution context.
  */
 export function createBrowserTool(t: Tool, page: Page): any {
+  const sanitizedParams = sanitizeSchema(t.parameters || {});
   return defineTool({
     description: t.description,
-    parameters: jsonSchema(t.parameters || {}) as any,
-    inputSchema: jsonSchema(t.parameters || {}) as any,
+    parameters: jsonSchema(sanitizedParams) as any,
+    inputSchema: jsonSchema(sanitizedParams) as any,
     execute: async (args: any) => {
-      const executionResult: any = await page.evaluate(
+      let executionResult: any;
+
+      executionResult = await page.evaluate(
         async (name, args) => {
           try {
             let mct = null;
@@ -30,10 +33,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
             }
             if (!mct) return { error: "modelContext not found" };
             const payload = typeof args === "string" ? args : JSON.stringify(args || {});
-            const result = await mct.executeTool(name, payload);
-
-            // Slight backoff for DOM layout recalculations if UI changes
-            await new Promise((r) => setTimeout(r, 3000));
+            let result = await mct.executeTool(name, payload);
 
             return { result };
           } catch (e: any) {
@@ -43,6 +43,29 @@ export function createBrowserTool(t: Tool, page: Page): any {
         t.functionName,
         args,
       );
+
+      // If executionResult.result is null, it might be due to a navigation happening,
+      // so fall back to using getCrossDocumentScriptToolResult().
+      if (!executionResult.result) {
+        await page.waitForNavigation();
+        executionResult = await page.evaluate(async () => {
+          try {
+            let mct = null;
+            if (typeof (navigator as any).modelContext?.executeTool === "function") {
+              mct = (navigator as any).modelContext;
+            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+              mct = (navigator as any).modelContextTesting;
+            }
+
+            if (!mct) return { error: "modelContext not found" };
+
+            const result = await mct.getCrossDocumentScriptToolResult();
+            return { result, crossDocument: true };
+          } catch (e: any) {
+            return { error: e.message || String(e) };
+          }
+        });
+      }
 
       let r = executionResult.result;
       if (typeof r === "string") {

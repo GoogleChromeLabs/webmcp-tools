@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le Petit Bistro | WebMCP declarative demo</title>
+  <link href="style.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+    rel="stylesheet" />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Message",
+      "text": ""
+    }
+  </script>
+</head>
+
+<body>
+  <dialog id="bookingDialog" open>
+    <h3 class="modal-title">Reservation Received</h3>
+    <p style="font-style: italic; color: #666; margin-top: 0">Bon Appétit!</p>
+
+    <div class="modal-details" id="modalDetails"></div>
+
+    <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
+  </dialog>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>

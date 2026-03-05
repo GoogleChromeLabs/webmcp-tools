@@ -1,0 +1,57 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Can I get a table at the bistro for 2 people on the Terrace tomorrow at 18:30? The name is Bob Smith, phone 555-123-4567. We are celebrating an anniversary."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "book_table_le_petit_bistro",
+        "arguments": {
+          "name": {
+            "$pattern": "Bob.*Smith"
+          },
+          "phone": {
+            "$pattern": "555.*123.*4567"
+          },
+          "time": "18:30",
+          "date": {
+            "$type": "string"
+          },
+          "guests": "2",
+          "seating": "Terrace",
+          "requests": {
+            "$contains": "anniversary"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I need to book a Private Booth for 6 people tonight at 20:00. Name: Alice Wong. Phone: 555-987-6543."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "book_table_le_petit_bistro",
+        "arguments": {
+          "name": "Alice Wong",
+          "phone": "555-987-6543",
+          "time": "20:00",
+          "date": {
+            "$type": "string"
+          },
+          "guests": "6",
+          "seating": "Private Booth"
+        }
+      }
+    ]
+  }
+]
