@@ -19,30 +19,40 @@ export function createBrowserTool(t: Tool, page: Page): any {
     parameters: jsonSchema(t.parameters || {}) as any,
     inputSchema: jsonSchema(t.parameters || {}) as any,
     execute: async (args: any) => {
-      const executionResult: any = await page.evaluate(
-        async (name, args) => {
-          try {
-            let mct = null;
-            if (typeof (navigator as any).modelContext?.executeTool === "function") {
-              mct = (navigator as any).modelContext;
-            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
-              mct = (navigator as any).modelContextTesting;
+      let executionResult: any;
+      try {
+        executionResult = await page.evaluate(
+          async (name, args) => {
+            try {
+              let mct = null;
+              if (typeof (navigator as any).modelContext?.executeTool === "function") {
+                mct = (navigator as any).modelContext;
+              } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+                mct = (navigator as any).modelContextTesting;
+              }
+              if (!mct) return { error: "modelContext not found" };
+              const payload = typeof args === "string" ? args : JSON.stringify(args || {});
+              const result = await mct.executeTool(name, payload);
+
+              // Slight backoff for DOM layout recalculations if UI changes
+              await new Promise((r) => setTimeout(r, 3000));
+
+              return { result };
+            } catch (e: any) {
+              return { error: e.message || String(e) };
             }
-            if (!mct) return { error: "modelContext not found" };
-            const payload = typeof args === "string" ? args : JSON.stringify(args || {});
-            const result = await mct.executeTool(name, payload);
-
-            // Slight backoff for DOM layout recalculations if UI changes
-            await new Promise((r) => setTimeout(r, 3000));
-
-            return { result };
-          } catch (e: any) {
-            return { error: e.message || String(e) };
-          }
-        },
-        t.functionName,
-        args,
-      );
+          },
+          t.functionName,
+          args,
+        );
+      } catch (e: any) {
+        if (e.message.includes("Execution context was destroyed") || e.message.includes("Target closed") || e.message.includes("navigating")) {
+          await new Promise((r) => setTimeout(r, 500));
+          executionResult = { result: `Tool ${t.functionName} executed and triggered a page navigation.` };
+        } else {
+          executionResult = { error: e.message || String(e) };
+        }
+      }
 
       let r = executionResult.result;
       if (typeof r === "string") {
