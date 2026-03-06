@@ -55,8 +55,13 @@ export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, a
 export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[]): Tool[] {
   if (rawTools && Array.isArray(rawTools)) {
     return rawTools.map((t: any) => {
-      const schema = t.inputSchema;
-      const parameters = typeof schema === "string" ? JSON.parse(schema) : (schema ?? {});
+      const schema = t.inputSchema || t.parameters;
+      let parameters;
+      try {
+        parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
+      } catch (e) {
+        parameters = {};
+      }
       return {
         description: t.description,
         functionName: t.name,
