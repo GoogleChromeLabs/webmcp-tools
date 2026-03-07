@@ -31,6 +31,9 @@ A curated list of awesome WebMCP demos.
 - [WebMCP × Excalidraw x WebAI](https://shidh.in/demo/webmcp-excalidraw/) - A Web app that converts natural language descriptions into Excalidraw diagrams through a 3-tool WebMCP pipeline (generate_mermaid → validate_mermaid → render_excalidraw), with optional on-device generation using Chrome's built-in AI.
   - **Example Prompt**: "Create a flowchart showing the user login flow with error handling"
   
+- [BRITECITY IT Health Scanner](https://britecity.com/it-health-check) - A real-world MSP (managed IT services) site using both declarative and imperative WebMCP. Agents can run a free IT security scan on any domain (`run_it_health_scan`), read structured results (`get_it_health_scan_results`), browse services (`get_britecity_services`), or book a consultation via declarative form tools.
+  - **Example Prompt:** "Run an IT security scan on acme.com and tell me the results"
+
 ## Contributing
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
