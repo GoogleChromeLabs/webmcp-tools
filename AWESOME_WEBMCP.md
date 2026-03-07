@@ -69,6 +69,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
 - [**Wordup**](https://github.com/GoogleChromeLabs/web-ai-demos/tree/main/wordup) ([live](https://snugug.github.io/demos/wordup/)): A casual word guessing game using the Prompt API to generate words and can be driven entirely through WebMCP.
   - **Example Prompt:** "Start a new game."
+- [BRITECITY IT Health Scanner](https://britecity.com/it-health-check) - A real-world MSP (managed IT services) site using both declarative and imperative WebMCP. Agents can run a free IT security scan on any domain (`run_it_health_scan`), read structured results (`get_it_health_scan_results`), browse services (`get_britecity_services`), or book a consultation via declarative form tools.
+  - **Example Prompt:** "Run an IT security scan on acme.com and tell me the results"
 
 ## Libraries & Tools
 
