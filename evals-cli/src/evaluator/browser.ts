@@ -33,7 +33,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
             }
             if (!mct) return { error: "modelContext not found" };
             const payload = typeof args === "string" ? args : JSON.stringify(args || {});
-            const timeoutPromise = new Promise(r => setTimeout(() => r(null), 1000));
+            const timeoutPromise = new Promise((r) => setTimeout(() => r(null), 1000));
             const result = await Promise.race([mct.executeTool(name, payload), timeoutPromise]);
 
             return { result };
@@ -46,18 +46,9 @@ export function createBrowserTool(t: Tool, page: Page): any {
       );
 
       // If executionResult.result is null, it might be due to a navigation happening,
-      // or because the form requires manual user confirmation. Simulator clicks submit.
+      // so fall back to using getCrossDocumentScriptToolResult().
       if (!executionResult.result) {
-        await page.evaluate((toolName) => {
-          const form = document.querySelector(`form[toolname="${toolName}"]`);
-          if (form) {
-            const btn = form.querySelector('button[type="submit"], input[type="submit"]');
-            if (btn) (btn as any).click();
-            else (form as any).requestSubmit();
-          }
-        }, t.functionName).catch(() => {});
-        
-        await page.waitForNavigation({ timeout: 5000 }).catch(() => {});
+        await page.waitForNavigation();
         executionResult = await page.evaluate(async () => {
           try {
             let mct = null;
