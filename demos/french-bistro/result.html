@@ -32,7 +32,27 @@
 
     <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
   </dialog>
-  <script type="module" src="script.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const modalDetails = document.getElementById('modalDetails');
+    const name = params.get('name');
+    const time = params.get('time');
+    const guests = params.get('guests');
+    const seating = params.get('seating');
+    const dateStr = params.get('date');
+    modalDetails.innerHTML = `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`;
+
+    const jsonLd = document.querySelector('script[type="application/ld+json"]');
+    if (jsonLd) {
+      const data = JSON.parse(jsonLd.textContent);
+      data.text = modalDetails.innerText;
+      jsonLd.textContent = JSON.stringify(data);
+    }
+
+    document.getElementById('closeDialogBtn').addEventListener('click', () => {
+      window.location.href = './index.html';
+    });
+  </script>
 </body>
 
 </html>
