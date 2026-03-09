@@ -45,31 +45,31 @@ export class VercelBackend implements Backend {
       tools: mapJsonSchemaToVercelTools(this.tools),
       experimental_onToolCallStart: this.debug
         ? (event) => {
-            console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-            console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-              depth: null,
-              colors: true,
-            });
-          }
+          console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+          console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+            depth: null,
+            colors: true,
+          });
+        }
         : undefined,
       experimental_onToolCallFinish: this.debug
         ? (event) => {
-            if (event.success) {
-              console.log(
-                `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-              );
-              if (event.output) console.dir(event.output, { depth: null, colors: true });
-            } else {
-              console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
-            }
+          if (event.success) {
+            console.log(
+              `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+            );
+            if (event.output) console.dir(event.output, { depth: null, colors: true });
+          } else {
+            console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
           }
+        }
         : undefined,
       onStepFinish: this.debug
         ? (event) => {
-            console.log(
-              `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-            );
-          }
+          console.log(
+            `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+          );
+        }
         : undefined,
     });
 
@@ -154,54 +154,63 @@ export class VercelBackend implements Backend {
           instructions: SYSTEM_PROMPT,
           experimental_onToolCallStart: config.debug
             ? (event) => {
-                console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-                console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-                  depth: null,
-                  colors: true,
-                });
-              }
+              console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+              console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+                depth: null,
+                colors: true,
+              });
+            }
             : undefined,
           experimental_onToolCallFinish: config.debug
             ? (event) => {
-                if (event.success) {
-                  console.log(
-                    `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-                  );
-                  if (event.output) console.dir(event.output, { depth: null, colors: true });
-                } else {
-                  console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
-                }
+              if (event.success) {
+                console.log(
+                  `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+                );
+                if (event.output) console.dir(event.output, { depth: null, colors: true });
+              } else {
+                console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
               }
+            }
             : undefined,
           onStepFinish: config.debug
             ? (event) => {
-                console.log(
-                  `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-                );
-              }
+              console.log(
+                `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+              );
+            }
             : undefined,
-          prepareCall: async (_opts: any): Promise<any> => {
-            // Dynamically fetch tools from the browser extension integration framework
-            const rawTools = await page!.evaluate(async () => {
-              let modelContext = null;
-              if (typeof (navigator as any).modelContext?.listTools === "function") {
-                modelContext = (navigator as any).modelContext;
-              } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
-                modelContext = (navigator as any).modelContextTesting;
-              }
-              if (!modelContext) return null;
-              return await modelContext.listTools();
-            });
+          prepareStep: async (_opts: any): Promise<any> => {
+            let rawTools: any = [];
+
+            try {
+              rawTools = await page!.evaluate(async () => {
+                const nav = navigator as any;
+                let mct = null;
+                if (typeof nav.modelContext?.listTools === "function") {
+                  mct = nav.modelContext;
+                } else if (typeof nav.modelContextTesting?.listTools === "function") {
+                  mct = nav.modelContextTesting;
+                }
+                return mct ? mct.listTools() : [];
+              });
+            } catch (err: any) {
+              console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);
+            }
 
             currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
 
-            // We need to re-bind the execute methods to the newly loaded tools
-            const updatedAiTools: Record<string, any> = {};
-            for (const t of currentTools) {
-              updatedAiTools[t.functionName] = createBrowserTool(t, page!);
+            // Clear the object
+            for (const key in aiToolsWithExecution) {
+              delete aiToolsWithExecution[key];
             }
 
-            return { ..._opts, tools: updatedAiTools };
+            // Re-populate it
+            for (const t of currentTools) {
+              aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+            }
+
+            return _opts;
           },
         });
 

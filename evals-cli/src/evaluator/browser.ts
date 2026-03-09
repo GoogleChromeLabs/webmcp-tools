@@ -22,57 +22,66 @@ export function createBrowserTool(t: Tool, page: Page): any {
     execute: async (args: any) => {
       let executionResult: any;
 
-      executionResult = await page.evaluate(
-        async (name, args) => {
-          try {
-            let mct = null;
-            if (typeof (navigator as any).modelContext?.executeTool === "function") {
-              mct = (navigator as any).modelContext;
-            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
-              mct = (navigator as any).modelContextTesting;
+      try {
+        executionResult = await page.evaluate(
+          async (name, args) => {
+            try {
+              let mct = null;
+              if (typeof (navigator as any).modelContext?.executeTool === "function") {
+                mct = (navigator as any).modelContext;
+              } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+                mct = (navigator as any).modelContextTesting;
+              }
+              if (!mct) return { error: "modelContext not found" };
+              const payload = typeof args === "string" ? args : JSON.stringify(args || {});
+              const result = await mct.executeTool(name, payload);
+
+              return { result };
+            } catch (e: any) {
+              return { error: e.message || String(e) };
             }
-            if (!mct) return { error: "modelContext not found" };
-            const payload = typeof args === "string" ? args : JSON.stringify(args || {});
-            const timeoutPromise = new Promise((r) => setTimeout(() => r(null), 1000));
-            const result = await Promise.race([mct.executeTool(name, payload), timeoutPromise]);
+          },
+          t.functionName,
+          args,
+        );
 
-            return { result };
-          } catch (e: any) {
-            return { error: e.message || String(e) };
-          }
-        },
-        t.functionName,
-        args,
-      );
+        // If executionResult.result is null, it might be due to a navigation happening,
+        // so fall back to using getCrossDocumentScriptToolResult().
+        if (!executionResult.result) {
+          await page.waitForNavigation();
+          executionResult = await page.evaluate(async () => {
+            try {
+              let mct = null;
+              if (typeof (navigator as any).modelContext?.executeTool === "function") {
+                mct = (navigator as any).modelContext;
+              } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
+                mct = (navigator as any).modelContextTesting;
+              }
 
-      // If executionResult.result is null, it might be due to a navigation happening,
-      // so fall back to using getCrossDocumentScriptToolResult().
-      if (!executionResult.result) {
-        await page.waitForNavigation();
-        executionResult = await page.evaluate(async () => {
-          try {
-            let mct = null;
-            if (typeof (navigator as any).modelContext?.executeTool === "function") {
-              mct = (navigator as any).modelContext;
-            } else if (typeof (navigator as any).modelContextTesting?.executeTool === "function") {
-              mct = (navigator as any).modelContextTesting;
+              if (!mct) return { error: "modelContext not found" };
+
+              const result = await mct.getCrossDocumentScriptToolResult();
+              return { result, crossDocument: true };
+            } catch (e: any) {
+              return { error: e.message || String(e) };
             }
+          });
+        }
 
-            if (!mct) return { error: "modelContext not found" };
-
-            const result = await mct.getCrossDocumentScriptToolResult();
-            return { result, crossDocument: true };
-          } catch (e: any) {
-            return { error: e.message || String(e) };
-          }
-        });
+      } catch (e: any) {
+        if (e.message.includes("Execution context was destroyed") || e.message.includes("Target closed") || e.message.includes("navigating")) {
+          await new Promise((r) => setTimeout(r, 500));
+          executionResult = { result: `Tool ${t.functionName} executed and triggered a page navigation.` };
+        } else {
+          executionResult = { error: e.message || String(e) };
+        }
       }
 
       let r = executionResult.result;
       if (typeof r === "string") {
         try {
           r = JSON.parse(r);
-        } catch {}
+        } catch { }
       }
 
       // Attempt to drill down into structured responses
@@ -135,17 +144,17 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     if (rawTools === null) {
       throw new Error(
         "The WebMCP API (window.navigator.modelContextTesting) is not available on this page.\n" +
-          "Please ensure:\n" +
-          "  1. You are using Chrome Canary version 146 or later.\n" +
-          "  2. The flag chrome://flags/#enable-webmcp-testing is enabled.\n" +
-          `  3. The page at ${url} implements the WebMCP API.`,
+        "Please ensure:\n" +
+        "  1. You are using Chrome Canary version 146 or later.\n" +
+        "  2. The flag chrome://flags/#enable-webmcp-testing is enabled.\n" +
+        `  3. The page at ${url} implements the WebMCP API.`,
       );
     }
 
     if (!Array.isArray(rawTools) || rawTools.length === 0) {
       throw new Error(
         `The WebMCP API returned no tools from ${url}. ` +
-          "Ensure the page exposes tools via modelContextTesting.listTools().",
+        "Ensure the page exposes tools via modelContextTesting.listTools().",
       );
     }
 
