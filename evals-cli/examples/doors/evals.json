@@ -10,7 +10,7 @@
     "expectedCall": [
       {
         "functionName": "openDoor1",
-        "arguments": { }
+        "arguments": {}
       }
     ]
   },
@@ -25,7 +25,7 @@
     "expectedCall": [
       {
         "functionName": "openDoor2",
-        "arguments": { }
+        "arguments": {}
       }
     ]
   },
@@ -40,7 +40,7 @@
     "expectedCall": [
       {
         "functionName": "openDoor3",
-        "arguments": { }
+        "arguments": {}
       }
     ]
   },
@@ -55,11 +55,219 @@
     "expectedCall": [
       {
         "functionName": "openDoor1",
-        "arguments": { }
+        "arguments": {}
       },
       {
         "functionName": "talk",
-        "arguments": { "choice": "What are you?" }
+        "arguments": {
+          "choice": "What are you?"
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open first door, then talk to the animal and ask to give me a gift."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor1",
+        "arguments": {}
+      },
+      {
+        "functionName": "talk",
+        "arguments": {
+          "choice": "Give me a gift"
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open first door, then return to the hallway"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor1",
+        "arguments": {}
+      },
+      {
+        "functionName": "returnToHallway",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open second door, then ask to dance with him"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor2",
+        "arguments": {}
+      },
+      {
+        "functionName": "dance",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open second door, then ask to play hide & seek"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor2",
+        "arguments": {}
+      },
+      {
+        "functionName": "hide",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open second door, then return to the hallway"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor2",
+        "arguments": {}
+      },
+      {
+        "functionName": "returnToHallway",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open second door, then ask to dance with him and play hide & seek, finally return to the hallway"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor2",
+        "arguments": {}
+      },
+      {
+        "unordered": [
+          {
+            "functionName": "dance",
+            "arguments": {}
+          },
+          {
+            "functionName": "hide",
+            "arguments": {}
+          }
+        ]
+      },
+      {
+        "functionName": "returnToHallway",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open third door, then return to hallway"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor3",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open third door, then cast light"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor3",
+        "arguments": {}
+      },
+      {
+        "functionName": "castLight",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open third door, then cast light, and finally return to hallway"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor3",
+        "arguments": {}
+      },
+      {
+        "functionName": "castLight",
+        "arguments": {}
+      },
+      {
+        "functionName": "returnToHallway",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Open first door, new tools will become available, then use a tool to talk to the animal and ask what it is."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "openDoor1",
+        "arguments": {}
+      },
+      {
+        "functionName": "talk",
+        "arguments": {
+          "choice": "What are you?"
+        }
       }
     ]
   }

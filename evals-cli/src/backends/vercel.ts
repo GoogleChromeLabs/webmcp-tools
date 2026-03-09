@@ -45,31 +45,31 @@ export class VercelBackend implements Backend {
       tools: mapJsonSchemaToVercelTools(this.tools),
       experimental_onToolCallStart: this.debug
         ? (event) => {
-          console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-          console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-            depth: null,
-            colors: true,
-          });
-        }
+            console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+            console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+              depth: null,
+              colors: true,
+            });
+          }
         : undefined,
       experimental_onToolCallFinish: this.debug
         ? (event) => {
-          if (event.success) {
-            console.log(
-              `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-            );
-            if (event.output) console.dir(event.output, { depth: null, colors: true });
-          } else {
-            console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+            if (event.success) {
+              console.log(
+                `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+              );
+              if (event.output) console.dir(event.output, { depth: null, colors: true });
+            } else {
+              console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+            }
           }
-        }
         : undefined,
       onStepFinish: this.debug
         ? (event) => {
-          console.log(
-            `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-          );
-        }
+            console.log(
+              `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+            );
+          }
         : undefined,
     });
 
@@ -154,31 +154,31 @@ export class VercelBackend implements Backend {
           instructions: SYSTEM_PROMPT,
           experimental_onToolCallStart: config.debug
             ? (event) => {
-              console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-              console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-                depth: null,
-                colors: true,
-              });
-            }
+                console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+                console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+                  depth: null,
+                  colors: true,
+                });
+              }
             : undefined,
           experimental_onToolCallFinish: config.debug
             ? (event) => {
-              if (event.success) {
-                console.log(
-                  `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-                );
-                if (event.output) console.dir(event.output, { depth: null, colors: true });
-              } else {
-                console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+                if (event.success) {
+                  console.log(
+                    `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+                  );
+                  if (event.output) console.dir(event.output, { depth: null, colors: true });
+                } else {
+                  console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+                }
               }
-            }
             : undefined,
           onStepFinish: config.debug
             ? (event) => {
-              console.log(
-                `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-              );
-            }
+                console.log(
+                  `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+                );
+              }
             : undefined,
           prepareStep: async (_opts: any): Promise<any> => {
             let rawTools: any = [];

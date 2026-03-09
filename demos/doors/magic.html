@@ -23,7 +23,7 @@
     <h1>The Wizard's Attic</h1>
     <div class="animal">🦉</div>
     <p id="status">The room is too dark to see much.</p>
-    <button onclick="cast()">Cast "Lumos"</button>
+    <button onclick="cast()">Cast light</button>
     <br><br>
 
     <form action="index.html">
@@ -35,7 +35,7 @@
             document.body.style.background = "#fff";
             document.getElementById('status').innerText = "The owl blinks at the sudden light!";
 
-            navigator.modelContext.unregisterTool('cast_light');
+            navigator.modelContext.unregisterTool('castLight');
             document.querySelector('button').setAttribute('disabled', '');
 
             document.querySelector('form').setAttribute('toolname', 'returnToHallway');
@@ -45,8 +45,8 @@
         }
 
         navigator.modelContext.registerTool({
-            name: 'cast_light',
-            description: 'Cast "Lumos"',
+            name: 'castLight',
+            description: 'Cast light',
             execute: async () => {
                 cast();
                 await new Promise(r => setTimeout(r, 1000));

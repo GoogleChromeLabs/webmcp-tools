@@ -20,5 +20,5 @@ It demonstrates both **declarative** (HTML attributes) and **imperative** (JavaS
 
 - **The Wizard's Attic (`magic.html`)**:
   - Demonstrates state changes. The "Return to Hallway" tool is initially disabled.
-  - The model must first use the "cast_light" tool (Imperative) to illuminate the room, which then dynamically enables the declarative navigation tool to leave.
+  - The model must first use the "castLight" tool (Imperative) to illuminate the room, which then dynamically enables the declarative navigation tool to leave.
 

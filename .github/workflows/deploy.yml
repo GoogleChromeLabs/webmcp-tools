@@ -37,6 +37,7 @@ jobs:
           cp -r demos/french-bistro deployment-root/demos/french-bistro
           cp -r demos/react-flightsearch/dist deployment-root/demos/react-flightsearch
           cp -r demos/pizza-maker deployment-root/demos/pizza-maker
+          cp -r demos/doors deployment-root/demos/doors
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
