@@ -4,10 +4,10 @@ Note that `schema.json` is not included here because these evaluations are desig
 
 ### Testing cross-document variations
 
-The demo supports a cross-document submission mode when loading the URL with the `?crossdocument` query parameter. You can run the tests against this version of the demo, and all the test cases and assertions should evaluate to true in the exact same manner.
+The demo supports a cross-document submission mode when loading the URL with the `?crossdocument&toolautosubmit` query parameter. You can run the tests against this version of the demo, and all the test cases and assertions should evaluate to true in the exact same manner.
 
 Example command:
 
 ```bash
-npm run build && node dist/bin/webmcpevals.js --url=http://localhost:8080?crossdocument --evals=examples/french-bistro/evals.json --debug
+npm run build && node dist/bin/webmcpevals.js --url="http://localhost:8080?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
 ```

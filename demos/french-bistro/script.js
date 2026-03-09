@@ -9,9 +9,14 @@ const closeBtn = document.getElementById("closeDialogBtn");
 const modalDetails = document.getElementById("modalDetails");
 const params = new URLSearchParams(window.location.search);
 const isCrossDocument = params.has("crossdocument");
+const toolAutoSubmit = params.has("toolautosubmit");
 
 if (isCrossDocument) {
   form.setAttribute("action", "./result.html");
+}
+
+if (toolAutoSubmit) {
+  form.setAttribute("toolautosubmit", "true");
 }
 
 let formValidationErrors = []; // Array to collect validation error messages to send back to the Agent.
@@ -140,9 +145,4 @@ window.addEventListener("toolactivated", (e) => {
   if (e.toolName !== "book_table_le_petit_bistro") return;
 
   validateForm();
-
-  if (!formValidationErrors.length && isCrossDocument) {
-    form.requestSubmit();
-    return;
-  }
 });

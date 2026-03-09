@@ -24,3 +24,6 @@ When the tool is activated by an AI agent:
 ### Variation
 
 When visiting `index.html?crossdocument`, the form submission triggers a navigation to `result.html`. This can be used to demonstrate cross-document tool execution.
+
+With `index.html?toolautosubmit` (or `index.html?crossdocument&toolautosubmit`), the `toolautosubmit` attribute is set on the form, which lets the  
+agent submit the form on the user's behalf after filling it out, without requiring the user to check it manually before submitting. Otherwise when the agent finishes filling out the form, the browser brings the submit button into focus, and the agent should then tell the user to check the form contents, and submit it manually.
