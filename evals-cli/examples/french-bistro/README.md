@@ -9,5 +9,5 @@ The demo supports a cross-document submission mode when loading the URL with the
 Example command:
 
 ```bash
-npm run build && node dist/bin/webmcpevals.js --url="http://localhost:8080?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
+npm run build && node dist/bin/webmcpevals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
 ```
