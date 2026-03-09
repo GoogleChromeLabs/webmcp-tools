@@ -39,6 +39,7 @@ form.addEventListener('submit', function (e) {
 
   if (isCrossDocument) {
     form.submit();
+    return;
   }
 
   showModal();
