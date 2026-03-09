@@ -30,6 +30,9 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Search for TC39 proposals related to decorators"
 - [WebMCP × Excalidraw x WebAI](https://shidh.in/demo/webmcp-excalidraw/) - A Web app that converts natural language descriptions into Excalidraw diagrams through a 3-tool WebMCP pipeline (generate_mermaid → validate_mermaid → render_excalidraw), with optional on-device generation using Chrome's built-in AI.
   - **Example Prompt**: "Create a flowchart showing the user login flow with error handling"
+- [WebMCP Flow](https://webmcp-flow.vercel.app/) - An AI-controllable architecture diagram builder that lets an AI agent create nodes, connect them with edges, and apply auto-layout in real time via WebMCP tools.
+  - [Code](https://github.com/ttimur-dev/webmcp-flow)
+  - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
   
 ## Contributing
 
