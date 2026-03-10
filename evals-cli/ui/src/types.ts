@@ -24,4 +24,5 @@ export interface AppConfig {
   backend: string;
   toolSchemaFile?: string;
   url?: string;
+  runs?: number;
 }

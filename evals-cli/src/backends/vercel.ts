@@ -108,15 +108,17 @@ export class VercelBackend implements Backend {
       throw new Error(`Failed to initialize browser for actual evals: ${error}`);
     }
 
-    const totalSteps = tests.reduce((sum, test) => {
+    const runs = config.runs || 1;
+    const testsBaseTotal = tests.reduce((sum, test) => {
       return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
     }, 0);
+    const totalSteps = testsBaseTotal * runs;
 
     if (onEvent) {
       onEvent({
         type: "start",
         total: totalSteps,
-        message: `Running evals using ${this.describe()}`,
+        message: `Running evals using ${this.describe()} (${runs} runs)`,
       });
     }
 
@@ -126,170 +128,173 @@ export class VercelBackend implements Backend {
     let errorCount = 0;
     const testResults: Array<TestResult> = [];
 
-    for (const test of tests) {
-      if (page) {
-        await page.close();
-      }
-      page = await browser!.newPage();
-      await page.goto(config.url, {
-        waitUntil: "networkidle2",
-        timeout: 30000,
-      });
-
-      testCount++;
-      let currentMessages = [...test.messages];
-      let currentTools = [...tools];
-
-      try {
-        const model = getModel(config);
-
-        const aiToolsWithExecution: Record<string, any> = {};
-        for (const t of currentTools) {
-          aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+    for (let r = 0; r < runs; r++) {
+      for (const test of tests) {
+        if (page) {
+          await page.close();
         }
-
-        const agentWithExec = new ToolLoopAgent({
-          model,
-          tools: aiToolsWithExecution,
-          instructions: SYSTEM_PROMPT,
-          experimental_onToolCallStart: config.debug
-            ? (event) => {
-                console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-                console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-                  depth: null,
-                  colors: true,
-                });
-              }
-            : undefined,
-          experimental_onToolCallFinish: config.debug
-            ? (event) => {
-                if (event.success) {
-                  console.log(
-                    `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-                  );
-                  if (event.output) console.dir(event.output, { depth: null, colors: true });
-                } else {
-                  console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
-                }
-              }
-            : undefined,
-          onStepFinish: config.debug
-            ? (event) => {
-                console.log(
-                  `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-                );
-              }
-            : undefined,
-          prepareStep: async (_opts: any): Promise<any> => {
-            let rawTools: any = [];
-
-            try {
-              rawTools = await page!.evaluate(async () => {
-                const nav = navigator as any;
-                let mct = null;
-                if (typeof nav.modelContext?.listTools === "function") {
-                  mct = nav.modelContext;
-                } else if (typeof nav.modelContextTesting?.listTools === "function") {
-                  mct = nav.modelContextTesting;
-                }
-                return mct ? mct.listTools() : [];
-              });
-            } catch (err: any) {
-              console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);
-            }
-
-            currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
-
-            // Clear the object
-            for (const key in aiToolsWithExecution) {
-              delete aiToolsWithExecution[key];
-            }
-
-            // Re-populate it
-            for (const t of currentTools) {
-              aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
-            }
-
-            return _opts;
-          },
+        page = await browser!.newPage();
+        await page.goto(config.url, {
+          waitUntil: "networkidle2",
+          timeout: 30000,
         });
 
-        // Let the agent loop run
-        const aiMessages = mapMessages(test.messages);
+        testCount++;
+        let currentMessages = [...test.messages];
+        let currentTools = [...tools];
 
-        const resultPayload = await agentWithExec.generate({ messages: aiMessages });
+        try {
+          const model = getModel(config);
 
-        // Gather executed tool calls across all steps
-        const executedCalls: any[] = [];
-        if (resultPayload.steps && resultPayload.steps.length > 0) {
-          for (const step of resultPayload.steps) {
-            if (step.toolCalls && step.toolCalls.length > 0) {
-              for (const call of step.toolCalls) {
-                executedCalls.push({
-                  functionName: call.toolName,
-                  args: (call as any).input || (call as any).args || (call as any).arguments || {},
+          const aiToolsWithExecution: Record<string, any> = {};
+          for (const t of currentTools) {
+            aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+          }
+
+          const agentWithExec = new ToolLoopAgent({
+            model,
+            tools: aiToolsWithExecution,
+            instructions: SYSTEM_PROMPT,
+            experimental_onToolCallStart: config.debug
+              ? (event) => {
+                  console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+                  console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+                    depth: null,
+                    colors: true,
+                  });
+                }
+              : undefined,
+            experimental_onToolCallFinish: config.debug
+              ? (event) => {
+                  if (event.success) {
+                    console.log(
+                      `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+                    );
+                    if (event.output) console.dir(event.output, { depth: null, colors: true });
+                  } else {
+                    console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+                  }
+                }
+              : undefined,
+            onStepFinish: config.debug
+              ? (event) => {
+                  console.log(
+                    `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+                  );
+                }
+              : undefined,
+            prepareStep: async (_opts: any): Promise<any> => {
+              let rawTools: any = [];
+
+              try {
+                rawTools = await page!.evaluate(async () => {
+                  const nav = navigator as any;
+                  let mct = null;
+                  if (typeof nav.modelContext?.listTools === "function") {
+                    mct = nav.modelContext;
+                  } else if (typeof nav.modelContextTesting?.listTools === "function") {
+                    mct = nav.modelContextTesting;
+                  }
+                  return mct ? mct.listTools() : [];
                 });
+              } catch (err: any) {
+                console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);
+              }
+
+              currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
+
+              // Clear the object
+              for (const key in aiToolsWithExecution) {
+                delete aiToolsWithExecution[key];
+              }
+
+              // Re-populate it
+              for (const t of currentTools) {
+                aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
+              }
+
+              return _opts;
+            },
+          });
+
+          // Let the agent loop run
+          const aiMessages = mapMessages(test.messages);
+
+          const resultPayload = await agentWithExec.generate({ messages: aiMessages });
+
+          // Gather executed tool calls across all steps
+          const executedCalls: any[] = [];
+          if (resultPayload.steps && resultPayload.steps.length > 0) {
+            for (const step of resultPayload.steps) {
+              if (step.toolCalls && step.toolCalls.length > 0) {
+                for (const call of step.toolCalls) {
+                  executedCalls.push({
+                    functionName: call.toolName,
+                    args:
+                      (call as any).input || (call as any).args || (call as any).arguments || {},
+                  });
+                }
               }
             }
           }
-        }
 
-        const trajectory = resultPayload.steps || [];
+          const trajectory = resultPayload.steps || [];
 
-        const trajectories = test.expectedCall
-          ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
-          : evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
+          const trajectories = test.expectedCall
+            ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
+            : evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
 
-        if (trajectories.length === 0) {
-          const response: any = { text: resultPayload.text };
-          const stepResult: TestResult = { test, response, outcome: "pass", trajectory };
-          testResults.push(stepResult);
-          passCount++;
-          if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result: stepResult });
-          }
-        } else {
-          for (const traj of trajectories) {
-            let response: any = traj.actual;
-            if (!response && executedCalls.length === 0 && resultPayload.text) {
-              response = { text: resultPayload.text };
-            } else if (!response) {
-              response = { missing: "Did not execute this step" };
-            }
-
-            const stepResult: TestResult = {
-              test: {
-                messages: currentMessages,
-                expectedCall: traj.expected ? [traj.expected] : null,
-              },
-              response,
-              outcome: traj.outcome,
-              trajectory,
-            };
-
+          if (trajectories.length === 0) {
+            const response: any = { text: resultPayload.text };
+            const stepResult: TestResult = { test, response, outcome: "pass", trajectory };
             testResults.push(stepResult);
-            if (traj.outcome === "pass") {
-              passCount++;
-            } else {
-              failCount++;
-            }
-
+            passCount++;
             if (onEvent) {
               onEvent({ type: "progress", testNumber: testCount, result: stepResult });
             }
+          } else {
+            for (const traj of trajectories) {
+              let response: any = traj.actual;
+              if (!response && executedCalls.length === 0 && resultPayload.text) {
+                response = { text: resultPayload.text };
+              } else if (!response) {
+                response = { missing: "Did not execute this step" };
+              }
+
+              const stepResult: TestResult = {
+                test: {
+                  messages: currentMessages,
+                  expectedCall: traj.expected ? [traj.expected] : null,
+                },
+                response,
+                outcome: traj.outcome,
+                trajectory,
+              };
+
+              testResults.push(stepResult);
+              if (traj.outcome === "pass") {
+                passCount++;
+              } else {
+                failCount++;
+              }
+
+              if (onEvent) {
+                onEvent({ type: "progress", testNumber: testCount, result: stepResult });
+              }
+            }
           }
-        }
-      } catch (e: any) {
-        console.warn("Error running test:", e);
-        errorCount++;
-        const result: TestResult = {
-          test,
-          response: null as any,
-          outcome: "error",
-        };
-        testResults.push(result);
-        if (onEvent) {
-          onEvent({ type: "progress", testNumber: testCount, result });
+        } catch (e: any) {
+          console.warn("Error running test:", e);
+          errorCount++;
+          const result: TestResult = {
+            test,
+            response: null as any,
+            outcome: "error",
+          };
+          testResults.push(result);
+          if (onEvent) {
+            onEvent({ type: "progress", testNumber: testCount, result });
+          }
         }
       }
     }

@@ -24,6 +24,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
         toolSchemaFile: config.toolSchemaFile,
         model: config.model,
         backend: config.backend,
+        runs: config.runs || 1,
       },
       null,
       2,
@@ -33,7 +34,11 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
   useEffect(() => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.model !== config.model || parsed.evalsFile !== config.evalsFile) {
+      if (
+        parsed.model !== config.model ||
+        parsed.evalsFile !== config.evalsFile ||
+        parsed.runs !== config.runs
+      ) {
         setJsonStr(
           JSON.stringify(
             {
@@ -41,6 +46,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
               toolSchemaFile: config.toolSchemaFile,
               model: config.model,
               backend: config.backend,
+              runs: config.runs || 1,
             },
             null,
             2,
@@ -50,7 +56,7 @@ export function ConfigPanel({ config, setConfig, running, setIsValid }: ConfigPa
     } catch {
       // invalid JSON, do not overwrite user's typing
     }
-  }, [config.model, config.evalsFile, config.toolSchemaFile, config.backend, jsonStr]);
+  }, [config.model, config.evalsFile, config.toolSchemaFile, config.backend, config.runs, jsonStr]);
 
   const handleValidation = useCallback(
     (markers: any[]) => {

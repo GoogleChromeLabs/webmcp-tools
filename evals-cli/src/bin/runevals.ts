@@ -39,6 +39,7 @@ const config: Config = {
   backend: args.backend || "gemini",
   provider: args.provider,
   model: args.model || "gemini-2.5-flash",
+  runs: args.runs ? parseInt(args.runs, 10) : 1,
 };
 
 const toolsSchema: ToolsSchema = JSON.parse(

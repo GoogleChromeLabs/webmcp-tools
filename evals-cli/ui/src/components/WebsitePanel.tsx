@@ -71,6 +71,16 @@ export function WebsitePanel({ config, setConfig, running }: WebsitePanelProps) 
             <option value="ollama">Ollama</option>
           </select>
         </div>
+        <div className={`form-group ${styles.flex1}`}>
+          <label>Runs</label>
+          <input
+            type="number"
+            min="1"
+            value={config.runs || 1}
+            onChange={(e) => setConfig({ ...config, runs: parseInt(e.target.value, 10) || 1 })}
+            disabled={running}
+          />
+        </div>
       </div>
 
       {tools.length > 0 && (

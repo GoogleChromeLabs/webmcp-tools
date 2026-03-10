@@ -23,9 +23,11 @@ export async function executeLocalEvals(
   config: Config | WebmcpConfig,
   onEvent?: (event: RunEvent) => void,
 ): Promise<TestResults> {
-  const totalSteps = tests.reduce((sum, test) => {
+  const runs = config.runs || 1;
+  const testsBaseTotal = tests.reduce((sum, test) => {
     return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
   }, 0);
+  const totalSteps = testsBaseTotal * runs;
 
   let testCount = 0;
   let passCount = 0;
@@ -58,60 +60,66 @@ export async function executeLocalEvals(
     onEvent({
       type: "start",
       total: totalSteps,
-      message: `Running evals using ${backendImpl.describe()}`,
+      message: `Running evals using ${backendImpl.describe()} (${runs} runs)`,
     });
   }
-  for (const test of tests) {
-    testCount++;
-    try {
-      const response = await backendImpl.executeLocalEvals(test);
 
-      let executedCalls: ToolCall[] = [];
-      if (response && response.functionName) {
-        executedCalls = [response as ToolCall];
-      }
+  for (let r = 0; r < runs; r++) {
+    for (const test of tests) {
+      testCount++;
+      try {
+        const response = await backendImpl.executeLocalEvals(test);
 
-      const trajectories = test.expectedCall
-        ? evaluateExecutionTrajectory(test.expectedCall, executedCalls)
-        : evaluateExecutionTrajectory([], executedCalls);
+        let executedCalls: ToolCall[] = [];
+        if (response && response.functionName) {
+          executedCalls = [response as ToolCall];
+        }
 
-      if (trajectories.length === 0) {
-        // No expected calls and no actual calls
-        const result: TestResult = { test, response: null, outcome: "pass" };
+        const trajectories = test.expectedCall
+          ? evaluateExecutionTrajectory(test.expectedCall, executedCalls)
+          : evaluateExecutionTrajectory([], executedCalls);
+
+        if (trajectories.length === 0) {
+          // No expected calls and no actual calls
+          const result: TestResult = { test, response: null, outcome: "pass" };
+          testResults.push(result);
+          passCount++;
+          if (onEvent) {
+            onEvent({ type: "progress", testNumber: testCount, result });
+          }
+        } else {
+          for (const traj of trajectories) {
+            const stepResult: TestResult = {
+              test: {
+                messages: test.messages,
+                expectedCall: traj.expected ? [traj.expected] : null,
+              },
+              response: traj.actual,
+              outcome: traj.outcome,
+            };
+            testResults.push(stepResult);
+            if (traj.outcome === "pass") {
+              passCount++;
+            } else {
+              failCount++;
+            }
+
+            if (onEvent) {
+              onEvent({ type: "progress", testNumber: testCount, result: stepResult });
+            }
+          }
+        }
+      } catch {
+        errorCount++;
+        const result: TestResult = {
+          test,
+          response: null as any,
+          outcome: "error",
+        };
         testResults.push(result);
-        passCount++;
         if (onEvent) {
           onEvent({ type: "progress", testNumber: testCount, result });
         }
-      } else {
-        for (const traj of trajectories) {
-          const stepResult: TestResult = {
-            test: { messages: test.messages, expectedCall: traj.expected ? [traj.expected] : null },
-            response: traj.actual,
-            outcome: traj.outcome,
-          };
-          testResults.push(stepResult);
-          if (traj.outcome === "pass") {
-            passCount++;
-          } else {
-            failCount++;
-          }
-
-          if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result: stepResult });
-          }
-        }
-      }
-    } catch {
-      errorCount++;
-      const result: TestResult = {
-        test,
-        response: null as any,
-        outcome: "error",
-      };
-      testResults.push(result);
-      if (onEvent) {
-        onEvent({ type: "progress", testNumber: testCount, result });
       }
     }
   }

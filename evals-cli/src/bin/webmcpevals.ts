@@ -50,6 +50,7 @@ const config: WebmcpConfig = {
   provider: args.provider || "gemini",
   model: args.model || "gemini-2.5-flash",
   debug,
+  runs: args.runs ? parseInt(args.runs, 10) : 1,
 };
 
 const tools = await listToolsFromPage(config.url);

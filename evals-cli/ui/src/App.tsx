@@ -23,6 +23,7 @@ function App() {
     url: "https://example.com",
     model: "gemini-2.5-flash",
     backend: "gemini",
+    runs: 1,
   });
   const [isConfigValid, setIsConfigValid] = useState(true);
 
@@ -36,6 +37,7 @@ function App() {
         toolSchemaFile: config.toolSchemaFile,
         model: config.model,
         backend: config.backend,
+        runs: config.runs,
       });
     } else {
       handleRun({
@@ -43,6 +45,7 @@ function App() {
         url: config.url || "",
         model: config.model,
         backend: config.backend,
+        runs: config.runs,
       });
     }
   };

@@ -10,6 +10,7 @@ export type Config = {
   provider?: string;
   model: string;
   debug?: boolean;
+  runs?: number;
 };
 
 export type WebmcpConfig = {
@@ -19,4 +20,5 @@ export type WebmcpConfig = {
   provider?: string;
   model: string;
   debug?: boolean;
+  runs?: number;
 };
