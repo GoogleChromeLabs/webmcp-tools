@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>The Wizard's Attic</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #9b59b6;
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            transition: background 1s;
+        }
+
+        .animal {
+            font-size: 5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>The Wizard's Attic</h1>
+    <div class="animal">🦉</div>
+    <p id="status">The room is too dark to see much.</p>
+    <button onclick="cast()">Cast light</button>
+    <br><br>
+
+    <form action="index.html">
+        <button disabled>Return to Hallway</button>
+    </form>
+
+    <script>
+        function cast() {
+            document.body.style.background = "#fff";
+            document.getElementById('status').innerText = "The owl blinks at the sudden light!";
+
+            navigator.modelContext.unregisterTool('castLight');
+            document.querySelector('button').setAttribute('disabled', '');
+
+            document.querySelector('form').setAttribute('toolname', 'returnToHallway');
+            document.querySelector('form').setAttribute('tooldescription', 'Return to Hallway.');
+            document.querySelector('form').setAttribute('toolautosubmit', '');
+            document.querySelector('form button').removeAttribute('disabled');
+        }
+
+        navigator.modelContext.registerTool({
+            name: 'castLight',
+            description: 'Cast light',
+            execute: async () => {
+                cast();
+                await new Promise(r => setTimeout(r, 1000));
+                return document.getElementById('status').innerText;
+            },
+        });
+    </script>
+</body>
+
+</html>
