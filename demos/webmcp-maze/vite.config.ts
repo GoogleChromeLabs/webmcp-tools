@@ -34,6 +34,7 @@ const CSP = [
 ].join("; ");
 
 export default defineConfig({
+  base: "",
   server: {
     headers: {
       "Content-Security-Policy": CSP,
