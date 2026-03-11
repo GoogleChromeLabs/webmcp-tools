@@ -28,7 +28,7 @@ The core goal of an AI agent is to pursue goals and complete multi-step tasks on
 
 ## Interaction with Imperative Tools
 
-Imperative tools are defined using standard JavaScript via methods like `navigator.modelContext.registerTool()` or `navigator.modelContext.provideContext()`.
+Imperative tools are defined using standard JavaScript via `navigator.modelContext.registerTool()`.
 
 | Step               | Agent Action                                           | Expected Behavior                                                                                                                                                                       |
 | :----------------- | :----------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
