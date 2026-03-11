@@ -17,6 +17,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 - [Mystery Doors](https://googlechromelabs.github.io/webmcp-tools/demos/doors/) - A simple multi-page demo showcasing WebMCP capabilities using both declarative and imperative approaches.
   - **Example Prompt:** "Explore the rooms"
+- [WebMCP Maze](https://googlechromelabs.github.io/webmcp-tools/demos/webmcp-maze/) - A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
+  - **Example Prompts:** "Start a new game", then "Solve the maze"
 - [Shoe store](https://andreinwald.github.io/webmcp-demo/) | [Code](https://github.com/andreinwald/webmcp-demo) - online store built with React, with all core functionality MCP-ready.
   - **Example Prompt:** "Suggest the 3 best pairs of soccer shoes (foot size 45) available on this site. Add (one of suggestions) to cart and complete purchase."
 - [Flight booking](https://webmcp-flight-demo.netlify.app/) / [Flight booking (declarative)](https://webmcp-flight-demo.netlify.app/declarative.html) - Find the best flights for your journey.
