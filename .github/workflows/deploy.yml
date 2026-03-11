@@ -30,6 +30,11 @@ jobs:
           npm run build
           cd ..
 
+          cd demos/webmcp-maze
+          npm install
+          npm run build
+          cd ..
+
       - name: Assemble Public Folder
         run: |
           mkdir -p deployment-root/demos
@@ -38,6 +43,7 @@ jobs:
           cp -r demos/react-flightsearch/dist deployment-root/demos/react-flightsearch
           cp -r demos/pizza-maker deployment-root/demos/pizza-maker
           cp -r demos/doors deployment-root/demos/doors
+          cp -r demos/webmcp-maze/dist deployment-root/demos/webmcp-maze
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

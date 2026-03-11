@@ -48,6 +48,7 @@ export class ToolRegistry {
       console.warn(
         "WebMCP (navigator.modelContext) is not available in this browser.",
       );
+      return;
     }
 
     this.installGameTools();
@@ -90,10 +91,6 @@ export class ToolRegistry {
     this.provideTools([createStartGameTool(this.game)]);
   }
 
-  /** Removes all registered tools. */
-  clearTools(): void {
-    this.provideTools([]);
-  }
 
   /**
    * Unregisters all current tools then registers the new batch.

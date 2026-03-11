@@ -21,20 +21,20 @@ The player starts in a randomly generated maze and must reach the exit by instru
 
 - [Vite](https://vitejs.dev/) 7 + TypeScript (strict mode)
 - [PixiJS](https://pixijs.com/) for rendering
-- [Bun](https://bun.sh/) as the runtime and test runner
+- [Node.js](https://nodejs.org/) and npm for tooling
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) installed
+- [Node.js](https://nodejs.org/) installed
 - A WebMCP-capable browser (one that exposes `navigator.modelContext`)
 
 ### Install and Run
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 Open the local URL printed by Vite in a WebMCP-capable browser and start prompting the AI agent to navigate the maze.
@@ -42,9 +42,9 @@ Open the local URL printed by Vite in a WebMCP-capable browser and start prompti
 ### Other Commands
 
 ```bash
-bun run build          # typecheck + production build
-bun test               # run all tests
-bunx prettier --write . # format all files
+npm run build          # typecheck + production build
+npm test               # run all tests
+npx prettier --write . # format all files
 ```
 
 ## Project Structure

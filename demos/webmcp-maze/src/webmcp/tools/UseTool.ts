@@ -43,27 +43,27 @@ export function createUseTool(game: Game): ModelContextTool {
       const dir = input.direction as string;
 
       if (!VALID_DIRECTIONS.has(dir as Direction)) {
-        return JSON.stringify({
+        return {
           success: false,
           reason: `Invalid direction: "${dir}". Use north, south, east, or west.`,
-        });
+        };
       }
 
       if (game.player.inventory === null) {
-        return JSON.stringify({
+        return {
           success: false,
           reason: "You are not holding any item to use.",
-        });
+        };
       }
 
       const pos = game.player.position;
       const blocker = game.board.getBlocker(pos, dir as Direction);
 
       if (!blocker) {
-        return JSON.stringify({
+        return {
           success: false,
           reason: `No blocker found in the ${dir} direction.`,
-        });
+        };
       }
 
       const itemName = collectibleDisplayName(game.player.inventory);
@@ -72,12 +72,12 @@ export function createUseTool(game: Game): ModelContextTool {
       const used = game.player.useItem(blocker.type);
 
       if (!used) {
-        return JSON.stringify({
+        return {
           success: false,
           reason: `Your ${itemName} cannot clear the ${blockerName}.`,
           holding: game.player.inventory,
           blocker: blocker.type,
-        });
+        };
       }
 
       // Remove blocker from both sides of the passage
@@ -96,11 +96,11 @@ export function createUseTool(game: Game): ModelContextTool {
       game.gameplayState?.updateInventory();
       game.gameplayState?.updateExploredCount();
 
-      return JSON.stringify({
+      return {
         success: true,
         message: `Used ${itemName} to clear the ${blockerName}!`,
         direction: dir,
-      });
+      };
     },
   };
 }

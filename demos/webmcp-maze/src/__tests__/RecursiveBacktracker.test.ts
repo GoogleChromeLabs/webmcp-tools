@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { MazeBoard } from "../game/MazeBoard.ts";
 import { RecursiveBacktracker } from "../generation/RecursiveBacktracker.ts";
 

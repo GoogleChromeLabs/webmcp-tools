@@ -20,21 +20,18 @@ export function createStartGameTool(game: Game): ModelContextTool {
     description:
       "Start a new maze game. Generates a fresh maze and places the player " +
       "at the top-left corner. The goal is to reach the bottom-right exit.",
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
+
     async execute() {
       game.newGame();
       game.setState(new GameplayState(game));
 
-      return JSON.stringify({
+      return {
         message:
           "A new maze has been generated! Use 'look' to see your surroundings, then 'move' to navigate.",
         mazeSize: { rows: game.board.rows, cols: game.board.cols },
         startPosition: { row: 0, col: 0 },
         exitPosition: { row: game.board.exit.row, col: game.board.exit.col },
-      });
+      };
     },
   };
 }
