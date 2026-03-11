@@ -25,12 +25,14 @@ jobs:
 
       - name: Build Demos
         run: |
-          cd demos/react-flightsearch
+          cd demos
+
+          cd react-flightsearch
           npm ci
           npm run build
           cd ..
 
-          cd demos/webmcp-maze
+          cd webmcp-maze
           npm ci
           npm run build
           cd ..
