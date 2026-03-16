@@ -146,13 +146,13 @@ window.realEstateApp = {
             let featuresHtml = '';
             
             if (prop.features.includes("Central AC")) {
-                featuresHtml += `<span class="px-1.5 py-0.5 rounded border border-slate-200 text-slate-500 text-[10px] font-bold">A/C</span>`;
+                featuresHtml += `<span class="px-2 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-sm text-[10px] font-bold">A/C</span>`;
             }
             if (prop.features.includes("Parking")) {
-                featuresHtml += `<span class="px-1.5 py-0.5 rounded border border-slate-200 text-slate-500 text-[10px] font-bold">Parking</span>`;
+                featuresHtml += `<span class="px-2 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-sm text-[10px] font-bold">Parking</span>`;
             }
             if (prop.features.includes("Terrace") || prop.features.includes("Balcony")) {
-                featuresHtml += `<span class="px-1.5 py-0.5 rounded border border-slate-200 text-slate-500 text-[10px] font-bold">Exterior</span>`;
+                featuresHtml += `<span class="px-2 py-1 rounded-md bg-white text-slate-700 border border-slate-200 shadow-sm text-[10px] font-bold">Exterior</span>`;
             }
 
             html += `
