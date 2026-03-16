@@ -1,0 +1,14 @@
+<div class="bg-surface-container-lowest p-6 rounded-xl flex flex-col group cursor-pointer shadow-premium hover:shadow-2xl transition-all duration-500" [routerLink]="['/product', product.id]">
+    <div class="aspect-square bg-surface-container-low rounded-lg mb-6 overflow-hidden relative">
+        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" [src]="product.image" [alt]="product.name">
+        <button class="absolute bottom-4 right-4 w-10 h-10 bg-surface shadow-lg rounded-full flex items-center justify-center text-primary translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all active:scale-90" (click)="onAddToCart($event)">
+            <span class="material-symbols-outlined">add_shopping_cart</span>
+        </button>
+    </div>
+    <h3 class="font-headline font-bold text-lg mb-1">{{ product.name }}</h3>
+    <p class="text-on-surface-variant text-xs mb-4 line-clamp-2">{{ product.description }}</p>
+    <div class="mt-auto flex justify-between items-baseline">
+        <span class="font-black text-on-surface">${{ product.price | number:'1.2-2' }}</span>
+        <span class="text-[10px] font-bold text-primary tracking-widest uppercase">Precision Grade</span>
+    </div>
+</div>

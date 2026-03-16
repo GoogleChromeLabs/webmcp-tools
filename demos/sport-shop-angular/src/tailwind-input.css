@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@source "./app/**/*.{html,ts}";
+
+
+@theme {
+  --color-primary: #a93100;
+  --color-primary-container: #d34000;
+  --color-on-primary: #ffffff;
+  --color-surface: #fcf9f8;
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #5c4037;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0edec;
+  --color-surface-container-high: #ebe7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-container-lowest: #ffffff;
+  --color-secondary-container: #fd7f56;
+  --color-on-secondary-container: #6d1d00;
+  --color-tertiary: #005da8;
+  --color-tertiary-fixed: #d4e3ff;
+  --color-on-tertiary-fixed: #001c39;
+  --color-on-tertiary-fixed-variant: #004884;
+  --color-inverse-surface: #313030;
+  --color-inverse-on-surface: #f3f0ef;
+  --color-outline-variant: #e6beb2;
+
+  --font-headline: "Lexend", sans-serif;
+  --font-body: "Manrope", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline tracking-tighter;
+  }
+}
+
+/* Editorial Grid */
+.editorial-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2rem;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(252, 249, 248, 0.9);
+  backdrop-filter: blur(12px);
+  @apply border border-white/10;
+}
+
+/* Custom shadow */
+.shadow-premium {
+  box-shadow: 0 8px 32px rgba(28, 27, 27, 0.06);
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

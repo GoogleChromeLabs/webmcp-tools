@@ -1,0 +1,63 @@
+<section class="relative h-[85vh] w-full bg-surface-container overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <img class="w-full h-full object-cover opacity-100 grayscale hover:grayscale-0 transition-all duration-1000 scale-105"
+            src="/assets/products/nano-banana-hero.png" alt="Athlete in motion">
+        <div class="absolute inset-0 bg-gradient-to-r from-surface via-surface/60 to-transparent"></div>
+    </div>
+
+    <div class="relative z-10 max-w-[1440px] mx-auto px-12 h-full flex flex-col justify-center">
+        <span
+            class="text-primary font-bold tracking-[0.2em] text-[11px] mb-6 block uppercase border-l-2 border-primary pl-4">Precision
+            Power Performance</span>
+        <h1
+            class="font-headline text-[clamp(3rem,8vw,6rem)] font-black leading-[0.9] tracking-tighter text-on-surface mb-12 italic uppercase">
+            Unleash Their<br />Potential.
+        </h1>
+
+        <div class="max-w-2xl group">
+            <form toolname="search_product" tooldescription="Search for products based on the query." toolautosubmit
+                (ngSubmit)="onFindGift()"
+                class="bg-white p-6 rounded-2xl shadow-2xl shadow-on-surface/5 flex flex-col gap-6 border border-outline-variant/20 focus-within:ring-4 ring-primary/10 transition-all">
+                <div class="flex flex-col gap-2">
+                    <span class="text-[10px] font-black tracking-widest text-on-surface-variant/40 uppercase">Find the
+                        Perfect
+                        Gear</span>
+                    <div class="flex items-center gap-4 border-b border-outline-variant/30 pb-2">
+                        <input [(ngModel)]="query" name="query"
+                            class="w-full bg-transparent border-none focus:ring-0 font-body text-xl text-on-surface placeholder:text-on-surface-variant/30"
+                            placeholder="I need soccer boots for a child..."
+                            toolparamdescription="Search term for products (e.g. 'soccer boots', 'running gear')." />
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[9px] font-bold text-on-surface-variant/60 uppercase ml-1">Category</label>
+                        <select [(ngModel)]="category" name="category"
+                            class="bg-surface-container-low border-none rounded-lg text-sm font-medium focus:ring-2 ring-primary/20 px-3 py-2.5"
+                            toolparamdescription="The product category to browse">
+                            @for (cat of categories; track cat) {
+                                <option [value]="cat">{{cat | titlecase}}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1.5 col-span-2 md:col-span-1">
+                        <label class="text-[9px] font-bold text-on-surface-variant/60 uppercase ml-1">Size</label>
+                        <select [(ngModel)]="size" name="size"
+                            class="bg-surface-container-low border-none rounded-lg text-sm font-medium focus:ring-2 ring-primary/20 px-3 py-2.5"
+                            toolparamdescription="Product size">
+                            @for (s of sizes; track s) {
+                                <option [value]="s">{{s | titlecase}}</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary text-on-primary py-4 rounded-xl font-black uppercase tracking-widest hover:bg-primary-container transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined">search</span>
+                    Discover Gear
+                </button>
+            </form>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,52 @@
+<main class="max-w-[1440px] mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12">
+    <!-- Search Results Area -->
+    <section class="flex-1">
+        <div class="mb-12">
+            <div
+                class="flex items-center gap-3 text-primary font-bold tracking-widest text-[11px] uppercase mb-4 font-headline">
+                <span>Refine Results</span>
+                <span class="w-8 h-[1px] bg-primary/30"></span>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mb-12">
+                @for (filter of priceFilters; track filter.value) {
+                <button (click)="setPriceRange(filter.value)"
+                    class="px-6 py-2 rounded-full border border-primary/20 text-xs font-black uppercase tracking-widest transition-all block hover:bg-primary/10"
+                    [class.bg-primary]="priceControl.value === filter.value"
+                    [class.text-on-primary]="priceControl.value === filter.value">
+                    {{ filter.label }}
+                </button>
+                }
+            </div>
+
+            <div
+                class="flex items-center gap-3 text-on-surface-variant/40 font-bold tracking-widest text-[11px] uppercase mb-2 font-headline">
+                <span>Search Results</span>
+                <span class="w-8 h-[1px] bg-on-surface-variant/20"></span>
+                <span class="text-on-surface-variant">{{ filteredProducts.length }} Items Found</span>
+            </div>
+            <h1 class="font-headline text-5xl font-black tracking-tighter text-on-surface mb-6">
+                Results for <span class="text-primary-container">{{ query || 'all products' }}</span>
+            </h1>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @for (p of filteredProducts; track p.id) {
+                <app-product-card [product]="p"></app-product-card>
+            }
+        </div>
+
+        @if (filteredProducts.length === 0) {
+            <div class="py-20 text-center bg-surface-container-low rounded-3xl">
+                <span class="material-symbols-outlined text-6xl text-on-surface-variant/20 mb-4">search_off</span>
+                <p class="text-on-surface-variant font-bold">No products matched your search.</p>
+            </div>
+        }
+    </section>
+
+    <!-- Sidebar: AI Assistant -->
+    <aside class="w-96 hidden xl:block sticky top-32 h-[calc(100vh-10rem)]">
+        <app-ai-sidebar [message]="aiMessage" [query]="query"></app-ai-sidebar>
+    </aside>
+</main>

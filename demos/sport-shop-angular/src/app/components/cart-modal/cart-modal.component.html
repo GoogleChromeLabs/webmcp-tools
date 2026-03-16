@@ -1,0 +1,107 @@
+<div class="modal-root-overlay" (click)="onClose()">
+  <!-- Darkened Backdrop with Blur -->
+  <div class="modal-backdrop-bg"
+       [class.closing-fade]="closing" [class.opening-fade]="!closing"></div>
+
+  <!-- Centered Square-ish Modal Content -->
+  <div class="modal-window-box"
+       [class.closing-box]="closing" [class.opening-box]="!closing"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Top-Right Close Button -->
+    <button (click)="onClose()" class="modal-close-btn group">
+      <span class="material-symbols-outlined group-hover:rotate-90">close</span>
+    </button>
+
+    <!-- Scrollable Items -->
+    <div class="modal-body-content custom-scrollbar">
+      @switch (checkoutState) {
+        @case ('summary') {
+          <div class="items-list-container">
+            @if (cartService.cartCount() === 0) {
+              <div class="empty-state-view">
+                <div class="empty-icon-circle border-border/10">
+                  <span class="material-symbols-outlined">shopping_bag</span>
+                </div>
+                <p class="empty-text">Ready to gear up? Your bag is empty.</p>
+                <button (click)="onClose()" class="shop-now-btn">
+                  SHOP ALL COLLECTIONS
+                </button>
+              </div>
+            }
+
+            <!-- Items Grid -->
+            <div class="items-grid">
+              @for (item of cartService.cart(); track item.id + $index) {
+                <div class="cart-item-card group">
+                  <!-- Thumbnail -->
+                  <div class="item-thumb-container">
+                    <img [src]="item.image" [alt]="item.name" class="group-hover:scale-110">
+                  </div>
+                  
+                  <!-- Details -->
+                  <div class="item-details-box">
+                    <div class="item-header-row">
+                      <h3 class="font-headline truncate italic uppercase">{{ item.name }}</h3>
+                      <span class="item-price">${{ item.price | number:'1.2-2' }}</span>
+                    </div>
+                    <p class="item-category uppercase">{{ item.category }}</p>
+                    
+                    <!-- Controls -->
+                    <div class="item-footer-row">
+                      <div class="quantity-controls bg-surface/40 border-border/5">
+                        <button class="control-btn"><span class="material-symbols-outlined">remove</span></button>
+                        <span class="quantity-num">1</span>
+                        <button class="control-btn"><span class="material-symbols-outlined">add</span></button>
+                      </div>
+                      <button (click)="onRemove(item.id)" class="delete-btn-circ bg-surface/20">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @case ('processing') {
+          <div class="state-full-view animate-fade-in-up">
+            <div class="spinner-container">
+              <div class="spinner-ring"></div>
+              <div class="spinner-active"></div>
+              <span class="material-symbols-outlined spinner-icon text-primary pulse-anim">rocket_launch</span>
+            </div>
+            <h3 class="font-headline italic uppercase tracking-[-0.05em] text-2xl mb-2">SECURING DATA</h3>
+            <p class="state-msg">Connecting to sports-link servers. Preparing your hardware for immediate deployment.</p>
+          </div>
+        }
+
+        @case ('success') {
+          <div class="state-full-view animate-fade-in-up">
+            <div class="success-icon-area">
+              <div class="ping-anim"></div>
+              <span class="material-symbols-outlined text-primary">check_circle</span>
+            </div>
+            <h2 class="font-headline italic uppercase tracking-[-0.06em] text-3xl mb-3">LAUNCH CONFIRMED</h2>
+            <p class="state-msg px-8">Your gear is in the pipeline. Get ready for peak performance.</p>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Footer -->
+    @if (checkoutState === 'summary' && cartService.cartCount() > 0) {
+      <div class="modal-footer-area bg-surface/20">
+        <div class="total-row border-border/10">
+          <span class="total-label uppercase tracking-[0.3em]">Est. Total</span>
+          <span class="total-value italic">${{ cartService.totalPrice() | number:'1.2-2' }}</span>
+        </div>
+        <button (click)="onCheckout()" class="checkout-submit-btn bg-primary tracking-[0.3em] italic uppercase">
+          <span>INITIALIZE CHECKOUT</span>
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

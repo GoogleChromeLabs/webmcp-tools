@@ -1,0 +1,26 @@
+<div class="bg-surface-container-lowest rounded-2xl shadow-premium border border-outline-variant/10 flex flex-col h-full overflow-hidden">
+    <div class="p-6 bg-primary text-on-primary">
+        <div class="flex items-center gap-3 mb-1">
+            <span class="material-symbols-outlined">smart_toy</span>
+            <h2 class="font-headline font-bold tracking-tight">Sports AI Assistant</h2>
+        </div>
+        <p class="text-[10px] uppercase font-black tracking-widest opacity-80">AI ASSISTANT ACTIVE</p>
+    </div>
+    <div class="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
+        <div class="bg-surface-container-low p-4 rounded-xl rounded-tl-none border-l-4 border-primary">
+            <p class="text-sm leading-relaxed text-on-surface">
+                {{ message }}
+            </p>
+        </div>
+    </div>
+    <div class="p-6 bg-surface-container-low border-t border-outline-variant/10">
+        <div class="relative">
+            <input
+                class="w-full bg-surface-container-lowest border-none rounded-lg py-3 pl-4 pr-12 text-sm focus:ring-2 ring-primary/20"
+                placeholder="Ask to refine results..." type="text" [(ngModel)]="userInput" (keyup.enter)="sendMessage()" />
+            <button class="absolute right-2 top-1/2 -translate-y-1/2 text-primary p-2" (click)="sendMessage()">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+        </div>
+    </div>
+</div>
