@@ -1,0 +1,57 @@
+<main class="max-w-[1440px] mx-auto px-8 pt-12" *ngIf="product">
+    <div class="flex flex-col lg:flex-row gap-12">
+        <!-- Left: Product Editorial Imagery -->
+        <div class="w-full lg:w-2/3 space-y-8">
+            <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 bg-surface-container-low rounded-xl overflow-hidden aspect-[4/3] group shadow-premium">
+                    <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" [src]="product.image" [alt]="product.name">
+                </div>
+            </div>
+            
+            <section class="py-12 bg-surface-container-low rounded-3xl px-12">
+                <div class="max-w-2xl">
+                    <span class="font-headline text-[11px] font-bold uppercase tracking-widest text-primary mb-4 block">Engineered Performance</span>
+                    <h2 class="font-headline text-4xl font-extrabold tracking-tighter text-on-surface mb-6 leading-tight">Master your discipline with precision gear.</h2>
+                    <p class="text-on-surface-variant text-lg leading-relaxed mb-8">{{ product.description }}</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right: Interactive Actions & Gift Sidebar -->
+        <aside class="w-full lg:w-1/3 flex flex-col gap-8">
+            <div class="bg-surface-container-lowest p-8 rounded-2xl shadow-premium border border-outline-variant/10">
+                <h1 class="font-headline text-3xl font-black tracking-tight text-on-surface mb-2">{{ product.name }}</h1>
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="flex text-primary">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+                    </div>
+                </div>
+                <div class="flex items-baseline gap-2 mb-8">
+                    <span class="text-4xl font-headline font-black text-primary">${{ product.price | number:'1.2-2' }}</span>
+                </div>
+                <div class="space-y-4 mb-8">
+                    <button (click)="addToCart()" class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold text-lg hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]">Add to Cart</button>
+                </div>
+                
+                <div *ngIf="giftReason" class="p-4 bg-tertiary-fixed/30 rounded-lg border-l-4 border-tertiary">
+                    <div class="flex gap-3">
+                        <span class="material-symbols-outlined text-tertiary">card_giftcard</span>
+                        <div>
+                            <h3 class="font-bold text-on-tertiary-fixed text-sm">Why it's a great gift</h3>
+                            <p class="text-xs text-on-tertiary-fixed-variant mt-1 leading-relaxed">{{ giftReason }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Sidebar -->
+            <div class="sticky top-28">
+                <app-ai-sidebar [message]="aiMessage"></app-ai-sidebar>
+            </div>
+        </aside>
+    </div>
+</main>

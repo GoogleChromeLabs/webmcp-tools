@@ -1,0 +1,10 @@
+<app-header></app-header>
+<main>
+    <router-outlet></router-outlet>
+</main>
+<app-footer></app-footer>
+
+@if (uiService.isCartOpen$ | async) {
+    <app-cart-modal (close)="uiService.closeCart()">
+    </app-cart-modal>
+}

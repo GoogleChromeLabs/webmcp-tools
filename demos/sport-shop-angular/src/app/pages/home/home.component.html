@@ -1,0 +1,40 @@
+<app-hero></app-hero>
+
+<section class="max-w-[1440px] mx-auto px-12 py-32">
+    <div class="mb-16">
+        <h2 class="text-5xl font-black mb-4 uppercase italic">Gear by Discipline</h2>
+        <p class="text-on-surface-variant font-medium text-lg">Engineered for the elite, refined for the everyday.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        @for (cat of categories; track cat.name) {
+            <div (click)="onCategoryClick(cat.name)"
+                class="relative group h-[500px] rounded-2xl overflow-hidden cursor-pointer">
+                <img [src]="cat.image" [alt]="cat.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 to-transparent"></div>
+                <div class="absolute bottom-8 left-8">
+                    <h3 class="text-3xl font-black text-white italic uppercase">{{ cat.name }}</h3>
+                    <div class="w-12 h-1 bg-primary mt-2 transition-all duration-300 group-hover:w-full"></div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="bg-surface-container-low py-32">
+    <div class="max-w-[1440px] mx-auto px-12">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div>
+                <span class="text-primary font-bold tracking-[0.2em] text-[11px] mb-4 block uppercase font-headline">Editorial Selection</span>
+                <h2 class="text-6xl font-black italic uppercase leading-none">Trending<br />Gear.</h2>
+            </div>
+            <button class="bg-on-surface text-surface px-8 py-4 rounded-full font-bold text-sm hover:bg-primary transition-colors">View All Performance Gear</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            @for (product of trendingGear; track product.id) {
+                <app-product-card [product]="product"></app-product-card>
+            }
+        </div>
+    </div>
+</section>
