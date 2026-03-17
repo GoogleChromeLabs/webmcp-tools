@@ -1,0 +1,154 @@
+<!-- Search Bar Section -->
+<section class="search-section">
+  <!-- WebMCP Declarative Form for Search -->
+  <form 
+    class="search-form" 
+    toolname="search_store" 
+    tooldescription="Search the Luxe Leather store for premium collections" 
+    (ngSubmit)="onSearch($event)"
+  >
+    <div class="search-input-wrapper">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input 
+        name="query" 
+        type="search" 
+        class="search-input font-body" 
+        placeholder="Search premium collections..." 
+        aria-label="Search premium collections"
+      />
+    </div>
+  </form>
+</section>
+
+<!-- Hero Section: The Artisanal Archive -->
+<section class="hero-section">
+  <div class="hero-bg">
+    <img src="assets/images/hero.jpg" alt="Craftsman working with leather" class="hero-img">
+    <div class="hero-overlay"></div>
+  </div>
+
+  <div class="hero-content container">
+    <div class="hero-text animate-fade-in">
+      <span class="hero-kicker font-label tracking-widest uppercase">Est. 1924 • Florence</span>
+      <h1 class="hero-title serif">The Heritage <br><span class="italic">Collection</span></h1>
+      <p class="hero-desc font-body">Hand-selected full-grain hides, vegetable tanned and meticulously stitched by master artisans in our historic workshop.</p>
+      
+      <div class="hero-cta-wrapper">
+        <button class="hero-btn font-label uppercase tracking-widest font-bold">
+          Explore Archive
+          <span class="material-symbols-outlined cta-icon">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Asymmetrical Floating Product -->
+    <a routerLink="/product/signature-satchel" class="hero-floating group block">
+      <div class="floating-card transition-all duration-300 group-hover:bg-white/20">
+        <img src="assets/images/signature_satchel.jpg" alt="Premium Leather Messenger Bag" class="floating-img group-hover:scale-105 transition-transform">
+        <div class="floating-details">
+          <div>
+            <h3 class="serif floating-title group-hover:text-secondary transition-colors">The Signature Satchel</h3>
+            <p class="font-body floating-subtitle">Rich Mahogany Calfskin</p>
+          </div>
+          <span class="floating-price font-body">$1,250</span>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- Bento Grid: Curated Categories -->
+<section class="bento-section container">
+  <div class="bento-header">
+    <div>
+      <h2 class="serif section-title italic">Shop by Craft</h2>
+      <div class="section-divider"></div>
+    </div>
+    <a routerLink="/search" class="view-all font-label uppercase tracking-widest font-bold">View All Collections</a>
+  </div>
+
+  <div class="bento-grid">
+    <a routerLink="/search" [queryParams]="{q: 'Bags'}" class="bento-item bento-large group">
+      <img src="assets/images/bags_cat.jpg" alt="Leather Bags" class="bento-img transition-transform">
+      <div class="bento-overlay transition-colors"></div>
+      <div class="bento-text">
+        <h3 class="serif bento-title">Bags</h3>
+        <p class="font-label uppercase tracking-widest bento-subtitle">Iconic Silhouettes</p>
+      </div>
+    </a>
+
+    <a routerLink="/search" [queryParams]="{q: 'Accessories'}" class="bento-item group">
+      <img src="assets/images/accessories_cat.jpg" alt="Leather Wallets" class="bento-img transition-transform">
+      <div class="bento-overlay transition-colors"></div>
+      <div class="bento-text">
+        <h3 class="serif bento-title-small">Accessories</h3>
+      </div>
+    </a>
+
+    <a routerLink="/search" [queryParams]="{q: 'Apparel'}" class="bento-item bento-tall group">
+      <img src="assets/images/apparel_cat.jpg" alt="Leather Jackets" class="bento-img transition-transform">
+      <div class="bento-overlay transition-colors"></div>
+      <div class="bento-text">
+        <h3 class="serif bento-title-small">Apparel</h3>
+      </div>
+    </a>
+
+    <a routerLink="/search" [queryParams]="{q: 'Details'}" class="bento-item group">
+      <img src="assets/images/details_cat.jpg" alt="Leather Belts" class="bento-img transition-transform">
+      <div class="bento-overlay transition-colors"></div>
+      <div class="bento-text">
+        <h3 class="serif bento-title-small">Fine Details</h3>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- Product Highlight -->
+<section class="highlight-section">
+  <div class="container highlight-container">
+    <div class="highlight-image-wrapper">
+      <div class="highlight-polaroid editorial-shadow">
+        <img src="assets/images/weekender_tote.jpg" alt="Signature Leather Tote" class="highlight-img">
+      </div>
+      <div class="highlight-decoration">
+        <p class="serif italic decoration-text">"Crafted to last a lifetime."</p>
+      </div>
+    </div>
+
+    <div class="highlight-content">
+      <span class="font-label uppercase tracking-widest font-bold highlight-kicker">Featured Arrival</span>
+      <h2 class="serif highlight-title">The Artisan <br>Weekender Tote</h2>
+      <p class="font-body highlight-desc">Our most versatile piece yet. Constructed from one continuous piece of water-resistant calfskin leather, designed to age with a unique patina that tells your story.</p>
+      
+      <div class="highlight-pill-group">
+        <span class="pill pill-primary font-label uppercase tracking-widest font-bold">Vegetable Tanned</span>
+        <span class="pill pill-secondary font-label uppercase tracking-widest font-bold">Lifetime Warranty</span>
+      </div>
+
+      <button class="highlight-btn font-label uppercase tracking-widest font-bold transition-colors">
+        Discover the Craft
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Heritage Section -->
+<section class="heritage-section container">
+  <div class="heritage-content">
+    <span class="material-symbols-outlined heritage-icon">history</span>
+    <h2 class="serif heritage-title italic">Our Heritage</h2>
+    <p class="font-body heritage-desc">Since 1924, LUXE LEATHER has remained a family-owned atelier. We source our materials from sustainable tanneries that adhere to the strictest environmental standards, ensuring our legacy is as kind as it is beautiful.</p>
+    
+    <div class="heritage-stats">
+      <div class="stat-box">
+        <p class="serif stat-number">100+</p>
+        <p class="font-label uppercase tracking-widest stat-label">Master Artisans</p>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-box">
+        <p class="serif stat-number">10k</p>
+        <p class="font-label uppercase tracking-widest stat-label">Hours Crafted</p>
+      </div>
+    </div>
+  </div>
+</section>

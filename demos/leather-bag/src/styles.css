@@ -1,1 +1,155 @@
-/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+:root {
+  /* Colors */
+  --primary: #26170c;
+  --on-primary: #ffffff;
+  --primary-container: #3d2b1f;
+  --on-primary-container: #ac9181;
+  
+  --secondary: #7c5639;
+  --on-secondary: #ffffff;
+  --secondary-container: #fecaa5;
+  --on-secondary-container: #795336;
+
+  --surface: #fff8f6;
+  --on-surface: #1e1b1a;
+  --surface-variant: #e8e1df;
+  --on-surface-variant: #4f453f;
+  
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #faf2f0;
+  --surface-container: #f4ecea;
+  --surface-container-high: #eee7e5;
+  --surface-container-highest: #e8e1df;
+
+  --outline: #81756e;
+  --outline-variant: #d2c4bc;
+  
+  --primary-fixed: #fbddca;
+  --on-primary-fixed: #28180d;
+
+  /* Typography */
+  --font-headline: 'Noto Serif', serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Manrope', sans-serif;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-slow: 700ms ease;
+}
+
+/* Base Reset & Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--surface);
+  color: var(--on-surface);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-headline);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+input {
+  font-family: inherit;
+}
+
+input:focus {
+  outline: none;
+}
+
+/* Common Classes based on Spec */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+.filled-icon {
+  font-variation-settings: 'FILL' 1;
+}
+
+.glass-nav {
+  background: rgba(255, 248, 246, 0.85);
+  backdrop-filter: blur(20px);
+}
+
+.editorial-shadow {
+  box-shadow: 0 12px 32px rgba(30, 27, 26, 0.06);
+}
+
+.ghost-border {
+  border: 1px solid rgba(210, 196, 188, 0.2);
+}
+
+/* Typography styles used heavily */
+.serif { font-family: var(--font-headline); }
+.font-label { font-family: var(--font-label); }
+.font-body { font-family: var(--font-body); }
+.font-headline { font-family: var(--font-headline); }
+
+.tracking-widest { letter-spacing: 0.1em; }
+.tracking-tight { letter-spacing: -0.025em; }
+.uppercase { text-transform: uppercase; }
+.italic { font-style: italic; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Container Utilities */
+.container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* Animation Utilities */
+.transition-transform {
+  transition: transform var(--transition-slow);
+}
+.transition-opacity {
+  transition: opacity var(--transition-fast);
+}
+.transition-all {
+  transition: all var(--transition-fast);
+}
+.transition-colors {
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}

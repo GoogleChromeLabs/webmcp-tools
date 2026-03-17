@@ -1,0 +1,227 @@
+@if (product) {
+  <!-- Breadcrumbs -->
+  <div class="container py-8">
+    <nav class="breadcrumb">
+      <a routerLink="/" class="breadcrumb-link font-label text-xs uppercase tracking-widest text-outline">Home</a>
+      <span class="material-symbols-outlined breadcrumb-separator text-sm text-outline">chevron_right</span>
+      <a routerLink="/search" class="breadcrumb-link font-label text-xs uppercase tracking-widest text-outline">Bags</a>
+      <span class="material-symbols-outlined breadcrumb-separator text-sm text-outline">chevron_right</span>
+      <span class="breadcrumb-current font-label text-xs uppercase tracking-widest text-primary">{{product.name}}</span>
+    </nav>
+  </div>
+
+  <main class="container pb-24">
+    <div class="pdp-grid">
+      
+      <!-- Product Gallery -->
+      <div class="gallery-section flex flex-col-reverse md:flex-row gap-6">
+        <!-- Thumbnails -->
+        <div class="thumbnails flex md:flex-col gap-4 overflow-x-auto md:overflow-visible">
+          @for (img of product.images; track img) {
+            <button 
+              class="thumbnail-btn" 
+              [class.active]="selectedImage === img"
+              (click)="selectImage(img)"
+              aria-label="View alternate angle"
+            >
+              <img [src]="img" alt="Thumbnail" class="thumbnail-img">
+            </button>
+          }
+        </div>
+        
+        <!-- Main Image -->
+        <div class="main-image-container editorial-shadow">
+          <img [src]="selectedImage" [alt]="product.name" class="main-image transition-opacity">
+        </div>
+      </div>
+
+      <!-- Product Details & Actions -->
+      <div class="details-section">
+        <header class="mb-8">
+          <h1 class="serif text-5xl text-primary mb-4 leading-tight">{{product.name}}</h1>
+          <p class="font-body text-xl text-primary font-medium">{{product.price | currency}}</p>
+          <div class="rating-container flex items-center gap-2 mt-4">
+            <div class="flex text-secondary text-sm">
+              <span class="material-symbols-outlined filled-icon">star</span>
+              <span class="material-symbols-outlined filled-icon">star</span>
+              <span class="material-symbols-outlined filled-icon">star</span>
+              <span class="material-symbols-outlined filled-icon">star</span>
+              <span class="material-symbols-outlined filled-icon">star_half</span>
+            </div>
+            <a href="#reviews" class="font-label text-xs uppercase tracking-widest text-outline hover:text-primary transition-colors border-b border-outline pb-0.5">Read {{product.reviewsCount}} Reviews</a>
+          </div>
+        </header>
+
+        <p class="font-body text-on-surface-variant leading-loose mb-10">{{product.description}}</p>
+
+        <!-- WebMCP Form for Add to Cart -->
+        <form 
+          class="add-to-cart-form space-y-8" 
+          toolname="add_to_cart" 
+          tooldescription="Add the product to the shopping cart with specified color and quantity"
+          (ngSubmit)="addToCart($event)"
+        >
+          <!-- Color Selection -->
+          <div class="color-selection">
+            <div class="flex justify-between items-center mb-4">
+              <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{selectedColor}}</span></span>
+            </div>
+            
+            <input type="hidden" name="color" [value]="selectedColor">
+            
+            <div class="flex gap-4">
+              @for (color of product.colors; track color.id) {
+                <button 
+                  type="button"
+                  class="color-btn" 
+                  [class.active]="selectedColor === color.name"
+                  (click)="selectColor(color.name)"
+                  [attr.aria-label]="'Select ' + color.name + ' color'"
+                  [attr.aria-pressed]="selectedColor === color.name"
+                >
+                  <span class="color-swatch-circle" [style.background]="color.hex"></span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <!-- Quantity Selector -->
+            <div class="quantity-selector flex items-center border border-outline-variant rounded-md overflow-hidden bg-surface-container-lowest">
+              <button type="button" class="qty-btn" (click)="decrementQuantity()" aria-label="Decrease quantity">
+                <span class="material-symbols-outlined text-sm">remove</span>
+              </button>
+              <input 
+                type="number" 
+                name="quantity"
+                class="qty-input sr-only font-body text-center w-12 border-none focus:ring-0" 
+                [(ngModel)]="quantity" 
+                min="1" 
+                max="10"
+                aria-label="Quantity"
+              >
+              <span class="font-body text-center w-12">{{quantity}}</span>
+              <button type="button" class="qty-btn" (click)="incrementQuantity()" aria-label="Increase quantity">
+                <span class="material-symbols-outlined text-sm">add</span>
+              </button>
+            </div>
+
+            <!-- Pre-order / Add to Cart Button -->
+            <button 
+              type="submit" 
+              class="flex-1 bg-primary text-on-primary py-4 px-8 font-label text-xs uppercase tracking-widest font-bold rounded hover:bg-primary-container transition-colors shadow-lg active:scale-[0.98]"
+            >
+              Add to Cart
+            </button>
+          </div>
+
+          <p class="font-label text-[10px] uppercase tracking-widest text-outline text-center flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[14px]">local_shipping</span>
+            Complimentary shipping on orders over $500
+          </p>
+        </form>
+
+        <div class="h-px bg-outline-variant/30 my-10"></div>
+
+        <!-- Accordions -->
+        <div class="accordions border-b border-outline-variant/30">
+          <!-- Details Accordion -->
+          <div class="accordion-item border-t border-outline-variant/30 relative">
+            <button 
+              class="w-full flex justify-between items-center py-6 group"
+              (click)="detailsOpen = !detailsOpen"
+              [attr.aria-expanded]="detailsOpen"
+            >
+              <span class="font-label uppercase tracking-widest font-bold text-primary group-hover:text-secondary transition-colors">The Details</span>
+              <span class="material-symbols-outlined text-outline transition-transform duration-300" [style.transform]="detailsOpen ? 'rotate(180deg)' : 'rotate(0)'">expand_more</span>
+            </button>
+            <div class="accordion-content font-body text-on-surface-variant overflow-hidden transition-all duration-300" [style.maxHeight]="detailsOpen ? '500px' : '0'">
+              <ul class="space-y-4 pb-6 ml-4">
+                <li class="pl-2 relative before:absolute before:left-0 before:top-2.5 before:w-1 before:h-1 before:bg-secondary before:rounded-full">
+                  Dimensions: {{product.dimensions?.height}}H x {{product.dimensions?.width}}W x {{product.dimensions?.depth}}D
+                </li>
+                <li class="pl-2 relative before:absolute before:left-0 before:top-2.5 before:w-1 before:h-1 before:bg-secondary before:rounded-full">
+                  {{product.materials}}
+                </li>
+                <li class="pl-2 relative before:absolute before:left-0 before:top-2.5 before:w-1 before:h-1 before:bg-secondary before:rounded-full">
+                  {{product.careInstructions}}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Shipping Accordion -->
+          <div class="accordion-item border-t border-outline-variant/30 relative">
+            <button 
+              class="w-full flex justify-between items-center py-6 group"
+              (click)="shippingOpen = !shippingOpen"
+              [attr.aria-expanded]="shippingOpen"
+            >
+              <span class="font-label uppercase tracking-widest font-bold text-primary group-hover:text-secondary transition-colors">Shipping & Returns</span>
+              <span class="material-symbols-outlined text-outline transition-transform duration-300" [style.transform]="shippingOpen ? 'rotate(180deg)' : 'rotate(0)'">expand_more</span>
+            </button>
+            <div class="accordion-content font-body text-on-surface-variant overflow-hidden transition-all duration-300" [style.maxHeight]="shippingOpen ? '500px' : '0'">
+              <div class="pb-6 space-y-4">
+                <p>Standard delivery within 3-5 business days. Express shipping available at checkout.</p>
+                <button 
+                  class="text-primary font-label text-xs uppercase tracking-widest font-bold border-b border-primary hover:text-secondary hover:border-secondary transition-colors"
+                  (click)="openReturnModal($event)"
+                >
+                  View Full Return Policy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+} @else {
+  <div class="container py-24 text-center">
+    <p class="font-body text-outline">Loading product details...</p>
+  </div>
+}
+
+<!-- Return Policy Dialog -->
+@if (isReturnModalOpen) {
+  <div class="modal-overlay" (click)="closeReturnModal()">
+    <div 
+      class="modal-content editorial-shadow" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex justify-between items-start mb-6">
+        <h2 id="modal-title" class="serif text-3xl text-primary leading-tight">Return Policy</h2>
+        <button 
+          class="p-2 text-outline hover:text-primary transition-colors hover:bg-surface-container rounded-full"
+          (click)="closeReturnModal()"
+          aria-label="Close return policy"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      
+      <div class="prose prose-sm font-body text-on-surface-variant space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+        <p>At LUXE LEATHER, we stand behind the quality of our craftsmanship.</p>
+        <h3 class="font-label uppercase tracking-widest text-xs font-bold text-primary mt-6 mb-2">30-Day Guarantee</h3>
+        <p>If you are not entirely satisfied with your purchase, you may return any unused item in its original condition and packaging within 30 days of receipt for a full refund or exchange.</p>
+        <h3 class="font-label uppercase tracking-widest text-xs font-bold text-primary mt-6 mb-2">Exclusions</h3>
+        <p>Bespoke or personalized items are meticulously crafted to your specifications and are therefore final sale.</p>
+        <h3 class="font-label uppercase tracking-widest text-xs font-bold text-primary mt-6 mb-2">Process</h3>
+        <p>To initiate a return, please visit our returns portal or contact our concierge team. Please note that return shipping costs are the responsibility of the customer unless the item arrived damaged or defective.</p>
+      </div>
+      
+      <div class="mt-8 pt-6 border-t border-outline-variant/30 flex justify-end">
+        <button 
+          class="bg-surface-container-high text-primary px-6 py-3 font-label text-xs uppercase tracking-widest font-bold rounded hover:bg-surface-variant transition-colors"
+          (click)="closeReturnModal()"
+        >
+          Understood
+        </button>
+      </div>
+    </div>
+  </div>
+}

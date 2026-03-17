@@ -1,0 +1,223 @@
+/* Product Page specific styles using vanilla BEM-like classes translated from Tailwind layout */
+
+.pdp-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .pdp-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+.gallery-section {
+  position: relative;
+}
+
+.thumbnails {
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .thumbnails {
+    width: 5rem;
+  }
+}
+
+.thumbnail-btn {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 2px solid transparent;
+  opacity: 0.6;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.thumbnail-btn:hover {
+  opacity: 1;
+}
+
+.thumbnail-btn.active {
+  opacity: 1;
+  border-color: var(--primary);
+}
+
+.thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.main-image-container {
+  flex: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--surface-container-highest);
+  aspect-ratio: 4/5;
+}
+
+.main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.color-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--outline-variant);
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--transition-fast);
+}
+
+.color-btn.active {
+  border-color: var(--primary);
+}
+
+.color-swatch-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.qty-btn {
+  width: 3rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-variant);
+  transition: background-color var(--transition-fast);
+}
+
+.qty-btn:hover {
+  background-color: var(--surface-variant);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(30, 27, 26, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background-color: var(--surface-container-lowest);
+  width: 100%;
+  max-width: 32rem;
+  border-radius: 1rem;
+  padding: 2rem;
+  position: relative;
+  animation: slideUpModal 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--surface-container);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 4px;
+}
+
+/* Tailwind emulation utilities generated on the fly since I didn't add all of tailwind core */
+.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+.pb-24 { padding-bottom: 6rem; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-10 { margin-bottom: 2.5rem; }
+.mt-4 { margin-top: 1rem; }
+.my-10 { margin-top: 2.5rem; margin-bottom: 2.5rem; }
+.space-y-8 > :not([hidden]) ~ :not([hidden]) { --tw-space-y-reverse: 0; margin-top: calc(2rem * calc(1 - var(--tw-space-y-reverse))); margin-bottom: calc(2rem * var(--tw-space-y-reverse)); }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { --tw-space-y-reverse: 0; margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse))); margin-bottom: calc(1rem * var(--tw-space-y-reverse)); }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-col-reverse { flex-direction: column-reverse; }
+@media (min-width: 768px) {
+  .md\:flex-col { flex-direction: column; }
+  .md\:flex-row { flex-direction: row; }
+}
+.gap-6 { gap: 1.5rem; }
+.gap-4 { gap: 1rem; }
+.gap-2 { gap: 0.5rem; }
+.overflow-x-auto { overflow-x: auto; }
+@media (min-width: 768px) {
+  .md\:overflow-visible { overflow: visible; }
+}
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.flex-1 { flex: 1 1 0%; }
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.text-5xl { font-size: 3rem; line-height: 1; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
+.leading-tight { line-height: 1.25; }
+.leading-loose { line-height: 2; }
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--secondary); }
+.text-outline { color: var(--outline); }
+.text-on-surface-variant { color: var(--on-surface-variant); }
+.text-on-primary { color: var(--on-primary); }
+.bg-primary { background-color: var(--primary); }
+.bg-surface-container-lowest { background-color: var(--surface-container-lowest); }
+.bg-surface-container-high { background-color: var(--surface-container-high); }
+.bg-outline-variant\/30 { background-color: rgba(210, 196, 188, 0.3); }
+.border-b { border-bottom-width: 1px; }
+.border-t { border-top-width: 1px; }
+.border-outline-variant\/30 { border-color: rgba(210, 196, 188, 0.3); }
+.border-outline { border-color: var(--outline); }
+.border { border-width: 1px; }
+.border-outline-variant { border-color: var(--outline-variant); }
+.rounded-md { border-radius: 0.375rem; }
+.rounded { border-radius: 0.25rem; }
+.overflow-hidden { overflow: hidden; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+.py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+.px-8 { padding-left: 2rem; padding-right: 2rem; }
+.w-full { width: 100%; }
+.h-px { height: 1px; }
+.text-center { text-align: center; }
+.justify-center { justify-content: center; }
+.pb-0\.5 { padding-bottom: 0.125rem; }
+.hover\:text-primary:hover { color: var(--primary); }
+.hover\:text-secondary:hover { color: var(--secondary); }
+.hover\:border-secondary:hover { border-color: var(--secondary); }
+.group:hover .group-hover\:text-secondary { color: var(--secondary); }

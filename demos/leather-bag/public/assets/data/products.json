@@ -1,0 +1,193 @@
+{
+  "products": [
+    {
+      "id": "prod-1",
+      "name": "The Signature Satchel",
+      "slug": "signature-satchel",
+      "price": 1250,
+      "shortDescription": "Rich Mahogany Calfskin",
+      "description": "Hand-selected full-grain hides, vegetable tanned and meticulously stitched by master artisans in our historic workshop.",
+      "images": [
+        "/assets/images/signature_satchel.jpg"
+      ],
+      "colors": [
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 5,
+      "reviewsCount": 12,
+      "isNewArrival": false,
+      "isFeatured": true
+    },
+    {
+      "id": "prod-2",
+      "name": "The Artisan Weekender Tote",
+      "slug": "artisan-weekender-tote",
+      "price": 895,
+      "shortDescription": "Our most versatile piece yet",
+      "description": "Constructed from one continuous piece of water-resistant calfskin leather, designed to age with a unique patina.",
+      "images": [
+        "/assets/images/weekender_tote.jpg"
+      ],
+      "colors": [
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        }
+      ],
+      "finish": "Vegetable Tanned",
+      "rating": 4.5,
+      "reviewsCount": 34,
+      "isNewArrival": true,
+      "isFeatured": true
+    },
+    {
+      "id": "prod-3",
+      "name": "Handmade Leather Bag",
+      "slug": "handmade-leather-bag",
+      "price": 450,
+      "shortDescription": "Heritage Satchel",
+      "description": "Every stitch is a testament to our legacy. This bag is handcrafted by master artisans using techniques passed down through generations.",
+      "images": [
+        "/assets/images/pdp_main.jpg",
+        "/assets/images/pdp_thumb1.jpg",
+        "/assets/images/pdp_thumb2.jpg",
+        "/assets/images/pdp_thumb3.jpg",
+        "/assets/images/pdp_thumb4.jpg",
+        "/assets/images/pdp_thumb5.jpg"
+      ],
+      "colors": [
+        {
+          "id": "brown",
+          "name": "Brown",
+          "hex": "#4d3423"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 4.8,
+      "reviewsCount": 42,
+      "dimensions": {
+        "height": "12\"",
+        "width": "16\"",
+        "depth": "4\"",
+        "strapDrop": "18-24\""
+      },
+      "materials": "Premium 100% full-grain leather sourced from Italian tanneries. Solid brass hardware.",
+      "careInstructions": "Avoid direct sunlight for extended periods. Clean with a damp cloth.",
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-4",
+      "name": "Classic Satchel",
+      "slug": "classic-satchel",
+      "price": 245,
+      "shortDescription": "Vegetable Tanned Leather",
+      "description": "A classic satchel perfect for daily use. Features brass hardware and a durable strap.",
+      "images": [
+        "/assets/images/classic_satchel.jpg"
+      ],
+      "colors": [
+        {
+          "id": "brown",
+          "name": "Brown",
+          "hex": "#5C4033"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 4.5,
+      "reviewsCount": 42,
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-5",
+      "name": "Artisan Tote",
+      "slug": "artisan-tote",
+      "price": 310,
+      "shortDescription": "Hand-stitched Onyx Black",
+      "description": "Minimalist large black leather artisan tote bag.",
+      "images": [
+        "/assets/images/artisan_tote.jpg"
+      ],
+      "colors": [
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 5,
+      "reviewsCount": 18,
+      "isNewArrival": true,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-6",
+      "name": "Travel Duffel",
+      "slug": "travel-duffel",
+      "price": 595,
+      "shortDescription": "Heirloom Grade Pebbled Leather",
+      "description": "Large travel duffel bag in aged cognac leather.",
+      "images": [
+        "/assets/images/travel_duffel.jpg"
+      ],
+      "colors": [
+        {
+          "id": "cognac",
+          "name": "Cognac",
+          "hex": "#8b4513"
+        }
+      ],
+      "finish": "Pebbled",
+      "rating": 4.2,
+      "reviewsCount": 89,
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-7",
+      "name": "Urban Rucksack",
+      "slug": "urban-rucksack",
+      "price": 285,
+      "shortDescription": "Burgundy Chrome-Free Leather",
+      "description": "Modern leather backpack in deep burgundy.",
+      "images": [
+        "/assets/images/urban_rucksack.jpg"
+      ],
+      "colors": [
+        {
+          "id": "burgundy",
+          "name": "Burgundy",
+          "hex": "#800020"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 5,
+      "reviewsCount": 31,
+      "isNewArrival": false,
+      "isFeatured": false
+    }
+  ]
+}

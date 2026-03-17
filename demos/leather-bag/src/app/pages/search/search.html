@@ -1,0 +1,166 @@
+<!-- Search Context Header -->
+<header class="search-header">
+  <div class="container search-header-container">
+    <div class="search-header-text">
+      <nav class="breadcrumb">
+        <a routerLink="/" class="breadcrumb-link font-label">Home</a>
+        <span class="material-symbols-outlined breadcrumb-icon">chevron_right</span>
+        <span class="breadcrumb-current font-label">Search</span>
+      </nav>
+      <h1 class="serif search-headline">
+        @if (query) { Results for "{{query}}" } @else { All Collections }
+      </h1>
+      <p class="font-body search-subhead italic">Discover {{filteredProducts.length}} curated pieces from our workshop</p>
+    </div>
+    
+    <div class="search-bar-wrapper">
+      <form class="search-bar" toolname="search_store" tooldescription="Search products in the store">
+        <span class="material-symbols-outlined search-bar-icon">search</span>
+        <input 
+          name="query"
+          type="search" 
+          class="search-bar-input font-body" 
+          placeholder="Search premium collections..." 
+          [value]="query"
+        />
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="container search-main">
+  <div class="search-layout">
+    
+    <!-- Mobile Filter Toggle -->
+    <aside class="sidebar" [class.open]="isMobileFilterOpen">
+      <div class="mobile-filter-toggle font-label" (click)="toggleMobileFilters()">
+        <div class="filter-toggle-left">
+          <span class="material-symbols-outlined">tune</span>
+          <span class="tracking-widest">FILTER BY</span>
+        </div>
+        <span class="material-symbols-outlined">expand_more</span>
+      </div>
+
+      <!-- Faceted Navigation -->
+      <form 
+        class="filters-form" 
+        toolname="filter_results" 
+        tooldescription="Filter search results by category, color, price and finish" 
+        (ngSubmit)="applyFilters($event)"
+      >
+        <!-- Color Filter -->
+        <section class="filter-section">
+          <h3 class="filter-heading font-label uppercase">Color</h3>
+          <div class="filter-group">
+            @for (color of ['Brown', 'Black']; track color) {
+              <label class="filter-option">
+                <div class="filter-option-left">
+                  <input type="checkbox" name="color" [value]="color" class="custom-checkbox sr-only">
+                  <div class="color-swatch" [style.background]="color === 'Brown' ? '#5C4033' : '#1a1a1a'"></div>
+                  <span class="font-body filter-label">{{color}}</span>
+                </div>
+                <span class="filter-count font-body">(8)</span>
+              </label>
+            }
+            <label class="filter-option disabled">
+              <div class="filter-option-left">
+                <div class="color-swatch" style="background: #E5D3B3;"></div>
+                <span class="font-body filter-label">Tan</span>
+              </div>
+              <span class="filter-count font-body">(0)</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Price Range -->
+        <section class="filter-section">
+          <h3 class="filter-heading font-label uppercase">Price Range</h3>
+          <div class="price-slider-group">
+            <div class="price-slider">
+              <div class="price-slider-track"></div>
+              <div class="price-slider-thumb left"></div>
+              <div class="price-slider-thumb right"></div>
+            </div>
+            <div class="price-labels font-label tracking-widest">
+              <span>$100.00</span>
+              <span>$1,200.00+</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Finish Filter -->
+        <section class="filter-section">
+          <h3 class="filter-heading font-label uppercase">Leather Finish</h3>
+          <div class="filter-group">
+            @for (finish of ['Full Grain', 'Suede', 'Pebbled']; track finish) {
+              <label class="filter-finish-option">
+                <input type="checkbox" name="finish" [value]="finish" class="sr-only">
+                <div class="finish-checkbox" [class.checked]="finish === 'Full Grain'">
+                  @if (finish === 'Full Grain') {
+                    <span class="material-symbols-outlined checkbox-icon">check</span>
+                  }
+                </div>
+                <span class="font-body filter-label">{{finish}}</span>
+              </label>
+            }
+          </div>
+        </section>
+        
+        <!-- Apply button just for standard form usage invisibly -->
+        <button type="submit" class="sr-only">Apply</button>
+      </form>
+    </aside>
+
+    <!-- Product Grid -->
+    <div class="product-area">
+      <div class="sort-bar">
+        <p class="font-label result-count tracking-widest uppercase">Showing {{filteredProducts.length}} Results</p>
+        <div class="sort-dropdown font-label uppercase">
+          <span class="sort-text tracking-widest">Sort By: Featured</span>
+          <span class="material-symbols-outlined sort-icon">expand_more</span>
+        </div>
+      </div>
+
+      <div class="product-grid">
+        @for (product of filteredProducts; track product.id) {
+          <article class="product-card group">
+            <a [routerLink]="['/product', product.slug]" class="product-image-container">
+              <img [src]="product.images[0]" [alt]="product.name" class="product-img transition-transform">
+              @if (product.isNewArrival) {
+                <div class="product-badge font-label uppercase">New Arrival</div>
+              }
+              <button class="add-btn transition-opacity" aria-label="Quick Add to Cart">
+                <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
+              </button>
+            </a>
+            
+            <div class="product-info">
+              <div class="product-header">
+                <h2 class="serif product-title"><a [routerLink]="['/product', product.slug]">{{product.name}}</a></h2>
+                <span class="font-body product-price">{{product.price | currency}}</span>
+              </div>
+              <p class="font-label product-desc tracking-widest uppercase">{{product.shortDescription}}</p>
+              
+              <div class="product-rating">
+                @for (i of [1,2,3,4,5]; track $index) {
+                  <span class="material-symbols-outlined star filled-icon">star</span>
+                }
+                <span class="font-label review-count">({{product.reviewsCount}})</span>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <nav class="pagination">
+        <button class="page-btn text-icon"><span class="material-symbols-outlined">chevron_left</span></button>
+        <div class="page-numbers font-label">
+          <span class="page-num active">1</span>
+          <span class="page-num">2</span>
+          <span class="page-num">3</span>
+        </div>
+        <button class="page-btn text-icon"><span class="material-symbols-outlined">chevron_right</span></button>
+      </nav>
+    </div>
+  </div>
+</main>

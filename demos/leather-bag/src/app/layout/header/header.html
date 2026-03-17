@@ -1,0 +1,26 @@
+<header class="header glass-nav">
+  <div class="header-container">
+    <div class="header-left">
+      <button aria-label="Open Menu" class="icon-btn">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <a routerLink="/" class="brand-title serif">LUXE LEATHER</a>
+    </div>
+    <nav class="nav-links font-label uppercase">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
+      <a href="#" class="nav-link">New Arrivals</a>
+      <a href="#" class="nav-link">Men</a>
+      <a href="#" class="nav-link">Women</a>
+      <a href="#" class="nav-link">Accessories</a>
+    </nav>
+    <div class="header-right">
+      <a routerLink="/search" aria-label="Search" class="icon-btn">
+        <span class="material-symbols-outlined">search</span>
+      </a>
+      <button aria-label="Shopping Bag" class="icon-btn">
+        <span class="material-symbols-outlined">shopping_bag</span>
+        <span class="cart-badge"></span>
+      </button>
+    </div>
+  </div>
+</header>
