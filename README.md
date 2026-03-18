@@ -14,6 +14,7 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**WebMCP zaMaker! (Imperative)**](demos/pizza-maker/): A demo where AI agents can control size, style, toppings, and layers to build the perfect pizza using imperative tools.
 - [**Mystery Doors (Declarative & Imperative)**](demos/doors/): A simple multi-page demo showcasing WebMCP capabilities using both declarative and imperative approaches.
 - [**WebMCP Maze (Imperative)**](demos/webmcp-maze/): A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
+- [**CineFlow (Imperative)**](demos/ticket-booking/): A movie ticket purchase flow where AI agents can update location, query movies by genre, and select showtimes to start a checkout process.
 
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 

@@ -19,6 +19,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Explore the rooms"
 - [WebMCP Maze](https://googlechromelabs.github.io/webmcp-tools/demos/webmcp-maze/) - A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
   - **Example Prompts:** "Start a new game", then "Solve the maze"
+- [CineFlow](https://googlechromelabs.github.io/webmcp-tools/demos/ticket-booking/) - A movie ticket purchase flow where AI agents can update location, query movies by genre, and select showtimes to start a checkout process.
+  - **Example Prompt:** "Find two tickets for a horror movie in Montpelier tonight"
 - [Shoe store](https://andreinwald.github.io/webmcp-demo/) | [Code](https://github.com/andreinwald/webmcp-demo) - online store built with React, with all core functionality MCP-ready.
   - **Example Prompt:** "Suggest the 3 best pairs of soccer shoes (foot size 45) available on this site. Add (one of suggestions) to cart and complete purchase."
 - [Flight booking](https://webmcp-flight-demo.netlify.app/) / [Flight booking (declarative)](https://webmcp-flight-demo.netlify.app/declarative.html) - Find the best flights for your journey.
