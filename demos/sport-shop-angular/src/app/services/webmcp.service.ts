@@ -42,7 +42,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: async (params: { productId: string }) => {
+      execute: (params: { productId: string }) => {
         this.ngZone.run(() => {
           this.router.navigate(['/product', params.productId]);
         });
@@ -61,7 +61,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: async (params: { productId: string }) => {
+      execute: (params: { productId: string }) => {
         const product = this.productService.getProductById(params.productId);
         return product ? JSON.stringify(product) : "Product not found.";
       }
@@ -78,7 +78,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: async (params: { productId: string }) => {
+      execute: (params: { productId: string }) => {
         const product = this.productService.getProductById(params.productId);
         if (product) {
           return this.ngZone.run(() => this.cartService.addToCart(product));
@@ -91,8 +91,7 @@ export class WebmcpService {
     modelContext.registerTool({
       name: "open_cart",
       description: "Opens the shopping cart modal to review items and proceed to checkout.",
-      inputSchema: { type: "object", properties: {} },
-      execute: async () => {
+      execute: () => {
         this.ngZone.run(() => {
           this.uiService.openCart();
         });
