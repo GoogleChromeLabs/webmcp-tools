@@ -35,7 +35,7 @@
                         <label class="text-[9px] font-bold text-on-surface-variant/60 uppercase ml-1">Category</label>
                         <select [(ngModel)]="category" name="category"
                             class="bg-surface-container-low border-none rounded-lg text-sm font-medium focus:ring-2 ring-primary/20 px-3 py-2.5"
-                            toolparamdescription="The product category to browse">
+                            toolparamdescription="The product category to browse. Possible values: ALL, BASKETBALL, SOCCER, BASEBALL, RUNNING.">
                             @for (cat of categories; track cat) {
                                 <option [value]="cat">{{cat | titlecase}}</option>
                             }
@@ -45,7 +45,7 @@
                         <label class="text-[9px] font-bold text-on-surface-variant/60 uppercase ml-1">Size</label>
                         <select [(ngModel)]="size" name="size"
                             class="bg-surface-container-low border-none rounded-lg text-sm font-medium focus:ring-2 ring-primary/20 px-3 py-2.5"
-                            toolparamdescription="Product size">
+                            toolparamdescription="Product size. Possible values: ALL, adult, child.">
                             @for (s of sizes; track s) {
                                 <option [value]="s">{{s | titlecase}}</option>
                             }
