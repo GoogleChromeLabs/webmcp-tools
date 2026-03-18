@@ -19,13 +19,18 @@ export class HeroComponent {
 
   constructor(private router: Router) {}
 
-  onFindGift(q?: string) {
+  onFindGift(event: Event, q?: string) {
     const searchParams: any = {
       q: q || this.query
     };
 
     if (this.category !== 'ALL') searchParams.category = this.category;
     if (this.size !== 'ALL') searchParams.size = this.size;
+
+    if ((event as any).agentInvoked) {
+      event.preventDefault();
+      (event as any).respondWith(`Navigating to search results for ${JSON.stringify(searchParams)}`);
+    }
 
     this.router.navigate(['/search'], { queryParams: searchParams });
   }
