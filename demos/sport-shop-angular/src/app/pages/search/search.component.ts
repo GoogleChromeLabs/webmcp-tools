@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, NgZone, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { AiSidebarComponent } from '../../components/ai-sidebar/ai-sidebar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { Product } from '../../models/product.model';
-import { ProductService } from '../../services/product.service';
 import { WebMcpModelContext } from '../../models/webmcp.model';
+import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-search',
@@ -32,7 +32,6 @@ export class SearchComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private productService: ProductService,
-    private ngZone: NgZone,
     private cdr: ChangeDetectorRef
   ) {
     this.priceControl.valueChanges.subscribe(value => {
@@ -81,9 +80,7 @@ export class SearchComponent implements OnInit, OnDestroy {
           required: ["priceRange"]
         },
         execute: async (params: { priceRange: string }) => {
-          this.ngZone.run(() => {
-            this.setPriceRange(params.priceRange);
-          });
+          this.setPriceRange(params.priceRange);
           return { success: true, message: `Filtered results by ${params.priceRange}` };
         }
       });
