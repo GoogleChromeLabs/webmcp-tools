@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../services/product.service';
@@ -10,7 +15,6 @@ import { CommonModule, DecimalPipe } from '@angular/common';
   selector: 'app-product-detail',
   imports: [CommonModule, AiSidebarComponent, DecimalPipe],
   templateUrl: './product-detail.component.html',
-  styleUrl: './product-detail.component.css'
 })
 export class ProductDetailComponent implements OnInit {
   product?: Product;

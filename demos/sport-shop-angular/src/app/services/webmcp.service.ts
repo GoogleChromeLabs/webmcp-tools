@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductService } from './product.service';

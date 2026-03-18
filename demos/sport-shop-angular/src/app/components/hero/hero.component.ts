@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -7,7 +12,6 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-hero',
   imports: [CommonModule, FormsModule],
   templateUrl: './hero.component.html',
-  styleUrl: './hero.component.css'
 })
 export class HeroComponent {
   query: string = '';

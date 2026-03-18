@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProductService } from '../../services/product.service';
@@ -10,7 +15,6 @@ import { CommonModule } from '@angular/common';
   selector: 'app-home',
   imports: [CommonModule, HeroComponent, ProductCardComponent],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
 })
 export class HomeComponent implements OnInit {
   trendingGear: Product[] = [];

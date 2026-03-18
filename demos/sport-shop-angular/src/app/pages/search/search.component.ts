@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +16,6 @@ import { ProductService } from '../../services/product.service';
   selector: 'app-search',
   imports: [CommonModule, ProductCardComponent, AiSidebarComponent, ReactiveFormsModule],
   templateUrl: './search.component.html',
-  styleUrl: './search.component.css'
 })
 export class SearchComponent implements OnInit, OnDestroy {
   query: string = '';
