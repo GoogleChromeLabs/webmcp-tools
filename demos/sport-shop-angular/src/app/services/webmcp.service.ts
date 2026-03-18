@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { ProductService } from './product.service';
 import { CartService } from './cart.service';
+import { ProductService } from './product.service';
 import { UiService } from './ui.service';
 
 @Injectable({
@@ -17,8 +17,7 @@ export class WebmcpService {
     private router: Router,
     private productService: ProductService,
     private cartService: CartService,
-    private uiService: UiService,
-    private ngZone: NgZone
+    private uiService: UiService
   ) {
     this.registerTools();
   }
@@ -46,9 +45,7 @@ export class WebmcpService {
         required: ["productId"]
       },
       execute: (params: any) => {
-        this.ngZone.run(() => {
-          this.router.navigate(['/product', params.productId]);
-        });
+        this.router.navigate(['/product', params.productId]);
         return `Navigating to product: ${params.productId}`;
       }
     });
@@ -84,7 +81,7 @@ export class WebmcpService {
       execute: (params: any) => {
         const product = this.productService.getProductById(params.productId);
         if (product) {
-          return this.ngZone.run(() => this.cartService.addToCart(product));
+          return this.cartService.addToCart(product);
         }
         return "Product not found.";
       }
@@ -95,9 +92,7 @@ export class WebmcpService {
       name: "open_cart",
       description: "Opens the shopping cart modal to review items and proceed to checkout.",
       execute: () => {
-        this.ngZone.run(() => {
-          this.uiService.openCart();
-        });
+        this.uiService.openCart();
         return { success: true, message: "Cart opened." };
       }
     });
