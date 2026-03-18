@@ -4,7 +4,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
@@ -17,14 +17,13 @@ import { UiService } from '../../services/ui.service';
 })
 export class CartModalComponent implements OnInit, OnDestroy {
   @Output() close = new EventEmitter<void>();
-  
+
   checkoutState: 'summary' | 'processing' | 'success' = 'summary';
   closing = false;
 
   constructor(
     public cartService: CartService,
-    private uiService: UiService,
-    private ngZone: NgZone
+    private uiService: UiService
   ) { }
 
   ngOnInit() {
@@ -53,9 +52,12 @@ export class CartModalComponent implements OnInit, OnDestroy {
           required: ["productId"]
         },
         execute: (params: any) => {
-          this.ngZone.run(() => {
-            this.onRemove(params.productId);
-          });
+          const inCart = this.cartService.cart().some((p) => p.id === params.productId);
+          if (!inCart) {
+            return { success: false, message: `Product with ID '${params.productId}' is not in the cart.` };
+          }
+
+          this.onRemove(params.productId);
           return { success: true, message: "Item removed from cart." };
         }
       });
@@ -68,9 +70,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           if (this.checkoutState !== 'summary') {
             return { success: false, message: "Checkout already in progress or completed." };
           }
-          this.ngZone.run(() => {
-            this.onCheckout();
-          });
+          this.onCheckout();
           return { success: true, message: "Checkout started." };
         }
       });
@@ -83,9 +83,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           if (this.checkoutState !== 'success') {
             return { success: false, message: "Order not yet successful." };
           }
-          this.ngZone.run(() => {
-            this.onConfirmOrder();
-          });
+          this.onConfirmOrder();
           return { success: true, message: "Order confirmed and closed." };
         }
       });
