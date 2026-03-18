@@ -7,9 +7,7 @@ import { Product } from '../models/product.model';
 
 export function findMatchingProduct(products: readonly Product[], params: any): Product | undefined {
   if (typeof params.index === 'number') {
-    if (params.index >= 0 && params.index < products.length) {
-      return products[params.index];
-    }
+    return products[params.index];
   } else if (params.productId) {
     return products.find(p => p.id === params.productId);
   } else if (params.productName) {

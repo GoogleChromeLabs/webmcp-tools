@@ -94,13 +94,13 @@ export class SearchComponent implements OnInit, OnDestroy {
       // 2. Add Search Result to Cart Tool
       modelContext.registerTool({
         name: "add_search_result_to_cart",
-        description: "Adds a product from the current search results to the shopping cart. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
+        description: "Adds a product from the current search results to the shopping cart. You can provide its index, exact productId, or productName.",
         inputSchema: {
           type: "object",
           properties: {
             index: {
               type: "number",
-              description: "The zero-based index of the item in the search results."
+              description: "The index of the item in the search results. (e.g. 0, first, second, 3rd etc.)"
             },
             productId: {
               type: "string",
@@ -136,8 +136,8 @@ export class SearchComponent implements OnInit, OnDestroy {
 
 
   setPriceRange(range: string): boolean {
-    const validRanges = ['all', '0-49.99', '50-99.99', '100+'];
-    if (validRanges.includes(range)) {
+    const isValid = this.priceFilters.some(filter => filter.value === range);
+    if (isValid) {
       this.priceControl.setValue(range);
       return true;
     }

@@ -38,13 +38,13 @@ export class WebmcpService {
     // 1. View Product Tool
     modelContext.registerTool({
       name: "view_product",
-      description: "Navigates to the product detail page for a given product. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
+      description: "Navigates to the product detail page for a given product. You can provide its index, exact productId, or productName.",
       inputSchema: {
         type: "object",
         properties: {
           index: {
             type: "number",
-            description: "The zero-based index of the item."
+            description: "The index of the item. (e.g. 0, first, second, 3rd etc.)"
           },
           productId: {
             type: "string",
@@ -70,13 +70,13 @@ export class WebmcpService {
     // 2. Get Product Info Tool
     modelContext.registerTool({
       name: "get_product_info",
-      description: "Returns detailed information about a product. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
+      description: "Returns detailed information about a product. You can provide its index, exact productId, or productName.",
       inputSchema: {
         type: "object",
         properties: {
           index: {
             type: "number",
-            description: "The zero-based index of the item."
+            description: "The index of the item. (e.g. 0, first, second, 3rd etc.)"
           },
           productId: {
             type: "string",

@@ -43,13 +43,13 @@ export class CartModalComponent implements OnInit, OnDestroy {
       // 1. Remove from Cart Tool
       modelContext.registerTool({
         name: "remove_from_cart",
-        description: "Removes a specific product from the shopping cart. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName. Only available when the cart is open.",
+        description: "Removes a specific product from the shopping cart. You can provide its index, exact productId, or productName. Only available when the cart is open.",
         inputSchema: {
           type: "object",
           properties: {
             index: {
               type: "number",
-              description: "The zero-based index of the item in the cart."
+              description: "The index of the item in the cart. (e.g. 0, first, second, 3rd etc.)"
             },
             productId: {
               type: "string",
