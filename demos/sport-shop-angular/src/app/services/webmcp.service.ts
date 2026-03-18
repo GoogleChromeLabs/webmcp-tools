@@ -9,6 +9,8 @@ import { CartService } from './cart.service';
 import { ProductService } from './product.service';
 import { UiService } from './ui.service';
 
+import { findMatchingProduct } from '../utils/product-matcher';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -36,34 +38,62 @@ export class WebmcpService {
     // 1. View Product Tool
     modelContext.registerTool({
       name: "view_product",
-      description: "Navigates to the product detail page for a given product ID.",
+      description: "Navigates to the product detail page for a given product. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
       inputSchema: {
         type: "object",
         properties: {
-          productId: { type: "string", description: "The unique ID of the product." }
-        },
-        required: ["productId"]
+          index: {
+            type: "number",
+            description: "The zero-based index of the item."
+          },
+          productId: {
+            type: "string",
+            description: "The unique ID of the product."
+          },
+          productName: {
+            type: "string",
+            description: "A part of the product name or keywords to match (e.g. 'training balls')."
+          }
+        }
       },
       execute: (params: any) => {
-        this.router.navigate(['/product', params.productId]);
-        return `Navigating to product: ${params.productId}`;
+        const product = findMatchingProduct(this.productService.getProducts(), params);
+        if (!product) {
+          return { success: false, message: "Product not found. Please provide a valid index, productId, or productName." };
+        }
+
+        this.router.navigate(['/product', product.id]);
+        return { success: true, message: `Navigating to product: ${product.name}` };
       }
     });
 
     // 2. Get Product Info Tool
     modelContext.registerTool({
       name: "get_product_info",
-      description: "Returns detailed information about a product.",
+      description: "Returns detailed information about a product. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
       inputSchema: {
         type: "object",
         properties: {
-          productId: { type: "string", description: "The unique ID of the product." }
-        },
-        required: ["productId"]
+          index: {
+            type: "number",
+            description: "The zero-based index of the item."
+          },
+          productId: {
+            type: "string",
+            description: "The unique ID of the product."
+          },
+          productName: {
+            type: "string",
+            description: "A part of the product name or keywords to match (e.g. 'training balls')."
+          }
+        }
       },
       execute: (params: any) => {
-        const product = this.productService.getProductById(params.productId);
-        return product ? JSON.stringify(product) : "Product not found.";
+        const product = findMatchingProduct(this.productService.getProducts(), params);
+        if (!product) {
+          return { success: false, message: "Product not found. Please provide a valid index, productId, or productName." };
+        }
+        return { success: true, product };
       }
     });
 
