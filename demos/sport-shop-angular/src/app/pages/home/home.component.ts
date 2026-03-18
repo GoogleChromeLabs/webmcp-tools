@@ -19,10 +19,10 @@ import { CommonModule } from '@angular/common';
 export class HomeComponent implements OnInit {
   trendingGear: Product[] = [];
   categories = [
-    { name: 'BASKETBALL', image: '/assets/products/nano-banana-basketball-category.png' },
-    { name: 'SOCCER', image: '/assets/products/nano-banana-soccer-category.png' },
-    { name: 'BASEBALL', image: '/assets/products/nano-banana-baseball-category.png' },
-    { name: 'RUNNING', image: '/assets/products/nano-banana-running-category.png' }
+    { name: 'BASKETBALL', image: 'assets/products/nano-banana-basketball-category.png' },
+    { name: 'SOCCER', image: 'assets/products/nano-banana-soccer-category.png' },
+    { name: 'BASEBALL', image: 'assets/products/nano-banana-baseball-category.png' },
+    { name: 'RUNNING', image: 'assets/products/nano-banana-running-category.png' }
   ];
 
   constructor(
