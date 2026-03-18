@@ -4,7 +4,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, ChangeDetectorRef } from '@angular/core';
 import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
@@ -25,7 +25,8 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   constructor(
     public cartService: CartService,
-    private uiService: UiService
+    private uiService: UiService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -122,9 +123,12 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   onCheckout() {
     this.checkoutState = 'processing';
+    this.cdr.detectChanges(); // Sync state immediately
+
     setTimeout(() => {
       this.checkoutState = 'success';
       this.cartService.clearCart();
+      this.cdr.detectChanges(); // Sync state immediately
     }, 2000);
   }
 

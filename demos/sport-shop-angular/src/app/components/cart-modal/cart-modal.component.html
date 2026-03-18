@@ -18,8 +18,7 @@
 
     <!-- Scrollable Items -->
     <div class="modal-body-content custom-scrollbar">
-      @switch (checkoutState) {
-      @case ('summary') {
+      @if (checkoutState === 'summary') {
       <div class="items-list-container">
         @if (cartService.cartCount() === 0) {
         <div class="empty-state-view">
@@ -64,7 +63,7 @@
       </div>
       }
 
-      @case ('processing') {
+      @else if (checkoutState === 'processing') {
       <div class="state-full-view animate-fade-in-up">
         <div class="spinner-container">
           <div class="spinner-ring"></div>
@@ -76,7 +75,7 @@
       </div>
       }
 
-      @case ('success') {
+      @else if (checkoutState === 'success') {
       <div class="state-full-view animate-fade-in-up">
         <div class="success-icon-area">
           <div class="ping-anim"></div>
@@ -85,7 +84,6 @@
         <h2 class="font-headline italic uppercase tracking-[-0.06em] text-3xl mb-3">LAUNCH CONFIRMED</h2>
         <p class="state-msg px-8">Your gear is in the pipeline. Get ready for peak performance.</p>
       </div>
-      }
       }
     </div>
 
