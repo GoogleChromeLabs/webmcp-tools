@@ -25,9 +25,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/tailwind-output.css"
-            ]
+            "styles": ["src/tailwind-output.css"]
           },
           "configurations": {
             "production": {
@@ -67,6 +65,9 @@
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "deploy": {
+          "builder": "angular-cli-ghpages:deploy"
         }
       }
     }
