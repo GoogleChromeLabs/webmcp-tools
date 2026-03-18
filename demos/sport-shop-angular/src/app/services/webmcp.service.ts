@@ -67,27 +67,7 @@ export class WebmcpService {
       }
     });
 
-    // 3. Add to Cart Tool
-    modelContext.registerTool({
-      name: "add_to_cart",
-      description: "Adds a product to the user's shopping cart.",
-      inputSchema: {
-        type: "object",
-        properties: {
-          productId: { type: "string", description: "The unique ID of the product." }
-        },
-        required: ["productId"]
-      },
-      execute: (params: any) => {
-        const product = this.productService.getProductById(params.productId);
-        if (product) {
-          return this.cartService.addToCart(product);
-        }
-        return "Product not found.";
-      }
-    });
-
-    // 4. Open Cart Tool
+    // 3. Open Cart Tool
     modelContext.registerTool({
       name: "open_cart",
       description: "Opens the shopping cart modal to review items and proceed to checkout.",

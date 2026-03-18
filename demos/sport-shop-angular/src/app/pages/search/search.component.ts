@@ -11,6 +11,7 @@ import { AiSidebarComponent } from '../../components/ai-sidebar/ai-sidebar.compo
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
+import { CartService } from '../../services/cart.service';
 
 @Component({
   selector: 'app-search',
@@ -35,6 +36,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private productService: ProductService,
+    private cartService: CartService,
     private cdr: ChangeDetectorRef
   ) {
     this.priceControl.valueChanges.subscribe(value => {
@@ -87,22 +89,50 @@ export class SearchComponent implements OnInit, OnDestroy {
         }
       });
 
-      // 2. Get Current Results Tool
+      // 2. Add Search Result to Cart Tool
       modelContext.registerTool({
-        name: "get_current_results",
-        description: "Returns a list of products currently visible in the search results, including their IDs, names, and prices. Use this to find IDs for adding items to the cart.",
-        execute: () => {
-          const summary = this.filteredProducts.map(p => ({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            category: p.category
-          }));
-          return {
-            success: true,
-            count: summary.length,
-            results: summary
-          };
+        name: "add_search_result_to_cart",
+        description: "Adds a product from the current search results to the shopping cart. You can provide its index (e.g. 0, first, second, 3rd etc.), exact productId, or productName.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            index: {
+              type: "number",
+              description: "The zero-based index of the item in the search results."
+            },
+            productId: {
+              type: "string",
+              description: "The unique ID of the product."
+            },
+            productName: {
+              type: "string",
+              description: "A part of the product name or keywords to match (e.g. 'training balls')."
+            }
+          }
+        },
+        execute: (params: any) => {
+          let product: Product | undefined;
+
+          if (typeof params.index === 'number') {
+            if (params.index >= 0 && params.index < this.filteredProducts.length) {
+              product = this.filteredProducts[params.index];
+            }
+          } else if (params.productId) {
+            product = this.filteredProducts.find(p => p.id === params.productId);
+          } else if (params.productName) {
+            const searchTerms = params.productName.toLowerCase().trim().split(/\s+/);
+            product = this.filteredProducts.find(p => {
+              const nameLower = p.name.toLowerCase();
+              return searchTerms.every((term: string) => nameLower.includes(term));
+            });
+          }
+
+          if (!product) {
+            return { success: false, message: "Product not found in current search results. Please provide a valid index, productId, or productName that matches the visible results." };
+          }
+
+          this.cartService.addToCart(product);
+          return { success: true, message: `Added '${product.name}' to cart.` };
         }
       });
     }
@@ -113,6 +143,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (modelContext) {
       modelContext.unregisterTool("refine_search");
       modelContext.unregisterTool("get_current_results");
+      modelContext.unregisterTool("add_search_result_to_cart");
     }
   }
 
