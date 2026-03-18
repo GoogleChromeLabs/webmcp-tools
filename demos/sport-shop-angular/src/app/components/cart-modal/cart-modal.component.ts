@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
-import { WebMcpModelContext } from '../../models/webmcp.model';
 import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
@@ -32,7 +31,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
   }
 
   private registerCartTools() {
-    const modelContext = (navigator as any).modelContext as WebMcpModelContext | undefined;
+    const modelContext = navigator.modelContext;
     if (modelContext) {
       // 1. Remove from Cart Tool
       modelContext.registerTool({
@@ -48,7 +47,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           },
           required: ["productId"]
         },
-        execute: (params: { productId: string }) => {
+        execute: (params: any) => {
           this.ngZone.run(() => {
             this.onRemove(params.productId);
           });
@@ -89,7 +88,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
   }
 
   private unregisterCartTools() {
-    const modelContext = (navigator as any).modelContext as WebMcpModelContext | undefined;
+    const modelContext = navigator.modelContext;
     if (modelContext) {
       modelContext.unregisterTool("remove_from_cart");
       modelContext.unregisterTool("start_checkout");

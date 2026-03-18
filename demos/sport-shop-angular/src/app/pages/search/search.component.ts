@@ -5,7 +5,6 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { AiSidebarComponent } from '../../components/ai-sidebar/ai-sidebar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { Product } from '../../models/product.model';
-import { WebMcpModelContext } from '../../models/webmcp.model';
 import { ProductService } from '../../services/product.service';
 
 @Component({
@@ -52,9 +51,8 @@ export class SearchComponent implements OnInit, OnDestroy {
 
     this.registerWebMCPTool();
   }
-
   ngOnDestroy() {
-    const modelContext = (navigator as any).modelContext as WebMcpModelContext | undefined;
+    const modelContext = navigator.modelContext;
     if (modelContext) {
       modelContext.unregisterTool("refine_search");
       modelContext.unregisterTool("get_current_results");
@@ -62,7 +60,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private registerWebMCPTool() {
-    const modelContext = (navigator as any).modelContext as WebMcpModelContext | undefined;
+    const modelContext = navigator.modelContext;
     if (modelContext) {
       // 1. Refine Search Tool
       modelContext.registerTool({
@@ -79,7 +77,7 @@ export class SearchComponent implements OnInit, OnDestroy {
           },
           required: ["priceRange"]
         },
-        execute: (params: { priceRange: string }) => {
+        execute: (params: any) => {
           this.setPriceRange(params.priceRange);
           return { success: true, message: `Filtered results by ${params.priceRange}` };
         }

@@ -4,8 +4,6 @@ import { ProductService } from './product.service';
 import { CartService } from './cart.service';
 import { UiService } from './ui.service';
 
-import { WebMcpModelContext } from '../models/webmcp.model';
-
 @Injectable({
   providedIn: 'root'
 })
@@ -20,8 +18,8 @@ export class WebmcpService {
     this.registerTools();
   }
 
-  private get modelContext(): WebMcpModelContext | undefined {
-    return (window.navigator as any).modelContext;
+  private get modelContext(): ModelContext | undefined {
+    return navigator.modelContext;
   }
 
   private registerTools() {
@@ -42,7 +40,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: (params: { productId: string }) => {
+      execute: (params: any) => {
         this.ngZone.run(() => {
           this.router.navigate(['/product', params.productId]);
         });
@@ -61,7 +59,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: (params: { productId: string }) => {
+      execute: (params: any) => {
         const product = this.productService.getProductById(params.productId);
         return product ? JSON.stringify(product) : "Product not found.";
       }
@@ -78,7 +76,7 @@ export class WebmcpService {
         },
         required: ["productId"]
       },
-      execute: (params: { productId: string }) => {
+      execute: (params: any) => {
         const product = this.productService.getProductById(params.productId);
         if (product) {
           return this.ngZone.run(() => this.cartService.addToCart(product));
