@@ -13,6 +13,8 @@ import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 
+import { findMatchingProduct } from '../../utils/product-matcher';
+
 @Component({
   selector: 'app-search',
   imports: [CommonModule, ProductCardComponent, AiSidebarComponent, ReactiveFormsModule],
@@ -111,21 +113,7 @@ export class SearchComponent implements OnInit, OnDestroy {
           }
         },
         execute: (params: any) => {
-          let product: Product | undefined;
-
-          if (typeof params.index === 'number') {
-            if (params.index >= 0 && params.index < this.filteredProducts.length) {
-              product = this.filteredProducts[params.index];
-            }
-          } else if (params.productId) {
-            product = this.filteredProducts.find(p => p.id === params.productId);
-          } else if (params.productName) {
-            const searchTerms = params.productName.toLowerCase().trim().split(/\s+/);
-            product = this.filteredProducts.find(p => {
-              const nameLower = p.name.toLowerCase();
-              return searchTerms.every((term: string) => nameLower.includes(term));
-            });
-          }
+          const product = findMatchingProduct(this.filteredProducts, params);
 
           if (!product) {
             return { success: false, message: "Product not found in current search results. Please provide a valid index, productId, or productName that matches the visible results." };

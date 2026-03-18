@@ -8,6 +8,8 @@ import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/cor
 import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
+import { findMatchingProduct } from '../../utils/product-matcher';
+
 @Component({
   selector: 'app-cart-modal',
   standalone: true,
@@ -40,25 +42,32 @@ export class CartModalComponent implements OnInit, OnDestroy {
       // 1. Remove from Cart Tool
       modelContext.registerTool({
         name: "remove_from_cart",
-        description: "Removes a specific product from the shopping cart. Only available when the cart is open.",
+        description: "Removes a specific product from the shopping cart. You can provide its index (e.g. 0), exact productId, or productName. Only available when the cart is open.",
         inputSchema: {
           type: "object",
           properties: {
+            index: {
+              type: "number",
+              description: "The zero-based index of the item in the cart."
+            },
             productId: {
               type: "string",
               description: "The unique ID of the product to remove."
+            },
+            productName: {
+              type: "string",
+              description: "A part of the product name or keywords to match (e.g. 'training balls')."
             }
-          },
-          required: ["productId"]
+          }
         },
         execute: (params: any) => {
-          const inCart = this.cartService.cart().some((p) => p.id === params.productId);
-          if (!inCart) {
-            return { success: false, message: `Product with ID '${params.productId}' is not in the cart.` };
+          const product = findMatchingProduct(this.cartService.cart(), params);
+          if (!product) {
+            return { success: false, message: "Product not found in the cart. Please provide a valid index, productId, or productName that matches the items in your cart." };
           }
 
-          this.onRemove(params.productId);
-          return { success: true, message: "Item removed from cart." };
+          this.onRemove(product.id);
+          return { success: true, message: `Removed '${product.name}' from cart.` };
         }
       });
 
