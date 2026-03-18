@@ -1,12 +1,12 @@
 export interface WebMcpTool {
   name: string;
   description: string;
-  inputSchema: {
+  inputSchema?: {
     type: string;
     properties: Record<string, any>;
     required?: string[];
   };
-  execute: (params: any) => Promise<any>;
+  execute: (params: any) => any;
 }
 
 export interface WebMcpModelContext {

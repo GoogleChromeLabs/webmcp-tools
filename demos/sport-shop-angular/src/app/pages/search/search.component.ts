@@ -79,7 +79,7 @@ export class SearchComponent implements OnInit, OnDestroy {
           },
           required: ["priceRange"]
         },
-        execute: async (params: { priceRange: string }) => {
+        execute: (params: { priceRange: string }) => {
           this.setPriceRange(params.priceRange);
           return { success: true, message: `Filtered results by ${params.priceRange}` };
         }
@@ -89,8 +89,7 @@ export class SearchComponent implements OnInit, OnDestroy {
       modelContext.registerTool({
         name: "get_current_results",
         description: "Returns a list of products currently visible in the search results, including their IDs, names, and prices. Use this to find IDs for adding items to the cart.",
-        inputSchema: { type: "object", properties: {} },
-        execute: async () => {
+        execute: () => {
           const summary = this.filteredProducts.map(p => ({
             id: p.id,
             name: p.name,

@@ -1,10 +1,8 @@
-import { Component, EventEmitter, Output, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CartService } from '../../services/cart.service';
-import { Product } from '../../models/product.model';
-import { map } from 'rxjs';
-import { UiService } from '../../services/ui.service';
+import { Component, EventEmitter, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { WebMcpModelContext } from '../../models/webmcp.model';
+import { CartService } from '../../services/cart.service';
+import { UiService } from '../../services/ui.service';
 
 @Component({
   selector: 'app-cart-modal',
@@ -50,7 +48,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           },
           required: ["productId"]
         },
-        execute: async (params: { productId: string }) => {
+        execute: (params: { productId: string }) => {
           this.ngZone.run(() => {
             this.onRemove(params.productId);
           });
@@ -62,8 +60,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       modelContext.registerTool({
         name: "start_checkout",
         description: "Processes the items in the cart and completes the order. Only available when the cart is open and in summary state.",
-        inputSchema: { type: "object", properties: {} },
-        execute: async () => {
+        execute: () => {
           if (this.checkoutState !== 'summary') {
             return { success: false, message: "Checkout already in progress or completed." };
           }
@@ -78,8 +75,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       modelContext.registerTool({
         name: "confirm_order",
         description: "Closes the checkout success screen. Only available after a successful checkout.",
-        inputSchema: { type: "object", properties: {} },
-        execute: async () => {
+        execute: () => {
           if (this.checkoutState !== 'success') {
             return { success: false, message: "Order not yet successful." };
           }
