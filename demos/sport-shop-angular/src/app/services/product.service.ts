@@ -17,7 +17,7 @@ export class ProductService {
       price: 52.99,
       category: 'BASEBALL',
       description: 'Crafted from premium synthetic leather, the Nano Banana Field Master offers pro-grade durability and an instant break-in feel. Master every play with a glove that blends tradition with elite performance.',
-      image: '/assets/products/nano-banana-glove.png',
+      image: 'assets/products/nano-banana-glove.png',
       size: 'child',
       tags: ['youth', 'glove', 'gift', 'under $50', 'nano banana']
     },
@@ -27,7 +27,7 @@ export class ProductService {
       price: 24.00,
       category: 'BASEBALL',
       description: 'Build confidence at the plate with indestructible limited-flight training balls by Google. Engineered for repeated impact, they provide instant feedback without leaving the field.',
-      image: '/assets/products/google-impact-balls.png',
+      image: 'assets/products/google-impact-balls.png',
       size: 'child',
       tags: ['training', 'gift', 'under $50', 'google']
     },
@@ -37,7 +37,7 @@ export class ProductService {
       price: 19.99,
       category: 'BASEBALL',
       description: 'Dominating at the plate requires a superior hold. Gemini Pro Grip gloves feature genuine leather palms and ventilated mesh for maximum comfort and control during every swing.',
-      image: '/assets/products/gemini-pro-grip-gloves.png',
+      image: 'assets/products/gemini-pro-grip-gloves.png',
       size: 'child',
       tags: ['apparel', 'gift', 'under $50', 'gemini']
     },
@@ -47,7 +47,7 @@ export class ProductService {
       price: 48.50,
       category: 'BASEBALL',
       description: 'Specifically engineered for the youth hitter, this Nano Banana speed-balanced alloy bat delivers explosive energy transfer and a lightweight feel for lightning-fast swings.',
-      image: '/assets/products/nano-banana-speed-bat.png',
+      image: 'assets/products/nano-banana-speed-bat.png',
       size: 'child',
       tags: ['bat', 'gift', 'under $50', 'nano banana']
     },
@@ -58,7 +58,7 @@ export class ProductService {
       price: 59.99,
       category: 'BASKETBALL',
       description: 'The #1 indoor game ball. Features a micro-fiber composite leather cover and laid-in channels for ultimate grip and consistency with Gemini technology.',
-      image: '/assets/products/gemini-basketball.png',
+      image: 'assets/products/gemini-basketball.png',
       size: 'adult',
       tags: ['indoor', 'ball', 'gemini']
     },
@@ -68,7 +68,7 @@ export class ProductService {
       price: 44.99,
       category: 'BASKETBALL',
       description: 'The legendary Gemini ball, sized for the next generation. Premium composite leather provides the same elite feel and control for younger players.',
-      image: '/assets/products/gemini-basketball-junior.png',
+      image: 'assets/products/gemini-basketball-junior.png',
       size: 'child',
       tags: ['indoor', 'ball', 'gemini', 'junior']
     },
@@ -78,7 +78,7 @@ export class ProductService {
       price: 249.99,
       category: 'BASKETBALL',
       description: 'Professional grade Google portable hoop with 54-inch acrylic backboard and adjustable height.',
-      image: '/assets/products/google-portable-hoop.png',
+      image: 'assets/products/google-portable-hoop.png',
       size: 'adult',
       tags: ['equipment', 'hoop', 'outdoor', 'google']
     },
@@ -88,7 +88,7 @@ export class ProductService {
       price: 18.00,
       category: 'BASKETBALL',
       description: 'Zonal cushioning from Nano Banana helps absorb impact while you run the court.',
-      image: '/assets/products/nano-banana-socks.png',
+      image: 'assets/products/nano-banana-socks.png',
       size: 'adult',
       tags: ['apparel', 'socks', 'nano banana']
     },
@@ -98,7 +98,7 @@ export class ProductService {
       price: 12.00,
       category: 'BASKETBALL',
       description: 'Nano Banana Elite technology in a youth-optimized fit. Zonal cushioning absorbs impact, while the arch band provides a secure, locked-in feel.',
-      image: '/assets/products/nano-banana-socks-youth.png',
+      image: 'assets/products/nano-banana-socks-youth.png',
       size: 'child',
       tags: ['apparel', 'socks', 'nano banana', 'youth']
     },
@@ -109,7 +109,7 @@ export class ProductService {
       price: 165.00,
       category: 'SOCCER',
       description: 'Google Pro Match certified. Seamless, thermally bonded surface for a more predictable trajectory.',
-      image: '/assets/products/google-mls-pro-ball.png',
+      image: 'assets/products/google-mls-pro-ball.png',
       size: 'adult',
       tags: ['professional', 'ball', 'google']
     },
@@ -119,7 +119,7 @@ export class ProductService {
       price: 220.00,
       category: 'SOCCER',
       description: 'The future of playmaking by Gemini. Advanced compression band for ultimate fit and lockdown.',
-      image: '/assets/products/gemini-ultimate-boots.png',
+      image: 'assets/products/gemini-ultimate-boots.png',
       size: 'adult',
       tags: ['shoes', 'cleats', 'gemini']
     },
@@ -129,7 +129,7 @@ export class ProductService {
       price: 85.00,
       category: 'SOCCER',
       description: 'Future-focused performance for rising stars. Gemini tech ensures a adaptive fit that lets young playmakers move with absolute freedom.',
-      image: '/assets/products/gemini-ultimate-boots-youth.png',
+      image: 'assets/products/gemini-ultimate-boots-youth.png',
       size: 'child',
       tags: ['shoes', 'cleats', 'gemini', 'youth']
     },
@@ -139,7 +139,7 @@ export class ProductService {
       price: 14.99,
       category: 'SOCCER',
       description: 'Master your ball control without the chase. Nano Banana hands-free trainer allows for maximum repetitions on touches, passing, and receiving.',
-      image: '/assets/products/gemini-ultimate-boots.png',
+      image: 'assets/products/gemini-ultimate-boots.png',
       size: 'child',
       tags: ['training', 'solo', 'equipment', 'nano banana']
     },
@@ -150,7 +150,7 @@ export class ProductService {
       price: 140.00,
       category: 'RUNNING',
       description: 'Experience a smooth, worry-free run. The Google Ghost features advanced cushioning for an ultra-soft feel that doesn\'t compromise on responsiveness.',
-      image: '/assets/products/google-ghost-shoes.png',
+      image: 'assets/products/google-ghost-shoes.png',
       size: 'adult',
       tags: ['shoes', 'neutral', 'running', 'google']
     },
@@ -160,7 +160,7 @@ export class ProductService {
       price: 65.00,
       category: 'RUNNING',
       description: 'Google performance for youth athletes. Advanced cushioning provides a balanced, soft ride for school, sports, and everything in between.',
-      image: '/assets/products/google-ghost-shoes-youth.png',
+      image: 'assets/products/google-ghost-shoes-youth.png',
       size: 'child',
       tags: ['shoes', 'neutral', 'running', 'youth', 'google']
     },
@@ -170,7 +170,7 @@ export class ProductService {
       price: 349.99,
       category: 'RUNNING',
       description: 'GPS running smartwatch by Gemini with advanced training metrics and recovery insights.',
-      image: '/assets/products/gemini-forerunner-watch.png',
+      image: 'assets/products/gemini-forerunner-watch.png',
       size: 'adult',
       tags: ['watch', 'gps', 'tech', 'gemini']
     },
@@ -180,7 +180,7 @@ export class ProductService {
       price: 34.95,
       category: 'RUNNING',
       description: 'Stay hydrated with the ultimate adventure bottle by Nano Banana. Insulation keeps beverages at the perfect temperature for hours.',
-      image: '/assets/products/nano-banana-hydration-bottle.png',
+      image: 'assets/products/nano-banana-hydration-bottle.png',
       size: 'adult',
       tags: ['hydration', 'bottle', 'outdoor', 'nano banana']
     },
@@ -191,7 +191,7 @@ export class ProductService {
       price: 299.95,
       category: 'BASEBALL',
       description: 'Constructed from world-renowned leather by Google for exceptional performance.',
-      image: '/assets/products/google-heart-hide-glove.png',
+      image: 'assets/products/google-heart-hide-glove.png',
       size: 'adult',
       tags: ['professional', 'glove', 'leather', 'google']
     },
@@ -201,7 +201,7 @@ export class ProductService {
       price: 449.95,
       category: 'BASEBALL',
       description: 'Built for the game\'s most powerful hitters with Gemini X14 Alloy Barrel for massive pop.',
-      image: '/assets/products/gemini-massive-pop-bat.png',
+      image: 'assets/products/gemini-massive-pop-bat.png',
       size: 'adult',
       tags: ['bbcor', 'bat', 'power', 'gemini']
     },
@@ -211,7 +211,7 @@ export class ProductService {
       price: 249.99,
       category: 'BASEBALL',
       description: 'Durable ABS shell for youth protection with the Nano Banana signature style.',
-      image: '/assets/products/nano-banana-youth-helmet.png',
+      image: 'assets/products/nano-banana-youth-helmet.png',
       size: 'child',
       tags: ['protection', 'helmet', 'youth', 'nano banana']
     }
