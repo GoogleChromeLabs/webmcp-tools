@@ -78,8 +78,12 @@ export class SearchComponent implements OnInit, OnDestroy {
           required: ["priceRange"]
         },
         execute: (params: any) => {
-          this.setPriceRange(params.priceRange);
-          return { success: true, message: `Filtered results by ${params.priceRange}` };
+          const success = this.setPriceRange(params.priceRange);
+          if (success) {
+            return { success: true, message: `Filtered results by ${params.priceRange}` };
+          } else {
+            return { success: false, message: `Invalid price range '${params.priceRange}'. Must be one of: 'all', '0-49.99', '50-99.99', '100+'` };
+          }
         }
       });
 
@@ -113,8 +117,13 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
 
-  setPriceRange(range: string) {
-    this.priceControl.setValue(range);
+  setPriceRange(range: string): boolean {
+    const validRanges = ['all', '0-49.99', '50-99.99', '100+'];
+    if (validRanges.includes(range)) {
+      this.priceControl.setValue(range);
+      return true;
+    }
+    return false;
   }
 
   private applyFilters() {
