@@ -49,17 +49,13 @@ export class SearchComponent implements OnInit, OnDestroy {
       this.applyFilters();
     });
 
-    this.registerWebMCPTool();
+    this.registerSearchTools();
   }
   ngOnDestroy() {
-    const modelContext = navigator.modelContext;
-    if (modelContext) {
-      modelContext.unregisterTool("refine_search");
-      modelContext.unregisterTool("get_current_results");
-    }
+    this.unregisterSearchTools();
   }
 
-  private registerWebMCPTool() {
+  private registerSearchTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
       // 1. Refine Search Tool
@@ -103,6 +99,15 @@ export class SearchComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  private unregisterSearchTools() {
+    const modelContext = navigator.modelContext;
+    if (modelContext) {
+      modelContext.unregisterTool("refine_search");
+      modelContext.unregisterTool("get_current_results");
+    }
+  }
+
 
   setPriceRange(range: string) {
     this.priceControl.setValue(range);
