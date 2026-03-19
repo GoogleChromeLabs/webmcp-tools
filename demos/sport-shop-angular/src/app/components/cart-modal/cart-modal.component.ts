@@ -9,6 +9,7 @@ import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
 import { findMatchingProduct } from '../../utils/product-matcher';
+import { unregisterTool } from '../../utils/webmcp-utils';
 
 @Component({
   selector: 'app-cart-modal',
@@ -22,6 +23,10 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   checkoutState: 'summary' | 'processing' | 'success' = 'summary';
   closing = false;
+
+  private removeFromCartTool!: ModelContextTool;
+  private startCheckoutTool!: ModelContextTool;
+  private confirmOrderTool!: ModelContextTool;
 
   constructor(
     public cartService: CartService,
@@ -41,7 +46,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
     const modelContext = navigator.modelContext;
     if (modelContext) {
       // 1. Remove from Cart Tool
-      modelContext.registerTool({
+      this.removeFromCartTool = {
         name: "remove_from_cart",
         description: "Removes a specific product from the shopping cart. You can provide its index, exact productId, or productName. Only available when the cart is open.",
         inputSchema: {
@@ -70,10 +75,11 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onRemove(product.id);
           return { success: true, message: `Removed '${product.name}' from cart.` };
         }
-      });
+      };
+      modelContext.registerTool(this.removeFromCartTool);
 
       // 2. Start Checkout Tool
-      modelContext.registerTool({
+      this.startCheckoutTool = {
         name: "start_checkout",
         description: "Processes the items in the cart and completes the order. Only available when the cart is open and in summary state.",
         execute: () => {
@@ -83,10 +89,11 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onCheckout();
           return { success: true, message: "Checkout started." };
         }
-      });
+      };
+      modelContext.registerTool(this.startCheckoutTool);
 
       // 3. Confirm Order Tool
-      modelContext.registerTool({
+      this.confirmOrderTool = {
         name: "confirm_order",
         description: "Closes the checkout success screen. Only available after a successful checkout.",
         execute: () => {
@@ -96,16 +103,17 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onConfirmOrder();
           return { success: true, message: "Order confirmed and closed." };
         }
-      });
+      };
+      modelContext.registerTool(this.confirmOrderTool);
     }
   }
 
   private unregisterCartTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
-      modelContext.unregisterTool("remove_from_cart");
-      modelContext.unregisterTool("start_checkout");
-      modelContext.unregisterTool("confirm_order");
+      unregisterTool(modelContext, this.removeFromCartTool);
+      unregisterTool(modelContext, this.startCheckoutTool);
+      unregisterTool(modelContext, this.confirmOrderTool);
     }
   }
 

@@ -14,6 +14,7 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 
 import { findMatchingProduct } from '../../utils/product-matcher';
+import { unregisterTool } from '../../utils/webmcp-utils';
 
 @Component({
   selector: 'app-search',
@@ -34,6 +35,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   ];
 
   private currentParams: Params = {};
+  private refineSearchTool!: ModelContextTool;
+  private addSearchResultToCartTool!: ModelContextTool;
 
   constructor(
     private route: ActivatedRoute,
@@ -67,7 +70,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     const modelContext = navigator.modelContext;
     if (modelContext) {
       // 1. Refine Search Tool
-      modelContext.registerTool({
+      this.refineSearchTool = {
         name: "refine_search",
         description: "Refine the current search results by applying a price filter.",
         inputSchema: {
@@ -89,10 +92,11 @@ export class SearchComponent implements OnInit, OnDestroy {
             return { success: false, message: `Invalid price range '${params.priceRange}'. Must be one of: 'all', '0-49.99', '50-99.99', '100+'` };
           }
         }
-      });
+      };
+      modelContext.registerTool(this.refineSearchTool);
 
       // 2. Add Search Result to Cart Tool
-      modelContext.registerTool({
+      this.addSearchResultToCartTool = {
         name: "add_search_result_to_cart",
         description: "Adds a product from the current search results to the shopping cart. You can provide its index, exact productId, or productName.",
         inputSchema: {
@@ -122,15 +126,16 @@ export class SearchComponent implements OnInit, OnDestroy {
           this.cartService.addToCart(product);
           return { success: true, message: `Added '${product.name}' to cart.` };
         }
-      });
+      };
+      modelContext.registerTool(this.addSearchResultToCartTool);
     }
   }
 
   private unregisterSearchTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
-      modelContext.unregisterTool("refine_search");
-      modelContext.unregisterTool("add_search_result_to_cart");
+      unregisterTool(modelContext, this.refineSearchTool);
+      unregisterTool(modelContext, this.addSearchResultToCartTool);
     }
   }
 

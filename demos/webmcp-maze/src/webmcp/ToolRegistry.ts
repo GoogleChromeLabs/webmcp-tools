@@ -12,6 +12,16 @@ import { createUseTool } from "./tools/UseTool.ts";
 import { createStartGameTool } from "./tools/StartGameTool.ts";
 import { createEvalTool } from "./tools/EvalTool.ts";
 
+function unregisterTool(modelContext: ModelContext, tool: ModelContextTool) {
+  try {
+    modelContext.unregisterTool(tool);
+  } catch (error) {
+    // Legacy fallback: some Chrome versions still expect the tool name string.
+    // TODO: Remove this once the API transition is complete.
+    modelContext.unregisterTool(tool.name as any);
+  }
+}
+
 /**
  * Manages the lifecycle of WebMCP tools registered with `navigator.modelContext`.
  *
@@ -100,8 +110,8 @@ export class ToolRegistry {
   private provideTools(tools: ModelContextTool[]): void {
     if (this.supported) {
       const ctx = navigator.modelContext!;
-      for (const name of this.toolMap.keys()) {
-        ctx.unregisterTool(name);
+      for (const tool of this.toolMap.values()) {
+        unregisterTool(ctx, tool);
       }
       for (const tool of tools) {
         ctx.registerTool(tool);

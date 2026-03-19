@@ -55,8 +55,8 @@ declare global {
     /** Adds a single tool to the current context. */
     registerTool(tool: ModelContextTool): void;
 
-    /** Removes a tool by name. */
-    unregisterTool(name: string): void;
+    /** Removes a tool from the current context. */
+    unregisterTool(tool: ModelContextTool): void;
   }
 
   interface Navigator {

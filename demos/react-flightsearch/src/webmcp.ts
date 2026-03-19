@@ -38,6 +38,16 @@ function dispatchAndWait(
     });
 }
 
+function unregisterTool(modelContext: ModelContext, tool: ModelContextTool) {
+  try {
+    modelContext.unregisterTool(tool);
+  } catch (error) {
+    // Legacy fallback: some Chrome versions still expect the tool name string.
+    // TODO: Remove this once the API transition is complete.
+    modelContext.unregisterTool(tool.name as any);
+  }
+}
+
 export function listFlights(): Array<Flight> {
   return flights;
 }
@@ -313,7 +323,7 @@ export function registerFlightSearchTools() {
 export function unregisterFlightSearchTools() {
   const modelContext = window.navigator.modelContext;
   if (modelContext) {
-    modelContext.unregisterTool(searchFlightsTool.name);
+    unregisterTool(modelContext, searchFlightsTool);
   }
 }
 
@@ -346,10 +356,10 @@ export function registerFlightResultsTools() {
 export function unregisterFlightResultsTools() {
   const modelContext = window.navigator.modelContext;
   if (modelContext) {
-    modelContext.unregisterTool(listFlightsTool.name);
-    modelContext.unregisterTool(setFiltersTool.name);
-    modelContext.unregisterTool(resetFiltersTool.name);
-    modelContext.unregisterTool(searchFlightsTool.name);
+    unregisterTool(modelContext, listFlightsTool);
+    unregisterTool(modelContext, setFiltersTool);
+    unregisterTool(modelContext, resetFiltersTool);
+    unregisterTool(modelContext, searchFlightsTool);
 
     registeredTools.listFlights = false;
     registeredTools.setFilters = false;
