@@ -46,6 +46,9 @@ A curated list of awesome WebMCP demos.
   - [Code](https://github.com/ttimur-dev/webmcp-flow)
   - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
   
+- [BRITECITY IT Health Scanner](https://britecity.com/it-health-check) - A real-world MSP (managed IT services) site using both declarative and imperative WebMCP. Agents can run a free IT security scan on any domain (`run_it_health_scan`), read structured results (`get_it_health_scan_results`), browse services (`get_britecity_services`), or book a consultation via declarative form tools.
+  - **Example Prompt:** "Run an IT security scan on acme.com and tell me the results"
+
 ## Contributing
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
