@@ -36,9 +36,13 @@ if (modelContext) {
                     type: "array",
                     items: {
                         type: "string",
-                        enum: ["Balcony", "Terrace", "Elevator", "Parking", "Central AC"]
+                        enum: [
+                            "Hardwood Floors", "Fireplace", "High Ceilings", "Walk-in Closets", "Smart Home System", "In-unit Washer/Dryer", "Dishwasher", "Finished Basement", "Home Office", "Newly Renovated", "Floor-to-Ceiling Windows", "Furnished",
+                            "Elevator", "Doorman", "Fitness Center", "Swimming Pool", "Spa & Sauna", "Rooftop Deck", "Concierge Service", "Co-working Space", "Secure Package Room", "Pet Friendly", "Bike Storage",
+                            "Balcony", "Private Terrace", "Fenced Yard", "City View", "Water View", "Central AC", "Solar Panels", "EV Charging Station", "Garage Parking", "Wheelchair Accessible"
+                        ]
                     },
-                    description: "Must-have amenities/features (e.g. 'Central AC', 'Parking')."
+                    description: "Must-have amenities/features (e.g. 'Rooftop Deck', 'Central AC', 'Walk-in Closets')."
                 }
             }
         },

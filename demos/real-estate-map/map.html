@@ -73,7 +73,7 @@
         </header>
 
         <!-- Filters Section -->
-        <div class="p-4 border-b border-slate-100 bg-slate-50 overflow-visible shrink-0">
+        <div class="p-4 border-b border-slate-100 bg-slate-50 overflow-y-auto shrink-0 max-h-[50vh]">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="font-semibold text-slate-700">Filters</h2>
                 <button type="button" onclick="realEstateApp.clearFilters()" class="text-xs font-semibold hover:text-primary text-slate-500 transition-colors">Clear all</button>
@@ -151,36 +151,58 @@
                 </div>
 
                 <!-- Advanced Filters -->
-                <div id="advanced-filters" class="space-y-4 pt-2 border-t border-slate-200 mt-2">
-                    <!-- Amenities -->
+                <div id="advanced-filters" class="space-y-6 pt-4 border-t border-slate-200 mt-4">
+                    <!-- Interior -->
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-2">Features</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Balcony" class="feature-filter cursor-pointer text-primary rounded border-slate-300 focus:ring-primary w-4 h-4">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">balcony</span>
-                                <span class="text-slate-600 group-hover:text-slate-900 transition-colors text-sm">Balcony</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Terrace" class="feature-filter cursor-pointer text-primary rounded border-slate-300 focus:ring-primary w-4 h-4">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">deck</span>
-                                <span class="text-slate-600 group-hover:text-slate-900 transition-colors text-sm">Terrace</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Elevator" class="feature-filter cursor-pointer text-primary rounded border-slate-300 focus:ring-primary w-4 h-4">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">elevator</span>
-                                <span class="text-slate-600 group-hover:text-slate-900 transition-colors text-sm">Elevator</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Parking" class="feature-filter cursor-pointer text-primary rounded border-slate-300 focus:ring-primary w-4 h-4">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">local_parking</span>
-                                <span class="text-slate-600 group-hover:text-slate-900 transition-colors text-sm">Parking</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" value="Central AC" class="feature-filter cursor-pointer text-primary rounded border-slate-300 focus:ring-primary w-4 h-4">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">ac_unit</span>
-                                <span class="text-slate-600 group-hover:text-slate-900 transition-colors text-sm">Central AC</span>
-                            </label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Interior</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Hardwood Floors" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Hardwood Floors</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fireplace" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fireplace</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="High Ceilings" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">High Ceilings</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Walk-in Closets" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Walk-in Closets</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Smart Home System" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Smart Home System</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="In-unit Washer/Dryer" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">In-unit W/D</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Dishwasher" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Dishwasher</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Finished Basement" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Finished Basement</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Home Office" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Home Office</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Newly Renovated" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Newly Renovated</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Floor-to-Ceiling Windows" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">F-C Windows</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Furnished" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Furnished</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Community -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Community</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Elevator" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Elevator</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Doorman" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Doorman</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fitness Center" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fitness Center</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Swimming Pool" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Swimming Pool</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Spa & Sauna" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Spa & Sauna</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Rooftop Deck" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Rooftop Deck</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Concierge Service" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Concierge Service</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Co-working Space" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Co-working Space</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Secure Package Room" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Package Room</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Pet Friendly" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Pet Friendly</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Bike Storage" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Bike Storage</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Exterior / Practical -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Exterior & Practical</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Balcony" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Balcony</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Private Terrace" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Private Terrace</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fenced Yard" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fenced Yard</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="City View" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">City View</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Water View" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Water View</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Central AC" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Central AC</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Solar Panels" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Solar Panels</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="EV Charging Station" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">EV Charging</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Garage Parking" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Garage Parking</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Wheelchair Accessible" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Wheelchair Access</span></label>
                         </div>
                     </div>
                 </div>
