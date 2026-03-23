@@ -32,13 +32,16 @@ export default function Layout() {
           type: 'object',
           properties: {
             hotel_id: { type: 'string', description: 'The ID of the hotel' },
-            amenity: { type: 'string', description: 'The amenity or policy to look up (e.g. "late_checkout")' }
+            amenity: { type: 'string', description: 'The amenity or policy to look up (e.g. "late checkout")' }
           },
           required: ['hotel_id', 'amenity']
         },
         execute: (input: any) => {
-          navigate(`/hotel/${input.hotel_id}?amenity=${encodeURIComponent(input.amenity)}`);
-          return { success: true, message: `Navigated to hotel details to show ${input.amenity}` };
+          // Normalize to spaces to match UI exactly
+          const formattedAmenity = input.amenity ? input.amenity.replace(/_/g, ' ') : input.amenity;
+
+          navigate(`/hotel/${input.hotel_id}?amenity=${encodeURIComponent(formattedAmenity)}`);
+          return { success: true, message: `Navigated to hotel details to show ${formattedAmenity}` };
         }
       });
 

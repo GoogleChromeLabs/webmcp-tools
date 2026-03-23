@@ -10,18 +10,20 @@ export default function Booking() {
 
   const [success, setSuccess] = useState(false);
 
-  const handleConfirm = (e: React.FormEvent) => {
+  const handleConfirm = (e: React.SubmitEvent) => {
     e.preventDefault();
-    setSuccess(true);
 
     const nativeEvent = e.nativeEvent as any;
     if (nativeEvent.agentInvoked && nativeEvent.respondWith) {
       nativeEvent.respondWith({ success: true, message: "Reservation confirmed successfully." });
     }
 
+    // Yield to the browser's macrotask queue. 
+    // This allows the native 'submit' event to finish bubbling up to the
+    // document level before React synchronously destroys the <form> DOM node.
     setTimeout(() => {
-      navigate('/');
-    }, 4000);
+      setSuccess(true);
+    }, 0);
   };
 
   if (success) {
