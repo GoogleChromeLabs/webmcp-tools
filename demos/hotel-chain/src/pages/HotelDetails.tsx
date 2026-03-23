@@ -24,19 +24,18 @@ export default function HotelDetails() {
   }, [location.search]);
 
   useEffect(() => {
-    const mc = (window.navigator as any).modelContext;
-    if (mc) {
-      mc.registerTool({
+    const modelContext = window.navigator.modelContext;
+    if (modelContext) {
+      modelContext.registerTool({
         name: 'start_booking',
         description: `Navigate to the booking form to reserve a room at ${hotel.name}.`,
-        inputSchema: { type: 'object', properties: {} },
         execute: () => {
           navigate('/book/' + hotel.id);
           return { success: true, message: `Navigated to booking form for ${hotel.name}` };
         }
       });
       return () => {
-        mc.unregisterTool('start_booking');
+        modelContext.unregisterTool('start_booking');
       };
     }
   }, [hotel, navigate]);
@@ -62,15 +61,15 @@ export default function HotelDetails() {
           </div>
         </div>
       </header>
-      
+
       {/* Asymmetric Gallery */}
       <section className="grid grid-cols-12 gap-[1.4rem] mb-20 h-[600px]">
         <div className="col-span-12 md:col-span-8 h-full bg-surface-container overflow-hidden rounded-xl">
-          <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQxRN8_hOFnc70kYbgBrmjLNchifXRmYUKYtwuMHkQKqEzYiJJXQT8Oak14-B9uAPjYAa0JyHsXxVg7F4Uia_poQNqjnXkclGEWh90-KYEug0k2V_7uKhD134ApHp2JLOwBUGa2RNrjKafsJa_VL1q_ieTttYX53Xjv8qg8Ma-I1lCcr-3M9UOgQj_Hs0-z5HE7l46uHb5fUsOQa1ZItotouaZCVF3DGIe9E5MdW3j5ncxj2qqd9w0tW_alY4JuXL17YJRyPU8BUQ"/>
+          <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQxRN8_hOFnc70kYbgBrmjLNchifXRmYUKYtwuMHkQKqEzYiJJXQT8Oak14-B9uAPjYAa0JyHsXxVg7F4Uia_poQNqjnXkclGEWh90-KYEug0k2V_7uKhD134ApHp2JLOwBUGa2RNrjKafsJa_VL1q_ieTttYX53Xjv8qg8Ma-I1lCcr-3M9UOgQj_Hs0-z5HE7l46uHb5fUsOQa1ZItotouaZCVF3DGIe9E5MdW3j5ncxj2qqd9w0tW_alY4JuXL17YJRyPU8BUQ" />
         </div>
         <div className="hidden md:flex col-span-4 flex-col gap-[1.4rem] h-full">
           <div className="flex-1 bg-surface-container overflow-hidden rounded-xl">
-            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHsDdC7NJXc_HFy8TT4_8cn6xTsT70qWJ2jlWtx3cry8AL4EtSCRBgT7S82oJ4yUfXTd7eoYJrqoOnjvIK3xS1rQrpyOcl475TSTeHqYw-OvNxqbBjukleVGZWmf_rQsAFffapDOwKcsxSDIuG7bB4IhXmUzkqFPy4lIbcyV8Rz-bTl26wd9sztoRG3wIuvAxJK1joru2saARM97cdsZOtPtfZ6K96N95kC-RVkx3yiT-V4NUZl7WlT8LItwHXMpY5_mw-Kfi3Ir8"/>
+            <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHsDdC7NJXc_HFy8TT4_8cn6xTsT70qWJ2jlWtx3cry8AL4EtSCRBgT7S82oJ4yUfXTd7eoYJrqoOnjvIK3xS1rQrpyOcl475TSTeHqYw-OvNxqbBjukleVGZWmf_rQsAFffapDOwKcsxSDIuG7bB4IhXmUzkqFPy4lIbcyV8Rz-bTl26wd9sztoRG3wIuvAxJK1joru2saARM97cdsZOtPtfZ6K96N95kC-RVkx3yiT-V4NUZl7WlT8LItwHXMpY5_mw-Kfi3Ir8" />
           </div>
           <div className="flex-1 bg-surface-container overflow-hidden rounded-xl relative">
             <img className="w-full h-full object-cover" src={hotel.imageSrc} />
@@ -83,7 +82,7 @@ export default function HotelDetails() {
 
       {/* Main Content & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
-        
+
         {/* Content Area */}
         <div className="lg:col-span-8">
           <div className="mb-16">
@@ -112,7 +111,7 @@ export default function HotelDetails() {
           {/* Policies Section */}
           <div ref={policiesRef} className="bg-surface-container-low p-10 rounded-xl mb-20 border-l-4 border-on-tertiary-container">
             <div className="flex items-center gap-4 mb-6">
-              <span className="material-symbols-outlined text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>info</span>
+              <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
               <h3 className="text-xl font-headline font-bold text-primary">Stay Details & Policies</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -142,7 +141,7 @@ export default function HotelDetails() {
               </div>
               <span className="text-on-surface-variant text-sm font-medium">/ night</span>
             </div>
-            
+
             <div className="space-y-6 mb-10">
               <div className="border-b border-outline-variant/20 pb-4 flex justify-between">
                 <span className="text-on-surface-variant">Dates</span>
@@ -170,8 +169,8 @@ export default function HotelDetails() {
               <p className="text-[0.7rem] text-on-primary-container/60 mt-2">Includes tax and luxury service fees.</p>
             </div>
 
-            <button 
-              onClick={() => navigate('/book/' + hotel.id)} 
+            <button
+              onClick={() => navigate('/book/' + hotel.id)}
               className="w-full bg-primary text-on-primary py-5 rounded-lg font-headline font-bold text-lg hover:bg-slate-900 transition-colors shadow-lg shadow-primary/10"
             >
               Reserve Now

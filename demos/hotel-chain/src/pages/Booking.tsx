@@ -48,7 +48,6 @@ export default function Booking() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
         {/* Main Form Column */}
         <div className="lg:col-span-7 space-y-16">
-          {/* @ts-ignore: WebMCP declarative attributes are not in React.FormHTMLAttributes */}
           <form id="booking-form" onSubmit={handleConfirm} toolname="complete_booking" tooldescription="Complete the reservation for the selected hotel by providing guest information.">
             {/* Step 1: Contact */}
             <section className="mb-16 bg-white shrink-0">
@@ -59,15 +58,15 @@ export default function Booking() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12 pl-11">
                 <div className="relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">First Name</label>
-                  <input name="firstName" required defaultValue="Jane" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Julian" type="text" />
+                  <input name="firstName" required defaultValue="Jane" toolparamdescription="The first name of the primary guest." className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Julian" type="text" />
                 </div>
                 <div className="relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">Last Name</label>
-                  <input name="lastName" required defaultValue="Doe" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Vane" type="text" />
+                  <input name="lastName" required defaultValue="Doe" toolparamdescription="The last name of the primary guest." className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Vane" type="text" />
                 </div>
                 <div className="md:col-span-2 relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">Email Address</label>
-                  <input name="email" required defaultValue="jane.doe@example.com" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="j.vane@atelier.com" type="email" />
+                  <input name="email" required defaultValue="jane.doe@example.com" toolparamdescription="The email address where the reservation confirmation will be sent." className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="j.vane@atelier.com" type="email" />
                 </div>
               </div>
             </section>
