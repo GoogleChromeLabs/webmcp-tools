@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FilterBadge } from '../components/ui/AmenityBadge';
