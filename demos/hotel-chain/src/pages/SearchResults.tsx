@@ -31,23 +31,34 @@ export default function SearchResults() {
     count
   } = useHotelFilter(locationQuery);
 
-  // Register WebMCP Tool
-  useWebMCP([{
-    name: 'filter_search_results',
-    description: 'Filter the search results by max price and required amenities',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        max_price: { type: 'number', description: 'Maximum price per night' },
-        amenities: { type: 'array', items: { type: 'string', enum: AVAILABLE_AMENITIES }, description: 'Required amenities' }
+  // Register WebMCP Tools
+  useWebMCP([
+    {
+      name: 'filter_search_results',
+      description: 'Filter the search results by max price and required amenities',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          max_price: { type: 'number', description: 'Maximum price per night' },
+          amenities: { type: 'array', items: { type: 'string', enum: AVAILABLE_AMENITIES }, description: 'Required amenities' }
+        }
+      },
+      execute: (input: any) => {
+        if (input.max_price !== undefined) setMaxPrice(input.max_price);
+        if (input.amenities) setRequiredAmenities(input.amenities);
+        return { success: true, message: 'Filtered results on page' };
       }
     },
-    execute: (input: any) => {
-      if (input.max_price !== undefined) setMaxPrice(input.max_price);
-      if (input.amenities) setRequiredAmenities(input.amenities);
-      return { success: true, message: 'Filtered results on page' };
+    {
+      name: 'reset_filters',
+      description: 'Remove all applied search filters and show all results for the current location.',
+      execute: () => {
+        setMaxPrice(null);
+        setRequiredAmenities([]);
+        return { success: true, message: 'All filters have been reset' };
+      }
     }
-  }]);
+  ]);
 
   const displayLocation = useMemo(() => {
     const city = getTargetCity(locationQuery);
