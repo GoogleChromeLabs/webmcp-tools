@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { hotels } from '../data/hotels';

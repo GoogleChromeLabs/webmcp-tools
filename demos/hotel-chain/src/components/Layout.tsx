@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { clsx } from 'clsx';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AVAILABLE_AMENITIES, Z_INDEX } from '../constants';
