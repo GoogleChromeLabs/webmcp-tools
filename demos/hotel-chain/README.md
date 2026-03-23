@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# L'Atelier Hotel Chain — WebMCP Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, high-fidelity hotel booking application designed to showcase the power of **WebMCP** (Web Model Context Protocol). This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
 
-Currently, two official plugins are available:
+## 🌟 Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+L'Atelier is a luxury hospitality group offering curated stays in Tokyo, Paris, and New York. The application features:
 
-## React Compiler
+- **Dynamic Search**: Find properties by location with rich, editorial-style results.
+- **Amenity Filtering**: Real-time filtering by price and a wide array of luxury amenities (Spa, Rooftop Bar, Late Check-out, etc.).
+- **Immersive Details**: High-resolution galleries and persistent policy highlighting.
+- **Seamless Booking**: A multi-step booking flow that supports AI-driven automation.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🤖 WebMCP Integration
 
-## Expanding the ESLint configuration
+This application exposes several tools to the `navigator.modelContext` API, allowing an AI agent (like a sidepanel assistant) to navigate and perform actions on behalf of the user.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Imperative Tools
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+These tools are registered via `navigator.modelContext.registerTool`:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+| Tool Name | Description | Parameters |
+| :--- | :--- | :--- |
+| `search_location` | Navigate to search results for a specific city or area. | `query` (string) |
+| `lookup_amenity` | Deep-link to a hotel's detail page and highlight a specific amenity or policy. | `hotel_id` (string), `amenity` (string) |
+| `view_hotel` | Navigate directly to a hotel's detail page by name or ID. | `hotel_name_or_id` (string) |
+| `search_hotels` | Apply price and amenity filters directly on the Search Results page. | `max_price` (number), `amenities` (string[]) |
+| `start_booking` | Initiate the booking process for the currently viewed hotel. | (none) |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Declarative Tools
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The final confirmation step uses a **Declarative Tool**, where the agent can populate and submit a form automatically.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Tool Name**: `complete_booking`
+- **Description**: Populates guest information (First Name, Last Name, Email) and submits the reservation form.
+- **Implementation**: Uses standard HTML form attributes (`toolname`, `tooldescription`) which are automatically detected by WebMCP-enabled browsers.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🛠️ Performance & Tech Stack
+
+- **Framework**: [React](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **State Management**: React Hooks + URL Search Params for shareable state.
+- **Design System**: Custom premium palette featuring glassmorphism and Material Symbols.
+
+## 🚀 Getting Started
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Verify WebMCP**:
+   Open the browser console and check `navigator.modelContext`. If you are using a WebMCP-enabled browser or extension, you can see the registered tools.
+
+---
+*Note: This is a demo application for the WebMCP standard. All hotel data and payment methods are mocked.*
