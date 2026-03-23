@@ -17,6 +17,23 @@ export const CITY_LABELS: Record<string, string> = {
   all: 'All Locations'
 };
 
+export const CITY_KEYWORDS: Record<string, string[]> = {
+  'tokyo': ['tokyo', 'shibuya', 'japan'],
+  'new york': ['new york', 'nyc', 'manhattan'],
+  'paris': ['paris', 'france']
+};
+
+export function getTargetCity(query: string | null): string | null {
+  const q = (query || '').toLowerCase();
+  if (q === '' || q === 'all') return 'all';
+  
+  for (const [city, keywords] of Object.entries(CITY_KEYWORDS)) {
+    if (keywords.some(k => q.includes(k))) return city;
+  }
+  
+  return null;
+}
+
 export const Z_INDEX = {
   NAV: 50,
   MODAL: 100,

@@ -4,7 +4,7 @@ import { FilterBadge } from '../components/ui/AmenityBadge';
 import { Button } from '../components/ui/Button';
 import { HotelCard } from '../components/ui/HotelCard';
 import { PageHeader } from '../components/ui/PageHeader';
-import { AVAILABLE_AMENITIES, CITY_LABELS, Z_INDEX } from '../constants';
+import { AVAILABLE_AMENITIES, CITY_LABELS, Z_INDEX, getTargetCity } from '../constants';
 import { useHotelFilter } from '../hooks/useHotelFilter';
 import { useWebMCP } from '../hooks/useWebMCP';
 
@@ -45,11 +45,9 @@ export default function SearchResults() {
   }]);
 
   const displayLocation = useMemo(() => {
-    const q = locationQuery.toLowerCase();
-    if (q.includes('new york') || q.includes('nyc')) return CITY_LABELS['new york'];
-    if (q.includes('paris')) return CITY_LABELS['paris'];
-    if (q === 'all' || q === '') return CITY_LABELS['all'];
-    return CITY_LABELS['tokyo'];
+    const city = getTargetCity(locationQuery);
+    if (city) return CITY_LABELS[city];
+    return `"${locationQuery}"`;
   }, [locationQuery]);
 
   return (
@@ -98,6 +96,30 @@ export default function SearchResults() {
           <HotelCard key={hotel.id} hotel={hotel} variant="standard" />
         ))}
       </div>
+
+      {/* Empty State */}
+      {count === 0 && (
+        <div className="py-32 flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-outline-variant/10">
+            <span className="material-symbols-outlined text-outline text-4xl">search_off</span>
+          </div>
+          <h3 className="font-headline text-3xl font-bold text-primary mb-4 tracking-tighter">No properties found</h3>
+          <p className="text-on-surface-variant max-w-sm mx-auto mb-10 leading-relaxed font-medium">
+            We couldn't find any stays matching your criteria in <span className="text-primary font-bold">{displayLocation}</span>. 
+            Try adjusting your location or removing filters.
+          </p>
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={() => window.location.href = '/search?q=all'}>
+              View All Locations
+            </Button>
+            {(maxPrice !== null || requiredAmenities.length > 0) && (
+              <Button variant="primary" onClick={() => { setMaxPrice(null); setRequiredAmenities([]); }}>
+                Clear All Filters
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Map View CTA */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2" style={{ zIndex: Z_INDEX.FLOATING_CTA }}>

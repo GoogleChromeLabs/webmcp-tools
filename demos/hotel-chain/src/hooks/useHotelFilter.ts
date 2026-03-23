@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { hotels } from '../data/hotels';
+import { getTargetCity } from '../constants';
 
 interface FilterState {
   maxPrice: number | null;
@@ -31,14 +32,11 @@ export function useHotelFilter(locationQuery: string | null) {
   };
 
   const filteredHotels = useMemo(() => {
-    const query = (locationQuery || '').toLowerCase();
-    const isEmptyLocation = query === '' || query === 'all';
-    const isNY = query.includes('new york') || query.includes('nyc') || query.includes('manhattan');
-    const isParis = query.includes('paris') || query.includes('france');
-    const targetCity = isEmptyLocation ? 'all' : isNY ? 'new york' : isParis ? 'paris' : 'tokyo';
+    const targetCity = getTargetCity(locationQuery);
 
     return hotels.filter(hotel => {
       // Location match
+      if (targetCity === null) return false;
       if (targetCity !== 'all' && hotel.city !== targetCity) return false;
 
       // Price match
