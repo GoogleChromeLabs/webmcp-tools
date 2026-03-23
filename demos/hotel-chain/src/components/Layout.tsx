@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { hotels } from '../data/hotels';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -41,9 +42,31 @@ export default function Layout() {
         }
       });
 
+      modelContext.registerTool({
+        name: 'view_hotel',
+        description: 'View the details of a specific hotel by name or id',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            hotel_name_or_id: { type: 'string', description: 'The exact name or ID of the hotel to view' }
+          },
+          required: ['hotel_name_or_id']
+        },
+        execute: (input: any) => {
+          const query = input.hotel_name_or_id.toLowerCase();
+          const hotel = hotels.find(h => h.id.toLowerCase() === query || h.name.toLowerCase().includes(query));
+          if (hotel) {
+            navigate(`/hotel/${hotel.id}`);
+            return { success: true, message: `Navigated to hotel details for ${hotel.name}` };
+          }
+          return { success: false, error: `Could not find a hotel matching "${input.hotel_name_or_id}". Please search first.` };
+        }
+      });
+
       return () => {
         modelContext.unregisterTool('search_location');
         modelContext.unregisterTool('lookup_amenity');
+        modelContext.unregisterTool('view_hotel');
       };
     }
   }, [navigate]);

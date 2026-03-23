@@ -23,6 +23,24 @@ export default function HotelDetails() {
     }
   }, [location.search]);
 
+  useEffect(() => {
+    const mc = (window.navigator as any).modelContext;
+    if (mc) {
+      mc.registerTool({
+        name: 'start_booking',
+        description: `Navigate to the booking form to reserve a room at ${hotel.name}.`,
+        inputSchema: { type: 'object', properties: {} },
+        execute: () => {
+          navigate('/book/' + hotel.id);
+          return { success: true, message: `Navigated to booking form for ${hotel.name}` };
+        }
+      });
+      return () => {
+        mc.unregisterTool('start_booking');
+      };
+    }
+  }, [hotel, navigate]);
+
   return (
     <main className="pt-24 pb-20 max-w-[1440px] mx-auto px-8 w-full">
       {/* Editorial Header */}
