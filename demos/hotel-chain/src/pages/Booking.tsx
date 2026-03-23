@@ -7,12 +7,18 @@ export default function Booking() {
   const { id } = useParams<{ id: string }>();
 
   const hotel = hotels.find(h => h.id === id) || hotels[0];
-  
+
   const [success, setSuccess] = useState(false);
 
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(true);
+
+    const nativeEvent = e.nativeEvent as any;
+    if (nativeEvent.agentInvoked && nativeEvent.respondWith) {
+      nativeEvent.respondWith({ success: true, message: "Reservation confirmed successfully." });
+    }
+
     setTimeout(() => {
       navigate('/');
     }, 4000);
@@ -21,7 +27,7 @@ export default function Booking() {
   if (success) {
     return (
       <main className="pt-32 pb-24 max-w-[1440px] mx-auto px-8 min-h-[70vh] flex flex-col items-center justify-center text-center">
-        <span className="material-symbols-outlined text-[120px] text-emerald-600 mb-8" style={{fontVariationSettings: "'FILL' 1"}}>check_circle</span>
+        <span className="material-symbols-outlined text-[120px] text-emerald-600 mb-8" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
         <h1 className="font-headline text-5xl font-extrabold text-primary mb-4">Reservation Confirmed</h1>
         <p className="text-secondary mb-8">Your journey to {hotel.name} is secured. We look forward to welcoming you.</p>
         <button onClick={() => navigate('/')} className="text-primary font-bold hover:underline">Return to Home</button>
@@ -40,7 +46,8 @@ export default function Booking() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
         {/* Main Form Column */}
         <div className="lg:col-span-7 space-y-16">
-          <form id="booking-form" onSubmit={handleConfirm}>
+          {/* @ts-ignore: WebMCP declarative attributes are not in React.FormHTMLAttributes */}
+          <form id="booking-form" onSubmit={handleConfirm} toolname="complete_booking" tooldescription="Complete the reservation for the selected hotel by providing guest information.">
             {/* Step 1: Contact */}
             <section className="mb-16 bg-white shrink-0">
               <div className="flex items-center gap-4 mb-8">
@@ -50,15 +57,15 @@ export default function Booking() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12 pl-11">
                 <div className="relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">First Name</label>
-                  <input required defaultValue="Jane" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Julian" type="text" />
+                  <input name="firstName" required defaultValue="Jane" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Julian" type="text" />
                 </div>
                 <div className="relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">Last Name</label>
-                  <input required defaultValue="Doe" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Vane" type="text" />
+                  <input name="lastName" required defaultValue="Doe" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="e.g. Vane" type="text" />
                 </div>
                 <div className="md:col-span-2 relative group">
                   <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 block">Email Address</label>
-                  <input required defaultValue="jane.doe@example.com" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="j.vane@atelier.com" type="email" />
+                  <input name="email" required defaultValue="jane.doe@example.com" className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b border-outline-variant focus:border-tertiary-fixed-dim focus:ring-0 px-0 py-2 transition-all placeholder:text-surface-container-highest" placeholder="j.vane@atelier.com" type="email" />
                 </div>
               </div>
             </section>
@@ -72,7 +79,7 @@ export default function Booking() {
               <div className="pl-11">
                 <div className="bg-surface-container-low p-8 rounded-xl mb-10 border border-outline-variant/20">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
                       <span className="material-symbols-outlined text-primary text-3xl">credit_card</span>
                       <div>
                         <span className="font-headline font-semibold block text-primary text-lg">Visa ending in •••• XXXX</span>
@@ -80,7 +87,7 @@ export default function Booking() {
                       </div>
                     </div>
                     <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded text-xs font-bold uppercase tracking-wider self-start sm:self-auto">This is not a real card number</span>
-                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -111,7 +118,7 @@ export default function Booking() {
         <aside className="lg:col-span-5 sticky top-32">
           <div className="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(0,12,30,0.04)] overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary-fixed/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            
+
             <div className="flex gap-6 mb-8">
               <div className="w-24 h-32 rounded-lg overflow-hidden flex-shrink-0">
                 <img className="w-full h-full object-cover" src={hotel.imageSrc} />
@@ -122,15 +129,15 @@ export default function Booking() {
                   {hotel.city === 'tokyo' ? 'Tokyo, Japan' : hotel.city === 'paris' ? 'Paris, France' : 'New York, USA'}
                 </p>
                 <div className="flex items-center gap-1 mt-3">
-                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
+                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <span className="material-symbols-outlined text-[14px] text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-6 py-8 border-y border-outline-variant/10">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-secondary">Dates</span>
@@ -147,7 +154,7 @@ export default function Booking() {
                 </div>
               )}
             </div>
-            
+
             <div className="pt-8 space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-secondary">3 Nights</span>
