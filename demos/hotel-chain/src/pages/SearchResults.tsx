@@ -36,7 +36,7 @@ export default function SearchResults() {
             amenities: { type: 'array', items: { type: 'string' }, description: 'Required amenities' }
           }
         },
-        execute: async (input: any) => {
+        execute: (input: any) => {
           if (input.max_price !== undefined) setMaxPrice(input.max_price);
           if (input.amenities) setRequiredAmenities(input.amenities);
           return { success: true, message: 'Filtered results on page' };
