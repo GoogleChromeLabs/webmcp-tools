@@ -45,7 +45,10 @@ A curated list of awesome WebMCP demos.
 - [WebMCP Flow](https://webmcp-flow.vercel.app/) - An AI-controllable architecture diagram builder that lets an AI agent create nodes, connect them with edges, and apply auto-layout in real time via WebMCP tools.
   - [Code](https://github.com/ttimur-dev/webmcp-flow)
   - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
-  
+- [AgentPay x402 Payment Demo](https://googlechromelabs.github.io/webmcp-tools/demos/x402-payment/) - A WebMCP demo showing an AI agent making x402 micropayments through `navigator.modelContext`. Fetch a paid API endpoint; on HTTP 402 the AgentPay wallet signs a payment on Base and retries automatically. Uses both declarative and imperative tool registration.
+  - [Code](https://github.com/GoogleChromeLabs/webmcp-tools/tree/main/demos/x402-payment)
+  - **Example Prompt:** "Buy premium market data from this API using x402 payment"
+
 ## Contributing
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
