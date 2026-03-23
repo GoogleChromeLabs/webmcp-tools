@@ -11,11 +11,57 @@ export default function Booking() {
 
   const hotel = hotels.find(h => h.id === id) || hotels[0];
   const [success, setSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: 'Jane',
+    lastName: 'Doe',
+    email: 'jane.doe@example.com'
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    else if (formData.firstName.length < 2) newErrors.firstName = "First name must be at least 2 characters";
+    
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    else if (formData.lastName.length < 2) newErrors.lastName = "Last name must be at least 2 characters";
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) newErrors.email = "Email is required";
+    else if (!emailRegex.test(formData.email)) newErrors.email = "Invalid email format";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const isValid = validate();
     const nativeEvent = e.nativeEvent as any;
+
+    if (!isValid) {
+      if (nativeEvent.agentInvoked && nativeEvent.respondWith) {
+        // Report the first error to the agent
+        const firstError = Object.values(errors)[0] || "Invalid form data";
+        nativeEvent.respondWith({ success: false, error: firstError });
+      }
+      return;
+    }
+
     if (nativeEvent.agentInvoked && nativeEvent.respondWith) {
       nativeEvent.respondWith({ success: true, message: "Reservation confirmed successfully." });
     }
@@ -75,14 +121,18 @@ export default function Booking() {
                 <InputGroup
                   label="First Name"
                   name="firstName"
-                  defaultValue="Jane"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  error={errors.firstName}
                   placeholder="e.g. Julian"
                   toolparamdescription="The first name of the primary guest."
                 />
                 <InputGroup
                   label="Last Name"
                   name="lastName"
-                  defaultValue="Doe"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  error={errors.lastName}
                   placeholder="e.g. Vane"
                   toolparamdescription="The last name of the primary guest."
                 />
@@ -91,7 +141,9 @@ export default function Booking() {
                   label="Email Address"
                   name="email"
                   type="email"
-                  defaultValue="jane.doe@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={errors.email}
                   placeholder="j.vane@atelier.com"
                   toolparamdescription="The email address where the reservation confirmation will be sent."
                 />
@@ -220,21 +272,34 @@ function FormSection({ step, title, children }: { step: string; title: string; c
 
 interface InputGroupProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
+  error?: string;
   toolparamdescription?: string;
 }
 
-function InputGroup({ label, className, toolparamdescription, ...props }: InputGroupProps) {
+function InputGroup({ label, error, className, toolparamdescription, ...props }: InputGroupProps) {
   return (
     <div className={clsx("relative group", className)}>
-      <label className="text-[10px] uppercase tracking-[0.2em] text-outline font-bold mb-2 block group-focus-within:text-primary transition-colors">
+      <label className={clsx(
+        "text-[10px] uppercase tracking-[0.2em] font-bold mb-2 block transition-colors",
+        error ? "text-error" : "text-outline group-focus-within:text-primary"
+      )}>
         {label}
       </label>
       <input
-        required
         toolparamdescription={toolparamdescription}
-        className="w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 px-0 py-3 transition-all placeholder:text-surface-container-highest font-medium text-primary text-lg"
+        className={clsx(
+          "w-full bg-transparent border-t-0 border-l-0 border-r-0 border-b-2 transition-all placeholder:text-surface-container-highest font-medium text-lg",
+          error 
+            ? "border-error text-error focus:border-error focus:ring-0" 
+            : "border-outline-variant/30 text-primary focus:border-primary focus:ring-0"
+        )}
         {...props}
       />
+      {error && (
+        <span className="absolute -bottom-6 left-0 text-[11px] font-bold text-error animate-in fade-in slide-in-from-top-1 duration-300">
+          {error}
+        </span>
+      )}
     </div >
   );
 }
