@@ -8,9 +8,7 @@ export const AVAILABLE_AMENITIES = [
   'bar',
   'laundry',
   'late checkout'
-] as const;
-
-export type AmenityKey = typeof AVAILABLE_AMENITIES[number];
+] as string[];
 
 export const CITY_LABELS: Record<string, string> = {
   tokyo: 'Shibuya, Tokyo',

@@ -1,12 +1,12 @@
+import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { useHotelFilter } from '../hooks/useHotelFilter';
-import { useWebMCP } from '../hooks/useWebMCP';
-import { HotelCard } from '../components/ui/HotelCard';
-import { PageHeader } from '../components/ui/PageHeader';
 import { FilterBadge } from '../components/ui/AmenityBadge';
 import { Button } from '../components/ui/Button';
+import { HotelCard } from '../components/ui/HotelCard';
+import { PageHeader } from '../components/ui/PageHeader';
 import { AVAILABLE_AMENITIES, CITY_LABELS, Z_INDEX } from '../constants';
+import { useHotelFilter } from '../hooks/useHotelFilter';
+import { useWebMCP } from '../hooks/useWebMCP';
 
 export default function SearchResults() {
   const location = useLocation();
@@ -34,7 +34,7 @@ export default function SearchResults() {
       type: 'object',
       properties: {
         max_price: { type: 'number', description: 'Maximum price per night' },
-        amenities: { type: 'array', items: { type: 'string' }, description: 'Required amenities' }
+        amenities: { type: 'array', items: { type: 'string', enum: AVAILABLE_AMENITIES }, description: 'Required amenities' }
       }
     },
     execute: (input: any) => {

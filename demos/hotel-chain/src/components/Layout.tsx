@@ -1,9 +1,9 @@
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { clsx } from 'clsx';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { AVAILABLE_AMENITIES, Z_INDEX } from '../constants';
 import { hotels } from '../data/hotels';
 import { useWebMCP } from '../hooks/useWebMCP';
-import { Z_INDEX } from '../constants';
 import { Button } from './ui/Button';
-import { clsx } from 'clsx';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function Layout() {
         type: 'object',
         properties: {
           hotel_id: { type: 'string', description: 'The ID of the hotel' },
-          amenity: { type: 'string', description: 'The amenity or policy to look up (e.g. "late checkout")' }
+          amenity: { type: 'string', enum: AVAILABLE_AMENITIES, description: 'The amenity or policy to look up (e.g. "late checkout")' }
         },
         required: ['hotel_id', 'amenity']
       },
