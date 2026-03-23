@@ -33,7 +33,7 @@ export default function SearchResults() {
 
   // Register WebMCP Tool
   useWebMCP([{
-    name: 'search_hotels',
+    name: 'filter_search_results',
     description: 'Filter the search results by max price and required amenities',
     inputSchema: {
       type: 'object',
