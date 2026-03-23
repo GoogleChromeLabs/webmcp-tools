@@ -3,11 +3,23 @@ window.realEstateApp = {
     markers: [],
     infoWindow: null,
     debounceTimer: null,
+    currentCity: "Seattle",
 
     initMap: function() {
-        // Seattle coordinates
-        const seattle = { lat: 47.6062, lng: -122.3321 };
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLocation = (urlParams.get('location') || '').toLowerCase();
         
+        let centerCoords = { lat: 47.6062, lng: -122.3321 }; // Seattle
+        this.currentCity = "Seattle";
+        
+        if (urlLocation.includes('austin')) {
+            centerCoords = { lat: 30.2672, lng: -97.7431 };
+            this.currentCity = "Austin";
+        } else if (urlLocation.includes('miami')) {
+            centerCoords = { lat: 25.7617, lng: -80.1918 };
+            this.currentCity = "Miami";
+        }
+
         // Ensure google maps is loaded
         if (typeof google === 'undefined' || !google.maps) {
             console.error("Google Maps API failed to load or is missing key.");
@@ -16,7 +28,7 @@ window.realEstateApp = {
 
         this.map = new google.maps.Map(document.getElementById('map'), {
             zoom: 12,
-            center: seattle,
+            center: centerCoords,
             styles: [],
             mapTypeControl: false,
             streetViewControl: false,
@@ -269,6 +281,9 @@ window.realEstateApp = {
 
         // Filter data array
         const filteredProperties = mockProperties.filter(p => {
+            // City Filter
+            if (this.currentCity && p.city !== this.currentCity) return false;
+            
             // Type
             if (types.length > 0 && !types.includes(p.type)) return false;
             // Price

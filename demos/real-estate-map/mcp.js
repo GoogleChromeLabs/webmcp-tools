@@ -2,15 +2,19 @@
 const modelContext = navigator.modelContext || navigator.modelContextTesting;
 if (modelContext) {
     modelContext.registerTool({
-        name: "filter_properties",
-        description: "Filters the real estate properties displayed on the map and list based on criteria like price, property type, area, bedrooms, energy class, and specific features.",
+        name: "apply_smart_filters",
+        description: "Filters the real estate properties displayed on the map and list based on criteria like location, price, property type, area, bedrooms, and specific features.",
         inputSchema: {
             type: "object",
             properties: {
+                location: {
+                    type: "string",
+                    description: "The city to search in (e.g., 'Seattle', 'Austin', 'Miami')."
+                },
                 types: {
                     type: "array",
                     items: { type: "string" },
-                    description: "Property types to include (e.g., 'Apartment', 'House', 'Studio')."
+                    description: "Property types to include (e.g., 'Apartment', 'House', 'Studio', 'Condominium', 'Townhouse')."
                 },
                 min_price: {
                     type: "number",
@@ -40,6 +44,21 @@ if (modelContext) {
         },
         execute: (params) => {
             try {
+                // Update Location
+                if (params.location) {
+                    const l = params.location.toLowerCase();
+                    if (l.includes('austin')) window.realEstateApp.currentCity = 'Austin';
+                    else if (l.includes('miami')) window.realEstateApp.currentCity = 'Miami';
+                    else window.realEstateApp.currentCity = 'Seattle';
+                    
+                    let centerCoords = { lat: 47.6062, lng: -122.3321 };
+                    if (window.realEstateApp.currentCity === 'Austin') centerCoords = { lat: 30.2672, lng: -97.7431 };
+                    else if (window.realEstateApp.currentCity === 'Miami') centerCoords = { lat: 25.7617, lng: -80.1918 };
+                    
+                    window.realEstateApp.map.panTo(centerCoords);
+                    window.realEstateApp.map.setZoom(12);
+                }
+                
                 // Update Types
                 if (params.types) {
                     document.querySelectorAll('.type-filter').forEach(el => {

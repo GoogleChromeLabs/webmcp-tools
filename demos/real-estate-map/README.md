@@ -12,7 +12,7 @@ Unlike declarative forms, this demo uses the `navigator.modelContext.registerToo
 
 ```javascript
 navigator.modelContext.registerTool({
-  name: 'filter_properties',
+  name: 'apply_smart_filters',
   description: 'Apply filters to the property listings (e.g., min price, max price, min area, property type, bedrooms, specific features)',
   inputSchema: {
     // ... JSON schema definition
@@ -47,5 +47,5 @@ When an AI agent is active, it can:
 5. Use the search bar to search for a location (e.g., "Seattle").
 6. The map will pan to the location and display properties.
 7. Use the filters manually to filter the properties.
-8. Via WebMCP (e.g. the extension), you can also filter the properties by using the `filter_properties` tool. Prompt to try: "Search for flats with at least 2 bedrooms and a balcony, max price 9000"
+8. Via WebMCP (e.g. the extension), you can also filter the properties by using the `apply_smart_filters` tool. Prompt to try: "Search for flats with at least 2 bedrooms and a balcony, max price 9000"
 9. The UI updates dynamically and seamlessly syncs with based on tool calls.
