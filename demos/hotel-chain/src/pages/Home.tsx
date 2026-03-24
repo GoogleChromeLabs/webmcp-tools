@@ -8,13 +8,18 @@ import { useState, useMemo } from 'react';
 import { Button } from '../components/ui/Button';
 import { Z_INDEX } from '../constants';
 import { clsx } from 'clsx';
+import { hotels } from '../data/hotels';
 
 export default function Home() {
   const navigate = useNavigate();
   const [locationValue, setLocationValue] = useState('');
   const [isLocationFocused, setIsLocationFocused] = useState(false);
 
-  const supportedLocations = useMemo(() => ['New York, USA', 'Paris, France', 'Shibuya, Tokyo'], []);
+  const supportedLocations = useMemo(() => {
+    const cities = ['New York, USA', 'Paris, France', 'Shibuya, Tokyo'];
+    const hotelNames = hotels.map(h => h.name);
+    return [...cities, ...hotelNames];
+  }, []);
   
   const filteredLocations = useMemo(() => 
     locationValue
@@ -126,14 +131,14 @@ export default function Home() {
               title="Tokyo Metropolitan"
               subtitle="Urban serenity in the heart of Shibuya"
               imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDZRDBHhrefno74H4tFKMIs6cNckJqmZjWZkr4QMLR_5ypIHKILmGmktogDbf74MYt_-CFCnSZkqwpgJHOtmSjYwCFikxKTtLpHUl0C8RQt2UGkbaMfK5FvKCm1YykYOgIBw8z0XV5egI-P9gyYOWyj-7SV3OZL2zfSVV1TOZmFU8wKC3WUURBBSK3V1ulfpgMx-_lpONv96bEAN2N1uwGxtg1P1L3D5JCv-27zw_QKOOX-sbqkrByxg_FFBKSvXdgrRFE6WPspn6k"
-              onClick={() => navigate('/search')}
+              onClick={() => navigate('/search?q=tokyo')}
             />
             <DestinationCard 
               className="md:col-span-4 aspect-square md:aspect-auto"
               title="Kyoto Retreat"
               subtitle="Zen meeting modern comfort"
               imgSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuB8Ji9LJrOz_z1-nsuJIlW2etl1TjlBCHgSvepn7Zaup1J55-1ZppBWldvPETk2t3hP3zR2_4pXwSGUsO1N3F3ppa7sL6agSqZbr0uHlqTQuqLILDcJLFyNdLIbOblLKG7XVG08bK_HUjQWFV_0ixFJJ4pn6-gQkW_1ZztGmmbwNQasjM3mZ-PfGit3UruO0C0elnedtrHosM28ogB8nC1PJ2XQNl0aF5GOXA3fucyMB9nDErLDKor6SUGLqTGLZPDop-qUWpLVMV8"
-              onClick={() => navigate('/search')}
+              onClick={() => navigate('/search?q=all')}
             />
           </div>
         </div>

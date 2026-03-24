@@ -37,12 +37,17 @@ export function useHotelFilter(locationQuery: string | null) {
   };
 
   const filteredHotels = useMemo(() => {
+    const q = (locationQuery || '').toLowerCase();
     const targetCity = getTargetCity(locationQuery);
 
     return hotels.filter(hotel => {
-      // Location match
-      if (targetCity === null) return false;
-      if (targetCity !== 'all' && hotel.city !== targetCity) return false;
+      // Location/City match
+      const cityMatch = targetCity === 'all' || (targetCity !== null && hotel.city === targetCity);
+      
+      // Name or ID match (fallback for specific hotel search)
+      const nameMatch = hotel.name.toLowerCase().includes(q) || hotel.id.toLowerCase() === q;
+
+      if (!cityMatch && !nameMatch) return false;
 
       // Price match
       if (filters.maxPrice !== null && hotel.price > filters.maxPrice) return false;
