@@ -20,8 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: 'demos/react-flightsearch/package-lock.json'
+          cache: "npm"
+          cache-dependency-path: "demos/react-flightsearch/package-lock.json"
 
       - name: Build Demos
         run: |
@@ -47,10 +47,15 @@ jobs:
           npm run build
           cd ..
 
+          cd analytics-dashboard
+          npm ci
+          npm run build
+          cd ..
+
       - name: Assemble Public Folder
         run: |
           mkdir -p deployment-root/demos
-          
+
           cp -r demos/french-bistro deployment-root/demos/french-bistro
           cp -r demos/react-flightsearch/dist deployment-root/demos/react-flightsearch
           cp -r demos/pizza-maker deployment-root/demos/pizza-maker
@@ -60,6 +65,7 @@ jobs:
           cp -r demos/sport-shop-angular/dist/sport-shop-angular/browser deployment-root/demos/sport-shop-angular
           cp -r demos/order-tracking deployment-root/demos/order-tracking
           cp -r demos/hotel-chain/dist deployment-root/demos/hotel-chain
+          cp -r demos/analytics-dashboard/dist deployment-root/demos/analytics-dashboard
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -67,7 +73,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './deployment-root'
+          path: "./deployment-root"
 
       - name: Deploy to GitHub Pages
         id: deployment
