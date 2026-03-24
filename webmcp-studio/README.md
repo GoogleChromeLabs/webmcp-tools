@@ -83,7 +83,8 @@ Alternatively, follow the
 [MCP guide](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md#how-to-set-up-your-mcp-server)
 and use the standard config from above.
 
-1.  **Edit the `prompt.config`** with your website URL, Category, User Persona,
+1.  **Copy the [prompt.config](prompt.config)** in your project folder and
+    update its content with your website URL, Category, User Persona,
     Instructions etc.
 2.  **Copy or reference the prompt from [starter-prompt.md](starter-prompt.md) and paste it into
     Gemini CLI.**
@@ -168,7 +169,8 @@ platform.
 }
 ```
 
-1.  **Edit the `prompt.config`** with your website URL, Category, User Persona,
+1.  **Copy the [prompt.config](prompt.config)** in your project folder and
+    update its content with your website URL, Category, User Persona,
     Instructions etc.
 2.  **Copy the prompt from [starter-prompt.md](starter-prompt.md) and paste it into
     [Antigravity](https://antigravity.google/) agent**
@@ -210,8 +212,8 @@ platform.
 
 The prompt configuration file is a critical part of guiding the AI agent. It
 should contain key metadata about the website you want the agent to analyze.
-Based on the project structure, here is a suggested *prompt.config* file
-content:
+Based on the project structure, here is a suggested [prompt.config](prompt.config)
+file content:
 
 Key Fields Explained:
 
