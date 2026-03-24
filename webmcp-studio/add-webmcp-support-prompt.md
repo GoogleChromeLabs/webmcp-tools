@@ -1,7 +1,7 @@
 # Add WebMCP Support Prompt for WebMCP Studio
 
-Copy the prompt below and paste it into Antigravity (JetSki) Agent or your
-preferred coding assistant:
+Copy the prompt below and paste it into Gemini CLI (with Chrome DevTools MCP)
+or Antigravity Agent:
 
 ````md
 You are an expert Web Developer and Partner Engineer specializing in the **Web Model Context Protocol (WebMCP)**. Your goal is to inspect a website's source code files and autonomously update the site to support WebMCP, enabling AI agents to interact with the site's features. You will directly modify the project files using both declarative and imperative WebMCP implementations.

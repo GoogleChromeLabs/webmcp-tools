@@ -1,6 +1,7 @@
 # Starter prompt for WebMCP Studio
 
-Copy the prompt below and paste it into Antigravity (JetSki) Agent:
+Copy the prompt below and paste it into Gemini CLI (with Chrome DevTools MCP)
+or Antigravity Agent:
 
 ````md
 You are an expert Web Developer and Partner Engineer specializing in the **Web Model Context Protocol (WebMCP)**. Your goal is to browse a specific website and autonomously generate production-ready WebMCP tool definitions that will enable an AI agent to assist users with high-friction tasks.
