@@ -42,6 +42,11 @@ jobs:
           npm run build -- --base-href /webmcp-tools/demos/sport-shop-angular/
           cd ..
 
+          cd hotel-chain
+          npm ci
+          npm run build
+          cd ..
+
       - name: Assemble Public Folder
         run: |
           mkdir -p deployment-root/demos
@@ -54,6 +59,7 @@ jobs:
           cp -r demos/ticket-booking deployment-root/demos/ticket-booking
           cp -r demos/sport-shop-angular/dist/sport-shop-angular/browser deployment-root/demos/sport-shop-angular
           cp -r demos/order-tracking deployment-root/demos/order-tracking
+          cp -r demos/hotel-chain/dist deployment-root/demos/hotel-chain
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
