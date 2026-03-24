@@ -57,15 +57,18 @@ CHART (required):
           },
           groupBy: {
             type: "string",
-            description: "date | status | method | path | country | user_agent",
+            enum: ["date", "status", "method", "path", "country", "user_agent"],
+            description: "Dimension to group results by.",
           },
           measure: {
             type: "string",
-            description: "count | bytes | unique_ips",
+            enum: ["count", "bytes", "unique_ips"],
+            description: "Metric to compute: count (requests), bytes (bandwidth), or unique_ips.",
           },
           chartType: {
             type: "string",
-            description: "line | bar_vertical | bar_horizontal | table",
+            enum: ["line", "bar_vertical", "bar_horizontal", "table"],
+            description: "Chart type. Use line for trends over time (best with groupBy=date). Use table for raw rows (groupBy/measure ignored).",
           },
         },
         required: ["groupBy", "measure", "chartType"],
