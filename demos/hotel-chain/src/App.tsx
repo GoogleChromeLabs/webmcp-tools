@@ -12,9 +12,9 @@ import Booking from './pages/Booking';
 
 const getBasename = () => {
   const path = window.location.pathname;
-  // Common deep routes in this app
-  const deepRoutes = ['/search', '/hotel', '/book'];
   
+  // We use trailing slashes for ID-based routes to avoid prefix conflicts
+  const deepRoutes = ['/search', '/hotel/', '/book/'];
   for (const route of deepRoutes) {
     const index = path.indexOf(route);
     if (index !== -1) {
@@ -22,7 +22,10 @@ const getBasename = () => {
     }
   }
 
-  return path.endsWith('/') ? path.slice(0, -1) : path;
+  if (path.length > 1 && path.endsWith("/")) {
+    return path.slice(0, -1);
+  }
+  return path;
 };
 
 function App() {
