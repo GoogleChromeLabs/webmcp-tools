@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Dream Home</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', // blue-600
+                        secondary: '#475569', // slate-600
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-bg {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.4)), url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-800 bg-slate-50 antialiased h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="absolute top-0 w-full p-6 z-20 flex items-center justify-between pointer-events-none">
+        <div class="flex items-center gap-2 text-white font-bold text-2xl">
+            <span class="material-symbols-outlined text-3xl drop-shadow-md">apartment</span>
+            <span class="drop-shadow-md">UrbanEstates</span>
+        </div>
+        <nav class="hidden md:flex items-center gap-6 font-semibold text-white/90 drop-shadow-md pointer-events-auto">
+            <a href="#" class="hover:text-white transition-colors">Buy</a>
+            <a href="#" class="hover:text-white transition-colors">Rent</a>
+            <a href="#" class="hover:text-white transition-colors">Sell</a>
+            <a href="#" class="px-5 py-2 rounded-full bg-primary hover:bg-white hover:text-primary transition-colors duration-300">Sign In</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="flex-1 hero-bg flex items-center justify-center p-6 mt-0">
+        <div class="max-w-3xl w-full text-center fade-up">
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 drop-shadow-lg leading-tight">
+                Find your perfect home
+            </h1>
+            <p class="text-lg md:text-xl text-slate-200 mb-10 drop-shadow-md font-medium">
+                Search through our exclusive collection of luxury apartments, charming studios, and private houses.
+            </p>
+
+            <!-- Container for search UI so we can hide it if key is missing -->
+            <div id="search-container" class="w-full transition-opacity duration-300">
+                <!-- Declarative WebMCP Tool Form -->
+                <form id="search-form" 
+                  class="bg-white p-2 rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-2 max-w-2xl mx-auto w-full relative"
+                  toolname="search_location" 
+                  tooldescription="Searches for real estate properties in a given city or neighborhood by navigating to the map view." 
+                  toolautosubmit 
+                  action="map.html" 
+                  method="GET">
+                
+                <span class="material-symbols-outlined text-slate-400 absolute left-6 md:static md:pl-4 text-2xl pointer-events-none">search</span>
+                
+                <input type="text" 
+                       name="location" 
+                       id="location-input"
+                       placeholder="Enter a city like 'Seattle'" 
+                       class="flex-1 w-full bg-transparent border-none focus:ring-0 outline-none px-12 md:px-2 py-4 text-slate-700 text-lg placeholder-slate-400 font-medium"
+                       autofocus
+                       required
+                       toolparamdescription="The city name, neighborhood, or postal code to search in (e.g., 'Seattle').">
+                
+                <button type="submit" class="w-full md:w-auto bg-primary hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full transition-colors flex items-center justify-center gap-2">
+                    <span>Search</span>
+                    <span class="material-symbols-outlined text-sm hidden md:inline">arrow_forward</span>
+                </button>
+            </form>
+            
+            <div class="mt-8 flex items-center justify-center gap-4 text-sm font-medium text-white/90 drop-shadow-md flex-wrap">
+                <span>Quick Search:</span>
+                <a href="map.html?location=Seattle" class="quick-link bg-white/20 hover:bg-white/40 px-5 py-2 rounded-full backdrop-blur-sm border border-white/40 transition-all font-bold text-white shadow-sm ring-1 ring-white/20">Seattle</a>
+                <a href="map.html?location=Austin" class="quick-link bg-white/20 hover:bg-white/40 px-5 py-2 rounded-full backdrop-blur-sm border border-white/40 transition-all font-bold text-white shadow-sm ring-1 ring-white/20">Austin</a>
+                <a href="map.html?location=Miami" class="quick-link bg-white/20 hover:bg-white/40 px-5 py-2 rounded-full backdrop-blur-sm border border-white/40 transition-all font-bold text-white shadow-sm ring-1 ring-white/20">Miami</a>
+            </div>
+            </div> <!-- End search-container -->
+
+            <div id="api-key-error" class="mt-8 flex flex-col items-center bg-white/10 p-6 rounded-xl shadow-lg border border-white/20 max-w-sm mx-auto text-center hidden backdrop-blur-md">
+                <span class="material-symbols-outlined text-3xl text-red-500 mb-2">error</span>
+                <h3 class="font-bold text-white mb-2">API Key Required</h3>
+                <p class="text-sm text-white/80 mb-4">To use the app, please provide your Google Maps API key as an URL parameter (<code>?key=YOUR_API_KEY</code>).</p>
+                <p class="text-[10px] text-white/50 mt-3">For production, restrict your API key to your specific domain via the Google Cloud Console.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Location Modal -->
+    <div id="location-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300 text-center relative" id="location-modal-content">
+            <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors" onclick="document.getElementById('location-modal').classList.remove('opacity-100'); setTimeout(()=>document.getElementById('location-modal').classList.add('hidden'), 300)">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <span class="material-symbols-outlined text-5xl text-accent mb-4">location_off</span>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Location Not Available</h2>
+            <p class="text-slate-600 mb-6">We're not in <span id="modal-location-name" class="font-semibold text-slate-800">this city</span> yet. Our current coverage includes Seattle, Austin, and Miami.</p>
+            <div class="bg-slate-50 p-4 rounded-xl mb-6">
+                <p class="text-sm font-semibold text-slate-700 mb-3">Try a supported city instead:</p>
+                <a href="map.html?location=Seattle" class="quick-link inline-flex items-center gap-1 bg-primary text-white px-6 py-2.5 rounded-full font-bold hover:bg-blue-700 transition-colors shadow-md">
+                    Explore Seattle <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
+            <button type="button" onclick="document.getElementById('location-modal').classList.remove('opacity-100'); setTimeout(()=>document.getElementById('location-modal').classList.add('hidden'), 300)" class="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const key = urlParams.get('key');
+            
+            const searchContainer = document.getElementById('search-container');
+            const errorDiv = document.getElementById('api-key-error');
+
+            if (!key) {
+                if (searchContainer) searchContainer.classList.add('hidden');
+                if (errorDiv) errorDiv.classList.remove('hidden');
+            } else {
+                const form = document.getElementById('search-form');
+                if (form) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'key';
+                    hiddenInput.value = key;
+                    form.appendChild(hiddenInput);
+
+                    form.addEventListener('submit', (e) => {
+                        const locInput = document.getElementById('location-input');
+                        if (locInput && locInput.value) {
+                            const l = locInput.value.toLowerCase();
+                            if (!l.includes('seattle') && !l.includes('austin') && !l.includes('miami')) {
+                                e.preventDefault(); // Stop navigation
+                                
+                                const modal = document.getElementById('location-modal');
+                                const locName = document.getElementById('modal-location-name');
+                                if (locName) locName.innerText = locInput.value;
+                                
+                                if (modal) {
+                                    modal.classList.remove('hidden');
+                                    // Trigger animations
+                                    setTimeout(() => {
+                                        modal.classList.add('opacity-100');
+                                        const content = document.getElementById('location-modal-content');
+                                        if (content) content.classList.remove('scale-95');
+                                    }, 10);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                const quickLinks = document.querySelectorAll('.quick-link');
+                quickLinks.forEach(link => {
+                    const url = new URL(link.href);
+                    url.searchParams.set('key', key);
+                    link.href = url.toString();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

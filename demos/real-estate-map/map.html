@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seattle Real Estate - Map Search</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', // blue-600 (Fresher blue)
+                        secondary: '#475569', // slate-600
+                        accent: '#f97316', // orange-500
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- noUiSlider CSS & JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+    <!-- Google Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom map info window adjustments */
+        .gm-style .gm-style-iw-c { padding: 0 !important; border-radius: 0.75rem !important; }
+        .gm-style .gm-style-iw-d { overflow: hidden !important; }
+        
+        /* Smooth fade up for listings */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .listing-card { animation: fadeUp 0.3s ease-out forwards; }
+        
+        /* Scrollbar customization */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* noUiSlider Customization */
+        .noUi-target { background: #e2e8f0; border: none; box-shadow: none; height: 6px; }
+        .noUi-connect { background: #2563eb; }
+        .noUi-handle { width: 18px !important; height: 18px !important; right: -9px !important; top: -6px !important; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 2px solid #fff; background: #2563eb; cursor: pointer; }
+        .noUi-handle::before, .noUi-handle::after { display: none; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen font-sans text-slate-800 bg-slate-50 overflow-hidden">
+
+    <!-- Sidebar: Filters & List -->
+    <aside class="w-full md:w-[400px] lg:w-[450px] bg-white border-r border-slate-200 h-full flex flex-col z-10 shrink-0">
+        <!-- Header -->
+        <header class="p-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-20">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center text-slate-400 hover:text-primary transition-colors" title="Back to Search">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <div class="flex items-center gap-2 text-primary font-bold text-xl">
+                    <span class="material-symbols-outlined text-2xl">apartment</span>
+                    <span>UrbanEstates</span>
+                </div>
+            </div>
+            <button id="mobile-map-toggle" class="md:hidden bg-slate-100 p-2 rounded-full text-slate-700 hover:bg-slate-200">
+                <span class="material-symbols-outlined">map</span>
+            </button>
+        </header>
+
+        <!-- Filters Section -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50 overflow-y-auto shrink-0 max-h-[50vh]">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-semibold text-slate-700">Filters</h2>
+                <button type="button" onclick="realEstateApp.clearFilters()" class="text-xs font-semibold hover:text-primary text-slate-500 transition-colors">Clear all</button>
+            </div>
+            
+            <form id="filter-form" class="space-y-4 text-sm" onchange="realEstateApp.applyFilters()">
+                <!-- Property Type -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-2">Property Type</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="flex-1 cursor-pointer min-w-[30%]">
+                            <input type="checkbox" name="type" value="Apartment" class="hidden peer type-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-full hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">Apartment</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer min-w-[30%]">
+                            <input type="checkbox" name="type" value="House" class="hidden peer type-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-full hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">House</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer min-w-[30%]">
+                            <input type="checkbox" name="type" value="Studio" class="hidden peer type-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-full hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">Studio</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer min-w-[30%]">
+                            <input type="checkbox" name="type" value="Condominium" class="hidden peer type-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 px-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-full hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">Condo</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer min-w-[30%]">
+                            <input type="checkbox" name="type" value="Townhouse" class="hidden peer type-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 px-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-full hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">Townhome</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Price & Area -->
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="block text-xs font-medium text-slate-500">Price Range: <span id="price-display-val" class="font-bold text-slate-700">$0 - Any</span></label>
+                        </div>
+                        <div class="px-2">
+                            <div id="price-slider"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Min Area (sq ft)</label>
+                        <input type="number" id="filter-minArea" placeholder="e.g. 500" class="w-full border border-slate-300 rounded px-2 py-1.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow cursor-pointer" oninput="realEstateApp.debounceApplyFilters()">
+                    </div>
+                </div>
+
+                <!-- Bedrooms -->
+                <div>
+                    <label class="block text-xs font-medium text-slate-500 mb-2">Bedrooms</label>
+                    <div class="flex gap-2">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="minBedrooms" value="0" class="peer hidden bed-filter" checked onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">Any</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="minBedrooms" value="1" class="peer hidden bed-filter" onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">1+</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="minBedrooms" value="2" class="peer hidden bed-filter" onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">2+</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="minBedrooms" value="3" class="peer hidden bed-filter" onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">3+</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="minBedrooms" value="4" class="peer hidden bed-filter" onchange="realEstateApp.applyFilters()">
+                            <div class="text-center py-1 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded hover:border-primary peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all">4+</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Filters -->
+                <div id="advanced-filters" class="space-y-6 pt-4 border-t border-slate-200 mt-4">
+                    <!-- Interior -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Interior</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Hardwood Floors" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Hardwood Floors</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fireplace" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fireplace</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="High Ceilings" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">High Ceilings</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Walk-in Closets" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Walk-in Closets</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Smart Home System" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Smart Home System</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="In-unit Washer/Dryer" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">In-unit W/D</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Dishwasher" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Dishwasher</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Finished Basement" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Finished Basement</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Home Office" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Home Office</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Newly Renovated" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Newly Renovated</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Floor-to-Ceiling Windows" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">F-C Windows</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Furnished" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Furnished</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Community -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Community</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Elevator" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Elevator</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Doorman" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Doorman</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fitness Center" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fitness Center</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Swimming Pool" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Swimming Pool</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Spa & Sauna" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Spa & Sauna</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Rooftop Deck" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Rooftop Deck</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Concierge Service" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Concierge Service</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Co-working Space" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Co-working Space</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Secure Package Room" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Package Room</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Pet Friendly" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Pet Friendly</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Bike Storage" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Bike Storage</span></label>
+                        </div>
+                    </div>
+
+                    <!-- Exterior / Practical -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Exterior & Practical</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Balcony" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Balcony</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Private Terrace" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Private Terrace</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Fenced Yard" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Fenced Yard</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="City View" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">City View</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Water View" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Water View</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Central AC" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Central AC</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Solar Panels" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Solar Panels</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="EV Charging Station" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">EV Charging</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Garage Parking" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Garage Parking</span></label>
+                            <label class="flex items-center gap-2 cursor-pointer group"><input type="checkbox" value="Wheelchair Accessible" class="feature-filter w-3.5 h-3.5 text-primary bg-slate-100 border-slate-300 rounded focus:ring-primary" onchange="realEstateApp.applyFilters()"><span class="text-xs text-slate-600 group-hover:text-primary transition-colors">Wheelchair Access</span></label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Property List -->
+        <div class="p-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+            <h3 class="font-bold text-lg" id="results-count">15 Properties</h3>
+            <div class="text-sm border border-slate-200 rounded px-2 py-1 flex items-center gap-1 cursor-pointer hover:bg-slate-50">
+                <span>Map view</span>
+                <span class="material-symbols-outlined text-sm">map</span>
+            </div>
+        </div>
+        <div id="listings-container" class="flex-1 overflow-y-auto p-4 space-y-5 bg-slate-50 pb-24 md:pb-4">
+            <!-- Listings will be injected here via JS -->
+        </div>
+    </aside>
+
+    <!-- Main Content: Map -->
+    <main class="flex-1 h-full relative z-0 md:block hidden" id="map-container">
+        <!-- Close map on mobile -->
+        <button id="close-map-btn" class="absolute top-4 left-4 z-10 bg-white p-2 rounded shadow-md md:hidden text-slate-700 flex items-center gap-1" onclick="document.getElementById('map-container').classList.add('hidden')">
+            <span class="material-symbols-outlined">arrow_back</span> Back to list
+        </button>
+        <div id="map" class="w-full h-full bg-slate-200 relative">
+            <!-- Google Maps will attach here -->
+            <div id="map-placeholder" class="absolute inset-0 flex items-center justify-center flex-col text-slate-500 bg-slate-200 z-10">
+                <span class="material-symbols-outlined text-4xl mb-2 animate-pulse" id="map-loading-icon">location_on</span>
+                <p id="map-loading-text">Loading interactive map...</p>
+                
+                <div id="api-key-error" class="mt-4 flex flex-col items-center hidden bg-white p-6 rounded-xl shadow-lg border border-slate-200 max-w-sm text-center">
+                    <span class="material-symbols-outlined text-3xl text-red-500 mb-2">error</span>
+                    <h3 class="font-bold text-slate-800 mb-2">API Key Required</h3>
+                    <p class="text-sm text-slate-600 mb-4">To view the map, please provide your Google Maps API key as an URL parameter (<code>?key=YOUR_API_KEY</code>).</p>
+                    <p class="text-[10px] text-slate-400 mt-3 mt-4">For production, restrict your API key to your specific domain (like GitHub Pages) via the Google Cloud Console.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Tooltip / Alert -->
+    <div id="alert-banner" class="fixed top-4 right-4 bg-slate-800 text-white px-4 py-3 rounded shadow-xl flex items-center gap-3 transform translate-y-[-150%] transition-transform duration-300 z-50">
+        <span class="material-symbols-outlined">info</span>
+        <span id="alert-text" class="text-sm font-medium">Action complete</span>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+    <script src="mcp.js"></script>
+    <!-- Dynamic Google Maps loader -->
+    <script>
+        // Define the global callback for Google Maps
+        function initMap() {
+            if (window.realEstateApp) {
+                window.realEstateApp.initMap();
+            }
+        }
+
+        function loadGoogleMaps(apiKey) {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = function() {
+                alert("Failed to load Google Maps. Please check your API key.");
+                const url = new URL(window.location);
+                url.searchParams.delete('key');
+                window.history.replaceState({}, '', url);
+                window.location.reload();
+            };
+            document.head.appendChild(script);
+        }
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const savedGoogleMapsApiKey = urlParams.get('key');
+            
+            // For convenience, if the user explicitly provided it in the URL, allow it.
+            if (savedGoogleMapsApiKey) {
+                document.querySelectorAll('a').forEach(a => {
+                    const href = a.getAttribute('href');
+                    if (href === 'index.html' || href === './index.html' || href === '/') {
+                        a.href = `index.html?key=${savedGoogleMapsApiKey}`;
+                    }
+                });
+                loadGoogleMaps(savedGoogleMapsApiKey);
+            } else {
+                // Show error message if no key provided
+                setTimeout(() => {
+                    const errorDiv = document.getElementById('api-key-error');
+                    if (errorDiv) errorDiv.classList.remove('hidden');
+                    const loadingText = document.getElementById('map-loading-text');
+                    if (loadingText) loadingText.classList.add('hidden');
+                    const icon = document.getElementById('map-loading-icon');
+                    if (icon) icon.classList.remove('animate-pulse');
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
