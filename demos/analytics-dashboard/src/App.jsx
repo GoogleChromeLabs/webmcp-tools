@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import {
   VALID_STATUSES,
   VALID_METHODS,
@@ -153,15 +154,17 @@ export default function WebMCPDashboard() {
           ],
         };
 
-      setQuery({
-        statusFilter: status || "All",
-        methodFilter: method || "All",
-        pathSearch: ps || "",
-        dateFrom: df || "",
-        dateTo: dt || "",
-        groupBy: gb,
-        measure: ms,
-        chartType: ct,
+      flushSync(() => {
+        setQuery({
+          statusFilter: status || "All",
+          methodFilter: method || "All",
+          pathSearch: ps || "",
+          dateFrom: df || "",
+          dateTo: dt || "",
+          groupBy: gb,
+          measure: ms,
+          chartType: ct,
+        });
       });
 
       const filters = [
@@ -175,10 +178,6 @@ export default function WebMCPDashboard() {
         ? ` | filters: ${filters.join(", ")}`
         : "";
       const vizDesc = ct === "table" ? "table" : `${ms} by ${gb} as ${ct}`;
-
-      // Wait for React to render the state update to the DOM
-      // so the agent can see the updated UI before the execution completes
-      await new Promise((resolve) => setTimeout(resolve, 0));
 
       return {
         content: [
