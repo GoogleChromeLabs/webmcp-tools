@@ -53,10 +53,10 @@ declare global {
   /** The model context API exposed on `navigator.modelContext`. */
   interface ModelContext {
     /** Adds a single tool to the current context. */
-    registerTool(tool: ModelContextTool): void;
+    registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
 
-    /** Removes a tool by name. */
-    unregisterTool(name: string): void;
+    /** Removes a tool by name. (Deprecated) */
+    unregisterTool?(name: string): void;
   }
 
   interface Navigator {

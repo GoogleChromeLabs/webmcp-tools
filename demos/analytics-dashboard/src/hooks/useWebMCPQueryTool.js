@@ -15,6 +15,8 @@ export default function useWebMCPQueryTool(executeQueryRef) {
       return;
     }
 
+    const controller = new AbortController();
+
     navigator.modelContext.registerTool({
       name: "query",
       description: `Query the server logs. Sets all filters and visualization in one atomic call — every parameter is always applied together, so no stale state can carry over from a previous query.
@@ -74,10 +76,11 @@ CHART (required):
         required: ["groupBy", "measure", "chartType"],
       },
       execute: (params) => executeQueryRef.current(params),
-    });
+    }, { signal: controller.signal });
 
     return () => {
-      navigator.modelContext.unregisterTool("query");
+      navigator.modelContext.unregisterTool?.("query");
+      controller.abort();
     };
   }, [executeQueryRef]);
 }

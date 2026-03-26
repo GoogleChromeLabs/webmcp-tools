@@ -63,9 +63,14 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.unregisterSearchTools();
   }
 
+  private searchToolController: AbortController | null = null;
+
   private registerSearchTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
+      this.searchToolController = new AbortController();
+      const signal = this.searchToolController.signal;
+
       // 1. Refine Search Tool
       modelContext.registerTool({
         name: "refine_search",
@@ -89,7 +94,7 @@ export class SearchComponent implements OnInit, OnDestroy {
             return { success: false, message: `Invalid price range '${params.priceRange}'. Must be one of: 'all', '0-49.99', '50-99.99', '100+'` };
           }
         }
-      });
+      }, { signal });
 
       // 2. Add Search Result to Cart Tool
       modelContext.registerTool({
@@ -122,15 +127,16 @@ export class SearchComponent implements OnInit, OnDestroy {
           this.cartService.addToCart(product);
           return { success: true, message: `Added '${product.name}' to cart.` };
         }
-      });
+      }, { signal });
     }
   }
 
   private unregisterSearchTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
-      modelContext.unregisterTool("refine_search");
-      modelContext.unregisterTool("add_search_result_to_cart");
+      modelContext.unregisterTool?.("refine_search");
+      modelContext.unregisterTool?.("add_search_result_to_cart");
+      this.searchToolController?.abort();
     }
   }
 

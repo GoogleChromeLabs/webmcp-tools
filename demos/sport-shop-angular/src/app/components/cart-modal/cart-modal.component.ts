@@ -37,9 +37,14 @@ export class CartModalComponent implements OnInit, OnDestroy {
     this.unregisterCartTools();
   }
 
+  private cartToolController: AbortController | null = null;
+
   private registerCartTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
+      this.cartToolController = new AbortController();
+      const signal = this.cartToolController.signal;
+
       // 1. Remove from Cart Tool
       modelContext.registerTool({
         name: "remove_from_cart",
@@ -70,7 +75,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onRemove(product.id);
           return { success: true, message: `Removed '${product.name}' from cart.` };
         }
-      });
+      }, { signal });
 
       // 2. Start Checkout Tool
       modelContext.registerTool({
@@ -83,7 +88,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onCheckout();
           return { success: true, message: "Checkout started." };
         }
-      });
+      }, { signal });
 
       // 3. Confirm Order Tool
       modelContext.registerTool({
@@ -96,16 +101,17 @@ export class CartModalComponent implements OnInit, OnDestroy {
           this.onConfirmOrder();
           return { success: true, message: "Order confirmed and closed." };
         }
-      });
+      }, { signal });
     }
   }
 
   private unregisterCartTools() {
     const modelContext = navigator.modelContext;
     if (modelContext) {
-      modelContext.unregisterTool("remove_from_cart");
-      modelContext.unregisterTool("start_checkout");
-      modelContext.unregisterTool("confirm_order");
+      modelContext.unregisterTool?.("remove_from_cart");
+      modelContext.unregisterTool?.("start_checkout");
+      modelContext.unregisterTool?.("confirm_order");
+      this.cartToolController?.abort();
     }
   }
 

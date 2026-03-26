@@ -35,6 +35,8 @@ export class ToolRegistry {
    * Referenced by `window.gameTools.executeTool` at call time.
    */
   private toolMap: Map<string, ModelContextTool> = new Map();
+  
+  private toolController: AbortController | null = null;
 
   /**
    * @param game - The game orchestrator instance.
@@ -101,10 +103,12 @@ export class ToolRegistry {
     if (this.supported) {
       const ctx = navigator.modelContext!;
       for (const name of this.toolMap.keys()) {
-        ctx.unregisterTool(name);
+        ctx.unregisterTool?.(name);
       }
+      this.toolController?.abort();
+      this.toolController = new AbortController();
       for (const tool of tools) {
-        ctx.registerTool(tool);
+        ctx.registerTool(tool, { signal: this.toolController.signal });
       }
     }
     this.toolMap.clear();

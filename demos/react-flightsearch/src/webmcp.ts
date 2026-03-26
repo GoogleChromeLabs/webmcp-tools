@@ -1,10 +1,8 @@
 import { flights, type Flight } from "./data/flights";
 
-const registeredTools = {
-  listFlights: false,
-  setFilters: false,
-  resetFilters: false,
-  searchFlights: false,
+const registeredTools: Record<string, AbortController | null> = {
+  searchTools: null,
+  resultsTools: null,
 };
 
 function dispatchAndWait(
@@ -306,14 +304,21 @@ export const searchFlightsTool = {
 export function registerFlightSearchTools() {
   const modelContext = window.navigator.modelContext;
   if (modelContext) {
-    modelContext.registerTool(searchFlightsTool);
+    if (!registeredTools.searchTools) {
+      registeredTools.searchTools = new AbortController();
+      modelContext.registerTool(searchFlightsTool, { signal: registeredTools.searchTools.signal });
+    }
   }
 }
 
 export function unregisterFlightSearchTools() {
   const modelContext = window.navigator.modelContext;
   if (modelContext) {
-    modelContext.unregisterTool(searchFlightsTool.name);
+    modelContext.unregisterTool?.(searchFlightsTool.name);
+    if (registeredTools.searchTools) {
+      registeredTools.searchTools.abort();
+      registeredTools.searchTools = null;
+    }
   }
 }
 
@@ -321,24 +326,12 @@ export function registerFlightResultsTools() {
   const modelContext = window.navigator.modelContext;
 
   if (modelContext) {
-    if (!registeredTools.listFlights) {
-      modelContext.registerTool(listFlightsTool);
-      registeredTools.listFlights = true;
-    }
-
-    if (!registeredTools.setFilters) {
-      modelContext.registerTool(setFiltersTool);
-      registeredTools.setFilters = true;
-    }
-
-    if (!registeredTools.resetFilters) {
-      modelContext.registerTool(resetFiltersTool);
-      registeredTools.resetFilters = true;
-    }
-
-    if (!registeredTools.searchFlights) {
-      modelContext.registerTool(searchFlightsTool);
-      registeredTools.searchFlights = true;
+    if (!registeredTools.resultsTools) {
+      registeredTools.resultsTools = new AbortController();
+      modelContext.registerTool(listFlightsTool, { signal: registeredTools.resultsTools.signal });
+      modelContext.registerTool(setFiltersTool, { signal: registeredTools.resultsTools.signal });
+      modelContext.registerTool(resetFiltersTool, { signal: registeredTools.resultsTools.signal });
+      modelContext.registerTool(searchFlightsTool, { signal: registeredTools.resultsTools.signal });
     }
   }
 }
@@ -346,14 +339,14 @@ export function registerFlightResultsTools() {
 export function unregisterFlightResultsTools() {
   const modelContext = window.navigator.modelContext;
   if (modelContext) {
-    modelContext.unregisterTool(listFlightsTool.name);
-    modelContext.unregisterTool(setFiltersTool.name);
-    modelContext.unregisterTool(resetFiltersTool.name);
-    modelContext.unregisterTool(searchFlightsTool.name);
+    modelContext.unregisterTool?.(listFlightsTool.name);
+    modelContext.unregisterTool?.(setFiltersTool.name);
+    modelContext.unregisterTool?.(resetFiltersTool.name);
+    modelContext.unregisterTool?.(searchFlightsTool.name);
 
-    registeredTools.listFlights = false;
-    registeredTools.setFilters = false;
-    registeredTools.resetFilters = false;
-    registeredTools.searchFlights = false;
+    if (registeredTools.resultsTools) {
+      registeredTools.resultsTools.abort();
+      registeredTools.resultsTools = null;
+    }
   }
 }

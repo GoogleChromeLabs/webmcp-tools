@@ -25,10 +25,11 @@ export function useWebMCP(tools: WebMCPTool[]) {
     }
 
     const modelContext = window.navigator.modelContext;
+    const controller = new AbortController();
 
     tools.forEach(tool => {
       try {
-        modelContext.registerTool(tool);
+        modelContext.registerTool(tool, { signal: controller.signal });
         registeredTools.current.add(tool.name);
       } catch (error) {
         console.error(`Failed to register WebMCP tool "${tool.name}":`, error);
@@ -38,7 +39,8 @@ export function useWebMCP(tools: WebMCPTool[]) {
     return () => {
       registeredTools.current.forEach(name => {
         try {
-          modelContext.unregisterTool(name);
+          modelContext.unregisterTool?.(name);
+          controller.abort();
         } catch (error) {
           console.error(`Failed to unregister WebMCP tool "${name}":`, error);
         }

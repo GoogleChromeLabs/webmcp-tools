@@ -31,11 +31,13 @@
     </form>
 
     <script>
+        const controller = new AbortController();
         function cast() {
             document.body.style.background = "#fff";
             document.getElementById('status').innerText = "The owl blinks at the sudden light!";
 
-            navigator.modelContext.unregisterTool('castLight');
+            navigator.modelContext.unregisterTool?.('castLight');
+            controller.abort();
             document.querySelector('button').setAttribute('disabled', '');
 
             document.querySelector('form').setAttribute('toolname', 'returnToHallway');
@@ -52,7 +54,7 @@
                 await new Promise(r => setTimeout(r, 1000));
                 return document.getElementById('status').innerText;
             },
-        });
+        }, { signal: controller.signal });
     </script>
 </body>
 
