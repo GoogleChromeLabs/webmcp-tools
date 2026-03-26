@@ -41,14 +41,12 @@ browser agents.
 
 ## **🛠️ Tech stack**
 
-*   **Orchestration:** Gemini CLI with
+*   **Orchestration:** Choose between Gemini CLI with
     [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
-    ot [Google Antigravity](https://antigravity.google/) Platform
-*   **Code Editing:** [Antigravity](https://antigravity.google/) IDE or your
-    favorite **AI-based IDEs.**
+    OR [Google Antigravity](https://antigravity.google/).
+*   **Code Editing:** Your favorite **AI-based IDEs.**
 *   **AI Model:** Gemini (powering the auto-browsing agents)
 
-\##
 
 ## **📦 Getting started with Gemini CLI and Chrome DevTools MCP**
 
@@ -136,7 +134,7 @@ E.g.:
 
 *   [Windsurf Cascade](https://windsurf.com/cascade)
 *   [Cursor](https://cursor.com/product)
-*   [Cloud Code](https://claude.com/product/claude-code)
+*   [Claude Code](https://claude.com/product/claude-code)
 
 ## **📦 Getting started with Google Antigravity**
 
