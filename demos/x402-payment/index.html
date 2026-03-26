@@ -1,0 +1,194 @@
+<!doctype html>
+<!--
+ Copyright 2026 AgentPay / up2itnow0822
+ SPDX-License-Identifier: Apache-2.0
+
+ AgentPay x402 Payment Demo
+ Shows both declarative AND imperative WebMCP tool registration.
+ x402 Protocol (HTTP 402 Payment Required) — Patent Pending
+ Chain: Base (live) | Non-custodial smart contract wallet owned via NFT
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentPay x402 — WebMCP Payment Demo</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💳</text></svg>"
+    />
+    <link href="style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">
+        <span class="logo-icon">💳</span>
+        <div>
+          <h1>AgentPay <span class="badge">x402</span></h1>
+          <p class="tagline">WebMCP Payment Demo — Patent Pending</p>
+        </div>
+      </div>
+      <div class="chain-badge">
+        <span class="dot"></span>
+        Base Mainnet
+      </div>
+    </header>
+
+    <main>
+      <!-- Wallet Status Panel -->
+      <section class="panel wallet-panel">
+        <h2>🔑 Agent Wallet</h2>
+        <div class="wallet-grid">
+          <div class="stat-card">
+            <label>Wallet Address</label>
+            <span id="wallet-address" class="mono truncate">Initializing…</span>
+          </div>
+          <div class="stat-card">
+            <label>USDC Balance</label>
+            <span id="wallet-balance" class="mono">—</span>
+          </div>
+          <div class="stat-card">
+            <label>Session Spend Limit</label>
+            <span id="spend-limit" class="mono">—</span>
+          </div>
+          <div class="stat-card">
+            <label>Session Spent</label>
+            <span id="session-spent" class="mono">—</span>
+          </div>
+        </div>
+        <p class="wallet-note">
+          Non-custodial · Smart contract wallet · Owned via NFT ·
+          <a href="https://www.npmjs.com/package/agentpay-mcp" target="_blank" rel="noopener">agentpay-mcp v4.0.0</a>
+        </p>
+      </section>
+
+      <!-- Declarative tool: quick API fetch via form -->
+      <section class="panel api-panel">
+        <h2>📡 Fetch Paid API <span class="tag declarative">Declarative</span></h2>
+        <p class="panel-desc">
+          Use the declarative WebMCP tool to fetch premium market data. The agent
+          will automatically handle HTTP 402 → sign payment → retry.
+        </p>
+        <form
+          id="fetchForm"
+          toolname="fetch_paid_api"
+          tooldescription="Fetch a URL that may require an x402 micropayment. On HTTP 402, the agent wallet signs a payment on Base and retries automatically. Returns the JSON response body."
+        >
+          <div class="form-group">
+            <label for="api-url">API Endpoint</label>
+            <input
+              type="url"
+              id="api-url"
+              name="url"
+              value="https://api.agentpay.demo/market-data/BTC"
+              placeholder="https://api.example.com/paid-endpoint"
+              toolparamdescription="The URL to fetch. If it returns 402, the agent will pay and retry."
+            />
+          </div>
+          <div class="form-group">
+            <label for="max-payment">Max Payment (USDC)</label>
+            <input
+              type="number"
+              id="max-payment"
+              name="max_payment_usdc"
+              value="0.01"
+              min="0.001"
+              max="10"
+              step="0.001"
+              toolparamdescription="Maximum USDC to pay for this request. Default 0.01."
+            />
+          </div>
+          <button type="submit" class="btn-primary">
+            🚀 Fetch (with x402 payment if needed)
+          </button>
+        </form>
+      </section>
+
+      <!-- Activity Log -->
+      <section class="panel log-panel">
+        <h2>📋 Activity Log</h2>
+        <div id="activity-log" class="log-container">
+          <p class="log-empty">Agent activity will appear here…</p>
+        </div>
+        <div class="log-controls">
+          <button class="btn-secondary" onclick="clearLog()">🗑 Clear</button>
+        </div>
+      </section>
+
+      <!-- Payment History -->
+      <section class="panel history-panel">
+        <h2>💰 Payment History <span class="tag imperative">Imperative</span></h2>
+        <p class="panel-desc">
+          Fetched via the <code>get_payment_history</code> imperative tool.
+          Ask the agent: <em>"Show me my payment history for this session."</em>
+        </p>
+        <div id="payment-history" class="history-container">
+          <p class="log-empty">No payments yet this session.</p>
+        </div>
+      </section>
+
+      <!-- API Response -->
+      <section class="panel response-panel" id="response-panel" style="display:none">
+        <h2>✅ API Response</h2>
+        <pre id="response-body" class="response-body"></pre>
+        <div class="payment-proof" id="payment-proof" style="display:none">
+          <h3>🔗 Payment Receipt</h3>
+          <div id="receipt-details" class="receipt-grid"></div>
+        </div>
+      </section>
+
+      <!-- Example prompts -->
+      <section class="panel prompts-panel">
+        <h2>💬 Example Prompts</h2>
+        <ul class="prompt-list">
+          <li>
+            <button class="prompt-chip" onclick="copyPrompt(this)">
+              Buy premium market data from this API using x402 payment
+            </button>
+          </li>
+          <li>
+            <button class="prompt-chip" onclick="copyPrompt(this)">
+              Check my wallet balance and spend limits
+            </button>
+          </li>
+          <li>
+            <button class="prompt-chip" onclick="copyPrompt(this)">
+              Show me my payment history for this session
+            </button>
+          </li>
+          <li>
+            <button class="prompt-chip" onclick="copyPrompt(this)">
+              Fetch https://api.agentpay.demo/news/crypto paying up to $0.05
+            </button>
+          </li>
+        </ul>
+        <p class="prompt-note">Click a prompt to copy it, then paste into your AI agent.</p>
+      </section>
+
+      <!-- WebMCP not available notice -->
+      <section class="panel no-webmcp-notice" id="no-webmcp">
+        <h2>⚠️ WebMCP Not Detected</h2>
+        <p>
+          This demo requires Chrome 146+ with WebMCP enabled. Enable it at
+          <code>chrome://flags/#webmcp-for-testing</code> (or search "WebMCP") and restart Chrome.
+        </p>
+        <p>
+          Install the
+          <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target="_blank" rel="noopener">Model Context Tool Inspector</a>
+          extension to debug registered tools.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Powered by
+        <a href="https://www.npmjs.com/package/agentpay-mcp" target="_blank" rel="noopener">agentpay-mcp</a> ·
+        <a href="https://github.com/up2itnow0822/webmcp-sdk" target="_blank" rel="noopener">webmcp-sdk</a> ·
+        x402 Protocol (Patent Pending) · Built on Base
+      </p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
