@@ -16,6 +16,8 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**WebMCP Maze (Imperative)**](demos/webmcp-maze/): A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
 - [**CineFlow (Imperative)**](demos/ticket-booking/): A movie ticket purchase flow where AI agents can update location, query movies by genre, and select showtimes to start a checkout process.
 - [**Order Tracking (Declarative)**](demos/order-tracking/): A simulated e-commerce order tracking and returns system allowing an AI agent to query order history and initiate product returns using declarative tools.
+- [**L'Atelier Hotel Chain (Imperative & Declarative)**](demos/hotel-chain/): A high-fidelity hotel booking application designed to showcase the power of WebMCP. This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
+- [**WebMCP Sports (Imperative & Declarative)**](demos/sport-shop-angular/): A modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
 
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 
