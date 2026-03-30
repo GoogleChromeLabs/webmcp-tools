@@ -5,7 +5,7 @@
 
 import { useMemo } from "react";
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Routes,
   Route,
   useSearchParams,
@@ -83,26 +83,11 @@ function AppContent() {
   );
 }
 
-const getBasename = () => {
-  const path = window.location.pathname;
-  // Check if the path ends with a known deep route.
-  if (path.endsWith("/results")) {
-    // If so, the basename is the part of the path before that route.
-    const basename = path.slice(0, -"/results".length);
-    // If the basename is empty, it means we are at the root.
-    return basename || "/";
-  }
-  // Otherwise, the path itself is the basename. We need to remove any trailing slash
-  // unless it's the root path itself.
-  if (path.length > 1 && path.endsWith("/")) {
-    return path.slice(0, -1);
-  }
-  return path;
-};
+
 
 export default function App() {
   return (
-    <Router basename={getBasename()}>
+    <Router>
       <AppContent />
     </Router>
   );
