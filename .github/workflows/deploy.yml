@@ -66,6 +66,7 @@ jobs:
           cp -r demos/order-tracking deployment-root/demos/order-tracking
           cp -r demos/hotel-chain/dist deployment-root/demos/hotel-chain
           cp -r demos/analytics-dashboard/dist deployment-root/demos/analytics-dashboard
+          cp -r demos/real-estate-map deployment-root/demos/real-estate-map
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
