@@ -1,6 +1,6 @@
 # Mystery Doors | WebMCP Declarative & Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/doors/
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/doors/
 
 A simple multi-page demo showcasing WebMCP capabilities. 
 It demonstrates both **declarative** (HTML attributes) and **imperative** (JavaScript API) ways to expose tools to an AI model.

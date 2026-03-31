@@ -1,6 +1,6 @@
 # Order Tracking | WebMCP Declarative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/order-tracking
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/order-tracking
 
 This project demonstrates a **WebMCP** implementation for a simulated e-commerce order tracking and returns system. It allows an AI agent to query a user's order history based on timeframes and initiate product returns on their behalf using declarative tool definitions.
 

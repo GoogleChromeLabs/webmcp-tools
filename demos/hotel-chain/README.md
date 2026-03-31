@@ -1,6 +1,6 @@
 # L'Atelier Hotel Chain — WebMCP Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/hotel-chain
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/hotel-chain
 
 A premium, high-fidelity hotel booking application designed to showcase the power of **WebMCP** (Web Model Context Protocol). This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
 

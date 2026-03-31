@@ -1,6 +1,6 @@
 # WebMCP Sports
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/sport-shop-angular
 
 A premium, modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
 

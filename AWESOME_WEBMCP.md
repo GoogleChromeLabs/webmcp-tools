@@ -9,23 +9,23 @@ A curated list of awesome WebMCP demos.
 
 ## Demos
 
-- [Le Petit Bistro](https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/) - A restaurant reservation system that demonstrates how an AI agent can interact with a web-based booking form using declarative tool definitions.
+- [Le Petit Bistro](https://googlechromelabs.github.io/webmcp-tools/french-bistro/) - A restaurant reservation system that demonstrates how an AI agent can interact with a web-based booking form using declarative tool definitions.
   - **Example Prompt:** "Can you book a table for John Doe for 2 people at Le Petit Bistro next Friday, at 7 PM on the Terrace? His number is 123-456-7890. It's for a birthday celebration."
-- [React Flight Search](https://googlechromelabs.github.io/webmcp-tools/demos/react-flightsearch/) - A React-based flight search application that showcases how a web application can expose structured tools to an AI agent, allowing it to programmatically interact with the UI.
+- [React Flight Search](https://googlechromelabs.github.io/webmcp-tools/react-flightsearch/) - A React-based flight search application that showcases how a web application can expose structured tools to an AI agent, allowing it to programmatically interact with the UI.
   - **Example Prompt:** "Search flights from LON to NYC leaving next Monday and returning after a week for 2 passengers."
-- [WebMCP zaMaker!](https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/) - An interactive pizza builder demonstrating imperative tool registration, allowing AI models to make custom pizzas.
+- [WebMCP zaMaker!](https://googlechromelabs.github.io/webmcp-tools/pizza-maker/) - An interactive pizza builder demonstrating imperative tool registration, allowing AI models to make custom pizzas.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
-- [Mystery Doors](https://googlechromelabs.github.io/webmcp-tools/demos/doors/) - A simple multi-page demo showcasing WebMCP capabilities using both declarative and imperative approaches.
+- [Mystery Doors](https://googlechromelabs.github.io/webmcp-tools/doors/) - A simple multi-page demo showcasing WebMCP capabilities using both declarative and imperative approaches.
   - **Example Prompt:** "Explore the rooms"
-- [WebMCP Maze](https://googlechromelabs.github.io/webmcp-tools/demos/webmcp-maze/) - A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
+- [WebMCP Maze](https://googlechromelabs.github.io/webmcp-tools/webmcp-maze/) - A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input.
   - **Example Prompts:** "Start a new game", then "Solve the maze"
-- [CineFlow](https://googlechromelabs.github.io/webmcp-tools/demos/ticket-booking/) - A movie ticket purchase flow where AI agents can update location, query movies by genre, and select showtimes to start a checkout process.
+- [CineFlow](https://googlechromelabs.github.io/webmcp-tools/ticket-booking/) - A movie ticket purchase flow where AI agents can update location, query movies by genre, and select showtimes to start a checkout process.
   - **Example Prompt:** "Find two tickets for a horror movie in Montpelier tonight"
-- [Order Tracking](https://googlechromelabs.github.io/webmcp-tools/demos/order-tracking/) - A simulated e-commerce order tracking and returns system allowing an AI agent to query order history and initiate returns via declarative tools.
+- [Order Tracking](https://googlechromelabs.github.io/webmcp-tools/order-tracking/) - A simulated e-commerce order tracking and returns system allowing an AI agent to query order history and initiate returns via declarative tools.
   - **Example Prompt:** "Where is my order from last week? If it’s delivered, I need to start a return."
-- [L'Atelier Hotel Chain](https://googlechromelabs.github.io/webmcp-tools/demos/hotel-chain/) - A high-fidelity hotel booking application designed to showcase the power of WebMCP. This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
+- [L'Atelier Hotel Chain](https://googlechromelabs.github.io/webmcp-tools/hotel-chain/) - A high-fidelity hotel booking application designed to showcase the power of WebMCP. This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
   - **Example Prompt:** "Find a hotel in Paris with a Spa."
-- [WebMCP Sports](https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular/) - A modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
+- [WebMCP Sports](https://googlechromelabs.github.io/webmcp-tools/sport-shop-angular/) - A modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
   - **Example Prompt:** "Find training balls and add them to cart."
 - [Shoe store](https://andreinwald.github.io/webmcp-demo/) | [Code](https://github.com/andreinwald/webmcp-demo) - online store built with React, with all core functionality MCP-ready.
   - **Example Prompt:** "Suggest the 3 best pairs of soccer shoes (foot size 45) available on this site. Add (one of suggestions) to cart and complete purchase."

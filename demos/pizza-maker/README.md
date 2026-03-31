@@ -1,6 +1,6 @@
 # WebMCP zaMaker! | WebMCP Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/pizza-maker
 
 This project demonstrates a **WebMCP** implementation for an interactive pizza builder. It allows an AI agent to interact directly with the pizza creation process, such as adding toppings, changing styles, and adjusting sizes by registering custom tools.
 
