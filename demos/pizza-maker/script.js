@@ -55,6 +55,8 @@ function addTopping(emoji, size, count) {
   for (let i = 0; i < count; i++) {
     const topping = document.createElement('div');
     topping.className = 'topping';
+    topping.dataset.emoji = emoji;
+    topping.dataset.size = size;
     topping.innerHTML = `<span>${emoji}</span>`;
     const radius = 170;
     const angle = Math.random() * Math.PI * 2;
@@ -108,13 +110,23 @@ function resetPizza() {
 function getPizzaState() {
   const sauceVisible = document.getElementById('sauce-layer').style.display === 'block';
   const cheeseVisible = document.getElementById('cheese-layer').style.display === 'block';
-  const toppings = Array.from(document.querySelectorAll('.topping span')).map((s) => s.innerText);
+
+  const toppingsMap = new Map();
+  document.querySelectorAll('.topping').forEach((t) => {
+    const emoji = t.dataset.emoji;
+    const size = t.dataset.size;
+    const key = `${emoji}|${size}`;
+    if (!toppingsMap.has(key)) {
+      toppingsMap.set(key, { emoji, size, count: 0 });
+    }
+    toppingsMap.get(key).count++;
+  });
 
   return {
     size: sizeText.innerText,
     style: currentStyle,
     layers: { sauce: sauceVisible, cheese: cheeseVisible },
-    toppings: toppings,
+    toppings: Array.from(toppingsMap.values()),
   };
 }
 
@@ -145,7 +157,7 @@ function loadPizzaStateFromURL() {
   if (!base64) return;
 
   try {
-    const jsonString = decodeURIComponent(escape(atob(base64)));
+    const jsonString = decodeURIComponent(atob(base64));
     const state = JSON.parse(jsonString);
 
     if (state.size && sizes[state.size]) changeSize(sizes[state.size], state.size);
@@ -155,7 +167,9 @@ function loadPizzaStateFromURL() {
       if (state.layers.cheese) toggleLayer('cheese-layer', 'add');
     }
     if (state.toppings) {
-      state.toppings.forEach((t) => addTopping(t));
+      state.toppings.forEach((t) => {
+        addTopping(t.emoji, t.size, t.count);
+      });
     }
   } catch (e) {
     console.warn('Failed to load pizza state from URL', e);
