@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "surface-container-highest": "#e4e4cc",
+                "on-primary-fixed-variant": "#5c403a",
+                "surface-tint": "#755750",
+                "surface-dim": "#dbdcc3",
+                "error-container": "#ffdad6",
+                "tertiary": "#292421",
+                "inverse-primary": "#e5beb5",
+                "on-primary-container": "#c19c94",
+                "surface-container-low": "#f5f5dc",
+                "outline-variant": "#d4c3bf",
+                "surface-variant": "#e4e4cc",
+                "tertiary-fixed": "#ece0dc",
+                "surface-bright": "#fbfbe2",
+                "error": "#ba1a1a",
+                "primary": "#361f1a",
+                "on-primary-fixed": "#2b1611",
+                "on-tertiary-container": "#aca29f",
+                "on-primary": "#ffffff",
+                "on-background": "#1b1d0e",
+                "surface-container-high": "#eaead1",
+                "on-tertiary": "#ffffff",
+                "on-surface": "#1b1d0e",
+                "outline": "#827471",
+                "secondary": "#75584d",
+                "inverse-surface": "#303221",
+                "surface-container-lowest": "#ffffff",
+                "tertiary-container": "#403936",
+                "on-tertiary-fixed-variant": "#4c4542",
+                "surface": "#fbfbe2",
+                "primary-container": "#4e342e",
+                "on-tertiary-fixed": "#201a18",
+                "secondary-container": "#fed7ca",
+                "secondary-fixed-dim": "#e4beb2",
+                "on-error": "#ffffff",
+                "surface-container": "#efefd7",
+                "primary-fixed-dim": "#e5beb5",
+                "on-secondary-fixed-variant": "#5b4137",
+                "primary-fixed": "#ffdad2",
+                "on-error-container": "#93000a",
+                "on-secondary-container": "#795c51",
+                "on-surface-variant": "#504442",
+                "on-secondary": "#ffffff",
+                "inverse-on-surface": "#f2f2d9",
+                "secondary-fixed": "#ffdbce",
+                "on-secondary-fixed": "#2b160f",
+                "tertiary-fixed-dim": "#cfc4c0",
+                "background": "#fbfbe2"
+              },
+              fontFamily: {
+                "headline": ["Noto Serif"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        body {
+          background-color: #fbfbe2;
+          color: #1b1d0e;
+          font-family: 'Manrope', sans-serif;
+        }
+        h1, h2, h3, .font-serif {
+          font-family: 'Noto Serif', serif;
+        }
+    </style>
+</head>
+<body class="bg-surface selection:bg-secondary-container selection:text-on-secondary-container">
+
+<nav class="fixed top-0 w-full z-50 bg-[#fbfbe2]/90 glass-nav">
+    <div class="flex justify-between items-center px-8 py-6 max-w-7xl mx-auto">
+        <div class="text-2xl font-serif font-bold text-[#361f1a] tracking-tight">The Morning Ritual</div>
+        <div class="hidden md:flex gap-10 items-center">
+            <a class="text-[#504442] hover:text-[#361f1a] transition-colors font-sans text-sm tracking-wide uppercase" href="home.html">Home</a>
+            <a class="text-[#361f1a] border-b-2 border-[#361f1a] pb-1 font-semibold font-sans text-sm tracking-wide uppercase" href="home.html#catalog">Shop</a>
+            <a class="text-[#504442] hover:text-[#361f1a] transition-colors font-sans text-sm tracking-wide uppercase" href="order_history.html">Account</a>
+        </div>
+        <div class="flex items-center gap-6">
+            <button class="text-[#361f1a] p-2 hover:bg-[#f5f5dc]/50 transition-all">
+                <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+            </button>
+        </div>
+    </div>
+    <div class="bg-[#f5f5dc] h-[1px] w-full absolute bottom-0 opacity-20"></div>
+</nav>
+
+<main class="pt-24">
+    <section class="max-w-7xl mx-auto px-8 py-16 md:py-32 grid md:grid-cols-2 gap-16 items-center">
+        <div class="order-2 md:order-1 space-y-8">
+            <div class="space-y-4">
+                <span class="font-label text-sm uppercase tracking-[0.3em] text-secondary font-semibold">Specialty Equipment</span>
+                <h1 class="text-6xl md:text-8xl font-serif text-primary leading-none -ml-1 tracking-tight">The Alchemist</h1>
+                <p class="text-lg text-on-surface-variant font-body leading-relaxed max-w-md">
+                    A masterwork of precision engineering. Transform your daily ritual into a scientific art form with our flagship espresso machine, designed for the uncompromising home barista.
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center pt-4">
+                <button class="bg-primary text-on-primary px-10 py-5 font-label uppercase tracking-widest text-xs font-bold hover:bg-primary-container transition-all active:scale-95 shadow-sm">
+                    Acquire Now — $1,850
+                </button>
+                <div class="flex items-center gap-3 text-secondary">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                    <span class="font-label text-sm font-medium tracking-wide">4.9/5 Master Grade</span>
+                </div>
+            </div>
+        </div>
+        <div class="order-1 md:order-2 relative">
+            <div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low">
+                <img class="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700" alt="Espresso machine" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5lsAIIOTgcNgiB1sBuXxCZZmLjomQPz2Kaf_jNaLbGibn7edoZOXWpdrZSBf103vRVltG5p2T4jWymqMkCRB4DkfARfzkQhSgQnn5oaVSA9K8KWf5cFTTMa0Cdl8Ia_8EivPCY2ddq4CRMPpmHpCY5d96pz5ykhvLCYW-fmyeznA6wiPmPlsFIJDMXDItblecp3H6vb1o0ITQj80Jxlulh5FSOrRi_FUmawowJeXMs-BDmQTLNBz8L-cc4YVi61H_lcNY9kA3HGfx"/>
+            </div>
+            <div class="absolute -bottom-8 -left-8 bg-surface-container-lowest p-8 hidden lg:block shadow-sm">
+                <p class="font-serif italic text-primary text-xl">"The perfect extraction, every single morning."</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="specs-section" class="bg-surface-container-low py-32 px-8 transition-all duration-500">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20 text-center space-y-4">
+                <h2 class="text-4xl font-serif text-primary">Technical Precision</h2>
+                <p class="text-on-surface-variant font-body max-w-xl mx-auto">Built with aerospace-grade components to ensure thermal stability and pressure consistency.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="bg-surface-container-lowest p-10 flex flex-col justify-between h-64 border-b border-outline-variant/20">
+                    <span class="font-label text-xs uppercase tracking-widest text-secondary font-bold">Verticality</span>
+                    <div>
+                        <div class="text-5xl font-serif text-primary mb-2">12"</div>
+                        <div class="font-body text-on-surface-variant">Height</div>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-10 flex flex-col justify-between h-64 border-b border-outline-variant/20">
+                    <span class="font-label text-xs uppercase tracking-widest text-secondary font-bold">Footprint</span>
+                    <div>
+                        <div class="text-5xl font-serif text-primary mb-2">10"</div>
+                        <div class="font-body text-on-surface-variant">Width</div>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-10 flex flex-col justify-between h-64 border-b border-outline-variant/20">
+                    <span class="font-label text-xs uppercase tracking-widest text-secondary font-bold">Extension</span>
+                    <div>
+                        <div class="text-5xl font-serif text-primary mb-2">15.5"</div>
+                        <div class="font-body text-on-surface-variant">Depth</div>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-10 flex flex-col justify-between h-64 border-b border-outline-variant/20">
+                    <span class="font-label text-xs uppercase tracking-widest text-secondary font-bold">Volume</span>
+                    <div>
+                        <div class="text-5xl font-serif text-primary mb-2">2.0L</div>
+                        <div class="font-body text-on-surface-variant">Water Tank</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </main>
+
+<footer class="bg-[#eaead1] w-full py-16 px-8 mt-20 border-t border-[#d4c3bf]/20">
+    </footer>
+
+<script>
+  if ("modelContext" in navigator) {
+    const modelContext = navigator.modelContext;
+
+    modelContext.registerTool({
+      name: "get_product_specifications",
+      description: "Retrieves the technical specifications, dimensions, and capacities for a specific coffee shop product.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          productName: {
+            type: "string",
+            description: "The name of the product to look up. If omitted, the tool automatically defaults to the product on the active page."
+          }
+        }
+      },
+      execute: (params) => {
+        const pName = params && params.productName ? params.productName : "alchemist";
+
+        if (pName.toLowerCase().includes("alchemist")) {
+          const specsSection = document.getElementById('specs-section');
+          if (specsSection) {
+            specsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            specsSection.classList.add('ring-4', 'ring-secondary', 'ring-opacity-50');
+            setTimeout(() => {
+              specsSection.classList.remove('ring-4', 'ring-secondary', 'ring-opacity-50');
+            }, 4000);
+          }
+
+          const specs = {
+            name: "The Alchemist",
+            height: "12 inches",
+            width: "10 inches",
+            depth: "15.5 inches",
+            waterTankCapacity: "2.0 Liters"
+          };
+          
+          return `Here are the specifications for The Alchemist: ${JSON.stringify(specs)}`;
+        }
+        
+        return `Error: Specifications for product '${pName}' could not be found.`;
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
