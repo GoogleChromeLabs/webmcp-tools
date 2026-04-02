@@ -1,6 +1,6 @@
 # The Morning Ritual | Coffee Shop WebMCP Demo
 
-🚀 **Live Demo:** `https://googlechromelabs.github.io/webmcp-tools/demos/coffee-shop/`
+🚀 **Live Demo:** `https://googlechromelabs.github.io/webmcp-tools/coffee-shop/`
 
 A multi-page static site demo of **WebMCP** implementation for a specialty coffee shop. This project demonstrates how an AI agent can navigate a multi-page site, retrieve personal order history, and perform actions that are visually synchronized with the UI.
 
