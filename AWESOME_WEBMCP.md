@@ -50,6 +50,9 @@ A curated list of awesome WebMCP demos.
   - [Code](https://github.com/ttimur-dev/webmcp-flow)
   - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
   
+- [UrbanEstates](https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map) - A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
+  - **Example Prompt:** "Find me an apartment in Austin", then "Find me an apartment with AC under $1,000,000."
+
 ## Contributing
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.

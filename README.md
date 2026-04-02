@@ -19,6 +19,8 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**L'Atelier Hotel Chain (Imperative & Declarative)**](demos/hotel-chain/): A high-fidelity hotel booking application designed to showcase the power of WebMCP. This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
 - [**WebMCP Sports (Imperative & Declarative)**](demos/sport-shop-angular/): A modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
 
+- [**UrbanEstates (Imperative)**](demos/real-estate-map/): A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
+
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 
 ## Disclaimer
