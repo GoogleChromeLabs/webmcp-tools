@@ -1,6 +1,6 @@
 # webmcp-maze
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/webmcp-maze/
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/webmcp-maze/
 
 A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input. The game registers tools via the [WebMCP](https://webmachinelearning.github.io/webmcp/) browser API so the agent can interact with the game world.
 

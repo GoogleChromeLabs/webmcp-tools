@@ -1,6 +1,6 @@
 # CineFlow | WebMCP Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/ticket-booking
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/ticket-booking
 
 This project demonstrates a **WebMCP** implementation for a movie ticket purchase flow. It allows an AI agent to browse movies, filter by genre, update the user's location, and select showtimes to initiate the checkout process.
 

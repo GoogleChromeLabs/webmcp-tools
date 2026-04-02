@@ -39,7 +39,7 @@ jobs:
 
           cd sport-shop-angular
           npm ci
-          npm run build -- --base-href /webmcp-tools/sport-shop-angular/
+          npm run build -- --base-href /webmcp-tools/demos/sport-shop-angular/
           cd ..
 
           cd hotel-chain
@@ -54,39 +54,18 @@ jobs:
 
       - name: Assemble Public Folder
         run: |
-          mkdir -p deployment-root
+          mkdir -p deployment-root/demos
 
-          # Copy demos to the root folder
-          cp -r demos/french-bistro deployment-root/french-bistro
-          cp -r demos/react-flightsearch/dist deployment-root/react-flightsearch
-          cp -r demos/pizza-maker deployment-root/pizza-maker
-          cp -r demos/doors deployment-root/doors
-          cp -r demos/webmcp-maze/dist deployment-root/webmcp-maze
-          cp -r demos/ticket-booking deployment-root/ticket-booking
-          cp -r demos/sport-shop-angular/dist/sport-shop-angular/browser deployment-root/sport-shop-angular
-          cp -r demos/order-tracking deployment-root/order-tracking
-          cp -r demos/hotel-chain/dist deployment-root/hotel-chain
-          cp -r demos/analytics-dashboard/dist deployment-root/analytics-dashboard
-
-          # Add redirects for old /demos/ paths to new root paths
-          for demo in french-bistro react-flightsearch pizza-maker doors webmcp-maze ticket-booking sport-shop-angular order-tracking hotel-chain analytics-dashboard; do
-            mkdir -p "deployment-root/demos/$demo"
-            cat <<EOF > "deployment-root/demos/$demo/index.html"
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <title>Redirecting...</title>
-            <link rel="canonical" href="../../$demo/">
-            <meta http-equiv="refresh" content="0; url=../../$demo/">
-            <script>location.replace("../../$demo/" + location.search + location.hash);</script>
-          </head>
-          <body>
-            <p>Redirecting to <a href="../../$demo/">$demo</a>...</p>
-          </body>
-          </html>
-          EOF
-          done
+          cp -r demos/french-bistro deployment-root/demos/french-bistro
+          cp -r demos/react-flightsearch/dist deployment-root/demos/react-flightsearch
+          cp -r demos/pizza-maker deployment-root/demos/pizza-maker
+          cp -r demos/doors deployment-root/demos/doors
+          cp -r demos/webmcp-maze/dist deployment-root/demos/webmcp-maze
+          cp -r demos/ticket-booking deployment-root/demos/ticket-booking
+          cp -r demos/sport-shop-angular/dist/sport-shop-angular/browser deployment-root/demos/sport-shop-angular
+          cp -r demos/order-tracking deployment-root/demos/order-tracking
+          cp -r demos/hotel-chain/dist deployment-root/demos/hotel-chain
+          cp -r demos/analytics-dashboard/dist deployment-root/demos/analytics-dashboard
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

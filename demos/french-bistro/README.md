@@ -1,6 +1,6 @@
 # Le Petit Bistro | WebMCP Declarative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/french-bistro
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro
 
 This project demonstrates a **WebMCP** implementation for a restaurant reservation system. It allows an AI agent to interact directly with a web-based booking form, validating and submitting data on behalf of the user using declarative tool definitions.
 

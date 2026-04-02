@@ -1,6 +1,6 @@
 This directory contains evaluation test cases for the [WebMCP french-bistro!](../../../demos/french-bistro/) demo.
 
-Note that `schema.json` is not included here because these evaluations are designed to be run against the [live demo](https://googlechromelabs.github.io/webmcp-tools/french-bistro) directly in the evals-cli UI, which discovers the tool schemas dynamically from the page.
+Note that `schema.json` is not included here because these evaluations are designed to be run against the [live demo](https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro) directly in the evals-cli UI, which discovers the tool schemas dynamically from the page.
 
 ### Testing cross-document variations
 
@@ -9,5 +9,5 @@ The demo supports a cross-document submission mode when loading the URL with the
 Example command:
 
 ```bash
-npm run build && node dist/bin/webmcpevals.js --url="https://googlechromelabs.github.io/webmcp-tools/french-bistro?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
+npm run build && node dist/bin/webmcpevals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
 ```

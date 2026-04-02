@@ -1,6 +1,6 @@
 # WebMCP Analytics Dashboard
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/analytics-dashboard/
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/analytics-dashboard/
 
 A React + Vite demo of **WebMCP** — a browser API (`navigator.modelContext`) that lets AI agents call semantic tools registered by the frontend, enabling bidirectional control of a web app without DOM scraping.
 
