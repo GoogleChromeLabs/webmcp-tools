@@ -10,7 +10,7 @@ This demo uses **Declarative WebMCP** (`toolname`, `tooldescription`, and `toola
 
 ```html
 <form toolname="get_order_status"
-      tooldescription="Retrieve the current shipping status and location for a user's orders within a given timeframe."
+      tooldescription="Search orders in a given timeframe. Returns order number, shipping status and location"
       toolautosubmit action="history.html" method="GET">
     <!-- <select> with toolparamdescription... -->
 </form>
