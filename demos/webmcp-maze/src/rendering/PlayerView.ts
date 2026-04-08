@@ -158,8 +158,9 @@ export class PlayerView {
       this.animating = false;
       this.resolveAnim?.();
       this.resolveAnim = null;
-      this.redrawTrail();
     }
+
+    this.redrawTrail();
   }
 
   /**
