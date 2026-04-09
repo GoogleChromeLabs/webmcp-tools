@@ -9,7 +9,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor1",
+        "functionName": "open_door1",
         "arguments": {}
       }
     ]
@@ -24,7 +24,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor2",
+        "functionName": "open_door2",
         "arguments": {}
       }
     ]
@@ -39,7 +39,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor3",
+        "functionName": "open_door3",
         "arguments": {}
       }
     ]
@@ -54,7 +54,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor1",
+        "functionName": "open_door1",
         "arguments": {}
       },
       {
@@ -75,7 +75,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor1",
+        "functionName": "open_door1",
         "arguments": {}
       },
       {
@@ -96,11 +96,11 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor1",
+        "functionName": "open_door1",
         "arguments": {}
       },
       {
-        "functionName": "returnToHallway",
+        "functionName": "return_to_hallway",
         "arguments": {}
       }
     ]
@@ -115,7 +115,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor2",
+        "functionName": "open_door2",
         "arguments": {}
       },
       {
@@ -134,7 +134,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor2",
+        "functionName": "open_door2",
         "arguments": {}
       },
       {
@@ -153,11 +153,11 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor2",
+        "functionName": "open_door2",
         "arguments": {}
       },
       {
-        "functionName": "returnToHallway",
+        "functionName": "return_to_hallway",
         "arguments": {}
       }
     ]
@@ -172,7 +172,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor2",
+        "functionName": "open_door2",
         "arguments": {}
       },
       {
@@ -188,7 +188,7 @@
         ]
       },
       {
-        "functionName": "returnToHallway",
+        "functionName": "return_to_hallway",
         "arguments": {}
       }
     ]
@@ -203,7 +203,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor3",
+        "functionName": "open_door3",
         "arguments": {}
       }
     ]
@@ -218,11 +218,11 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor3",
+        "functionName": "open_door3",
         "arguments": {}
       },
       {
-        "functionName": "castLight",
+        "functionName": "cast_light",
         "arguments": {}
       }
     ]
@@ -237,15 +237,15 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor3",
+        "functionName": "open_door3",
         "arguments": {}
       },
       {
-        "functionName": "castLight",
+        "functionName": "cast_light",
         "arguments": {}
       },
       {
-        "functionName": "returnToHallway",
+        "functionName": "return_to_hallway",
         "arguments": {}
       }
     ]
@@ -260,7 +260,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "openDoor1",
+        "functionName": "open_door1",
         "arguments": {}
       },
       {

@@ -24,9 +24,9 @@ A React-based flight search application designed to demonstrate **WebMCP** integ
 This application is instrumented to work with an AI agent (e.g., via a browser extension or specialized browser). It detects the presence of `navigator.modelContext` and registers the following tools:
 
 1.  **`searchFlights`**: Initiates a flight search with structured parameters (origin, destination, date, etc.).
-2.  **`listFlights`**: Retrieves the currently displayed list of flights (programmatic access to data).
-3.  **`setFilters`**: Applies complex filters (price ranges, specific airlines, time windows) to the results.
-4.  **`resetFilters`**: Clears all active filters.
+2.  **`list_flights`**: Retrieves the currently displayed list of flights (programmatic access to data).
+3.  **`set_filters`**: Applies complex filters (price ranges, specific airlines, time windows) to the results.
+4.  **`reset_filters`**: Clears all active filters.
 
 ### How it Works
 

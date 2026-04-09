@@ -1,7 +1,7 @@
 {
   "tools": [
     {
-      "name": "listFlights",
+      "name": "list_flights",
       "description": "Lists all flights available in the current search results, regardless of filters.",
       "inputSchema": null,
       "outputSchema": {
@@ -158,7 +158,7 @@
       "outputSchema": null
     },
     {
-      "name": "resetFilters",
+      "name": "reset_filters",
       "description": "Resets all filters to their default values.",
       "inputSchema": null,
       "outputSchema": null

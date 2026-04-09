@@ -42,7 +42,7 @@ export function listFlights(): Array<Flight> {
 
 export const listFlightsTool = {
   execute: listFlights,
-  name: "listFlights",
+  name: "list_flights",
   description: "Returns all flights available.",
   inputSchema: {},
   outputSchema: {
@@ -118,7 +118,7 @@ export async function setFilters(filters: Filters): Promise<string> {
 
 export const setFiltersTool = {
   execute: setFilters,
-  name: "setFilters",
+  name: "set_filters",
   description: "Sets the filters for flights.",
   inputSchema: {
     type: "object",
@@ -205,7 +205,7 @@ export async function resetFilters(): Promise<string> {
 
 export const resetFiltersTool = {
   execute: resetFilters,
-  name: "resetFilters",
+  name: "reset_filters",
   description: "Resets all filters to their default values.",
   inputSchema: {},
   outputSchema: {
@@ -242,7 +242,7 @@ export async function searchFlights(p: unknown): Promise<string> {
 
 export const searchFlightsTool = {
   execute: searchFlights,
-  name: "searchFlights",
+  name: "search_flights",
   description: "Searches for flights with the given parameters.",
   inputSchema: {
     type: "object",

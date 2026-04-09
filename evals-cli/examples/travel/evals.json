@@ -9,7 +9,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "resetFilters",
+        "functionName": "reset_filters",
         "arguments": {}
       }
     ]
@@ -24,7 +24,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "resetFilters",
+        "functionName": "reset_filters",
         "arguments": {}
       }
     ]
@@ -138,7 +138,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "listFlights",
+        "functionName": "list_flights",
         "arguments": {}
       }
     ]

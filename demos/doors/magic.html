@@ -36,18 +36,18 @@
             document.body.style.background = "#fff";
             document.getElementById('status').innerText = "The owl blinks at the sudden light!";
 
-            navigator.modelContext.unregisterTool?.('castLight');
+            navigator.modelContext.unregisterTool?.('cast_light');
             controller.abort();
             document.querySelector('button').setAttribute('disabled', '');
 
-            document.querySelector('form').setAttribute('toolname', 'returnToHallway');
+            document.querySelector('form').setAttribute('toolname', 'return_to_hallway');
             document.querySelector('form').setAttribute('tooldescription', 'Return to Hallway.');
             document.querySelector('form').setAttribute('toolautosubmit', '');
             document.querySelector('form button').removeAttribute('disabled');
         }
 
         navigator.modelContext.registerTool({
-            name: 'castLight',
+            name: 'cast_light',
             description: 'Cast light',
             execute: async () => {
                 cast();
