@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CurrencyPipe, NgClass } from '@angular/common';
 
@@ -13,6 +13,7 @@ export class Search implements OnInit {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   query = '';
   products: Product[] = [];
@@ -24,6 +25,13 @@ export class Search implements OnInit {
       this.query = params['q'] || '';
       this.loadProducts();
     });
+  }
+
+  onSearch(event: Event) {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const query = new FormData(form).get('query');
+    this.router.navigate([], { relativeTo: this.route, queryParams: { q: query }, queryParamsHandling: 'merge' });
   }
 
   loadProducts() {

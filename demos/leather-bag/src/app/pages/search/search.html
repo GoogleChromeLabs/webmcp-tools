@@ -13,8 +13,9 @@
       <p class="font-body search-subhead italic">Discover {{filteredProducts.length}} curated pieces from our workshop</p>
     </div>
     
+    <!-- Search Bar -->
     <div class="search-bar-wrapper">
-      <form class="search-bar" toolname="search_store" tooldescription="Search products in the store">
+      <form class="search-bar" toolname="search_store" tooldescription="Search products in the store" toolautosubmit (submit)="onSearch($event)">
         <span class="material-symbols-outlined search-bar-icon">search</span>
         <input 
           name="query"
