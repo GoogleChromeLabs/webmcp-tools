@@ -67,6 +67,7 @@ jobs:
           cp -r demos/hotel-chain/dist deployment-root/demos/hotel-chain
           cp -r demos/analytics-dashboard/dist deployment-root/demos/analytics-dashboard
           cp -r demos/real-estate-map deployment-root/demos/real-estate-map
+          cp -r demos/coffee-shop deployment-root/demos/coffee-shop
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
