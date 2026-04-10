@@ -5,7 +5,7 @@
 
 import { useMemo } from "react";
 import {
-  HashRouter as Router,
+  BrowserRouter as Router,
   Routes,
   Route,
   useSearchParams,
