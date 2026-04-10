@@ -49,7 +49,8 @@ A curated list of awesome WebMCP demos.
 - [WebMCP Flow](https://webmcp-flow.vercel.app/) - An AI-controllable architecture diagram builder that lets an AI agent create nodes, connect them with edges, and apply auto-layout in real time via WebMCP tools.
   - [Code](https://github.com/ttimur-dev/webmcp-flow)
   - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
-  
+- [The Morning Ritual (Imperative)](https://googlechromelabs.github.io/webmcp-tools/demos/coffee-shop) - A premium coffee boutique demo showcasing agentic reordering, technical spec analysis, and catalog navigation.
+  - **Example Prompt:** "Will the espresso machine fit under a 15-inch cabinet?"
 - [UrbanEstates](https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map) - A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
   - **Example Prompt:** "Find me an apartment in Austin", then "Find me an apartment with AC under $1,000,000."
 
