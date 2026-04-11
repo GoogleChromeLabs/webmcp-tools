@@ -19,6 +19,9 @@ export class Search implements OnInit {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   isMobileFilterOpen = false;
+  maxPrice = 1500;
+  selectedColors: string[] = [];
+  selectedFinishes: string[] = [];
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -48,18 +51,38 @@ export class Search implements OnInit {
   applyFilters(event?: Event) {
     if (event) event.preventDefault();
     
-    // In a real app, we'd read values from the form.
-    // Here we'll just mock it or minimally filter by search query
+    const target = event ? event.target as HTMLElement : null;
+    const form = target ? (target.closest('form') as HTMLFormElement) : document.querySelector('.filters-form') as HTMLFormElement;
+    if (!form) return;
+    
+    const formData = new FormData(form);
+    this.selectedColors = formData.getAll('color') as string[];
+    this.selectedFinishes = formData.getAll('finish') as string[];
+    this.maxPrice = Number(formData.get('maxPrice')) || 1500;
+    
     const q = this.query.toLowerCase();
-    if (q) {
-      this.filteredProducts = this.products.filter(p => 
+    
+    this.filteredProducts = this.products.filter(p => {
+      const matchesQuery = !q || 
         p.name.toLowerCase().includes(q) || 
         p.description.toLowerCase().includes(q) ||
-        p.finish.toLowerCase().includes(q)
-      );
-    } else {
-      this.filteredProducts = this.products;
+        p.finish.toLowerCase().includes(q);
+        
+      const matchesColor = this.selectedColors.length === 0 || 
+        p.colors.some(c => this.selectedColors.includes(c.name));
+        
+      const matchesFinish = this.selectedFinishes.length === 0 || 
+        this.selectedFinishes.includes(p.finish);
+        
+      const matchesPrice = p.price <= this.maxPrice;
+      
+      return matchesQuery && matchesColor && matchesFinish && matchesPrice;
+    });
+    
+    if (event && (event as any).respondWith) {
+      (event as any).respondWith(Promise.resolve({ success: true, count: this.filteredProducts.length }));
     }
+    
     this.cdr.detectChanges();
   }
 

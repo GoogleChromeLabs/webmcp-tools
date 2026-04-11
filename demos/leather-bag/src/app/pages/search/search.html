@@ -56,8 +56,12 @@
             @for (color of ['Brown', 'Black']; track color) {
               <label class="filter-option">
                 <div class="filter-option-left">
-                  <input type="checkbox" name="color" [value]="color" class="custom-checkbox sr-only">
-                  <div class="color-swatch" [style.background]="color === 'Brown' ? '#5C4033' : '#1a1a1a'"></div>
+                  <input type="checkbox" name="color" [value]="color" class="custom-checkbox sr-only" (change)="applyFilters($event)">
+                  <div class="color-swatch" [class.checked]="selectedColors.includes(color)" [style.background]="color === 'Brown' ? '#5C4033' : '#1a1a1a'">
+                    @if (selectedColors.includes(color)) {
+                      <span class="material-symbols-outlined" style="color: white; font-size: 14px;">check</span>
+                    }
+                  </div>
                   <span class="font-body filter-label">{{color}}</span>
                 </div>
                 <span class="filter-count font-body">(8)</span>
@@ -77,14 +81,10 @@
         <section class="filter-section">
           <h3 class="filter-heading font-label uppercase">Price Range</h3>
           <div class="price-slider-group">
-            <div class="price-slider">
-              <div class="price-slider-track"></div>
-              <div class="price-slider-thumb left"></div>
-              <div class="price-slider-thumb right"></div>
-            </div>
+            <input type="range" name="maxPrice" min="100" max="1500" step="50" [value]="maxPrice" (input)="applyFilters($event)" class="price-range-input" style="width: 100%;">
             <div class="price-labels font-label tracking-widest">
               <span>$100.00</span>
-              <span>$1,200.00+</span>
+              <span>Up to ${{maxPrice}}</span>
             </div>
           </div>
         </section>
@@ -95,9 +95,9 @@
           <div class="filter-group">
             @for (finish of ['Full Grain', 'Suede', 'Pebbled']; track finish) {
               <label class="filter-finish-option">
-                <input type="checkbox" name="finish" [value]="finish" class="sr-only">
-                <div class="finish-checkbox" [class.checked]="finish === 'Full Grain'">
-                  @if (finish === 'Full Grain') {
+                <input type="checkbox" name="finish" [value]="finish" class="sr-only" (change)="applyFilters($event)">
+                <div class="finish-checkbox" [class.checked]="selectedFinishes.includes(finish)">
+                  @if (selectedFinishes.includes(finish)) {
                     <span class="material-symbols-outlined checkbox-icon">check</span>
                   }
                 </div>

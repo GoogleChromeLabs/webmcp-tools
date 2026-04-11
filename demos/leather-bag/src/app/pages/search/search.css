@@ -202,6 +202,15 @@
   height: 1.25rem;
   border-radius: 0.125rem;
   border: 1px solid rgba(210, 196, 188, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: outline 0.2s ease;
+}
+
+.color-swatch.checked {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .filter-label {
