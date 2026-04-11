@@ -19,7 +19,9 @@
       </a>
       <button aria-label="Shopping Bag" class="icon-btn">
         <span class="material-symbols-outlined">shopping_bag</span>
-        <span class="cart-badge"></span>
+        @if (cartCount > 0) {
+          <span class="cart-badge">{{cartCount}}</span>
+        }
       </button>
     </div>
   </div>

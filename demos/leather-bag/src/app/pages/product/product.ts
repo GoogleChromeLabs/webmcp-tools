@@ -59,10 +59,18 @@ export class ProductComponent implements OnInit {
     if (this.quantity > 1) this.quantity--;
   }
 
-  addToCart(event?: Event) {
+  addToCart(event?: any) {
     if (event) event.preventDefault();
     if (this.product) {
-      this.cartService.addToCart(this.product, this.selectedColor, parseInt(this.quantity.toString(), 10));
+      const qty = parseInt(this.quantity.toString(), 10);
+      this.cartService.addToCart(this.product, this.selectedColor, qty);
+      
+      if (event && event.respondWith) {
+        event.respondWith(Promise.resolve({ 
+          success: true, 
+          message: `Added ${qty} ${this.selectedColor} ${this.product.name} to cart` 
+        }));
+      }
     }
   }
 
