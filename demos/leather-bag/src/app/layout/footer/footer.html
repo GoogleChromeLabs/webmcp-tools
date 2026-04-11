@@ -18,7 +18,11 @@
       <div class="footer-section">
         <h3 class="font-label uppercase tracking-widest footer-heading">Support</h3>
         <ul>
-          <li><a href="#" class="footer-link">Shipping & Returns</a></li>
+          <li>
+            <form toolname="check_return_policy" tooldescription="Check the return policy for products" toolautosubmit (submit)="openReturnModal($event)">
+              <button type="submit" class="footer-link" style="background: none; border: none; padding: 0; text-align: left; cursor: pointer; color: inherit; font: inherit;">Shipping & Returns</button>
+            </form>
+          </li>
           <li><a href="#" class="footer-link">Contact Us</a></li>
           <li><a href="#" class="footer-link">Care Guide</a></li>
         </ul>
@@ -42,4 +46,20 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal -->
+  @if (isReturnModalOpen) {
+    <div class="modal-backdrop" (click)="closeReturnModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2 class="serif modal-title">Return Policy</h2>
+        <div class="modal-body">
+          <p class="font-body modal-text">At LUXE LEATHER, we stand behind the quality of our craftsmanship.</p>
+          <p class="font-body modal-text"><strong>30-Day Guarantee:</strong> If you are not entirely satisfied with your purchase, you may return any unused item in its original condition and packaging within 30 days of receipt for a full refund or exchange.</p>
+          <p class="font-body modal-text"><strong>Exclusions:</strong> Bespoke or personalized items are meticulously crafted to your specifications and are therefore final sale.</p>
+          <p class="font-body modal-text"><strong>Process:</strong> To initiate a return, please visit our returns portal or contact our concierge team. Please note that return shipping costs are the responsibility of the customer unless the item arrived damaged or defective.</p>
+        </div>
+        <button class="close-btn" (click)="closeReturnModal()">Close</button>
+      </div>
+    </div>
+  }
 </footer>
