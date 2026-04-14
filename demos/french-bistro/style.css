@@ -6,7 +6,7 @@
 /* --- THEME SETTINGS --- */
 :root {
   --gold: #d4af37;
-  --dark-gold: #b4941f;
+  --dark-gold: #675100;
   --black: #1a1a1a;
   --cream: #f9f7f2;
   --error: #c0392b;
@@ -64,7 +64,7 @@ body {
 .subtitle {
   text-align: center;
   display: block;
-  color: var(--gold);
+  color: var(--dark-gold);
   font-family: 'Segoe UI', sans-serif;
   text-transform: uppercase;
   letter-spacing: 3px;
