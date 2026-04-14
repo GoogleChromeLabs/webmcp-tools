@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { SearchParams } from "../App";
 import {
   registerFlightSearchTools,
   unregisterFlightSearchTools,
 } from "../webmcp";
+import { airports } from "../data/airports";
+import { cityNames } from "../data/cityToAirports";
 import "../App.css";
 
 interface FlightSearchProps {
@@ -23,6 +25,7 @@ export default function FlightSearch({
 }: FlightSearchProps) {
   const navigate = useNavigate();
   const [completedRequestId, setCompletedRequestId] = React.useState<string | null>(null);
+  const [errors, setErrors] = useState<{ origin?: string; destination?: string }>({});
 
   useEffect(() => {
     if (completedRequestId) {
@@ -67,9 +70,21 @@ export default function FlightSearch({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    const newErrors: { origin?: string; destination?: string } = {};
+    if (!searchParams.origin.trim()) {
+      newErrors.origin = "Origin is required.";
+    }
+    if (!searchParams.destination.trim()) {
+      newErrors.destination = "Destination is required.";
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
     const newSearchParams = new URLSearchParams();
-    newSearchParams.append("origin", searchParams.origin);
-    newSearchParams.append("destination", searchParams.destination);
+    newSearchParams.append("origin", searchParams.origin.toUpperCase());
+    newSearchParams.append("destination", searchParams.destination.toUpperCase());
     newSearchParams.append("tripType", searchParams.tripType);
     newSearchParams.append("outboundDate", searchParams.outboundDate);
     newSearchParams.append("inboundDate", searchParams.inboundDate);
@@ -86,11 +101,21 @@ export default function FlightSearch({
     });
   };
 
+  const allCodes = [
+    ...Object.entries(cityNames).map(([code, name]) => ({ code, name })),
+    ...Object.entries(airports).map(([code, name]) => ({ code, name })),
+  ];
+
   return (
     <div className="app">
       <main className="app-main">
         <div className="search-form-container">
           <h1>Flight Search</h1>
+          <datalist id="iata-codes">
+            {allCodes.map(({ code, name }) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
+          </datalist>
           <form onSubmit={handleSubmit} className="flight-search-form">
             <div className="form-group">
               <label htmlFor="origin">Origin</label>
@@ -98,10 +123,12 @@ export default function FlightSearch({
                 type="text"
                 id="origin"
                 name="origin"
-                placeholder="Origin city"
+                list="iata-codes"
+                placeholder="e.g. LON or LHR"
                 value={searchParams.origin}
                 onChange={handleChange}
               />
+              {errors.origin && <p className="field-error">{errors.origin}</p>}
             </div>
             <div className="form-group">
               <label htmlFor="destination">Destination</label>
@@ -109,10 +136,12 @@ export default function FlightSearch({
                 type="text"
                 id="destination"
                 name="destination"
-                placeholder="Destination city"
+                list="iata-codes"
+                placeholder="e.g. RIO or GIG"
                 value={searchParams.destination}
                 onChange={handleChange}
               />
+              {errors.destination && <p className="field-error">{errors.destination}</p>}
             </div>
             <div className="form-group">
               <label htmlFor="outboundDate">Outbound Date</label>

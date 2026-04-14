@@ -20,11 +20,13 @@ interface Filters {
 
 interface AppliedFiltersProps {
   filters: Filters;
+  maxPriceBound: number;
   onFilterChange: (filters: Partial<Filters>) => void;
 }
 
 export default function AppliedFilters({
   filters,
+  maxPriceBound,
   onFilterChange,
 }: AppliedFiltersProps) {
   const handleRemoveFilter = (
@@ -34,7 +36,7 @@ export default function AppliedFilters({
     const newFilters = { ...filters };
     if (filterType === "minPrice" || filterType === "maxPrice") {
       newFilters.minPrice = 0;
-      newFilters.maxPrice = 1000;
+      newFilters.maxPrice = maxPriceBound;
     } else if (filterType === "departureTime") {
       newFilters.departureTime = [0, 1439];
     } else if (filterType === "arrivalTime") {
@@ -54,7 +56,7 @@ export default function AppliedFilters({
       origins: [],
       destinations: [],
       minPrice: 0,
-      maxPrice: 1000,
+      maxPrice: maxPriceBound,
       departureTime: [0, 1439],
       arrivalTime: [0, 1439],
       flightIds: [],
@@ -67,7 +69,7 @@ export default function AppliedFilters({
     filters.origins.length > 0 ||
     filters.destinations.length > 0 ||
     filters.minPrice !== 0 ||
-    filters.maxPrice !== 1000 ||
+    filters.maxPrice !== maxPriceBound ||
     filters.departureTime[0] !== 0 ||
     filters.departureTime[1] !== 1439 ||
     filters.arrivalTime[0] !== 0 ||
@@ -122,7 +124,7 @@ export default function AppliedFilters({
             </button>
           </div>
         ))}
-        {(filters.minPrice !== 0 || filters.maxPrice !== 1000) && (
+        {(filters.minPrice !== 0 || filters.maxPrice !== maxPriceBound) && (
           <div className="filter-pill">
             Price
             <button onClick={() => handleRemoveFilter("minPrice")}>x</button>

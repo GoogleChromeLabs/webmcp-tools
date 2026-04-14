@@ -1,4 +1,4 @@
-import { flights, type Flight } from "./data/flights";
+import type { Flight } from "./data/flights";
 
 const registeredTools: Record<string, AbortController | null> = {
   searchTools: null,
@@ -36,14 +36,20 @@ function dispatchAndWait(
     });
 }
 
+let currentFlights: Flight[] = [];
+
+export function setCurrentFlights(flights: Flight[]): void {
+  currentFlights = flights;
+}
+
 export function listFlights(): Array<Flight> {
-  return flights;
+  return currentFlights;
 }
 
 export const listFlightsTool = {
   execute: listFlights,
   name: "listFlights",
-  description: "Returns all flights available.",
+  description: "Returns the flights currently visible on the results page after all filters have been applied.",
   inputSchema: {},
   outputSchema: {
     type: "object",

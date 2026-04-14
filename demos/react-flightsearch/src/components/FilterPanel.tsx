@@ -6,7 +6,7 @@
 import React from "react";
 import PriceRangeFilter from "./PriceRangeFilter";
 import TimeRangeFilter from "./TimeRangeFilter";
-import { flights } from "../data/flights";
+import type { Flight } from "../data/flights";
 import { airports } from "../data/airports";
 
 interface Filters {
@@ -21,11 +21,15 @@ interface Filters {
 }
 
 interface FilterPanelProps {
+  flights: Flight[];
+  maxPriceBound: number;
   filters: Filters;
   onFilterChange: (filters: Partial<Filters>) => void;
 }
 
 export default function FilterPanel({
+  flights,
+  maxPriceBound,
   filters,
   onFilterChange,
 }: FilterPanelProps) {
@@ -87,6 +91,7 @@ export default function FilterPanel({
       <PriceRangeFilter
         minPrice={filters.minPrice}
         maxPrice={filters.maxPrice}
+        maxBound={maxPriceBound}
         onPriceChange={handlePriceChange}
       />
       <TimeRangeFilter

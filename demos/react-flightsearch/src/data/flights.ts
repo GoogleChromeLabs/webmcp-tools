@@ -13,6 +13,10 @@ export interface Flight {
   arrivalTime: string;
   duration: string;
   stops: number;
+  returnDepartureTime: string;
+  returnArrivalTime: string;
+  returnDuration: string;
+  returnStops: number;
   price: number;
 }
 

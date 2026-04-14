@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Header from "./Header";
 import Toast from "./Toast";
 import FilterPanel from "./FilterPanel";
 import type { SearchParams } from "../App";
 import FlightList from "./FlightList";
 import AppliedFilters from "./AppliedFilters";
-import { flights, type Flight } from "../data/flights";
+import type { Flight } from "../data/flights";
+import { getFlights } from "../data/flightService";
 import {
   registerFlightResultsTools,
+  setCurrentFlights,
   unregisterFlightResultsTools,
 } from "../webmcp";
 import "../App.css";
@@ -38,7 +40,24 @@ export default function FlightResults({
   searchParams,
   setSearchParams,
 }: FlightResultsProps) {
-  const [filteredFlights, setFilteredFlights] = useState<Flight[]>(flights);
+  const routeFlights = useMemo(
+    () => getFlights(searchParams.origin, searchParams.destination),
+    [searchParams.origin, searchParams.destination],
+  );
+
+  const maxPriceBound = useMemo(
+    () => Math.max(...routeFlights.map((f) => f.price), 1000),
+    [routeFlights],
+  );
+
+  // Keep a ref so the tool event handlers (registered once) always see the
+  // current max price without needing to re-register on every route change.
+  const maxPriceBoundRef = useRef(maxPriceBound);
+  useEffect(() => {
+    maxPriceBoundRef.current = maxPriceBound;
+  }, [maxPriceBound]);
+
+  const [filteredFlights, setFilteredFlights] = useState<Flight[]>(routeFlights);
   const [toastMessage, setToastMessage] = useState("");
   const [filters, setFilters] = useState<Filters>({
     stops: [],
@@ -46,7 +65,7 @@ export default function FlightResults({
     origins: [],
     destinations: [],
     minPrice: 0,
-    maxPrice: 1000,
+    maxPrice: maxPriceBound,
     departureTime: [0, 1439],
     arrivalTime: [0, 1439],
     flightIds: [],
@@ -59,8 +78,23 @@ export default function FlightResults({
     setFilters((prevFilters) => ({ ...prevFilters, ...newFilters }));
   }, []);
 
+  // Reset filters when the searched route changes
   useEffect(() => {
-    let updatedFlights = [...flights];
+    setFilters({
+      stops: [],
+      airlines: [],
+      origins: [],
+      destinations: [],
+      minPrice: 0,
+      maxPrice: maxPriceBound,
+      departureTime: [0, 1439],
+      arrivalTime: [0, 1439],
+      flightIds: [],
+    });
+  }, [maxPriceBound]);
+
+  useEffect(() => {
+    let updatedFlights = [...routeFlights];
 
     if (filters.stops.length > 0) {
       updatedFlights = updatedFlights.filter((flight) =>
@@ -117,7 +151,8 @@ export default function FlightResults({
     );
 
     setFilteredFlights(updatedFlights);
-  }, [searchParams, filters]);
+    setCurrentFlights(updatedFlights);
+  }, [routeFlights, filters]);
 
   useEffect(() => {
     if (completedRequestId) {
@@ -138,7 +173,7 @@ export default function FlightResults({
         origins: [],
         destinations: [],
         minPrice: 0,
-        maxPrice: 1000,
+        maxPrice: maxPriceBoundRef.current,
         departureTime: [0, 1439],
         arrivalTime: [0, 1439],
         flightIds: [],
@@ -160,7 +195,7 @@ export default function FlightResults({
         origins: [],
         destinations: [],
         minPrice: 0,
-        maxPrice: 1000,
+        maxPrice: maxPriceBoundRef.current,
         departureTime: [0, 1439],
         arrivalTime: [0, 1439],
         flightIds: [],
@@ -203,11 +238,6 @@ export default function FlightResults({
     };
   }, [handleFilterChange, setSearchParams]);
 
-  const isDemoQuery =
-    searchParams.origin === "LON" &&
-    searchParams.destination === "NYC" &&
-    searchParams.tripType === "round-trip";
-
   return (
     <div className="app">
       {toastMessage && (
@@ -215,51 +245,25 @@ export default function FlightResults({
       )}
       <Header searchParams={searchParams} />
       <main className="app-main">
-        {isDemoQuery ? (
-          <>
-            <FilterPanel
-              filters={filters}
-              onFilterChange={handleFilterChange}
-            />
-            <div className="results-container">
-              <AppliedFilters
-                filters={filters}
-                onFilterChange={handleFilterChange}
-              />
-              <FlightList flights={filteredFlights} />
-            </div>
-          </>
-        ) : (
-          <div className="no-results">
-            <h2>No results found</h2>
-            <p>
-              The demo currently only supports the following query:
-              <br />
-              Origin: London, UK
-              <br />
-              Destination: New York, US
-              <br />
-              Trip Type: round-trip
-              <br />
-              Passengers: 2
-            </p>
-            <p>
-              Your query:
-              <br />
-              Origin: {searchParams.origin}
-              <br />
-              Destination: {searchParams.destination}
-              <br />
-              Trip Type: {searchParams.tripType}
-              <br />
-              Outbound Date: {searchParams.outboundDate}
-              <br />
-              Inbound Date: {searchParams.inboundDate}
-              <br />
-              Passengers: {searchParams.passengers}
-            </p>
-          </div>
-        )}
+        <FilterPanel
+          flights={routeFlights}
+          maxPriceBound={maxPriceBound}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+        <div className="results-container">
+          <AppliedFilters
+            filters={filters}
+            maxPriceBound={maxPriceBound}
+            onFilterChange={handleFilterChange}
+          />
+          <FlightList
+            flights={filteredFlights}
+            tripType={searchParams.tripType}
+            origin={searchParams.origin}
+            destination={searchParams.destination}
+          />
+        </div>
       </main>
     </div>
   );

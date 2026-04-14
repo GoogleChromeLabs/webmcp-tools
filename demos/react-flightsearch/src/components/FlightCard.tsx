@@ -7,16 +7,16 @@ import type { Flight } from "../data/flights";
 
 interface FlightCardProps {
   flight: Flight;
+  tripType: string;
 }
 
-export default function FlightCard({ flight }: FlightCardProps) {
+export default function FlightCard({ flight, tripType }: FlightCardProps) {
   return (
     <div className="flight-card">
       <div className="flight-details">
         <div className="flight-segment">
           <div className="airline-info">
             <span className="airline">{flight.airline}</span>
-            {/* Aircraft info can be added here if available */}
           </div>
           <div className="time-info">
             <div className="departure">
@@ -36,11 +36,34 @@ export default function FlightCard({ flight }: FlightCardProps) {
             </div>
           </div>
         </div>
-        {/* Repeat .flight-segment for return flights if necessary */}
+        {tripType === "round-trip" && (
+          <div className="flight-segment">
+            <div className="airline-info">
+              <span className="airline">{flight.airline}</span>
+            </div>
+            <div className="time-info">
+              <div className="departure">
+                <span className="time">{flight.returnDepartureTime}</span>
+                <span className="airport">{flight.destination}</span>
+              </div>
+              <div className="duration-container">
+                <div className="duration-line"></div>
+                <span className="duration">{flight.returnDuration}</span>
+                <span className="stops">
+                  {flight.returnStops} stop{flight.returnStops !== 1 && "s"}
+                </span>
+              </div>
+              <div className="arrival">
+                <span className="time">{flight.returnArrivalTime}</span>
+                <span className="airport">{flight.origin}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <div className="price-section">
         <span className="price">${flight.price}</span>
-        <span className="price-info">per person, round trip</span>
+        <span className="price-info">per person, {tripType === "round-trip" ? "round trip" : "one way"}</span>
         <button className="select-flight-button">Select Flight</button>
       </div>
     </div>

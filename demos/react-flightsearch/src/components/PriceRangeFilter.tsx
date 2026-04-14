@@ -9,12 +9,14 @@ import "rc-slider/assets/index.css";
 interface PriceRangeFilterProps {
   minPrice: number;
   maxPrice: number;
+  maxBound: number;
   onPriceChange: (value: number[]) => void;
 }
 
 export default function PriceRangeFilter({
   minPrice,
   maxPrice,
+  maxBound,
   onPriceChange,
 }: PriceRangeFilterProps) {
   return (
@@ -24,7 +26,7 @@ export default function PriceRangeFilter({
         <Slider
           range
           min={0}
-          max={1000}
+          max={maxBound}
           value={[minPrice, maxPrice]}
           onChange={(value) => onPriceChange(value as number[])}
         />
