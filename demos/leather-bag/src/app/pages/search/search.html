@@ -164,4 +164,16 @@
       </nav>
     </div>
   </div>
+
+  <!-- WebMCP Tool to view product details -->
+  <form 
+    toolname="view_product" 
+    tooldescription="View full details of a product by its slug" 
+    toolautosubmit 
+    (submit)="onViewProduct($event)"
+    class="sr-only"
+  >
+    <input type="text" name="slug" placeholder="Product slug">
+    <button type="submit">View</button>
+  </form>
 </main>

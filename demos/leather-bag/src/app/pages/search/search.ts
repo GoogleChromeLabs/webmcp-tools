@@ -89,4 +89,21 @@ export class Search implements OnInit {
   toggleMobileFilters() {
     this.isMobileFilterOpen = !this.isMobileFilterOpen;
   }
+
+  onViewProduct(event: any) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const slug = formData.get('slug') as string;
+    
+    if (slug) {
+      this.router.navigate(['/product', slug]);
+      if (event.respondWith) {
+        event.respondWith(Promise.resolve({ success: true, message: `Navigating to product page for ${slug}` }));
+      }
+    } else {
+      if (event.respondWith) {
+        event.respondWith(Promise.resolve({ success: false, message: 'Slug is required' }));
+      }
+    }
+  }
 }

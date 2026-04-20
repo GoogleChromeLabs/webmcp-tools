@@ -62,7 +62,8 @@ export class ProductComponent implements OnInit {
   addToCart(event?: any) {
     if (event) event.preventDefault();
     if (this.product) {
-      const qty = parseInt(this.quantity.toString(), 10);
+      // Default to 1 if quantity is not provided or invalid
+      const qty = parseInt(this.quantity?.toString() || '1', 10) || 1;
       this.cartService.addToCart(this.product, this.selectedColor, qty);
       
       if (event && event.respondWith) {

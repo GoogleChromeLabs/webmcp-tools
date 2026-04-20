@@ -58,7 +58,7 @@
         <form 
           class="add-to-cart-form space-y-8" 
           toolname="add_to_cart" 
-          tooldescription="Add the product to the shopping cart with specified color and quantity"
+          tooldescription="Add the product to the shopping cart with specified color and optional quantity (defaults to 1)"
           toolautosubmit
           (ngSubmit)="addToCart($event)"
         >
@@ -95,6 +95,7 @@
               <input 
                 type="number" 
                 name="quantity"
+                value="1"
                 class="qty-input sr-only font-body text-center w-12 border-none focus:ring-0" 
                 [(ngModel)]="quantity" 
                 min="1" 
