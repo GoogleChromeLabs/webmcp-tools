@@ -17,12 +17,12 @@
       <a routerLink="/search" aria-label="Search" class="icon-btn">
         <span class="material-symbols-outlined">search</span>
       </a>
-      <button aria-label="Shopping Bag" class="icon-btn">
+      <a routerLink="/cart" aria-label="Shopping Bag" class="icon-btn">
         <span class="material-symbols-outlined">shopping_bag</span>
         @if (cartCount > 0) {
           <span class="cart-badge">{{cartCount}}</span>
         }
-      </button>
+      </a>
     </div>
   </div>
 </header>

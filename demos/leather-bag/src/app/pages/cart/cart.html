@@ -1,0 +1,80 @@
+<div class="cart-page container mx-auto px-6 py-12">
+  <h1 class="serif text-4xl font-bold mb-8 text-primary">Your Shopping Bag</h1>
+
+  @if (items.length === 0) {
+    <div class="empty-cart text-center py-12">
+      <p class="font-body text-on-surface-variant mb-6">Your bag is currently empty.</p>
+      <a routerLink="/search" class="btn btn-primary inline-block py-3 px-6">Continue Shopping</a>
+    </div>
+  } @else {
+    <div class="cart-grid grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <!-- Cart Items -->
+      <div class="lg:col-span-2 space-y-6">
+        @for (item of items; track item.product.id + item.color) {
+          <div class="cart-item flex gap-6 p-6 bg-surface-container-lowest rounded-lg shadow-sm">
+            <div class="item-image w-24 h-24 flex-shrink-0 bg-surface-container rounded overflow-hidden">
+              <img [src]="item.product.images[0]" [alt]="item.product.name" class="w-full h-full object-cover">
+            </div>
+            <div class="item-details flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between">
+                  <h2 class="font-label text-lg font-bold text-primary">{{item.product.name}}</h2>
+                  <span class="font-body font-bold">{{item.product.price | currency}}</span>
+                </div>
+                <p class="font-body text-sm text-on-surface-variant mt-1">Color: {{item.color}}</p>
+              </div>
+              
+              <div class="flex justify-between items-center mt-4">
+                <!-- Quantity Controls -->
+                <div class="quantity-selector flex items-center border border-outline-variant rounded-md overflow-hidden bg-surface-container-lowest">
+                  <button type="button" class="qty-btn" (click)="decrementQuantity(item)" aria-label="Decrease quantity">
+                    <span class="material-symbols-outlined text-sm">remove</span>
+                  </button>
+                  <span class="font-body text-center w-12">{{item.quantity}}</span>
+                  <button type="button" class="qty-btn" (click)="incrementQuantity(item)" aria-label="Increase quantity">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                  </button>
+                </div>
+                
+                <button type="button" class="text-sm text-outline hover:text-primary underline transition-colors" (click)="removeItem(item)">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:col-span-1">
+        <div class="summary-card p-6 bg-surface-container-lowest rounded-lg shadow-sm space-y-6">
+          <h2 class="font-label text-lg font-bold text-primary uppercase tracking-widest">Order Summary</h2>
+          
+          <div class="space-y-2">
+            <div class="flex justify-between font-body">
+              <span>Subtotal</span>
+              <span>{{subtotal | currency}}</span>
+            </div>
+            <div class="flex justify-between font-body">
+              <span>Shipping</span>
+              <span>{{shipping === 0 ? 'Free' : (shipping | currency)}}</span>
+            </div>
+          </div>
+          
+          <div class="border-t border-outline-variant pt-4 flex justify-between font-bold text-lg">
+            <span>Total</span>
+            <span>{{total | currency}}</span>
+          </div>
+          
+          <button class="w-full btn btn-primary py-4 text-center uppercase font-label tracking-widest text-xs" routerLink="/checkout">
+            Proceed to Checkout
+          </button>
+          
+          <p class="text-xs text-outline text-center font-body mt-4">
+            Free shipping on orders over $500.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>

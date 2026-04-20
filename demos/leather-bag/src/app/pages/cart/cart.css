@@ -1,0 +1,33 @@
+.cart-page {
+  max-width: 1200px;
+}
+
+.cart-item {
+  border: 1px solid var(--outline-variant);
+}
+
+.qty-btn {
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-variant);
+  transition: color 0.2s ease;
+}
+
+.qty-btn:hover {
+  color: var(--primary);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-radius: 0.25rem;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary);
+  color: var(--on-secondary);
+}
