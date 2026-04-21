@@ -130,7 +130,7 @@
               @if (product.isNewArrival) {
                 <div class="product-badge font-label uppercase">New Arrival</div>
               }
-              <button class="add-btn transition-opacity" aria-label="Quick Add to Cart">
+              <button class="add-btn transition-opacity" aria-label="Quick Add to Cart" (click)="onQuickAddToCart(product, $event)">
                 <span class="material-symbols-outlined text-lg">add_shopping_cart</span>
               </button>
             </a>
@@ -168,12 +168,25 @@
   <!-- WebMCP Tool to view product details -->
   <form 
     toolname="view_product" 
-    tooldescription="View full details of a product by its slug. Navigate here to access the Add to Cart tool." 
+    tooldescription="View product details by name or index (e.g. 0, 1). Navigate here to access the Add to Cart tool." 
     toolautosubmit 
     (submit)="onViewProduct($event)"
     class="sr-only"
   >
-    <input type="text" name="slug" placeholder="Product slug">
+    <input type="text" name="identifier" placeholder="Product name or index">
     <button type="submit">View</button>
+  </form>
+
+  <!-- WebMCP Tool to add search result to cart -->
+  <form 
+    toolname="add_search_result_to_cart" 
+    tooldescription="Add a product from search results to cart by name or index. Optional color (defaults to Brown if available)." 
+    toolautosubmit 
+    (submit)="onAddSearchResultToCart($event)"
+    class="sr-only"
+  >
+    <input type="text" name="identifier" placeholder="Product name or index">
+    <input type="text" name="color" placeholder="Color (optional)">
+    <button type="submit">Add</button>
   </form>
 </main>

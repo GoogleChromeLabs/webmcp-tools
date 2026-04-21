@@ -34,7 +34,8 @@ export class ProductComponent implements OnInit {
         this.productService.getProductBySlug(slug).subscribe(p => {
           this.product = p;
           if (p) {
-            this.selectedColor = p.colors[0]?.name || '';
+            const hasBrown = p.colors.some(c => c.name === 'Brown');
+            this.selectedColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
             this.selectedImage = p.images[0] || '';
           }
           this.cdr.detectChanges();
