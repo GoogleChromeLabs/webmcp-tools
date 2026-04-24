@@ -45,8 +45,17 @@ declare global {
 
     /** Optional hints about the tool's behavior. */
     annotations?: {
-      /** If `true`, the tool does not mutate game state. */
+      /**
+       * If `true`, the tool does not modify any state and only reads data.
+       * @default false
+       */
       readOnlyHint?: boolean;
+
+      /**
+       * If `true`, indicates the tool may return content from untrusted sources.
+       * @default false
+       */
+      untrustedContentHint?: boolean;
     };
   }
 
