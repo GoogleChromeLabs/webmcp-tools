@@ -102,9 +102,6 @@ export class ToolRegistry {
   private provideTools(tools: ModelContextTool[]): void {
     if (this.supported) {
       const ctx = navigator.modelContext!;
-      for (const name of this.toolMap.keys()) {
-        ctx.unregisterTool?.(name);
-      }
       this.toolController?.abort();
       this.toolController = new AbortController();
       for (const tool of tools) {

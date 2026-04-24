@@ -132,12 +132,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   }
 
   private unregisterSearchTools() {
-    const modelContext = navigator.modelContext;
-    if (modelContext) {
-      modelContext.unregisterTool?.("refine_search");
-      modelContext.unregisterTool?.("add_search_result_to_cart");
-      this.searchToolController?.abort();
-    }
+    this.searchToolController?.abort();
   }
 
 

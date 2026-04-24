@@ -63,9 +63,6 @@ declare global {
   interface ModelContext {
     /** Adds a single tool to the current context. */
     registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
-
-    /** Removes a tool by name. (Deprecated) */
-    unregisterTool?(name: string): void;
   }
 
   interface Navigator {

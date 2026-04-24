@@ -318,13 +318,9 @@ export function registerFlightSearchTools() {
 }
 
 export function unregisterFlightSearchTools() {
-  const modelContext = window.navigator.modelContext;
-  if (modelContext) {
-    modelContext.unregisterTool?.(searchFlightsTool.name);
-    if (registeredTools.searchTools) {
-      registeredTools.searchTools.abort();
-      registeredTools.searchTools = null;
-    }
+  if (registeredTools.searchTools) {
+    registeredTools.searchTools.abort();
+    registeredTools.searchTools = null;
   }
 }
 
@@ -344,16 +340,8 @@ export function registerFlightResultsTools() {
 }
 
 export function unregisterFlightResultsTools() {
-  const modelContext = window.navigator.modelContext;
-  if (modelContext) {
-    modelContext.unregisterTool?.(listFlightsTool.name);
-    modelContext.unregisterTool?.(setFiltersTool.name);
-    modelContext.unregisterTool?.(resetFiltersTool.name);
-    modelContext.unregisterTool?.(searchFlightsTool.name);
-
-    if (registeredTools.resultsTools) {
-      registeredTools.resultsTools.abort();
-      registeredTools.resultsTools = null;
-    }
+  if (registeredTools.resultsTools) {
+    registeredTools.resultsTools.abort();
+    registeredTools.resultsTools = null;
   }
 }

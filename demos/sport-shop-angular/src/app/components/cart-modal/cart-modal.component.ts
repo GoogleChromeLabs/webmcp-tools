@@ -106,13 +106,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
   }
 
   private unregisterCartTools() {
-    const modelContext = navigator.modelContext;
-    if (modelContext) {
-      modelContext.unregisterTool?.("remove_from_cart");
-      modelContext.unregisterTool?.("start_checkout");
-      modelContext.unregisterTool?.("confirm_order");
-      this.cartToolController?.abort();
-    }
+    this.cartToolController?.abort();
   }
 
   onClose() {

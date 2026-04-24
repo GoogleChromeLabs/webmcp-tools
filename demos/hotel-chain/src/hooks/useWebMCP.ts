@@ -37,14 +37,7 @@ export function useWebMCP(tools: WebMCPTool[]) {
     });
 
     return () => {
-      registeredTools.current.forEach(name => {
-        try {
-          modelContext.unregisterTool?.(name);
-          controller.abort();
-        } catch (error) {
-          console.error(`Failed to unregister WebMCP tool "${name}":`, error);
-        }
-      });
+      controller.abort();
       registeredTools.current.clear();
     };
   }, [tools]);

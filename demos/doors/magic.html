@@ -36,7 +36,6 @@
             document.body.style.background = "#fff";
             document.getElementById('status').innerText = "The owl blinks at the sudden light!";
 
-            navigator.modelContext.unregisterTool?.('castLight');
             controller.abort();
             document.querySelector('button').setAttribute('disabled', '');
 
