@@ -31,7 +31,7 @@ export interface ProductData {
 export class ProductService {
   private http = inject(HttpClient);
   // Using absolute path ensures we don't get 404 when deeply nested in routes like /product/slug
-  private apiUrl = '/assets/data/products.json';
+  private apiUrl = 'assets/data/products.json';
 
   getProducts(): Observable<Product[]> {
     return this.http.get<ProductData>(this.apiUrl).pipe(
