@@ -8,7 +8,7 @@
       "shortDescription": "Rich Mahogany Calfskin",
       "description": "Hand-selected full-grain hides, vegetable tanned and meticulously stitched by master artisans in our historic workshop.",
       "images": [
-        "/assets/images/signature_satchel.jpg"
+        "assets/images/signature_satchel.jpg"
       ],
       "colors": [
         {
@@ -31,7 +31,7 @@
       "shortDescription": "Our most versatile piece yet",
       "description": "Constructed from one continuous piece of water-resistant calfskin leather, designed to age with a unique patina.",
       "images": [
-        "/assets/images/weekender_tote.jpg"
+        "assets/images/weekender_tote.jpg"
       ],
       "colors": [
         {
@@ -54,12 +54,12 @@
       "shortDescription": "Heritage Satchel",
       "description": "Every stitch is a testament to our legacy. This bag is handcrafted by master artisans using techniques passed down through generations.",
       "images": [
-        "/assets/images/pdp_main.jpg",
-        "/assets/images/pdp_thumb1.jpg",
-        "/assets/images/pdp_thumb2.jpg",
-        "/assets/images/pdp_thumb3.jpg",
-        "/assets/images/pdp_thumb4.jpg",
-        "/assets/images/pdp_thumb5.jpg"
+        "assets/images/pdp_main.jpg",
+        "assets/images/pdp_thumb1.jpg",
+        "assets/images/pdp_thumb2.jpg",
+        "assets/images/pdp_thumb3.jpg",
+        "assets/images/pdp_thumb4.jpg",
+        "assets/images/pdp_thumb5.jpg"
       ],
       "colors": [
         {
@@ -100,7 +100,7 @@
       "shortDescription": "Vegetable Tanned Leather",
       "description": "A classic satchel perfect for daily use. Features brass hardware and a durable strap.",
       "images": [
-        "/assets/images/classic_satchel.jpg"
+        "assets/images/classic_satchel.jpg"
       ],
       "colors": [
         {
@@ -128,7 +128,7 @@
       "shortDescription": "Hand-stitched Onyx Black",
       "description": "Minimalist large black leather artisan tote bag.",
       "images": [
-        "/assets/images/artisan_tote.jpg"
+        "assets/images/artisan_tote.jpg"
       ],
       "colors": [
         {
@@ -151,7 +151,7 @@
       "shortDescription": "Heirloom Grade Pebbled Leather",
       "description": "Large travel duffel bag in aged cognac leather.",
       "images": [
-        "/assets/images/travel_duffel.jpg"
+        "assets/images/travel_duffel.jpg"
       ],
       "colors": [
         {
@@ -174,7 +174,7 @@
       "shortDescription": "Burgundy Chrome-Free Leather",
       "description": "Modern leather backpack in deep burgundy.",
       "images": [
-        "/assets/images/urban_rucksack.jpg"
+        "assets/images/urban_rucksack.jpg"
       ],
       "colors": [
         {
