@@ -343,6 +343,35 @@ if (window.navigator.modelContext) {
       return `Share URL: ${url}`;
     },
   });
+
+  if (new URLSearchParams(location.search).has('eval_tool')) {
+    navigator.modelContext.registerTool({
+      name: 'eval_code',
+      description:
+        'Use this tool to AUTOMATE pizza making by writing a JavaScript algorithm. ' +
+        'This is the best tool to use if you have to call multiple tools. ' + 
+        'CRITICAL: All tool calls MUST follow this exact syntax: ' +
+        'await navigator.modelContextTesting.executeTool("tool_name", args); ' +
+        'Always end the script with an explicit return statement.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          code: {
+            type: 'string',
+            description:
+              'JavaScript code to execute. ' +
+              'REQUIRED SYNTAX: executeTool(name, args). ' +
+              'The "args" parameter MUST be passed as a JSON string. ' +
+              'Example: await navigator.modelContextTesting.executeTool("add_topping", JSON.stringify({ topping: "🍍" }));',
+          },
+        },
+        required: ['code'],
+      },
+      async execute({ code }) {
+        return new Function(`return (async () => { ${code} })();`)();
+      },
+    });
+  }
 }
 
 // Expose functions to global scope for HTML onclick handlers
