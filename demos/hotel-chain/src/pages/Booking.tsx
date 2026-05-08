@@ -14,7 +14,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const hotel = hotels.find(h => h.id === id) || hotels[0];
+  const hotel = hotels.find(h => h.id === id || h.id.toLowerCase() === id?.toLowerCase() || h.name.toLowerCase() === id?.toLowerCase()) || hotels[0];
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     firstName: 'Jane',

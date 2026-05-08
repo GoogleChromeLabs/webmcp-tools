@@ -16,7 +16,7 @@ export default function HotelDetails() {
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
 
-  const hotel = hotels.find(h => h.id === id) || hotels[0];
+  const hotel = hotels.find(h => h.id === id || h.id.toLowerCase() === id?.toLowerCase() || h.name.toLowerCase() === id?.toLowerCase()) || hotels[0];
 
   const policiesRef = useRef<HTMLDivElement>(null);
   const [isHighlighted, setIsHighlighted] = useState(false);
