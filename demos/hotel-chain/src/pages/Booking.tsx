@@ -8,11 +8,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { hotels } from '../data/hotels';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
+import { useBookingState } from '../hooks/useBookingState';
+import { CITY_LABELS } from '../constants';
 import { clsx } from 'clsx';
 
 export default function Booking() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { bookingInfo, formattedBookingDates, formattedGuests } = useBookingState();
 
   const hotel = hotels.find(h => h.id === id || h.id.toLowerCase() === id?.toLowerCase() || h.name.toLowerCase() === id?.toLowerCase()) || hotels[0];
   const [success, setSuccess] = useState(false);
@@ -105,7 +108,7 @@ export default function Booking() {
         description={
           <>
             Refining your experience at <span className="text-primary font-bold">{hotel.name}</span>.
-            Your journey to {hotel.city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} begins here.
+            Your journey to {CITY_LABELS[hotel.city] || hotel.city} begins here.
           </>
         }
       />
@@ -210,7 +213,7 @@ export default function Booking() {
               <div className="flex flex-col justify-center">
                 <h3 className="font-headline font-bold text-2xl tracking-tighter text-primary mb-2 line-clamp-2">{hotel.name}</h3>
                 <p className="text-[10px] text-outline font-bold uppercase tracking-[0.2em]">
-                  {hotel.city === 'tokyo' ? 'Tokyo, Japan' : hotel.city === 'paris' ? 'Paris, France' : 'New York, USA'}
+                  {CITY_LABELS[hotel.city] || hotel.city}
                 </p>
                 <div className="flex items-center gap-1 mt-4 text-on-tertiary-container">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -221,8 +224,8 @@ export default function Booking() {
             </div>
 
             <div className="space-y-6 mb-10">
-              <SummaryItem label="Dates" value="Oct 12 — Oct 15, 2024" />
-              <SummaryItem label="Guests" value="2 Adults" />
+              <SummaryItem label="Dates" value={formattedBookingDates} />
+              <SummaryItem label="Guests" value={formattedGuests} />
               {hotel.amenities.some(a => a.filterKey === 'late checkout') && (
                 <SummaryItem
                   label="Late Check-out"
@@ -233,12 +236,12 @@ export default function Booking() {
 
             <div className="pt-8 space-y-5 border-t border-outline-variant/10">
               <div className="flex justify-between text-sm font-medium text-secondary">
-                <span>3 Nights</span>
-                <span className="text-primary font-bold">${hotel.price * 3}</span>
+                <span>{bookingInfo.nights} {bookingInfo.nights === 1 ? 'Night' : 'Nights'}</span>
+                <span className="text-primary font-bold">${hotel.price * bookingInfo.nights}</span>
               </div>
               <div className="flex justify-between text-sm font-medium text-secondary">
                 <span>Taxes & Luxury Fees</span>
-                <span className="text-primary font-bold">${Math.round(hotel.price * 3 * 0.1)}</span>
+                <span className="text-primary font-bold">${Math.round(hotel.price * bookingInfo.nights * 0.1)}</span>
               </div>
               <div className="flex justify-between items-end pt-8 mt-4 border-t-2 border-primary/5">
                 <div>
@@ -247,7 +250,7 @@ export default function Booking() {
                 </div>
                 <div className="text-right">
                   <span className="text-primary font-headline font-extrabold text-4xl tracking-tighter">
-                    ${Math.round(hotel.price * 3 * 1.1)}
+                    ${Math.round(hotel.price * bookingInfo.nights * 1.1)}
                   </span>
                 </div>
               </div>

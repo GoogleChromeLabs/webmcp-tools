@@ -8,6 +8,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AVAILABLE_AMENITIES, Z_INDEX } from '../constants';
 import { hotels } from '../data/hotels';
 import { useWebMCP } from '../hooks/useWebMCP';
+import { updateBookingInfo } from '../hooks/useBookingState';
 import { Button } from './ui/Button';
 
 export default function Layout() {
@@ -21,13 +22,26 @@ export default function Layout() {
       inputSchema: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'The location query' }
+          query: { type: 'string', description: 'The location query (e.g. "Cleveland")' },
+          checkin_date: { type: 'string', description: 'Optional check-in date (YYYY-MM-DD)' },
+          nights: { type: 'number', description: 'Optional number of nights to stay' },
+          adults: { type: 'number', description: 'Optional number of adult guests' },
+          kids: { type: 'number', description: 'Optional number of child guests' },
+          pets: { type: 'number', description: 'Optional number of pets' }
         },
         required: ['query']
       },
       execute: (input: any) => {
+        const bookingUpdates: any = { query: input.query };
+        if (input.checkin_date) bookingUpdates.checkin_date = input.checkin_date;
+        if (input.nights) bookingUpdates.nights = input.nights;
+        if (input.adults !== undefined) bookingUpdates.adults = input.adults;
+        if (input.kids !== undefined) bookingUpdates.kids = input.kids;
+        if (input.pets !== undefined) bookingUpdates.pets = input.pets;
+
+        updateBookingInfo(bookingUpdates);
         navigate('/search?q=' + encodeURIComponent(input.query));
-        return { success: true, message: `Navigated to search results for ${input.query}` };
+        return { success: true, message: `Navigated to search results for ${input.query} with active search filters applied.` };
       }
     },
     {
