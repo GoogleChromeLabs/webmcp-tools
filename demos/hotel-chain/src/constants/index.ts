@@ -12,30 +12,34 @@ export const AVAILABLE_AMENITIES = [
   'rooftop bar',
   'bar',
   'laundry',
-  'late checkout'
+  'late checkout',
+  'free parking',
+  'washer'
 ] as string[];
 
 export const CITY_LABELS: Record<string, string> = {
   tokyo: 'Shibuya, Tokyo',
   'new york': 'New York, USA',
   paris: 'Paris, France',
+  cleveland: 'Cleveland, USA',
   all: 'All Locations'
 };
 
 export const CITY_KEYWORDS: Record<string, string[]> = {
   'tokyo': ['tokyo', 'shibuya', 'japan'],
   'new york': ['new york', 'nyc', 'manhattan'],
-  'paris': ['paris', 'france']
+  'paris': ['paris', 'france'],
+  'cleveland': ['cleveland', 'ohio', 'usa', 'cle']
 };
 
 export function getTargetCity(query: string | null): string | null {
   const q = (query || '').toLowerCase();
   if (q === '' || q === 'all') return 'all';
-  
+
   for (const [city, keywords] of Object.entries(CITY_KEYWORDS)) {
     if (keywords.some(k => q.includes(k))) return city;
   }
-  
+
   return null;
 }
 

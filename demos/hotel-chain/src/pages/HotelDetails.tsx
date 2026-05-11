@@ -9,12 +9,15 @@ import { hotels } from '../data/hotels';
 import { Button } from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
 import { useWebMCP } from '../hooks/useWebMCP';
+import { useBookingState } from '../hooks/useBookingState';
+import { CITY_LABELS } from '../constants';
 import { clsx } from 'clsx';
 
 export default function HotelDetails() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
+  const { bookingInfo, formattedDetailsDates, formattedGuests } = useBookingState();
 
   const hotel = hotels.find(h => h.id === id || h.id.toLowerCase() === id?.toLowerCase() || h.name.toLowerCase() === id?.toLowerCase()) || hotels[0];
 
@@ -50,7 +53,7 @@ export default function HotelDetails() {
   return (
     <main className="pt-24 pb-20 max-w-[1440px] mx-auto px-8 w-full">
       <PageHeader 
-        label={`${hotel.city}, Japan`}
+        label={CITY_LABELS[hotel.city] || hotel.city}
         title={hotel.name}
         description={
           <div className="flex gap-4 mt-6">
@@ -161,11 +164,11 @@ export default function HotelDetails() {
             <div className="space-y-8 mb-10">
               <div className="flex justify-between items-center group">
                 <span className="text-sm font-bold text-outline uppercase tracking-widest">Dates</span>
-                <span className="text-primary font-bold border-b border-primary/20 pb-1">Oct 12 — Oct 15</span>
+                <span className="text-primary font-bold border-b border-primary/20 pb-1">{formattedDetailsDates}</span>
               </div>
               <div className="flex justify-between items-center group">
                 <span className="text-sm font-bold text-outline uppercase tracking-widest">Guests</span>
-                <span className="text-primary font-bold border-b border-primary/20 pb-1">2 Adults</span>
+                <span className="text-primary font-bold border-b border-primary/20 pb-1">{formattedGuests}</span>
               </div>
               <div className="flex justify-between items-center group">
                 <span className="text-sm font-bold text-outline uppercase tracking-widest">Room Type</span>
@@ -175,12 +178,12 @@ export default function HotelDetails() {
 
             <div className="bg-primary/5 p-8 rounded-xl mb-10 border border-primary/10">
               <div className="flex justify-between text-on-surface-variant mb-3 font-medium">
-                <span>Subtotal (3 Sessions)</span>
-                <span className="font-bold text-primary">${hotel.price * 3}</span>
+                <span>Subtotal ({bookingInfo.nights} {bookingInfo.nights === 1 ? 'Night' : 'Nights'})</span>
+                <span className="font-bold text-primary">${hotel.price * bookingInfo.nights}</span>
               </div>
               <div className="flex justify-between text-primary font-bold text-xl mt-6 border-t border-primary/10 pt-6">
                 <span className="uppercase text-sm tracking-widest">Grand Total</span>
-                <span className="text-3xl tracking-tighter">${Math.round(hotel.price * 3 * 1.10)}</span>
+                <span className="text-3xl tracking-tighter">${Math.round(hotel.price * bookingInfo.nights * 1.10)}</span>
               </div>
               <p className="text-[10px] text-outline font-bold mt-4 uppercase tracking-[0.1em]">Includes tax and luxury service fees.</p>
             </div>

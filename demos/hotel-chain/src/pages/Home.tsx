@@ -4,19 +4,38 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import { Z_INDEX } from '../constants';
 import { clsx } from 'clsx';
 import { hotels } from '../data/hotels';
+import { useBookingState } from '../hooks/useBookingState';
 
 export default function Home() {
   const navigate = useNavigate();
+  const { bookingInfo, updateBookingInfo, formattedGuests } = useBookingState();
   const [locationValue, setLocationValue] = useState('');
   const [isLocationFocused, setIsLocationFocused] = useState(false);
+  const [isGuestsOpen, setIsGuestsOpen] = useState(false);
+  const guestsRef = useRef<HTMLDivElement>(null);
+  const [isNightsOpen, setIsNightsOpen] = useState(false);
+  const nightsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (guestsRef.current && !guestsRef.current.contains(event.target as Node)) {
+        setIsGuestsOpen(false);
+      }
+      if (nightsRef.current && !nightsRef.current.contains(event.target as Node)) {
+        setIsNightsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const supportedLocations = useMemo(() => {
-    const cities = ['New York, USA', 'Paris, France', 'Shibuya, Tokyo'];
+    const cities = ['Cleveland, USA', 'New York, USA', 'Paris, France', 'Shibuya, Tokyo'];
     const hotelNames = hotels.map(h => h.name);
     return [...cities, ...hotelNames];
   }, []);
@@ -51,7 +70,7 @@ export default function Home() {
 
           {/* Availability Tray / Search Bar */}
           <div className="bg-white/90 backdrop-blur-3xl p-3 rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.3)] max-w-5xl w-full flex flex-col md:flex-row items-stretch gap-3 border border-white/20">
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-0">
               {/* Location Input */}
               <div className="relative flex flex-col px-6 py-4 border-r border-outline-variant/20 group">
                 <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 group-focus-within:text-primary transition-colors">Location</label>
@@ -92,15 +111,117 @@ export default function Home() {
               </div>
 
               {/* Date Input */}
-              <div className="flex flex-col px-6 py-4 border-r border-outline-variant/20">
-                <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1">Check-in / Out</label>
-                <div className="text-primary font-bold text-lg cursor-default">Jun 12 — 15</div>
+              <div className="flex flex-col px-6 py-4 border-r border-outline-variant/20 relative group">
+                <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 group-focus-within:text-primary transition-colors">Check-in</label>
+                <input
+                  type="date"
+                  value={bookingInfo.checkin_date}
+                  onChange={(e) => updateBookingInfo({ checkin_date: e.target.value })}
+                  className="bg-transparent border-none p-0 text-primary font-bold text-lg focus:ring-0 w-full cursor-pointer hide-calendar-icon"
+                />
+              </div>
+
+              {/* Nights Input */}
+              <div className="relative flex flex-col px-6 py-4 border-r border-outline-variant/20 group cursor-pointer select-none" ref={nightsRef} onClick={() => setIsNightsOpen(!isNightsOpen)}>
+                <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 group-focus-within:text-primary transition-colors">Nights</label>
+                <div className="text-primary font-bold text-lg">{bookingInfo.nights} {bookingInfo.nights === 1 ? 'Night' : 'Nights'}</div>
+
+                {/* Nights Picker Dropdown */}
+                {isNightsOpen && (
+                  <div
+                    className="absolute top-[110%] left-0 w-64 bg-white rounded-xl shadow-2xl border border-outline-variant/20 p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200"
+                    style={{ zIndex: Z_INDEX.MODAL }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-bold text-primary">Nights</span>
+                      <div className="flex items-center gap-4">
+                        <button
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary disabled:opacity-30 disabled:pointer-events-none"
+                          onClick={() => updateBookingInfo({ nights: Math.max(1, bookingInfo.nights - 1) })}
+                          disabled={bookingInfo.nights <= 1}
+                        >-</button>
+                        <span className="font-bold text-primary w-4 text-center">{bookingInfo.nights}</span>
+                        <button
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary"
+                          onClick={() => updateBookingInfo({ nights: bookingInfo.nights + 1 })}
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Guest Input */}
-              <div className="flex flex-col px-6 py-4">
-                <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1">Guests</label>
-                <div className="text-primary font-bold text-lg cursor-default">2 Adults</div>
+              <div className="relative flex flex-col px-6 py-4 group cursor-pointer select-none" ref={guestsRef} onClick={() => setIsGuestsOpen(!isGuestsOpen)}>
+                <label className="text-[10px] uppercase tracking-widest text-outline font-bold mb-1 group-focus-within:text-primary transition-colors">Guests</label>
+                <div className="text-primary font-bold text-lg">{formattedGuests}</div>
+
+                {/* Guest Picker Dropdown */}
+                {isGuestsOpen && (
+                  <div 
+                    className="absolute top-[110%] right-0 w-72 bg-white rounded-xl shadow-2xl border border-outline-variant/20 p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200"
+                    style={{ zIndex: Z_INDEX.MODAL }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-primary">Adults</span>
+                        <span className="text-[10px] text-outline font-bold uppercase tracking-wider">Age 13+</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary disabled:opacity-30 disabled:pointer-events-none"
+                          onClick={() => updateBookingInfo({ adults: Math.max(1, bookingInfo.adults - 1) })}
+                          disabled={bookingInfo.adults <= 1}
+                        >-</button>
+                        <span className="font-bold text-primary w-4 text-center">{bookingInfo.adults}</span>
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary"
+                          onClick={() => updateBookingInfo({ adults: bookingInfo.adults + 1 })}
+                        >+</button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-primary">Kids</span>
+                        <span className="text-[10px] text-outline font-bold uppercase tracking-wider">Ages 2-12</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary disabled:opacity-30 disabled:pointer-events-none"
+                          onClick={() => updateBookingInfo({ kids: Math.max(0, bookingInfo.kids - 1) })}
+                          disabled={bookingInfo.kids <= 0}
+                        >-</button>
+                        <span className="font-bold text-primary w-4 text-center">{bookingInfo.kids}</span>
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary"
+                          onClick={() => updateBookingInfo({ kids: bookingInfo.kids + 1 })}
+                        >+</button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-primary">Pets</span>
+                        <span className="text-[10px] text-outline font-bold uppercase tracking-wider">Service animals welcome</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary disabled:opacity-30 disabled:pointer-events-none"
+                          onClick={() => updateBookingInfo({ pets: Math.max(0, bookingInfo.pets - 1) })}
+                          disabled={bookingInfo.pets <= 0}
+                        >-</button>
+                        <span className="font-bold text-primary w-4 text-center">{bookingInfo.pets}</span>
+                        <button 
+                          className="w-8 h-8 rounded-full border border-outline-variant/30 flex items-center justify-center hover:border-primary text-primary"
+                          onClick={() => updateBookingInfo({ pets: bookingInfo.pets + 1 })}
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

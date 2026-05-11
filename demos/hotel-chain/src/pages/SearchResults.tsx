@@ -57,6 +57,26 @@ export default function SearchResults() {
         setRequiredAmenities([]);
         return { success: true, message: 'All filters have been reset' };
       }
+    },
+    {
+      name: 'get_current_search_results',
+      description: 'Retrieve the list of hotels matching the current search query and applied filters.',
+      execute: () => {
+        const allResults = [...featuredHotels, ...standardHotels];
+        return {
+          success: true,
+          count: allResults.length,
+          hotels: allResults.map(h => ({
+            id: h.id,
+            name: h.name,
+            rating: h.rating,
+            price: h.price,
+            featured: h.isFeatured,
+            amenities: h.amenities.map(a => a.filterKey),
+            description: h.description
+          }))
+        };
+      }
     }
   ]);
 
