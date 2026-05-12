@@ -15,7 +15,6 @@ import {
 } from "./constants.js";
 import { logDateToISO, aggregate } from "./utils.js";
 import LineChart from "./components/LineChart.jsx";
-import PromptsHelper from "./components/PromptsHelper.jsx";
 import DataTable from "./components/DataTable.jsx";
 import VerticalBarChart from "./components/VerticalBarChart.jsx";
 import HorizontalBarChart from "./components/HorizontalBarChart.jsx";
@@ -244,18 +243,7 @@ export default function WebMCPDashboard() {
             >
               Server Access Logs
             </h1>
-            <p
-              style={{
-                margin: "3px 0 0",
-                fontSize: "13px",
-                color: "var(--text)",
-              }}
-            >
-              WebMCP demo — AI agents control this dashboard via{" "}
-              <code style={{ fontSize: "12px" }}>navigator.modelContext</code>
-            </p>
           </div>
-          <PromptsHelper />
         </div>
       </div>
 
