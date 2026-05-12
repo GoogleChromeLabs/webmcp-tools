@@ -128,6 +128,23 @@ export class SearchComponent implements OnInit, OnDestroy {
           return { success: true, message: `Added '${product.name}' to cart.` };
         }
       }, { signal });
+
+      // 3. Get Current Search Results Tool
+      modelContext.registerTool({
+        name: "get_current_search_results",
+        description: "Returns the current search results displayed on the page.",
+        inputSchema: {
+          type: "object",
+          properties: {}
+        },
+        execute: () => {
+          return { 
+            success: true, 
+            message: `Found ${this.filteredProducts.length} products.`,
+            results: this.filteredProducts 
+          };
+        }
+      }, { signal });
     }
   }
 
