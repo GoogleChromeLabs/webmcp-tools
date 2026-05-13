@@ -133,10 +133,6 @@ export class SearchComponent implements OnInit, OnDestroy {
       modelContext.registerTool({
         name: "get_current_search_results",
         description: "Returns the current search results displayed on the page.",
-        inputSchema: {
-          type: "object",
-          properties: {}
-        },
         execute: () => {
           return { 
             success: true, 
