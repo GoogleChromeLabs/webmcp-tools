@@ -98,5 +98,40 @@ export class WebmcpService {
         return { success: true, message: "Cart opened." };
       }
     });
+
+    // 4. Search Product Tool
+    modelContext.registerTool({
+      name: "search_product",
+      description: "Search for products based on the query.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Search term for products (e.g. 'soccer boots', 'running gear')."
+          },
+          category: {
+            type: "string",
+            description: "The product category to browse.",
+            enum: ['ALL', 'BASKETBALL', 'SOCCER', 'BASEBALL', 'RUNNING']
+          },
+          size: {
+            type: "string",
+            description: "Product size.",
+            enum: ['ALL', 'adult', 'child']
+          }
+        }
+      },
+      execute: (params: any) => {
+        const searchParams: any = {
+          q: (params && params.query) ? params.query : ''
+        };
+        if (params && params.category && params.category !== 'ALL') searchParams.category = params.category;
+        if (params && params.size && params.size !== 'ALL') searchParams.size = params.size;
+
+        this.router.navigate(['/search'], { queryParams: searchParams });
+        return { success: true, message: `Navigating to search results for ${JSON.stringify(searchParams)}` };
+      }
+    });
   }
 }
