@@ -189,13 +189,12 @@ export class VercelBackend implements Backend {
               try {
                 rawTools = await page!.evaluate(async () => {
                   const nav = navigator as any;
-                  let mct = null;
-                  if (typeof nav.modelContext?.listTools === "function") {
-                    mct = nav.modelContext;
+                  if (typeof nav.modelContext?.getTools === "function") {
+                    return await nav.modelContext.getTools();
                   } else if (typeof nav.modelContextTesting?.listTools === "function") {
-                    mct = nav.modelContextTesting;
+                    return nav.modelContextTesting.listTools();
                   }
-                  return mct ? mct.listTools() : [];
+                  return [];
                 });
               } catch (err: any) {
                 console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);

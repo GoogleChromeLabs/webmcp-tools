@@ -137,17 +137,14 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     }
 
     const rawTools = await page.evaluate(async () => {
-      let modelContext = null;
-      if (typeof (navigator as any).modelContext?.listTools === "function") {
-        modelContext = (navigator as any).modelContext;
-      } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
-        modelContext = (navigator as any).modelContextTesting;
+      const nav = navigator as any;
+      if (typeof nav.modelContext?.getTools === "function") {
+        return await nav.modelContext.getTools();
       }
-
-      if (!modelContext) {
-        return null;
+      if (typeof nav.modelContextTesting?.listTools === "function") {
+        return nav.modelContextTesting.listTools();
       }
-      return await modelContext.listTools();
+      return null;
     });
 
     if (rawTools === null) {
