@@ -44,7 +44,7 @@ export async function executeLocalEvals(
     if (!apiKey) throw new Error("Missing Google API key");
     backendImpl = new GeminiBackend(
       apiKey,
-      config.model || "gemini-2.5-flash",
+      config.model || "gemini-3-flash-preview",
       SYSTEM_PROMPT,
       tools,
     );

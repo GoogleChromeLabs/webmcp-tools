@@ -40,7 +40,7 @@ describe("VercelBackend", () => {
         }
       }
 
-      const backend = new TestableVercelBackend({ model: "gemini-2.5-flash" } as any, dummyTools);
+      const backend = new TestableVercelBackend({ model: "gemini-3-flash-preview" } as any, dummyTools);
 
       // Create a multi-turn eval
       const evalTest: Eval = {
@@ -127,7 +127,7 @@ describe("VercelBackend", () => {
       });
 
       const backend = new VercelBackend(
-        { model: "gemini-2.5-flash", url: "http://localhost:3000" } as any,
+        { model: "gemini-3-flash-preview", url: "http://localhost:3000" } as any,
         dummyTools,
       );
 

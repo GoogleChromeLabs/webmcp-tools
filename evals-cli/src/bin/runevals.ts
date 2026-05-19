@@ -38,7 +38,7 @@ const config: Config = {
   evalsFile: args.evals,
   backend: args.backend || "gemini",
   provider: args.provider,
-  model: args.model || "gemini-2.5-flash",
+  model: args.model || "gemini-3-flash-preview",
   runs: args.runs ? parseInt(args.runs, 10) : 1,
 };
 

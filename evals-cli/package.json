@@ -30,7 +30,7 @@
     "ollama": "^0.6.3",
     "open": "^11.0.0",
     "ora": "^9.3.0",
-    "puppeteer-core": "^24.37.5",
+    "puppeteer-core": "^25.0.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -33,7 +33,7 @@ The project is structured as follows:
 
 - Node.js (v18+ recommended)
 - Appropriate API Keys (Google GenAI, OpenAI, or Anthropic, depending on the backend used)
-- Chrome Canary 146+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
+- Chrome 149+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
 
 ## Setup
 
@@ -86,11 +86,11 @@ node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/tra
 | `--evals`    | Yes      | —                  | Path to the evals JSON file                                              |
 | `--backend`  | No       | `gemini`           | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
 | `--provider` | No       | `google`           | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
-| `--model`    | No       | `gemini-2.5-flash` | Model name                                                               |
+| `--model`    | No       | `gemini-3-flash-preview` | Model name                                                               |
 
 ### `webmcpevals` — live tool schemas via WebMCP
 
-Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas live from the page via `navigator.modelContextTesting.listTools()`. Requires Chrome Canary 146+ with the `chrome://flags/#enable-webmcp-testing` flag enabled.
+Launches Chrome, navigates to the given URL, and retrieves tool schemas live from the page via Puppeteer. Requires Chrome 149+.
 
 ```bash
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
@@ -102,7 +102,7 @@ node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=exa
 | `--evals`    | Yes      | —                  | Path to the evals JSON file                                         |
 | `--backend`  | No       | `vercel`           | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`) |
 | `--provider` | No       | `gemini`           | Model provider to use with Vercel (e.g., `openai`, `anthropic`)     |
-| `--model`    | No       | `gemini-2.5-flash` | Model name                                                          |
+| `--model`    | No       | `gemini-3-flash-preview` | Model name                                                          |
 
 ### `serve` — WebMCP Evals UI sidecar
 
