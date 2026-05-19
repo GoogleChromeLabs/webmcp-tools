@@ -9,7 +9,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { Config, WebmcpConfig } from "../types/config.js";
 
 export function getModel(config: Config | WebmcpConfig) {
-  const modelId = config.model || "google:gemini-2.5-flash";
+  const modelId = config.model || "google:gemini-3-flash-preview";
 
   if (config.provider === "openai" || modelId.startsWith("openai:")) {
     const apiKey = process.env.OPENAI_API_KEY;

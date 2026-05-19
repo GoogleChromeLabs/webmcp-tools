@@ -29,7 +29,7 @@ export class VercelBackend implements Backend {
     config: Config | WebmcpConfig,
     private tools: Array<Tool>,
   ) {
-    this.modelName = config.model || "gemini-2.5-flash";
+    this.modelName = config.model || "gemini-3-flash-preview";
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
   }
@@ -99,7 +99,7 @@ export class VercelBackend implements Backend {
       browser = await puppeteer.launch({
         executablePath,
         headless: true,
-        args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
+        args: ["--enable-features=WebMCPTesting,DevToolsWebMCPSupport", "--no-sandbox", "--disable-setuid-sandbox"],
       });
 
       console.log("Browser initialized for actual evals");
@@ -183,23 +183,8 @@ export class VercelBackend implements Backend {
                   );
                 }
               : undefined,
-            prepareStep: async (_opts: any): Promise<any> => {
-              let rawTools: any = [];
-
-              try {
-                rawTools = await page!.evaluate(async () => {
-                  const nav = navigator as any;
-                  let mct = null;
-                  if (typeof nav.modelContext?.listTools === "function") {
-                    mct = nav.modelContext;
-                  } else if (typeof nav.modelContextTesting?.listTools === "function") {
-                    mct = nav.modelContextTesting;
-                  }
-                  return mct ? mct.listTools() : [];
-                });
-              } catch (err: any) {
-                console.error("[vercel.ts] Failed to fetch tools via evaluate:", err.message);
-              }
+            prepareStep: (_opts: any): any => {
+              let rawTools = page!.webmcp.tools();
 
               currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
 

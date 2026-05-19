@@ -21,7 +21,7 @@ function App() {
     evalsFile: "./examples/travel/evals.json",
     toolSchemaFile: "./examples/travel/schema.json",
     url: "https://example.com",
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     backend: "gemini",
     runs: 1,
   });
