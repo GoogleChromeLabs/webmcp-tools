@@ -20,55 +20,35 @@ export function createBrowserTool(t: Tool, page: Page): any {
     parameters: jsonSchema(sanitizedParams) as any,
     inputSchema: jsonSchema(sanitizedParams) as any,
     execute: async (args: any) => {
-      let executionResult: any;
+      let executionResult: any = {};
+
+      const tools = page.webmcp.tools();
+      if (tools.length === 0) {
+        return { error: "no tools were found" };
+      }
+
+      const tool = tools.find(tool => tool.name === t.functionName);
+      if (!tool) {
+        return { error: `no tool named "${t.functionName}" were found` };
+      }
 
       try {
-        executionResult = await page.evaluate(
-          async (name, args) => {
-            try {
-              let mct = null;
-              if (typeof (navigator as any).modelContext?.executeTool === "function") {
-                mct = (navigator as any).modelContext;
-              } else if (
-                typeof (navigator as any).modelContextTesting?.executeTool === "function"
-              ) {
-                mct = (navigator as any).modelContextTesting;
-              }
-              if (!mct) return { error: "modelContext not found" };
-              const payload = typeof args === "string" ? args : JSON.stringify(args || {});
-              const result = await mct.executeTool(name, payload);
+        const result = await tool.execute(args);
 
-              return { result };
-            } catch (e: any) {
-              return { error: e.message || String(e) };
-            }
-          },
-          t.functionName,
-          args,
-        );
+        if (result.status === 'Completed') {
+          executionResult.result = result.output;
+        } else {
+          return { error: result.errorText };
+        }
 
-        // If executionResult.result is null, it might be due to a navigation happening,
-        // so fall back to using getCrossDocumentScriptToolResult().
-        if (!executionResult.result) {
+        // If executionResult.result is null, it is due to a navigation happening.
+        // Bug: https://issues.chromium.org/510269012
+        // Note that this doesn't work yet because of https://chromium-review.googlesource.com/c/chromium/src/+/7827877
+        if (executionResult.result == null) {
           await page.waitForNavigation();
-          executionResult = await page.evaluate(async () => {
-            try {
-              let mct = null;
-              if (typeof (navigator as any).modelContext?.executeTool === "function") {
-                mct = (navigator as any).modelContext;
-              } else if (
-                typeof (navigator as any).modelContextTesting?.executeTool === "function"
-              ) {
-                mct = (navigator as any).modelContextTesting;
-              }
-
-              if (!mct) return { error: "modelContext not found" };
-
-              const result = await mct.getCrossDocumentScriptToolResult();
-              return { result, crossDocument: true };
-            } catch (e: any) {
-              return { error: e.message || String(e) };
-            }
+          executionResult = await page.evaluate(() => {
+            const result = document.querySelector('script[type="application/ld+json"]')?.textContent;
+            return { result, crossDocument: true };
           });
         }
       } catch (e: any) {
@@ -103,11 +83,10 @@ export function createBrowserTool(t: Tool, page: Page): any {
 }
 
 /**
- * Launches Chrome Canary, navigates to the given URL, and retrieves the list
- * of tools exposed by the page via the WebMCP API.
+ * Launches Chrome, navigates to the given URL, and retrieves the list
+ * of tools exposed by the page via Puppeteer.
  *
- * Requires Chrome Canary 146+ with the `chrome://flags/#enable-webmcp-testing`
- * flag enabled. The browser is always closed after the tools are retrieved,
+ * Requires Chrome 149+. The browser is always closed after the tools are retrieved,
  * even if an error occurs.
  */
 export async function listToolsFromPage(url: string): Promise<Tool[]> {
@@ -115,11 +94,11 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
   let browser: Browser | null = null;
 
   try {
-    console.log(`Launching Chrome Canary from: ${executablePath}`);
+    console.log(`Launching Chrome from: ${executablePath}`);
     browser = await puppeteer.launch({
       executablePath,
       headless: true,
-      args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--enable-features=WebMCPTesting,DevToolsWebMCPSupport", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -136,38 +115,9 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
       );
     }
 
-    const rawTools = await page.evaluate(async () => {
-      let modelContext = null;
-      if (typeof (navigator as any).modelContext?.listTools === "function") {
-        modelContext = (navigator as any).modelContext;
-      } else if (typeof (navigator as any).modelContextTesting?.listTools === "function") {
-        modelContext = (navigator as any).modelContextTesting;
-      }
+    const rawTools = page.webmcp.tools();
 
-      if (!modelContext) {
-        return null;
-      }
-      return await modelContext.listTools();
-    });
-
-    if (rawTools === null) {
-      throw new Error(
-        "The WebMCP API (window.navigator.modelContextTesting) is not available on this page.\n" +
-          "Please ensure:\n" +
-          "  1. You are using Chrome Canary version 146 or later.\n" +
-          "  2. The flag chrome://flags/#enable-webmcp-testing is enabled.\n" +
-          `  3. The page at ${url} implements the WebMCP API.`,
-      );
-    }
-
-    if (!Array.isArray(rawTools) || rawTools.length === 0) {
-      throw new Error(
-        `The WebMCP API returned no tools from ${url}. ` +
-          "Ensure the page exposes tools via modelContextTesting.listTools().",
-      );
-    }
-
-    console.log(`Found ${rawTools.length} tool(s) via WebMCP API.`);
+    console.log(`Found ${rawTools.length} tool(s) via Puppeteer.`);
     return mapRawBrowserToolsToConfig(rawTools, []);
   } finally {
     if (browser) {

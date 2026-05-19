@@ -48,7 +48,7 @@ const config: WebmcpConfig = {
   evalsFile: args.evals,
   backend: args.backend || "vercel",
   provider: args.provider || "gemini",
-  model: args.model || "gemini-2.5-flash",
+  model: args.model || "gemini-3-flash-preview",
   debug,
   runs: args.runs ? parseInt(args.runs, 10) : 1,
 };
