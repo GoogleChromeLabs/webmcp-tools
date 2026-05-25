@@ -57,6 +57,11 @@ jobs:
           npm run build -- --base-href /webmcp-tools/demos/leather-bag/
           cd ..
 
+          cd smart-home
+          npm ci
+          npm run build
+          cd ..
+
 
       - name: Assemble Public Folder
         run: |
@@ -75,6 +80,7 @@ jobs:
           cp -r demos/real-estate-map deployment-root/demos/real-estate-map
           cp -r demos/coffee-shop deployment-root/demos/coffee-shop
           cp -r demos/leather-bag/dist/leather-bag/browser deployment-root/demos/leather-bag
+          cp -r demos/smart-home/dist deployment-root/demos/smart-home
 
 
       - name: Setup Pages

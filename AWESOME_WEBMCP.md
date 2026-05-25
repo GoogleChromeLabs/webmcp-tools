@@ -55,6 +55,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Find me an apartment in Austin", then "Find me an apartment with AC under $1,000,000."
 - [Luxe Leather](https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag) - A premium e-commerce site for hand-crafted leather goods built with Angular and WebMCP. This demo showcases how an AI agent can interact with a web application to search products, check policies, and manage a shopping cart using declarative tools.
   - **Example Prompt:** "Find a handmade leather bag, check if they have a 30-day return policy, and if yes, add the brown one to my cart"
+- [WebMCP Smart Home](https://googlechromelabs.github.io/webmcp-tools/demos/smart-home) - A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
+  - **Example Prompt:** "Someone is at the door. Show me."
 
 ## Contributing
 

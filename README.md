@@ -21,6 +21,7 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**The Morning Ritual (Imperative)**](demos/coffee-shop/): A premium coffee boutique demo showcasing agentic reordering, technical spec analysis, and catalog navigation.
 - [**UrbanEstates (Imperative)**](demos/real-estate-map/): A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
 - [**Luxe Leather (Declarative)**](demos/leather-bag/): A premium e-commerce site for hand-crafted leather bags built with Angular and WebMCP. This demo showcases how an AI agent can interact with a web application to search products, check policies, and manage a shopping cart using declarative tools.
+- [**WebMCP Smart Home (Imperative)**](demos/smart-home/): A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
 
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 
