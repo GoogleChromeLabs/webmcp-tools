@@ -86,7 +86,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
  * Launches Chrome, navigates to the given URL, and retrieves the list
  * of tools exposed by the page via Puppeteer.
  *
- * Requires Chrome 149+. The browser is always closed after the tools are retrieved,
+ * Requires Chrome 150+. The browser is always closed after the tools are retrieved,
  * even if an error occurs.
  */
 export async function listToolsFromPage(url: string): Promise<Tool[]> {
@@ -98,7 +98,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     browser = await puppeteer.launch({
       executablePath,
       headless: true,
-      args: ["--enable-features=WebMCPTesting,DevToolsWebMCPSupport", "--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();

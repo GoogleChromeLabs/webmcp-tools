@@ -99,7 +99,7 @@ export class VercelBackend implements Backend {
       browser = await puppeteer.launch({
         executablePath,
         headless: true,
-        args: ["--enable-features=WebMCPTesting,DevToolsWebMCPSupport", "--no-sandbox", "--disable-setuid-sandbox"],
+        args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
       });
 
       console.log("Browser initialized for actual evals");
