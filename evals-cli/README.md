@@ -96,12 +96,12 @@ Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas l
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
 ```
 
-| Argument     | Required | Default            | Description                                                         |
-| ------------ | -------- | ------------------ | ------------------------------------------------------------------- |
-| `--url`      | Yes      | —                  | URL of the page exposing WebMCP tools                               |
-| `--evals`    | Yes      | —                  | Path to the evals JSON file                                         |
-| `--backend`  | No       | `vercel`           | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`) |
-| `--provider` | No       | `gemini`           | Model provider to use with Vercel (e.g., `openai`, `anthropic`)     |
+| Argument     | Required | Default                  | Description                                                         |
+| ------------ | -------- | ------------------------ | ------------------------------------------------------------------- |
+| `--url`      | Yes      | —                        | URL of the page exposing WebMCP tools                               |
+| `--evals`    | Yes      | —                        | Path to the evals JSON file                                         |
+| `--backend`  | No       | `vercel`                 | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`) |
+| `--provider` | No       | `gemini`                 | Model provider to use with Vercel (e.g., `openai`, `anthropic`)     |
 | `--model`    | No       | `gemini-3-flash-preview` | Model name                                                          |
 
 ### `serve` — WebMCP Evals UI sidecar
