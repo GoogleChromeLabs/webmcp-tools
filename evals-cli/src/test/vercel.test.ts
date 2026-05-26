@@ -40,7 +40,10 @@ describe("VercelBackend", () => {
         }
       }
 
-      const backend = new TestableVercelBackend({ model: "gemini-3-flash-preview" } as any, dummyTools);
+      const backend = new TestableVercelBackend(
+        { model: "gemini-3-flash-preview" } as any,
+        dummyTools,
+      );
 
       // Create a multi-turn eval
       const evalTest: Eval = {

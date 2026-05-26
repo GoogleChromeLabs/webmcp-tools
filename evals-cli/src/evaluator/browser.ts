@@ -27,7 +27,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
         return { error: "no tools were found" };
       }
 
-      const tool = tools.find(tool => tool.name === t.functionName);
+      const tool = tools.find((tool) => tool.name === t.functionName);
       if (!tool) {
         return { error: `no tool named "${t.functionName}" were found` };
       }
@@ -35,7 +35,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
       try {
         const result = await tool.execute(args);
 
-        if (result.status === 'Completed') {
+        if (result.status === "Completed") {
           executionResult.result = result.output;
         } else {
           return { error: result.errorText };
@@ -45,7 +45,9 @@ export function createBrowserTool(t: Tool, page: Page): any {
         if (executionResult.result == null) {
           await page.waitForNavigation();
           executionResult = await page.evaluate(() => {
-            const result = document.querySelector('script[type="application/ld+json"]')?.textContent;
+            const result = document.querySelector(
+              'script[type="application/ld+json"]',
+            )?.textContent;
             return { result, crossDocument: true };
           });
         }

@@ -80,12 +80,12 @@ With Ollama:
 node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/schema.json --evals=examples/travel/evals.json
 ```
 
-| Argument     | Required | Default            | Description                                                              |
-| ------------ | -------- | ------------------ | ------------------------------------------------------------------------ |
-| `--tools`    | Yes      | —                  | Path to the tool schema JSON file                                        |
-| `--evals`    | Yes      | —                  | Path to the evals JSON file                                              |
-| `--backend`  | No       | `gemini`           | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
-| `--provider` | No       | `google`           | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
+| Argument     | Required | Default                  | Description                                                              |
+| ------------ | -------- | ------------------------ | ------------------------------------------------------------------------ |
+| `--tools`    | Yes      | —                        | Path to the tool schema JSON file                                        |
+| `--evals`    | Yes      | —                        | Path to the evals JSON file                                              |
+| `--backend`  | No       | `gemini`                 | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
+| `--provider` | No       | `google`                 | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
 | `--model`    | No       | `gemini-3-flash-preview` | Model name                                                               |
 
 ### `webmcpevals` — live tool schemas via WebMCP
