@@ -42,7 +42,3 @@ These prompts can be used with an AI agent connected to this demo via WebMCP:
 #### **Climate Adjustment**
 > "It is way too hot downstairs. Open the HVAC controls."
 * **Trajectory**: Agent detects cooling intent $\rightarrow$ Calls `rearrangeDOMComponents` with `['thermostat_control']`. 
-
-#### **Reset to Default**
-> "Reset the dashboard back to normal."
-* **Trajectory**: Agent calls `rearrangeDOMComponents` with `['energy_summary','weather_widget','smart_lights_living_room','thermostat_control']`. 

@@ -1,0 +1,41 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Someone is at the door. Show me."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "rearrangeDOMComponents",
+        "arguments": {
+          "componentIds": [
+            "camera_front_door",
+            "lock_front_door"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "It is way too hot downstairs. Open the HVAC controls."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "rearrangeDOMComponents",
+        "arguments": {
+          "componentIds": [
+            "thermostat_control"
+          ]
+        }
+      }
+    ]
+  }
+]
