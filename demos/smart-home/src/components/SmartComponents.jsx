@@ -1,7 +1,20 @@
-import React from 'react';
-import { 
-  Thermometer, Video, Lock, Lightbulb, Battery, CloudRain, 
-  Music, ShieldAlert, Wind, Play, SkipForward, Cpu, Zap 
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {
+  Battery, CloudRain,
+  Cpu,
+  Lightbulb,
+  Lock,
+  Music,
+  Play,
+  ShieldAlert,
+  SkipForward,
+  Thermometer, Video,
+  Wind,
+  Zap
 } from 'lucide-react';
 
 // --- EXISTING COMPONENTS ---

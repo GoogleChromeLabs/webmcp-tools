@@ -1,6 +1,10 @@
-import React from 'react';
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { Activity, LayoutDashboard, Music, Shield, Thermometer } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Shield, Thermometer, Activity, Music } from 'lucide-react';
 
 export function Sidebar() {
   return (
