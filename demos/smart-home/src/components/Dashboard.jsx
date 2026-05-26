@@ -5,7 +5,7 @@ import { COMPONENT_MAP } from './SmartComponents';
 
 
 export function Dashboard() {
-  const { dashboardComponents, isAgentActive, agentMessage } = useDashboard();
+  const { dashboardComponents, isAgentActive } = useDashboard();
 
   return (
     <div className="main-content">
@@ -33,7 +33,7 @@ export function Dashboard() {
             }}
           >
             <span className="animate-spin" style={{ fontSize: '20px' }}>⚙️</span> 
-            {agentMessage}
+            Updating dashboard components...
           </motion.div>
         )}
       </AnimatePresence>
