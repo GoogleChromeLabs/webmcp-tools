@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { DashboardProvider } from './context/DashboardContext';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
