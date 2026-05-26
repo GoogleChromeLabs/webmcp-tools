@@ -11,10 +11,7 @@
       {
         "functionName": "rearrangeDOMComponents",
         "arguments": {
-          "componentIds": [
-            "camera_front_door",
-            "lock_front_door"
-          ]
+          "componentIds": ["camera_front_door", "lock_front_door"]
         }
       }
     ]
@@ -31,9 +28,7 @@
       {
         "functionName": "rearrangeDOMComponents",
         "arguments": {
-          "componentIds": [
-            "thermostat_control"
-          ]
+          "componentIds": ["thermostat_control"]
         }
       }
     ]
