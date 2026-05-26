@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { flushSync } from "react-dom";
 import {
   VALID_STATUSES,
   VALID_METHODS,
@@ -27,6 +26,7 @@ import useWebMCPQueryTool from "./hooks/useWebMCPQueryTool.js";
  */
 export default function WebMCPDashboard() {
   const [query, setQuery] = useState(DEFAULT_QUERY);
+  const pendingResolversRef = useRef([]);
   const {
     statusFilter,
     methodFilter,
@@ -75,7 +75,7 @@ export default function WebMCPDashboard() {
   const maxValue = Math.max(...aggregatedData.map((d) => d.value), 1);
 
   const executeQuery = useCallback(
-    async (params) => {
+    (params) => {
       const {
         status,
         method,
@@ -153,17 +153,15 @@ export default function WebMCPDashboard() {
           ],
         };
 
-      flushSync(() => {
-        setQuery({
-          statusFilter: status || "All",
-          methodFilter: method || "All",
-          pathSearch: ps || "",
-          dateFrom: df || "",
-          dateTo: dt || "",
-          groupBy: gb,
-          measure: ms,
-          chartType: ct,
-        });
+      setQuery({
+        statusFilter: status || "All",
+        methodFilter: method || "All",
+        pathSearch: ps || "",
+        dateFrom: df || "",
+        dateTo: dt || "",
+        groupBy: gb,
+        measure: ms,
+        chartType: ct,
       });
 
       const filters = [
@@ -178,11 +176,14 @@ export default function WebMCPDashboard() {
         : "";
       const vizDesc = ct === "table" ? "table" : `${ms} by ${gb} as ${ct}`;
 
-      return {
-        content: [
-          { type: "text", text: `Query applied: ${vizDesc}${filterDesc}.` },
-        ],
-      };
+      return new Promise((resolve) => {
+        const response = {
+          content: [
+            { type: "text", text: `Query applied: ${vizDesc}${filterDesc}.` },
+          ],
+        };
+        pendingResolversRef.current.push(() => resolve(response));
+      });
     },
     [setQuery],
   );
@@ -194,6 +195,14 @@ export default function WebMCPDashboard() {
   }, [executeQuery]);
 
   useWebMCPQueryTool(executeQueryRef);
+
+  useEffect(() => {
+    const resolvers = pendingResolversRef.current;
+    if (resolvers.length > 0) {
+      pendingResolversRef.current = [];
+      resolvers.forEach((resolve) => resolve());
+    }
+  });
 
   const PAGE_SIZE = 50;
   const [tablePage, setTablePage] = useState(0);
