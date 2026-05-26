@@ -42,8 +42,6 @@ export function createBrowserTool(t: Tool, page: Page): any {
         }
 
         // If executionResult.result is null, it is due to a navigation happening.
-        // Bug: https://issues.chromium.org/510269012
-        // Note that this doesn't work yet because of https://chromium-review.googlesource.com/c/chromium/src/+/7827877
         if (executionResult.result == null) {
           await page.waitForNavigation();
           executionResult = await page.evaluate(() => {
