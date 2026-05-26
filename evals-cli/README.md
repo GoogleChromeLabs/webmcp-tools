@@ -33,7 +33,7 @@ The project is structured as follows:
 
 - Node.js (v18+ recommended)
 - Appropriate API Keys (Google GenAI, OpenAI, or Anthropic, depending on the backend used)
-- Chrome 150+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
+- Chrome Canary 150+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
 
 ## Setup
 
@@ -90,7 +90,7 @@ node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/tra
 
 ### `webmcpevals` — live tool schemas via WebMCP
 
-Launches Chrome, navigates to the given URL, and retrieves tool schemas live from the page via Puppeteer. Requires Chrome 150+.
+Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas live from the page via Puppeteer. Requires Chrome Canary 150+ with the `chrome://flags/#enable-webmcp-testing` flag enabled.
 
 ```bash
 node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json

@@ -83,10 +83,11 @@ export function createBrowserTool(t: Tool, page: Page): any {
 }
 
 /**
- * Launches Chrome, navigates to the given URL, and retrieves the list
+ * Launches Chrome Canary, navigates to the given URL, and retrieves the list
  * of tools exposed by the page via Puppeteer.
  *
- * Requires Chrome 150+. The browser is always closed after the tools are retrieved,
+ * Requires Chrome Canary 150+ with the `chrome://flags/#enable-webmcp-testing`
+ * flag enabled. The browser is always closed after the tools are retrieved,
  * even if an error occurs.
  */
 export async function listToolsFromPage(url: string): Promise<Tool[]> {
@@ -94,7 +95,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
   let browser: Browser | null = null;
 
   try {
-    console.log(`Launching Chrome from: ${executablePath}`);
+    console.log(`Launching Chrome Canary from: ${executablePath}`);
     browser = await puppeteer.launch({
       executablePath,
       headless: true,
