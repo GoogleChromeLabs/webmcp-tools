@@ -70,7 +70,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
       if (typeof r === "string") {
         try {
           r = JSON.parse(r);
-        } catch { }
+        } catch {}
       }
 
       // Attempt to drill down into structured responses
