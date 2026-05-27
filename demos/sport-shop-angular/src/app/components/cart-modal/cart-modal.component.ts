@@ -40,7 +40,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
   private cartToolController: AbortController | null = null;
 
   private registerCartTools() {
-    const modelContext = navigator.modelContext;
+    const modelContext = document.modelContext || navigator.modelContext;
     if (modelContext) {
       this.cartToolController = new AbortController();
       const signal = this.cartToolController.signal;

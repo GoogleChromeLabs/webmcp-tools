@@ -13,7 +13,7 @@ import { createStartGameTool } from "./tools/StartGameTool.ts";
 import { createEvalTool } from "./tools/EvalTool.ts";
 
 /**
- * Manages the lifecycle of WebMCP tools registered with `navigator.modelContext`.
+ * Manages the lifecycle of WebMCP tools registered with `document.modelContext`.
  *
  * Different sets of tools are registered depending on the current game state:
  * - **Intro / GameOver**: only `start_game`
@@ -44,11 +44,11 @@ export class ToolRegistry {
   constructor(game: Game) {
     this.game = game;
     this.supported =
-      typeof navigator !== "undefined" && !!navigator.modelContext;
+      !!document.modelContext || !!navigator.modelContext;
 
     if (!this.supported) {
       console.warn(
-        "WebMCP (navigator.modelContext) is not available in this browser.",
+        "WebMCP (modelContext) is not available in this browser.",
       );
       return;
     }
@@ -101,7 +101,7 @@ export class ToolRegistry {
    */
   private provideTools(tools: ModelContextTool[]): void {
     if (this.supported) {
-      const ctx = navigator.modelContext!;
+      const ctx = document.modelContext || navigator.modelContext!;
       this.toolController?.abort();
       this.toolController = new AbortController();
       for (const tool of tools) {

@@ -25,13 +25,13 @@ export class WebmcpService {
   }
 
   private get modelContext(): ModelContext | undefined {
-    return navigator.modelContext;
+    return document.modelContext || navigator.modelContext;
   }
 
   private registerTools() {
     const modelContext = this.modelContext;
     if (!modelContext) {
-      console.warn('modelContext is not defined on navigator. WebMCP tools will not be registered.');
+      console.warn('modelContext is not defined. WebMCP tools will not be registered.');
       return;
     }
 

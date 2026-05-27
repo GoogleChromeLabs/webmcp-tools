@@ -62,7 +62,8 @@
             speech.innerText = "Ask me anything else...";
         }
 
-        navigator.modelContext.registerTool({
+        const modelContext = document.modelContext || navigator.modelContext;
+        modelContext.registerTool({
             name: 'talk',
             description: 'Talk with the animal. You can ask "What are you?" or say "Give me a gift"',
             inputSchema: {

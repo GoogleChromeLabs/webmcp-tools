@@ -179,13 +179,14 @@ function loadPizzaStateFromURL() {
 // Load state on startup
 loadPizzaStateFromURL();
 
-if (window.navigator.modelContext) {
+const modelContext = document.modelContext || navigator.modelContext;
+if (modelContext) {
   const urlParams = new URLSearchParams(window.location.search);
   if (!urlParams.has('showButtons')) {
     document.body.classList.add('webmcp-supported');
   }
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'set_pizza_size',
     description: 'Set the pizza size directly or infer it based on the number of people.',
     inputSchema: {
@@ -222,7 +223,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'set_pizza_style',
     description: 'Set the style of the pizza (colors/theme)',
     inputSchema: {
@@ -241,7 +242,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'toggle_layer',
     description: 'Control pizza layers (sauce, cheese). Use "add", "remove", or "toggle".',
     inputSchema: {
@@ -258,7 +259,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'add_topping',
     description: 'Add one or more toppings to the pizza',
     inputSchema: {
@@ -283,7 +284,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'remove_topping',
     description: 'Remove a specific topping from the pizza',
     inputSchema: {
@@ -309,7 +310,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'manage_pizza',
     description: 'Manage pizza state',
     inputSchema: {
@@ -331,7 +332,7 @@ if (window.navigator.modelContext) {
     },
   });
 
-  navigator.modelContext.registerTool({
+  modelContext.registerTool({
     name: 'share_pizza',
     description: 'Get a shareable URL for the current pizza creation',
     inputSchema: {

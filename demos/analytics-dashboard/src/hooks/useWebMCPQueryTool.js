@@ -10,14 +10,15 @@ import { useEffect } from "react";
  */
 export default function useWebMCPQueryTool(executeQueryRef) {
   useEffect(() => {
-    if (!window.navigator.modelContext) {
+    const modelContext = document.modelContext || navigator.modelContext;
+    if (!modelContext) {
       console.warn("WebMCP not detected in this browser.");
       return;
     }
 
     const controller = new AbortController();
 
-    navigator.modelContext.registerTool(
+    modelContext.registerTool(
       {
         name: "query",
         description: `Query the server logs. Sets all filters and visualization in one atomic call — every parameter is always applied together, so no stale state can carry over from a previous query.
@@ -91,7 +92,7 @@ CHART (required):
     );
 
     return () => {
-      navigator.modelContext.unregisterTool?.("query");
+      modelContext.unregisterTool?.("query");
       controller.abort();
     };
   }, [executeQueryRef]);

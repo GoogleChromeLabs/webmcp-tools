@@ -66,7 +66,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private searchToolController: AbortController | null = null;
 
   private registerSearchTools() {
-    const modelContext = navigator.modelContext;
+    const modelContext = document.modelContext || navigator.modelContext;
     if (modelContext) {
       this.searchToolController = new AbortController();
       const signal = this.searchToolController.signal;
