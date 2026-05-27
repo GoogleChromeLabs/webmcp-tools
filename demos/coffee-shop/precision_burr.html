@@ -281,8 +281,8 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
   refreshCartUI();
 
-  if ("modelContext" in navigator) {
-    const modelContext = navigator.modelContext;
+  const modelContext = document.modelContext || navigator.modelContext;
+  if (modelContext) {
 
     modelContext.registerTool({
       name: "search_catalog",

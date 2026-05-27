@@ -4,7 +4,7 @@
  */
 
 // Register WebMCP Tools natively
-const modelContext = navigator.modelContext;
+const modelContext = document.modelContext || navigator.modelContext;
 if (modelContext) {
   modelContext.registerTool({
     name: "apply_smart_filters",

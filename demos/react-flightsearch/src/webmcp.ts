@@ -308,7 +308,7 @@ export const searchFlightsTool = {
 };
 
 export function registerFlightSearchTools() {
-  const modelContext = window.navigator.modelContext;
+  const modelContext = document.modelContext || navigator.modelContext;
   if (modelContext) {
     if (!registeredTools.searchTools) {
       registeredTools.searchTools = new AbortController();
@@ -325,7 +325,7 @@ export function unregisterFlightSearchTools() {
 }
 
 export function registerFlightResultsTools() {
-  const modelContext = window.navigator.modelContext;
+  const modelContext = document.modelContext || navigator.modelContext;
 
   if (modelContext) {
     if (!registeredTools.resultsTools) {

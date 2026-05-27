@@ -20,11 +20,11 @@ export function useWebMCP(tools: WebMCPTool[]) {
   const registeredTools = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.navigator.modelContext) {
+    const modelContext = document.modelContext || navigator.modelContext;
+    if (!modelContext) {
       return;
     }
 
-    const modelContext = window.navigator.modelContext;
     const controller = new AbortController();
 
     tools.forEach(tool => {

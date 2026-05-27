@@ -17,8 +17,9 @@ export function DashboardProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController();
 
+    const modelContext = document.modelContext || navigator.modelContext;
     try {
-      navigator.modelContext.registerTool({
+      modelContext.registerTool({
         name: "rearrangeDOMComponents",
         title: "Rearrange Dashboard",
         description: "Rearranges the user's home dashboard by adding, removing, or reordering smart home control components based on the user's intent.",
@@ -42,7 +43,7 @@ export function DashboardProvider({ children }) {
         }
       }, { signal: controller.signal });
 
-      console.log("WebMCP tool registered via navigator.modelContext");
+      console.log("WebMCP tool registered via modelContext");
     } catch (e) {
       console.error(e);
     }

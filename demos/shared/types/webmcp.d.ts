@@ -5,7 +5,7 @@
 
 /**
  * Type declarations for the WebMCP browser API.
- * Extends the Navigator interface with `modelContext`.
+ * Extends the Document interface with `modelContext`.
  * @see https://webmachinelearning.github.io/webmcp/
  */
 
@@ -59,13 +59,21 @@ declare global {
     };
   }
 
-  /** The model context API exposed on `navigator.modelContext`. */
+  /** The model context API exposed on `document.modelContext`. */
   interface ModelContext {
     /** Adds a single tool to the current context. */
     registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
   }
 
   interface Navigator {
+    /**
+     * WebMCP model context API. May be undefined if the browser doesn't support it.
+     * @deprecated Use `document.modelContext` instead.
+     */
+    modelContext?: ModelContext;
+  }
+
+  interface Document {
     /** WebMCP model context API. May be undefined if the browser doesn't support it. */
     modelContext?: ModelContext;
   }
