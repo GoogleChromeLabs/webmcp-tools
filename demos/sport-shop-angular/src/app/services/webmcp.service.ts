@@ -133,5 +133,31 @@ export class WebmcpService {
         return { success: true, message: `Navigating to search results for ${JSON.stringify(searchParams)}` };
       }
     });
+
+    // 5. Get Store Promos and Rules Tool
+    modelContext.registerTool({
+      name: "get_store_promos_and_rules",
+      description: "Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).",
+      execute: () => {
+        return {
+          success: true,
+          promotions: [
+            {
+              id: "basketball_3_for_2",
+              name: "Basketball 3-for-2 Promo",
+              description: "Buy 3 Basketball items, get the cheapest one for free. Discount is applied automatically at checkout.",
+              eligibleCategories: ["BASKETBALL"]
+            }
+          ],
+          storeRules: {
+            localPickupEligibility: {
+              description: "Only Soccer and Running gear are eligible for local pickup. Other items are shipping only.",
+              eligibleCategories: ["SOCCER", "RUNNING"],
+              ineligibleCategories: ["BASKETBALL", "BASEBALL"]
+            }
+          }
+        };
+      }
+    });
   }
 }

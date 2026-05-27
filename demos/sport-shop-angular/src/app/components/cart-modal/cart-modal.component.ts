@@ -4,7 +4,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnDestroy, OnInit, Output, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { CartService } from '../../services/cart.service';
 import { UiService } from '../../services/ui.service';
 
@@ -67,7 +67,8 @@ export class CartModalComponent implements OnInit, OnDestroy {
           }
         },
         execute: (params: any) => {
-          const product = findMatchingProduct(this.cartService.cart(), params);
+          const products = this.cartService.cart().map(item => item.product);
+          const product = findMatchingProduct(products, params);
           if (!product) {
             return { success: false, message: "Product not found in the cart. Please provide a valid index, productId, or productName that matches the items in your cart." };
           }
@@ -102,6 +103,72 @@ export class CartModalComponent implements OnInit, OnDestroy {
           return { success: true, message: "Order confirmed and closed." };
         }
       }, { signal });
+
+      // 4. Update Delivery Option Tool
+      modelContext.registerTool({
+        name: "update_cart_delivery_option",
+        description: "Updates the delivery option (ship or pickup) for an item in the cart. Only available when the cart is open.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            index: {
+              type: "number",
+              description: "The index of the item in the cart (0-based)."
+            },
+            productId: {
+              type: "string",
+              description: "The unique ID of the product in the cart."
+            },
+            option: {
+              type: "string",
+              description: "The delivery option choice: 'ship' or 'pickup'.",
+              enum: ["ship", "pickup"]
+            }
+          },
+          required: ["option"]
+        },
+        execute: (params: any) => {
+          let idx = params.index;
+          if (typeof idx !== 'number' && params.productId) {
+            idx = this.cartService.cart().findIndex(item => item.product.id === params.productId);
+          }
+          if (typeof idx !== 'number' || idx < 0 || idx >= this.cartService.cart().length) {
+            return { success: false, message: "Item not found in cart." };
+          }
+
+          const cartItem = this.cartService.cart()[idx];
+          const isEligible = cartItem.product.category === 'SOCCER' || cartItem.product.category === 'RUNNING';
+          if (params.option === 'pickup' && !isEligible) {
+            return { success: false, message: `Product '${cartItem.product.name}' is not eligible for local pickup. Only Soccer and Running gear is eligible.` };
+          }
+
+          this.cartService.updateDeliveryOption(idx, params.option);
+          return { success: true, message: `Updated delivery option for '${cartItem.product.name}' to ${params.option}.` };
+        }
+      }, { signal });
+
+      // 5. Get Cart Tool
+      modelContext.registerTool({
+        name: "get_cart",
+        description: "Returns the list of items in the cart, their delivery options, subtotal, applied discounts, and final total price.",
+        execute: () => {
+          return {
+            success: true,
+            items: this.cartService.cart().map((item, idx) => ({
+              index: idx,
+              productId: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              category: item.product.category,
+              deliveryOption: item.deliveryOption,
+              eligibleForPickup: item.product.category === 'SOCCER' || item.product.category === 'RUNNING'
+            })),
+            subtotal: this.cartService.subtotalPrice(),
+            discount: this.cartService.discount(),
+            totalPrice: this.cartService.totalPrice()
+          };
+        }
+      }, { signal });
     }
   }
 
@@ -119,6 +186,11 @@ export class CartModalComponent implements OnInit, OnDestroy {
 
   onRemove(productId: string) {
     this.cartService.removeFromCart(productId);
+  }
+
+  updateDeliveryOption(index: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.cartService.updateDeliveryOption(index, select.value as 'ship' | 'pickup');
   }
 
   onCheckout() {
