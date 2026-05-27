@@ -57,6 +57,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Find a handmade leather bag, check if they have a 30-day return policy, and if yes, add the brown one to my cart"
 - [WebMCP Smart Home](https://googlechromelabs.github.io/webmcp-tools/demos/smart-home) - A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
   - **Example Prompt:** "Someone is at the door. Show me."
+- [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites. Each entry surfaces the site's real `navigator.modelContext` tools (name, kind, impl, description, JSON schema) exactly as an agent would see them, with a public agent-facing JSON API at [`/api/v1/sites`](https://webmcp.cool/api-docs) for programmatic discovery. The directory itself also exposes WebMCP tools (`about`, `request_listing`, `surprise_me`, `share_on_x`, `share_on_linkedin`) so an agent can list a new site or learn about the registry through tool calls.
+  - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory using my email `me@example.com`."
 
 ## Contributing
 
