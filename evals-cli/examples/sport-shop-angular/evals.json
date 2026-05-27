@@ -1,0 +1,33 @@
+[
+  {
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Search for a soccer ball and view the details page of the matched item. Once you have successfully viewed the details page, STOP immediately and do not call any more tools."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_product",
+        "arguments": {
+          "query": {
+            "$contains": "soccer"
+          }
+        }
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {}
+      },
+      {
+        "functionName": "view_product",
+        "arguments": {
+          "productId": {
+            "$any": true
+          }
+        }
+      }
+    ]
+  }
+]
