@@ -12,4 +12,5 @@ export interface Product {
     image: string;
     size: 'child' | 'adult';
     tags?: string[];
+    availability: number;
 }

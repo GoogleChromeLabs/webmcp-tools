@@ -34,25 +34,36 @@
 
         <!-- Items Grid -->
         <div class="items-grid">
-          @for (item of cartService.cart(); track item.id + $index) {
+          @for (item of cartService.cart(); track item.product.id + $index) {
           <div class="cart-item-card group">
             <!-- Thumbnail -->
             <div class="item-thumb-container">
-              <img [src]="item.image" [alt]="item.name" class="group-hover:scale-110">
+              <img [src]="item.product.image" [alt]="item.product.name" class="group-hover:scale-110">
             </div>
 
             <!-- Details -->
             <div class="item-details-box">
               <div class="item-header-row">
-                <h3 class="font-headline truncate italic uppercase">{{ item.name }}</h3>
-                <span class="item-price">${{ item.price | number:'1.2-2' }}</span>
+                <h3 class="font-headline truncate italic uppercase">{{ item.product.name }}</h3>
+                <span class="item-price">${{ item.product.price | number:'1.2-2' }}</span>
               </div>
-              <p class="item-category uppercase">{{ item.category }}</p>
+              <p class="item-category uppercase">{{ item.product.category }}</p>
 
               <!-- Controls -->
               <div class="item-footer-row">
-                <div></div>
-                <button (click)="onRemove(item.id)" class="delete-btn-circ bg-surface/20">
+                <!-- Delivery Option Selection -->
+                <div class="delivery-selection-box">
+                  @if (item.product.category === 'SOCCER' || item.product.category === 'RUNNING') {
+                    <select (change)="updateDeliveryOption($index, $event)" class="bg-surface border border-border/10 text-xs uppercase py-1 px-2 rounded font-mono text-text/80 focus:outline-none focus:border-primary cursor-pointer">
+                      <option value="ship" [selected]="item.deliveryOption === 'ship'">Ship to Home</option>
+                      <option value="pickup" [selected]="item.deliveryOption === 'pickup'">Store Pickup</option>
+                    </select>
+                  } @else {
+                    <span class="text-[10px] tracking-wider font-mono uppercase text-text/40 px-2 py-1 border border-border/5 bg-surface/5 rounded">Ship Only</span>
+                  }
+                </div>
+                
+                <button (click)="onRemove(item.product.id)" class="delete-btn-circ bg-surface/20">
                   <span class="material-symbols-outlined">delete</span>
                 </button>
               </div>
@@ -89,8 +100,22 @@
 
     <!-- Footer -->
     @if (checkoutState === 'summary' && cartService.cartCount() > 0) {
-    <div class="modal-footer-area bg-surface/20">
-      <div class="total-row border-border/10">
+    <div class="modal-footer-area bg-surface/20 flex flex-col gap-3">
+      <!-- Detailed Pricing Breakdown -->
+      <div class="pricing-breakdown border-b border-border/10 pb-2 flex flex-col gap-1 text-xs font-mono text-text/70">
+        <div class="flex justify-between">
+          <span>Subtotal:</span>
+          <span>${{ cartService.subtotalPrice() | number:'1.2-2' }}</span>
+        </div>
+        @if (cartService.discount() > 0) {
+          <div class="flex justify-between text-primary">
+            <span>Promo: 3-for-2 Basketball:</span>
+            <span>-${{ cartService.discount() | number:'1.2-2' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="total-row border-border/10 pt-1">
         <span class="total-label uppercase tracking-[0.3em]">Est. Total</span>
         <span class="total-value italic">${{ cartService.totalPrice() | number:'1.2-2' }}</span>
       </div>

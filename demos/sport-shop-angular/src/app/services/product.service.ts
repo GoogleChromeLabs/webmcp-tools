@@ -19,7 +19,8 @@ export class ProductService {
       description: 'Crafted from premium synthetic leather, the Nano Banana Field Master offers pro-grade durability and an instant break-in feel. Master every play with a glove that blends tradition with elite performance.',
       image: 'assets/products/nano-banana-glove.png',
       size: 'child',
-      tags: ['youth', 'glove', 'gift', 'under $50', 'nano banana']
+      tags: ['youth', 'glove', 'gift', 'under $50', 'nano banana'],
+      availability: 8
     },
     {
       id: 'google-impact-balls',
@@ -29,7 +30,8 @@ export class ProductService {
       description: 'Build confidence at the plate with indestructible limited-flight training balls by Google. Engineered for repeated impact, they provide instant feedback without leaving the field.',
       image: 'assets/products/google-impact-balls.png',
       size: 'child',
-      tags: ['training', 'gift', 'under $50', 'google']
+      tags: ['training', 'gift', 'under $50', 'google'],
+      availability: 12
     },
     {
       id: 'gemini-pro-grip-gloves',
@@ -39,7 +41,8 @@ export class ProductService {
       description: 'Dominating at the plate requires a superior hold. Gemini Pro Grip gloves feature genuine leather palms and ventilated mesh for maximum comfort and control during every swing.',
       image: 'assets/products/gemini-pro-grip-gloves.png',
       size: 'child',
-      tags: ['apparel', 'gift', 'under $50', 'gemini']
+      tags: ['apparel', 'gift', 'under $50', 'gemini'],
+      availability: 3
     },
     {
       id: 'nano-banana-speed-bat',
@@ -49,7 +52,8 @@ export class ProductService {
       description: 'Specifically engineered for the youth hitter, this Nano Banana speed-balanced alloy bat delivers explosive energy transfer and a lightweight feel for lightning-fast swings.',
       image: 'assets/products/nano-banana-speed-bat.png',
       size: 'child',
-      tags: ['bat', 'gift', 'under $50', 'nano banana']
+      tags: ['bat', 'gift', 'under $50', 'nano banana'],
+      availability: 1
     },
     // BASKETBALL
     {
@@ -60,7 +64,8 @@ export class ProductService {
       description: 'The #1 indoor game ball. Features a micro-fiber composite leather cover and laid-in channels for ultimate grip and consistency with Gemini technology.',
       image: 'assets/products/gemini-basketball.png',
       size: 'adult',
-      tags: ['indoor', 'ball', 'gemini']
+      tags: ['indoor', 'ball', 'gemini'],
+      availability: 15
     },
     {
       id: 'gemini-basketball-junior',
@@ -70,7 +75,8 @@ export class ProductService {
       description: 'The legendary Gemini ball, sized for the next generation. Premium composite leather provides the same elite feel and control for younger players.',
       image: 'assets/products/gemini-basketball-junior.png',
       size: 'child',
-      tags: ['indoor', 'ball', 'gemini', 'junior']
+      tags: ['indoor', 'ball', 'gemini', 'junior'],
+      availability: 6
     },
     {
       id: 'google-portable-hoop',
@@ -80,7 +86,8 @@ export class ProductService {
       description: 'Professional grade Google portable hoop with 54-inch acrylic backboard and adjustable height.',
       image: 'assets/products/google-portable-hoop.png',
       size: 'adult',
-      tags: ['equipment', 'hoop', 'outdoor', 'google']
+      tags: ['equipment', 'hoop', 'outdoor', 'google'],
+      availability: 4
     },
     {
       id: 'nano-banana-socks',
@@ -90,7 +97,8 @@ export class ProductService {
       description: 'Zonal cushioning from Nano Banana helps absorb impact while you run the court.',
       image: 'assets/products/nano-banana-socks.png',
       size: 'adult',
-      tags: ['apparel', 'socks', 'nano banana']
+      tags: ['apparel', 'socks', 'nano banana'],
+      availability: 10
     },
     {
       id: 'nano-banana-socks-youth',
@@ -100,7 +108,8 @@ export class ProductService {
       description: 'Nano Banana Elite technology in a youth-optimized fit. Zonal cushioning absorbs impact, while the arch band provides a secure, locked-in feel.',
       image: 'assets/products/nano-banana-socks-youth.png',
       size: 'child',
-      tags: ['apparel', 'socks', 'nano banana', 'youth']
+      tags: ['apparel', 'socks', 'nano banana', 'youth'],
+      availability: 14
     },
     // SOCCER
     {
@@ -111,7 +120,8 @@ export class ProductService {
       description: 'Google Pro Match certified. Seamless, thermally bonded surface for a more predictable trajectory.',
       image: 'assets/products/google-mls-pro-ball.png',
       size: 'adult',
-      tags: ['professional', 'ball', 'google']
+      tags: ['professional', 'ball', 'google'],
+      availability: 2
     },
     {
       id: 'gemini-ultimate-boots',
@@ -121,7 +131,8 @@ export class ProductService {
       description: 'The future of playmaking by Gemini. Advanced compression band for ultimate fit and lockdown.',
       image: 'assets/products/gemini-ultimate-boots.png',
       size: 'adult',
-      tags: ['shoes', 'cleats', 'gemini']
+      tags: ['shoes', 'cleats', 'gemini'],
+      availability: 11
     },
     {
       id: 'gemini-ultimate-boots-youth',
@@ -131,7 +142,8 @@ export class ProductService {
       description: 'Future-focused performance for rising stars. Gemini tech ensures a adaptive fit that lets young playmakers move with absolute freedom.',
       image: 'assets/products/gemini-ultimate-boots-youth.png',
       size: 'child',
-      tags: ['shoes', 'cleats', 'gemini', 'youth']
+      tags: ['shoes', 'cleats', 'gemini', 'youth'],
+      availability: 7
     },
     {
       id: 'nano-banana-soccer-trainer',
@@ -141,7 +153,8 @@ export class ProductService {
       description: 'Master your ball control without the chase. Nano Banana hands-free trainer allows for maximum repetitions on touches, passing, and receiving.',
       image: 'assets/products/gemini-ultimate-boots.png',
       size: 'child',
-      tags: ['training', 'solo', 'equipment', 'nano banana']
+      tags: ['training', 'solo', 'equipment', 'nano banana'],
+      availability: 5
     },
     // RUNNING
     {
@@ -152,7 +165,8 @@ export class ProductService {
       description: 'Experience a smooth, worry-free run. The Google Ghost features advanced cushioning for an ultra-soft feel that doesn\'t compromise on responsiveness.',
       image: 'assets/products/google-ghost-shoes.png',
       size: 'adult',
-      tags: ['shoes', 'neutral', 'running', 'google']
+      tags: ['shoes', 'neutral', 'running', 'google'],
+      availability: 13
     },
     {
       id: 'google-ghost-shoes-youth',
@@ -162,7 +176,8 @@ export class ProductService {
       description: 'Google performance for youth athletes. Advanced cushioning provides a balanced, soft ride for school, sports, and everything in between.',
       image: 'assets/products/google-ghost-shoes-youth.png',
       size: 'child',
-      tags: ['shoes', 'neutral', 'running', 'youth', 'google']
+      tags: ['shoes', 'neutral', 'running', 'youth', 'google'],
+      availability: 9
     },
     {
       id: 'gemini-forerunner-watch',
@@ -172,7 +187,8 @@ export class ProductService {
       description: 'GPS running smartwatch by Gemini with advanced training metrics and recovery insights.',
       image: 'assets/products/gemini-forerunner-watch.png',
       size: 'adult',
-      tags: ['watch', 'gps', 'tech', 'gemini']
+      tags: ['watch', 'gps', 'tech', 'gemini'],
+      availability: 3
     },
     {
       id: 'nano-banana-hydration-bottle',
@@ -182,7 +198,8 @@ export class ProductService {
       description: 'Stay hydrated with the ultimate adventure bottle by Nano Banana. Insulation keeps beverages at the perfect temperature for hours.',
       image: 'assets/products/nano-banana-hydration-bottle.png',
       size: 'adult',
-      tags: ['hydration', 'bottle', 'outdoor', 'nano banana']
+      tags: ['hydration', 'bottle', 'outdoor', 'nano banana'],
+      availability: 11
     },
     // ADDITIONAL BASEBALL
     {
@@ -193,7 +210,8 @@ export class ProductService {
       description: 'Constructed from world-renowned leather by Google for exceptional performance.',
       image: 'assets/products/google-heart-hide-glove.png',
       size: 'adult',
-      tags: ['professional', 'glove', 'leather', 'google']
+      tags: ['professional', 'glove', 'leather', 'google'],
+      availability: 2
     },
     {
       id: 'gemini-massive-pop-bat',
@@ -203,7 +221,8 @@ export class ProductService {
       description: 'Built for the game\'s most powerful hitters with Gemini X14 Alloy Barrel for massive pop.',
       image: 'assets/products/gemini-massive-pop-bat.png',
       size: 'adult',
-      tags: ['bbcor', 'bat', 'power', 'gemini']
+      tags: ['bbcor', 'bat', 'power', 'gemini'],
+      availability: 6
     },
     {
       id: 'nano-banana-youth-helmet',
@@ -213,7 +232,8 @@ export class ProductService {
       description: 'Durable ABS shell for youth protection with the Nano Banana signature style.',
       image: 'assets/products/nano-banana-youth-helmet.png',
       size: 'child',
-      tags: ['protection', 'helmet', 'youth', 'nano banana']
+      tags: ['protection', 'helmet', 'youth', 'nano banana'],
+      availability: 8
     }
   ];
 

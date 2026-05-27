@@ -35,8 +35,22 @@
                         <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
                     </div>
                 </div>
-                <div class="flex items-baseline gap-2 mb-8">
+                <div class="flex items-center justify-between gap-2 mb-8">
                     <span class="text-4xl font-headline font-black text-primary">${{ product.price | number:'1.2-2' }}</span>
+                    
+                    <!-- Stock Availability Badge -->
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono uppercase border border-outline-variant/10 bg-surface-container-lowest shadow-sm">
+                      @if (product.availability >= 10) {
+                        <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+                        <span class="text-green-500 font-bold">10+ Available</span>
+                      } @else if (product.availability > 0) {
+                        <span class="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span class="text-amber-500 font-bold">{{ product.availability }} Left</span>
+                      } @else {
+                        <span class="flex h-2 w-2 rounded-full bg-red-500"></span>
+                        <span class="text-red-500 font-bold">Out of Stock</span>
+                      }
+                    </div>
                 </div>
                 <div class="space-y-4 mb-8">
                     <button (click)="addToCart()" class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold text-lg hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]">Add to Cart</button>
