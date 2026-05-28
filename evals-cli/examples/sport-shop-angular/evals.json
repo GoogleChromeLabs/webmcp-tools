@@ -4,29 +4,54 @@
       {
         "role": "user",
         "type": "message",
-        "content": "Search for a soccer ball and view the details page of the matched item. Once you have successfully viewed the details page, STOP immediately and do not call any more tools."
+        "content": "Search for a soccer ball."
       }
     ],
     "expectedCall": [
       {
         "functionName": "search_product",
         "arguments": {
+          "category": "SOCCER",
           "query": {
-            "$contains": "soccer"
+            "$contains": "ball"
           }
         }
-      },
+      }
+    ]
+  },
+  {
+    "messages": [
       {
-        "functionName": "get_current_search_results",
-        "arguments": {}
-      },
+        "role": "user",
+        "type": "message",
+        "content": "I'm looking for a gift for my kid. He likes baseball. Apply filter for 50$ if available"
+      }
+    ],
+    "expectedCall": [
       {
-        "functionName": "view_product",
+        "functionName": "search_product",
         "arguments": {
-          "productId": {
-            "$any": true
-          }
+          "category": "BASEBALL",
+          "size": "child"
         }
+      },
+      {
+        "unordered": [
+          {
+            "functionName": "get_store_promos_and_rules",
+            "arguments": {}
+          },
+          {
+            "functionName": "get_current_search_results",
+            "arguments": {}
+          },
+          {
+            "functionName": "refine_search",
+            "arguments": {
+              "priceRange": "0-49.99"
+            }
+          }
+        ]
       }
     ]
   }
