@@ -14,7 +14,9 @@ import { findChromePath } from "../utils.js";
  * WebMCP bindings inside the puppeteer browser execution context.
  */
 export function createBrowserTool(t: Tool, page: Page): any {
-  const sanitizedParams = sanitizeSchema(t.parameters || {});
+  const hasParams = t.parameters && Object.keys(t.parameters).length > 0;
+  const rawParams = hasParams ? t.parameters : { type: "object", properties: {} };
+  const sanitizedParams = sanitizeSchema(rawParams);
   return defineTool({
     description: t.description,
     parameters: jsonSchema(sanitizedParams) as any,

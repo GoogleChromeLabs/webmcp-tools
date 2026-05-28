@@ -117,7 +117,7 @@ export class WebmcpService {
           },
           size: {
             type: "string",
-            description: "Product size.",
+            description: "Product size. Use 'child' for kids/children, 'adult' for adults.",
             enum: ['ALL', 'adult', 'child']
           }
         }
