@@ -186,6 +186,8 @@ if (modelContext) {
     document.body.classList.add('webmcp-supported');
   }
 
+  const toolOptions = { exposedTo: ["http://localhost:8080", "http://127.0.0.1:8080", "https://chrome.dev"] };
+
   modelContext.registerTool({
     name: 'set_pizza_size',
     description: 'Set the pizza size directly or infer it based on the number of people.',
@@ -221,7 +223,7 @@ if (modelContext) {
 
       return `Could not determine a valid size. Please specify a size or number of guests.`;
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'set_pizza_style',
@@ -240,7 +242,7 @@ if (modelContext) {
       }
       return `Invalid style: ${style}`;
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'toggle_layer',
@@ -257,7 +259,7 @@ if (modelContext) {
       toggleLayer(layer, action);
       return `Performed ${action || 'toggle'} on layer: ${layer}`;
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'add_topping',
@@ -282,7 +284,7 @@ if (modelContext) {
       addTopping(topping, size, count);
       return `Added ${count} ${topping} topping(s)`;
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'remove_topping',
@@ -308,7 +310,7 @@ if (modelContext) {
       }
       return removed ? `Removed topping: ${topping}` : `Topping ${topping} not found`;
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'manage_pizza',
@@ -330,7 +332,7 @@ if (modelContext) {
       }
       return 'Unknown action';
     },
-  });
+  }, toolOptions);
 
   modelContext.registerTool({
     name: 'share_pizza',
@@ -343,7 +345,7 @@ if (modelContext) {
       const url = sharePizza();
       return `Share URL: ${url}`;
     },
-  });
+  }, toolOptions);
 }
 
 // Expose functions to global scope for HTML onclick handlers
