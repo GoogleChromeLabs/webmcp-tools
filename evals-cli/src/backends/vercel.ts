@@ -184,10 +184,6 @@ export class VercelBackend implements Backend {
                 }
               : undefined,
             prepareStep: async (_opts: any): Promise<any> => {
-              // TODO Investigate no delay
-              // Wait 500ms for any pending page transition or rendering to settle
-              await new Promise((r) => setTimeout(r, 500));
-
               let rawTools = page!.webmcp.tools();
 
               currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
