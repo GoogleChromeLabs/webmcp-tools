@@ -183,7 +183,7 @@ export class VercelBackend implements Backend {
                   );
                 }
               : undefined,
-            prepareStep: async (_opts: any): Promise<any> => {
+            prepareStep: (_opts: any): any => {
               let rawTools = page!.webmcp.tools();
 
               currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
