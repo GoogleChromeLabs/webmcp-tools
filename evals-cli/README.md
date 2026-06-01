@@ -125,7 +125,7 @@ Each test case (eval) in the JSON definitions files supports the following prope
 | -------------- | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`         | `string`             | No       | Descriptive name of the evaluation case. If provided, multiple execution iterations of this case (or stability runs) will be grouped together in the HTML report under a single accordion case. |
 | `messages`     | `Message[]`          | Yes      | An array of user prompts or conversation turns (multi-turn agent scenarios).                                                                                                                    |
-| `expectedCall` | `ExpectedCallNode[]` | Yes/No   | The list of expected tool calls. Can be `null` if no tool calls are expected.                                                                                                                   |
+| `expectedCall` | `ExpectedCallNode[]` | No       | The list of expected tool calls. Can be `null` if no tool calls are expected.                                                                                                                   |
 
 ### Example
 

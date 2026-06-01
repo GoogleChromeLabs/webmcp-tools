@@ -47,6 +47,7 @@ describe("VercelBackend", () => {
 
       // Create a multi-turn eval
       const evalTest: Eval = {
+        name: "Multi-turn local test case",
         messages: [
           { role: "user", type: "message", content: "Add one onion" },
           {
@@ -136,6 +137,7 @@ describe("VercelBackend", () => {
 
       // Create a multi-turn eval test message sequence
       const evalTest: Eval = {
+        name: "Multi-turn browser test case",
         messages: [
           { role: "user", type: "message", content: "Add one onion" },
           {
