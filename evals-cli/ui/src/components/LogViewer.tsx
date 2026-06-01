@@ -12,8 +12,10 @@ interface LogViewerProps {
 
 export function LogViewer({ logs }: LogViewerProps) {
   return (
-    <div className={`panel ${styles.container}`}>
-      <h2>Execution Logs</h2>
+    <div className={styles.container}>
+      <div className={styles.logsHeader}>
+        <h3>Console Output</h3>
+      </div>
       <div className={styles.logs}>
         {logs.length === 0 ? (
           <div className={styles.empty}>No logs yet. Click 'Run Evals' to begin.</div>

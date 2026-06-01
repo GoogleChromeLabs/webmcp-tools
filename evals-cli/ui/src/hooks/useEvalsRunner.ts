@@ -18,12 +18,14 @@ export interface LogEntry {
 export function useEvalsRunner() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [running, setRunning] = useState(false);
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
   const logsRef = useRef<LogEntry[]>([]);
 
   const handleRun = async (parsedConfig: Record<string, unknown>) => {
     setLogs([]);
     logsRef.current = [];
     setRunning(true);
+    setReportUrl(null);
 
     const checkAbort = new AbortController();
 
@@ -33,6 +35,7 @@ export function useEvalsRunner() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsedConfig),
         signal: checkAbort.signal,
+        openWhenHidden: true,
         async onopen(response) {
           if (!response.ok) {
             throw new Error(`Failed to start run: ${response.statusText}`);
@@ -82,6 +85,7 @@ export function useEvalsRunner() {
                 isLink: true,
                 linkUrl: reportUrl,
               });
+              setReportUrl(reportUrl);
               setRunning(false);
               checkAbort.abort();
             } else if (data.type === "error") {
@@ -111,6 +115,7 @@ export function useEvalsRunner() {
         },
         onclose() {
           setRunning(false);
+          checkAbort.abort();
         },
       });
     } catch (e: unknown) {
@@ -125,5 +130,5 @@ export function useEvalsRunner() {
     }
   };
 
-  return { logs, running, handleRun };
+  return { logs, running, reportUrl, handleRun };
 }

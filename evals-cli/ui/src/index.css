@@ -4,53 +4,28 @@
  */
 
 :root {
-  font-family:
-    "Roboto",
-    "Inter",
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    "Open Sans",
-    "Helvetica Neue",
-    sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #f8f9fa; /* Google light background */
+  color-scheme: light;
+  color: #0f172a;
+  background-color: #f8fafc;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --primary-color: #1a73e8;
-  --primary-hover: #1765cc;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
   --surface-color: #ffffff;
-  --text-primary: #202124;
-  --text-secondary: #5f6368;
-  --border-color: #dadce0;
-  --error-color: #d93025;
-  --success-color: #188038;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    background-color: #202124;
-    --surface-color: #303134;
-    --text-primary: #e8eaed;
-    --text-secondary: #9aa0a6;
-    --border-color: #5f6368;
-    --primary-color: #8ab4f8;
-    --primary-hover: #aecbfa;
-    --error-color: #f28b82;
-    --success-color: #81c995;
-  }
+  --background-color: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --border-color: #e2e8f0;
+  --error-color: #e11d48;
+  --success-color: #059669;
 }
 
 body {
@@ -66,7 +41,7 @@ h2,
 h3 {
   color: var(--text-primary);
   margin-top: 0;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 p,
@@ -83,6 +58,8 @@ div {
 .panel {
   background-color: var(--surface-color);
   border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   padding: 24px;
   display: flex;
   flex-direction: column;
