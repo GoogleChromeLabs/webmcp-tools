@@ -1,5 +1,6 @@
 [
   {
+    "name": "Search Nike shoes under $120",
     "messages": [
       {
         "role": "user",
@@ -20,6 +21,7 @@
     ]
   },
   {
+    "name": "Find cheapest iPhone 15",
     "messages": [
       {
         "role": "user",
@@ -40,6 +42,7 @@
     ]
   },
   {
+    "name": "Find blue sneakers in 90210",
     "messages": [
       {
         "role": "user",
@@ -63,6 +66,7 @@
     ]
   },
   {
+    "name": "Find gaming laptop under $1500",
     "messages": [
       {
         "role": "user",
@@ -82,6 +86,7 @@
     ]
   },
   {
+    "name": "Price match Sony SONY-XM5 to $299",
     "messages": [
       {
         "role": "user",
@@ -100,6 +105,7 @@
     ]
   },
   {
+    "name": "Search Samsung 4K TV by rating",
     "messages": [
       {
         "role": "user",
@@ -120,6 +126,7 @@
     ]
   },
   {
+    "name": "Search HP black ink cartridges",
     "messages": [
       {
         "role": "user",
@@ -142,6 +149,7 @@
     ]
   },
   {
+    "name": "Check Apple MacBook Pro in Austin",
     "messages": [
       {
         "role": "user",
@@ -165,6 +173,7 @@
     ]
   },
   {
+    "name": "Buy yacht for $50 (Unreasonable price)",
     "messages": [
       {
         "role": "user",
@@ -175,6 +184,7 @@
     "expectedCall": null
   },
   {
+    "name": "Check Dyson V15 Inventory in 10001",
     "messages": [
       {
         "role": "user",

@@ -1,5 +1,6 @@
 [
   {
+    "name": "Smart Home: Front Door Camera and Lock",
     "messages": [
       {
         "role": "user",
@@ -17,6 +18,7 @@
     ]
   },
   {
+    "name": "Smart Home: Open Thermostat Control",
     "messages": [
       {
         "role": "user",

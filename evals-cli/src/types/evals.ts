@@ -33,6 +33,7 @@ export type ExpectedCallNode =
   | { ordered: ExpectedCallNode[] };
 
 export type Eval = {
+  name?: string;
   messages: Message[];
   expectedCall: ExpectedCallNode[] | null;
 };

@@ -1,5 +1,6 @@
 [
   {
+    "name": "Reset Page Filters (Using 'reset' word)",
     "messages": [
       {
         "role": "user",
@@ -15,6 +16,7 @@
     ]
   },
   {
+    "name": "Reset Page Filters (Using 'clear' word)",
     "messages": [
       {
         "role": "user",
@@ -30,6 +32,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip LON-NYC Fixed Dates",
     "messages": [
       {
         "role": "user",
@@ -52,6 +55,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip LON-NYC Relative Dates",
     "messages": [
       {
         "role": "user",
@@ -74,6 +78,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way SFO-RIO May 2026",
     "messages": [
       {
         "role": "user",
@@ -95,6 +100,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Direct Only",
     "messages": [
       {
         "role": "user",
@@ -112,6 +118,7 @@
     ]
   },
   {
+    "name": "Filter Flight: From Heathrow (LHR)",
     "messages": [
       {
         "role": "user",
@@ -129,6 +136,7 @@
     ]
   },
   {
+    "name": "List All Found Flights",
     "messages": [
       {
         "role": "user",
@@ -144,6 +152,7 @@
     ]
   },
   {
+    "name": "Filter Flight: DL/AA Under $600",
     "messages": [
       {
         "role": "user",
@@ -162,6 +171,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Depart 9AM-5PM",
     "messages": [
       {
         "role": "user",
@@ -182,6 +192,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Arrive Before Noon",
     "messages": [
       {
         "role": "user",
@@ -201,6 +212,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip BER-PAR This Weekend",
     "messages": [
       {
         "role": "user",
@@ -223,6 +235,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Specific IDs 101/205",
     "messages": [
       {
         "role": "user",
@@ -240,6 +253,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way TYO-SYD Christmas 2026",
     "messages": [
       {
         "role": "user",
@@ -261,6 +275,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way LHR-HND Feb 2026 2 Adults",
     "messages": [
       {
         "role": "user",
@@ -282,6 +297,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip LGW-EWR March 2026",
     "messages": [
       {
         "role": "user",
@@ -304,6 +320,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Depart Stansted (STN)",
     "messages": [
       {
         "role": "user",
@@ -321,6 +338,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way ORD-CDG April 2026 3 Adults",
     "messages": [
       {
         "role": "user",
@@ -342,6 +360,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Arrive After 8PM",
     "messages": [
       {
         "role": "user",
@@ -361,6 +380,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip NRT-LAX May 2026",
     "messages": [
       {
         "role": "user",
@@ -383,6 +403,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Arrive JFK or LGA",
     "messages": [
       {
         "role": "user",
@@ -400,6 +421,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip LHR-JFK Next Week",
     "messages": [
       {
         "role": "user",
@@ -422,6 +444,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip LGW-DUB This Weekend 2 Adults",
     "messages": [
       {
         "role": "user",
@@ -444,6 +467,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way EWR-NRT Tomorrow",
     "messages": [
       {
         "role": "user",
@@ -465,6 +489,7 @@
     ]
   },
   {
+    "name": "Search Flight: Round Trip HND-SFO Feb 2026 10 Days",
     "messages": [
       {
         "role": "user",
@@ -487,6 +512,7 @@
     ]
   },
   {
+    "name": "Search Flight: One Way LGA-YYZ 3 Days Out 4 Adults",
     "messages": [
       {
         "role": "user",
@@ -508,6 +534,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Direct Under $500",
     "messages": [
       {
         "role": "user",
@@ -526,6 +553,7 @@
     ]
   },
   {
+    "name": "Filter Flight: DL/UA Depart After 6PM",
     "messages": [
       {
         "role": "user",
@@ -546,6 +574,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Arrive LHR/LGW 9AM-1PM",
     "messages": [
       {
         "role": "user",
@@ -567,6 +596,7 @@
     ]
   },
   {
+    "name": "Filter Flight: $300-$800 Max 1 Stop",
     "messages": [
       {
         "role": "user",
@@ -586,6 +616,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Add Direct Filter to $300-$800 Range",
     "messages": [
       {
         "role": "user",
@@ -603,7 +634,7 @@
       },
       {
         "role": "user",
-        "type": "functionresponse",
+        "type": "functioncall",
         "name": "filterFlights",
         "response": {
           "result": "Filters successfully updated."
@@ -627,6 +658,7 @@
     ]
   },
   {
+    "name": "Filter Flight: From JFK/EWR Direct Under $1000",
     "messages": [
       {
         "role": "user",
@@ -646,6 +678,7 @@
     ]
   },
   {
+    "name": "Filter Flight: Morning BA Flights",
     "messages": [
       {
         "role": "user",
@@ -667,6 +700,7 @@
     ]
   },
   {
+    "name": "Book Flight: Search LON-NYC and Filter Direct",
     "messages": [
       {
         "role": "user",
@@ -688,7 +722,7 @@
       },
       {
         "role": "user",
-        "type": "functionresponse",
+        "type": "functioncall",
         "name": "searchFlights",
         "response": {
           "result": "A new flight search was started."
@@ -715,6 +749,7 @@
     ]
   },
   {
+    "name": "Book Flight: Search LON-NYC and Change Origin to BRS",
     "messages": [
       {
         "role": "user",
@@ -736,7 +771,7 @@
       },
       {
         "role": "user",
-        "type": "functionresponse",
+        "type": "functioncall",
         "name": "searchFlights",
         "response": {
           "result": "A new flight search was started."
@@ -768,6 +803,7 @@
     ]
   },
   {
+    "name": "Book Flight: Handle Destination IATA Error",
     "messages": [
       {
         "role": "user",
@@ -789,7 +825,7 @@
       },
       {
         "role": "user",
-        "type": "functionresponse",
+        "type": "functioncall",
         "name": "searchFlights",
         "response": {
           "result": "ERROR: destination must be a 3 letter IATA code"

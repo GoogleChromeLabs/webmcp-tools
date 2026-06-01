@@ -248,6 +248,7 @@ export class VercelBackend implements Backend {
 
               const stepResult: TestResult = {
                 test: {
+                  name: test.name,
                   messages: currentMessages,
                   expectedCall: traj.expected ? [traj.expected] : null,
                 },

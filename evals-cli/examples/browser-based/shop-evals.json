@@ -1,5 +1,6 @@
 [
   {
+    "name": "Browser Shop: Buy Leather Jacket",
     "messages": [
       {
         "role": "user",
@@ -28,6 +29,7 @@
     ]
   },
   {
+    "name": "Browser Shop: Buy Bomber Jacket and Baseball Cap",
     "messages": [
       {
         "role": "user",

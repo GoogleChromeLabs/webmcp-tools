@@ -1,5 +1,6 @@
 [
   {
+    "name": "Set Pizza Size: Small",
     "messages": [
       {
         "role": "user",
@@ -15,6 +16,7 @@
     ]
   },
   {
+    "name": "Set Pizza Style: Pesto",
     "messages": [
       {
         "role": "user",
@@ -30,6 +32,7 @@
     ]
   },
   {
+    "name": "Add Extra Sauce Layer",
     "messages": [
       {
         "role": "user",
@@ -45,6 +48,7 @@
     ]
   },
   {
+    "name": "Add Bell Peppers Topping",
     "messages": [
       {
         "role": "user",
@@ -60,6 +64,7 @@
     ]
   },
   {
+    "name": "Add 10 Mushrooms Topping",
     "messages": [
       {
         "role": "user",
@@ -75,6 +80,7 @@
     ]
   },
   {
+    "name": "Set Pizza Size for 10 Persons",
     "messages": [
       {
         "role": "user",
@@ -90,6 +96,7 @@
     ]
   },
   {
+    "name": "Remove Corn Topping",
     "messages": [
       {
         "role": "user",
@@ -105,6 +112,7 @@
     ]
   },
   {
+    "name": "Reset Pizza Maker",
     "messages": [
       {
         "role": "user",
@@ -120,6 +128,7 @@
     ]
   },
   {
+    "name": "Remove Last Added Topping (Onion)",
     "messages": [
       {
         "role": "user",
@@ -137,7 +146,7 @@
       },
       {
         "role": "user",
-        "type": "functionresponse",
+        "type": "functioncall",
         "name": "add_topping",
         "response": {
           "result": "Added 1 🧅 topping(s)."

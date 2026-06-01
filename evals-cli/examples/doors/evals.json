@@ -1,5 +1,6 @@
 [
   {
+    "name": "Open Door 1",
     "messages": [
       {
         "role": "user",
@@ -15,6 +16,7 @@
     ]
   },
   {
+    "name": "Open Door 2",
     "messages": [
       {
         "role": "user",
@@ -30,6 +32,7 @@
     ]
   },
   {
+    "name": "Open Door 3",
     "messages": [
       {
         "role": "user",
@@ -45,6 +48,7 @@
     ]
   },
   {
+    "name": "Door 1: Ask What It Is",
     "messages": [
       {
         "role": "user",
@@ -66,6 +70,7 @@
     ]
   },
   {
+    "name": "Door 1: Ask for a Gift",
     "messages": [
       {
         "role": "user",
@@ -87,6 +92,7 @@
     ]
   },
   {
+    "name": "Door 1: Return to Hallway",
     "messages": [
       {
         "role": "user",
@@ -106,6 +112,7 @@
     ]
   },
   {
+    "name": "Door 2: Dance with Animal",
     "messages": [
       {
         "role": "user",
@@ -125,6 +132,7 @@
     ]
   },
   {
+    "name": "Door 2: Play Hide and Seek",
     "messages": [
       {
         "role": "user",
@@ -144,6 +152,7 @@
     ]
   },
   {
+    "name": "Door 2: Return to Hallway",
     "messages": [
       {
         "role": "user",
@@ -163,6 +172,7 @@
     ]
   },
   {
+    "name": "Door 2: Dance, Hide, and Return",
     "messages": [
       {
         "role": "user",
@@ -194,6 +204,7 @@
     ]
   },
   {
+    "name": "Door 3: Return to Hallway",
     "messages": [
       {
         "role": "user",
@@ -209,6 +220,7 @@
     ]
   },
   {
+    "name": "Door 3: Cast Light",
     "messages": [
       {
         "role": "user",
@@ -228,6 +240,7 @@
     ]
   },
   {
+    "name": "Door 3: Cast Light and Return",
     "messages": [
       {
         "role": "user",
@@ -251,6 +264,7 @@
     ]
   },
   {
+    "name": "Door 1: Sequential Talk to Animal",
     "messages": [
       {
         "role": "user",
