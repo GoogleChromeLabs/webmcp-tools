@@ -146,7 +146,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "add_topping",
         "response": {
           "result": "Added 1 🧅 topping(s)."
