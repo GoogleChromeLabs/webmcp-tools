@@ -115,11 +115,7 @@ function App() {
             <LogViewer logs={logs} />
           ) : (
             reportUrl && (
-              <iframe
-                src={reportUrl}
-                className={styles.reportIframe}
-                title="Evaluation Report"
-              />
+              <iframe src={reportUrl} className={styles.reportIframe} title="Evaluation Report" />
             )
           )}
         </div>

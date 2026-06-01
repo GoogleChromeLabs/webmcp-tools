@@ -6,6 +6,7 @@ A TypeScript framework for evaluating the tool-calling capabilities of Large Lan
 
 - **Backends**: Execution support for `@google/genai` (`gemini`). Integrations for local models (`ollama`), as well as full **Vercel AI SDK** (`vercel`) integration for robust multi-provider support (OpenAI, Anthropic) are available but currently considered experimental.
 - **Evaluation Loop**: Automatically runs defined test cases against the model and compares actual tool calls with expected ones.
+- **Hierarchical Reporting**: Generates interactive, grouped HTML reports. Iteration runs sharing the same case `name` are categorized under a single Case Group accordion, presenting aggregated pass rate stats (e.g., `4/5 Passed`), soft color-coded status cards (emerald green for all-pass, rose red for any-fail), and intelligent default expansion of failing iterations.
 - **Extensible**: Easy to add new backends or evaluation sets.
 
 ## Architecture
@@ -115,6 +116,42 @@ node dist/bin/serve.js --port=8080
 | Argument | Required | Default | Description               |
 | -------- | -------- | ------- | ------------------------- |
 | `--port` | No       | `8080`  | Port to run the server on |
+
+## Evaluation Case Structure
+
+Each test case (eval) in the JSON definitions files supports the following properties:
+
+| Property       | Type                 | Required | Description                                                                                                                                                                                     |
+| -------------- | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | `string`             | No       | Descriptive name of the evaluation case. If provided, multiple execution iterations of this case (or stability runs) will be grouped together in the HTML report under a single accordion case. |
+| `messages`     | `Message[]`          | Yes      | An array of user prompts or conversation turns (multi-turn agent scenarios).                                                                                                                    |
+| `expectedCall` | `ExpectedCallNode[]` | Yes/No   | The list of expected tool calls. Can be `null` if no tool calls are expected.                                                                                                                   |
+
+### Example
+
+```json
+[
+  {
+    "name": "Search shoes under $120",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I'm looking for running shoes under $120."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchProducts",
+        "arguments": {
+          "query": "running shoes",
+          "maxPrice": 120
+        }
+      }
+    ]
+  }
+]
+```
 
 ## Expected Call Evaluation
 

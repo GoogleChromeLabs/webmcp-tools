@@ -1,5 +1,6 @@
 [
   {
+    "name": "Book Dermatology Appointment for Rash",
     "messages": [
       {
         "role": "user",
@@ -18,6 +19,7 @@
     ]
   },
   {
+    "name": "Book Pediatrics Telehealth for Son",
     "messages": [
       {
         "role": "user",
@@ -37,6 +39,7 @@
     ]
   },
   {
+    "name": "Find Dentist in 90210 under 5 Miles",
     "messages": [
       {
         "role": "user",
@@ -56,6 +59,7 @@
     ]
   },
   {
+    "name": "Check Glucose Lab Results (140 mg/dL)",
     "messages": [
       {
         "role": "user",
@@ -75,6 +79,7 @@
     ]
   },
   {
+    "name": "Chest Tightness Emergency (No expected tool)",
     "messages": [
       {
         "role": "user",
@@ -85,6 +90,7 @@
     "expectedCall": null
   },
   {
+    "name": "Check Knee MRI Insurance Coverage",
     "messages": [
       {
         "role": "user",
@@ -102,6 +108,7 @@
     ]
   },
   {
+    "name": "Get Amoxicillin 500mg Price",
     "messages": [
       {
         "role": "user",
@@ -120,6 +127,7 @@
     ]
   },
   {
+    "name": "Check Network for Dr. Gregory House",
     "messages": [
       {
         "role": "user",

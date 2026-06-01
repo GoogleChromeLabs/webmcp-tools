@@ -21,7 +21,6 @@ export function createServer() {
   app.post("/api/run", async (req, res) => {
     // Expected to receive either Config or WebmcpConfig in body
     const config = req.body;
-    config.debug = true; // Force debug mode for investigation
 
     if (!config || !config.evalsFile || (!config.url && !config.toolSchemaFile)) {
       res.status(400).json({ error: "Missing required configuration" });

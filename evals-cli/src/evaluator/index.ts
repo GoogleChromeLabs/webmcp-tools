@@ -91,6 +91,7 @@ export async function executeLocalEvals(
           for (const traj of trajectories) {
             const stepResult: TestResult = {
               test: {
+                name: test.name,
                 messages: test.messages,
                 expectedCall: traj.expected ? [traj.expected] : null,
               },

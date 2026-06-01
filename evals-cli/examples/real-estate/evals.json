@@ -1,5 +1,6 @@
 [
   {
+    "name": "Find Austin Family Home Under $600k",
     "messages": [
       {
         "role": "user",
@@ -21,6 +22,7 @@
     ]
   },
   {
+    "name": "Calculate $500k 7% Mortgage Payment",
     "messages": [
       {
         "role": "user",
@@ -39,6 +41,7 @@
     ]
   },
   {
+    "name": "Get 78704 Neighborhood Stats (Schools/Transit)",
     "messages": [
       {
         "role": "user",
@@ -57,6 +60,7 @@
     ]
   },
   {
+    "name": "Find NYC bachelor pad under $5k/mo",
     "messages": [
       {
         "role": "user",
@@ -78,6 +82,7 @@
     ]
   },
   {
+    "name": "Find Austin Land for Sale",
     "messages": [
       {
         "role": "user",
@@ -96,6 +101,7 @@
     ]
   },
   {
+    "name": "Find New Dallas House Under $800k",
     "messages": [
       {
         "role": "user",
@@ -116,6 +122,7 @@
     ]
   },
   {
+    "name": "Analyze Drive Commute from 75201",
     "messages": [
       {
         "role": "user",
@@ -134,6 +141,7 @@
     ]
   },
   {
+    "name": "House Search with $5000 Budget (Unreasonable)",
     "messages": [
       {
         "role": "user",
@@ -144,6 +152,7 @@
     "expectedCall": null
   },
   {
+    "name": "Find Austin House (No Condo) Min $500k",
     "messages": [
       {
         "role": "user",
@@ -163,6 +172,7 @@
     ]
   },
   {
+    "name": "Find Properties within 10 miles of 78704",
     "messages": [
       {
         "role": "user",
@@ -181,6 +191,7 @@
     ]
   },
   {
+    "name": "Find Beverly Hills Luxury Estate ($15M)",
     "messages": [
       {
         "role": "user",

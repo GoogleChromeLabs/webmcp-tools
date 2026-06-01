@@ -1,5 +1,6 @@
 [
   {
+    "name": "Book Bistro Table: Bob Smith Terrace Anniversary",
     "messages": [
       {
         "role": "user",
@@ -31,6 +32,7 @@
     ]
   },
   {
+    "name": "Book Bistro Table: Alice Wong Private Booth",
     "messages": [
       {
         "role": "user",

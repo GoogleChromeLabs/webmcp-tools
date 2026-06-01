@@ -1,5 +1,6 @@
 [
   {
+    "name": "Get In-Stock Products",
     "messages": [
       {
         "role": "user",
@@ -15,6 +16,7 @@
     ]
   },
   {
+    "name": "Filter Red Dress Size 6 Under $200",
     "messages": [
       {
         "role": "user",
@@ -34,6 +36,7 @@
     ]
   },
   {
+    "name": "Filter Midnight Blue Products",
     "messages": [
       {
         "role": "user",
@@ -51,6 +54,7 @@
     ]
   },
   {
+    "name": "Add Item 1021 Quantity 2 to Bag",
     "messages": [
       {
         "role": "user",
@@ -69,6 +73,7 @@
     ]
   },
   {
+    "name": "Get Reviews for Product 1021",
     "messages": [
       {
         "role": "user",
@@ -86,6 +91,7 @@
     ]
   },
   {
+    "name": "Get Shipping and Loyalty Info",
     "messages": [
       {
         "role": "user",
@@ -101,6 +107,7 @@
     ]
   },
   {
+    "name": "Check Neon Yellow Availability",
     "messages": [
       {
         "role": "user",
@@ -111,6 +118,7 @@
     "expectedCall": null
   },
   {
+    "name": "Add Second Red Dress (ID 502) to Cart",
     "messages": [
       {
         "role": "user",
@@ -138,6 +146,7 @@
     ]
   },
   {
+    "name": "Filter Black Dress Under $150",
     "messages": [
       {
         "role": "user",
@@ -156,6 +165,7 @@
     ]
   },
   {
+    "name": "Add Current Product to Cart (No Context)",
     "messages": [
       {
         "role": "user",
@@ -166,6 +176,7 @@
     "expectedCall": null
   },
   {
+    "name": "Filter Green Product Under $50",
     "messages": [
       {
         "role": "user",
@@ -184,6 +195,7 @@
     ]
   },
   {
+    "name": "Compare Reviews of 501 and 502",
     "messages": [
       {
         "role": "user",
