@@ -1,6 +1,5 @@
 [
   {
-    "name": "Reset Page Filters (Using 'reset' word)",
     "messages": [
       {
         "role": "user",
@@ -16,7 +15,6 @@
     ]
   },
   {
-    "name": "Reset Page Filters (Using 'clear' word)",
     "messages": [
       {
         "role": "user",
@@ -634,7 +632,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "filterFlights",
         "response": {
           "result": "Filters successfully updated."
@@ -722,7 +720,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "searchFlights",
         "response": {
           "result": "A new flight search was started."
@@ -771,7 +769,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "searchFlights",
         "response": {
           "result": "A new flight search was started."
@@ -825,7 +823,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "searchFlights",
         "response": {
           "result": "ERROR: destination must be a 3 letter IATA code"

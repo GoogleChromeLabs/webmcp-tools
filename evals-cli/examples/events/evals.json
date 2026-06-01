@@ -93,7 +93,7 @@
       },
       {
         "role": "user",
-        "type": "functioncall",
+        "type": "functionresponse",
         "name": "bookRestaurant",
         "response": {
           "result": "A reservation for Ginno's pizza for 3 on 2026-01-20 at 19:00 was booked successfully"
