@@ -1,0 +1,59 @@
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebMCP Page Agent</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>"
+    />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div id="app-container">
+        <div id="browser-container">
+            <div id="address-bar">
+                <input type="text" id="url-input"
+                    value="https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/" />
+            </div>
+            <iframe id="iframe" allow="tools *"></iframe>
+        </div>
+
+        <div id="chat-wrapper">
+            <div id="setup-container" class="hidden">
+                <h2>WebMCP Page Agent</h2>
+                <p>
+                    Using Gemini 3.5 Flash. Try executing tools exposed by this iframe.
+                </p>
+                <input type="password" id="api-key-input" placeholder="Enter Gemini API Key (AIzaSy...)" />
+                <br />
+                <button id="save-key-btn">Save Key & Start Chatting</button>
+            </div>
+
+            <div id="chat-container" class="hidden">
+                <div class="header">
+                    <h2 style="margin: 0">Interact with WebMCP tools</h2>
+                    <button class="btn-clear" id="logout-btn">Log Out</button>
+                </div>
+
+                <div id="chat-window"></div>
+
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="Type a message..." />
+                    <button id="send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
