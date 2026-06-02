@@ -1,13 +1,13 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { form, required, FormField, submit, FormRoot, min, max } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-product',
-  imports: [RouterLink, CurrencyPipe, FormsModule],
+  imports: [RouterLink, CurrencyPipe, FormField, FormRoot],
   templateUrl: './product.html',
   styleUrl: './product.css',
 })
@@ -23,9 +23,40 @@ export class ProductComponent implements OnInit {
   quantity = 1;
   isReturnModalOpen = false;
 
-  // Accorion State
+  // Accordion State
   detailsOpen = true;
   shippingOpen = false;
+
+  // Signal Form for cart options
+  readonly model = signal({
+    color: '',
+    quantity: 1
+  });
+
+  readonly cartForm = form(
+    this.model,
+    (f) => {
+      required(f.color, { message: 'Color selection is required.' });
+      min(f.quantity, 1);
+      max(f.quantity, 10);
+    },
+    {
+      // Opt-in to implicit WebMCP tool add_to_cart with custom schema and submission action
+      experimentalWebMcpTool: {
+        name: 'add_to_cart',
+        description: 'Add this premium leather bag to your shopping cart with chosen color and quantity',
+      },
+      submission: {
+        action: async (formValue) => {
+          if (this.product) {
+            const chosenColor = formValue.color().value();
+            const chosenQty = formValue.quantity().value();
+            this.cartService.addToCart(this.product, chosenColor, chosenQty);
+          }
+        }
+      }
+    }
+  );
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -35,8 +66,15 @@ export class ProductComponent implements OnInit {
           this.product = p;
           if (p) {
             const hasBrown = p.colors.some(c => c.name === 'Brown');
-            this.selectedColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
+            const defaultColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
+            this.selectedColor = defaultColor;
             this.selectedImage = p.images[0] || '';
+            
+            // Initialize form model
+            this.model.set({
+              color: defaultColor,
+              quantity: 1
+            });
           }
           this.cdr.detectChanges();
         });
@@ -46,6 +84,7 @@ export class ProductComponent implements OnInit {
 
   selectColor(colorName: string) {
     this.selectedColor = colorName;
+    this.model.update(m => ({ ...m, color: colorName }));
   }
 
   selectImage(img: string) {
@@ -53,42 +92,27 @@ export class ProductComponent implements OnInit {
   }
 
   incrementQuantity() {
-    if (this.quantity < 10) this.quantity++;
+    if (this.quantity < 10) {
+      this.quantity++;
+      this.model.update(m => ({ ...m, quantity: this.quantity }));
+    }
   }
 
   decrementQuantity() {
-    if (this.quantity > 1) this.quantity--;
+    if (this.quantity > 1) {
+      this.quantity--;
+      this.model.update(m => ({ ...m, quantity: this.quantity }));
+    }
   }
 
-  addToCart(event?: any) {
+  addToCart(event?: Event) {
     if (event) event.preventDefault();
-    if (this.product) {
-      // Default to 1 if quantity is not provided or invalid
-      const qty = parseInt(this.quantity?.toString() || '1', 10) || 1;
-      this.cartService.addToCart(this.product, this.selectedColor, qty);
-      
-      if (event && event.respondWith) {
-        event.respondWith(Promise.resolve({ 
-          success: true, 
-          message: `Added ${qty} ${this.selectedColor} ${this.product.name} to cart` 
-        }));
-      }
-    }
+    submit(this.cartForm);
   }
 
-  openReturnModal(event: any) {
+  openReturnModal(event: Event) {
     event.preventDefault();
-    
-    const policyText = `At LUXE LEATHER, we stand behind the quality of our craftsmanship.
-30-Day Guarantee: If you are not entirely satisfied with your purchase, you may return any unused item in its original condition and packaging within 30 days of receipt for a full refund or exchange.
-Exclusions: Bespoke or personalized items are meticulously crafted to your specifications and are therefore final sale.
-Process: To initiate a return, please visit our returns portal or contact our concierge team. Please note that return shipping costs are the responsibility of the customer unless the item arrived damaged or defective.`;
-
-    if (event.respondWith) {
-      event.respondWith(Promise.resolve({ policy: policyText }));
-    } else {
-      this.isReturnModalOpen = true;
-    }
+    this.isReturnModalOpen = true;
   }
 
   closeReturnModal() {

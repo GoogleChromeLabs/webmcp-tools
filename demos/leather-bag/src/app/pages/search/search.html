@@ -15,7 +15,7 @@
     
     <!-- Search Bar -->
     <div class="search-bar-wrapper">
-      <form class="search-bar" toolname="search_store" tooldescription="Search products in the store" toolautosubmit (submit)="onSearch($event)">
+      <form class="search-bar" (submit)="onSearch($event)">
         <span class="material-symbols-outlined search-bar-icon">search</span>
         <input 
           name="query"
@@ -23,7 +23,6 @@
           class="search-bar-input font-body" 
           placeholder="Search premium collections..." 
           [value]="query"
-          toolparamdescription="Search query for products"
         />
       </form>
     </div>
@@ -46,8 +45,6 @@
       <!-- Faceted Navigation -->
       <form 
         class="filters-form" 
-        toolname="filter_results" 
-        tooldescription="Filter search results by category, color, price and finish" 
         (ngSubmit)="applyFilters($event)"
       >
         <!-- Color Filter -->
@@ -57,7 +54,7 @@
             @for (color of ['Brown', 'Black']; track color) {
               <label class="filter-option">
                 <div class="filter-option-left">
-                  <input type="checkbox" name="color" [value]="color" class="custom-checkbox sr-only" (change)="applyFilters($event)" toolparamdescription="Filter by product color">
+                  <input type="checkbox" name="color" [value]="color" class="custom-checkbox sr-only" (change)="applyFilters($event)">
                   <div class="color-swatch" [class.checked]="selectedColors.includes(color)" [style.background]="color === 'Brown' ? '#5C4033' : '#1a1a1a'">
                     @if (selectedColors.includes(color)) {
                       <span class="material-symbols-outlined" style="color: white; font-size: 14px;">check</span>
@@ -82,7 +79,7 @@
         <section class="filter-section">
           <h3 class="filter-heading font-label uppercase">Price Range</h3>
           <div class="price-slider-group">
-            <input type="range" name="maxPrice" min="100" max="1500" step="50" [value]="maxPrice" (input)="applyFilters($event)" class="price-range-input" style="width: 100%;" toolparamdescription="Filter by maximum price">
+            <input type="range" name="maxPrice" min="100" max="1500" step="50" [value]="maxPrice" (input)="applyFilters($event)" class="price-range-input" style="width: 100%;">
             <div class="price-labels font-label tracking-widest">
               <span>$100.00</span>
               <span>Up to ${{maxPrice}}</span>
@@ -96,7 +93,7 @@
           <div class="filter-group">
             @for (finish of ['Full Grain', 'Suede', 'Pebbled']; track finish) {
               <label class="filter-finish-option">
-                <input type="checkbox" name="finish" [value]="finish" class="sr-only" (change)="applyFilters($event)" toolparamdescription="Filter by leather finish">
+                <input type="checkbox" name="finish" [value]="finish" class="sr-only" (change)="applyFilters($event)">
                 <div class="finish-checkbox" [class.checked]="selectedFinishes.includes(finish)">
                   @if (selectedFinishes.includes(finish)) {
                     <span class="material-symbols-outlined checkbox-icon">check</span>
@@ -166,28 +163,4 @@
     </div>
   </div>
 
-  <!-- WebMCP Tool to view product details -->
-  <form 
-    toolname="view_product" 
-    tooldescription="View product details by name or index (e.g. 0, 1). Navigate here to access the Add to Cart tool." 
-    toolautosubmit 
-    (submit)="onViewProduct($event)"
-    class="sr-only"
-  >
-    <input type="text" name="identifier" placeholder="Product name or index" toolparamdescription="Product name or index (e.g., 0, 1) to view details">
-    <button type="submit">View</button>
-  </form>
-
-  <!-- WebMCP Tool to add search result to cart -->
-  <form 
-    toolname="add_search_result_to_cart" 
-    tooldescription="Add a product from search results to cart by name or index. Optional color (defaults to Brown if available)." 
-    toolautosubmit 
-    (submit)="onAddSearchResultToCart($event)"
-    class="sr-only"
-  >
-    <input type="text" name="identifier" placeholder="Product name or index" toolparamdescription="Product name or index to add to cart">
-    <input type="text" name="color" placeholder="Color (optional)" toolparamdescription="Color of the product (optional)">
-    <button type="submit">Add</button>
-  </form>
 </main>

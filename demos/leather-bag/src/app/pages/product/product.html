@@ -56,19 +56,16 @@
 
         <!-- WebMCP Form for Add to Cart -->
         <form 
+          [formRoot]="cartForm"
           class="add-to-cart-form space-y-8" 
-          toolname="add_to_cart" 
-          tooldescription="Add the product to the shopping cart with specified color and optional quantity (defaults to 1)"
-          toolautosubmit
-          (ngSubmit)="addToCart($event)"
+          (submit)="addToCart($event)"
         >
+          <input type="hidden" [formField]="cartForm.color" />
           <!-- Color Selection -->
           <div class="color-selection">
             <div class="flex justify-between items-center mb-4">
               <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{selectedColor}}</span></span>
             </div>
-            
-            <input type="hidden" name="color" [value]="selectedColor" toolparamdescription="Selected color of the product">
             
             <div class="flex gap-4">
               @for (color of product.colors; track color.id) {
@@ -94,16 +91,11 @@
               </button>
               <input 
                 type="number" 
-                name="quantity"
-                value="1"
                 class="qty-input sr-only font-body text-center w-12 border-none focus:ring-0" 
-                [(ngModel)]="quantity" 
-                min="1" 
-                max="10"
+                [formField]="cartForm.quantity" 
                 aria-label="Quantity"
-                toolparamdescription="Quantity to add (optional, defaults to 1)"
               >
-              <span class="font-body text-center w-12">{{quantity}}</span>
+              <span class="font-body text-center w-12">{{model().quantity}}</span>
               <button type="button" class="qty-btn" (click)="incrementQuantity()" aria-label="Increase quantity">
                 <span class="material-symbols-outlined text-sm">add</span>
               </button>
@@ -166,14 +158,13 @@
             <div class="accordion-content font-body text-on-surface-variant overflow-hidden transition-all duration-300" [style.maxHeight]="shippingOpen ? '500px' : '0'">
               <div class="pb-6 space-y-4">
                 <p>Standard delivery within 3-5 business days. Express shipping available at checkout.</p>
-                <form toolname="check_return_policy" tooldescription="Check the return policy for products" toolautosubmit (submit)="openReturnModal($event)">
-                  <button 
-                    type="submit"
-                    class="text-primary font-label text-xs uppercase tracking-widest font-bold border-b border-primary hover:text-secondary hover:border-secondary transition-colors"
-                  >
-                    View Full Return Policy
-                  </button>
-                </form>
+                <button 
+                  (click)="openReturnModal($event)"
+                  class="text-primary font-label text-xs uppercase tracking-widest font-bold border-b border-primary hover:text-secondary hover:border-secondary transition-colors"
+                  style="background: none; border: none; padding: 0; cursor: pointer;"
+                >
+                  View Full Return Policy
+                </button>
               </div>
             </div>
           </div>

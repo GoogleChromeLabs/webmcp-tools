@@ -18,11 +18,7 @@
       <div class="footer-section">
         <h3 class="font-label uppercase tracking-widest footer-heading">Support</h3>
         <ul>
-          <li>
-            <form toolname="check_return_policy" tooldescription="Check the return policy for products" toolautosubmit (submit)="openReturnModal($event)">
-              <button type="submit" class="footer-link" style="background: none; border: none; padding: 0; text-align: left; cursor: pointer; color: inherit; font: inherit;">Shipping & Returns</button>
-            </form>
-          </li>
+          <li><button (click)="openReturnModal($event)" class="footer-link" style="background: none; border: none; padding: 0; text-align: left; cursor: pointer; color: inherit; font: inherit;">Shipping & Returns</button></li>
           <li><a href="#" class="footer-link">Contact Us</a></li>
           <li><a href="#" class="footer-link">Care Guide</a></li>
         </ul>
