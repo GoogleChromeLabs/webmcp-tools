@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../../services/cart';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
@@ -8,13 +9,7 @@ import { CartService } from '../../services/cart';
   templateUrl: './header.html',
   styleUrl: './header.css',
 })
-export class Header implements OnInit {
+export class Header {
   private cartService = inject(CartService);
-  cartCount = 0;
-
-  ngOnInit() {
-    this.cartService.totalCount$.subscribe(count => {
-      this.cartCount = count;
-    });
-  }
+  readonly cartCount = toSignal(this.cartService.totalCount$, { initialValue: 0 });
 }

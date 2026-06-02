@@ -10,14 +10,10 @@ import { Router, RouterLink } from '@angular/router';
 export class Home {
   constructor(private router: Router) {}
 
-  onSearch(event: any) {
+  onSearch(event: Event) {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     const query = new FormData(form).get('query');
     this.router.navigate(['/search'], { queryParams: { q: query } });
-    
-    if (event.respondWith) {
-      event.respondWith(Promise.resolve({ success: true, message: `Navigated to search results for ${query}` }));
-    }
   }
 }

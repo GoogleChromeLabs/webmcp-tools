@@ -19,8 +19,8 @@
       </a>
       <a routerLink="/cart" aria-label="Shopping Bag" class="icon-btn">
         <span class="material-symbols-outlined">shopping_bag</span>
-        @if (cartCount > 0) {
-          <span class="cart-badge">{{cartCount}}</span>
+        @if (cartCount() > 0) {
+          <span class="cart-badge">{{cartCount()}}</span>
         }
       </a>
     </div>

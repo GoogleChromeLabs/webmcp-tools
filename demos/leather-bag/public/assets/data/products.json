@@ -5,6 +5,7 @@
       "name": "The Signature Satchel",
       "slug": "signature-satchel",
       "price": 1250,
+      "category": "Bags",
       "shortDescription": "Rich Mahogany Calfskin",
       "description": "Hand-selected full-grain hides, vegetable tanned and meticulously stitched by master artisans in our historic workshop.",
       "images": [
@@ -28,6 +29,7 @@
       "name": "The Artisan Weekender Tote",
       "slug": "artisan-weekender-tote",
       "price": 895,
+      "category": "Bags",
       "shortDescription": "Our most versatile piece yet",
       "description": "Constructed from one continuous piece of water-resistant calfskin leather, designed to age with a unique patina.",
       "images": [
@@ -51,6 +53,7 @@
       "name": "Handmade Leather Bag",
       "slug": "handmade-leather-bag",
       "price": 450,
+      "category": "Bags",
       "shortDescription": "Heritage Satchel",
       "description": "Every stitch is a testament to our legacy. This bag is handcrafted by master artisans using techniques passed down through generations.",
       "images": [
@@ -97,6 +100,7 @@
       "name": "Classic Satchel",
       "slug": "classic-satchel",
       "price": 245,
+      "category": "Bags",
       "shortDescription": "Vegetable Tanned Leather",
       "description": "A classic satchel perfect for daily use. Features brass hardware and a durable strap.",
       "images": [
@@ -125,6 +129,7 @@
       "name": "Artisan Tote",
       "slug": "artisan-tote",
       "price": 310,
+      "category": "Bags",
       "shortDescription": "Hand-stitched Onyx Black",
       "description": "Minimalist large black leather artisan tote bag.",
       "images": [
@@ -148,6 +153,7 @@
       "name": "Travel Duffel",
       "slug": "travel-duffel",
       "price": 595,
+      "category": "Bags",
       "shortDescription": "Heirloom Grade Pebbled Leather",
       "description": "Large travel duffel bag in aged cognac leather.",
       "images": [
@@ -171,6 +177,7 @@
       "name": "Urban Rucksack",
       "slug": "urban-rucksack",
       "price": 285,
+      "category": "Bags",
       "shortDescription": "Burgundy Chrome-Free Leather",
       "description": "Modern leather backpack in deep burgundy.",
       "images": [
@@ -186,6 +193,165 @@
       "finish": "Full Grain",
       "rating": 5,
       "reviewsCount": 31,
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-8",
+      "name": "Classic Bi-Fold Wallet",
+      "slug": "classic-bifold-wallet",
+      "price": 185,
+      "category": "Accessories",
+      "shortDescription": "Artisan Full-Grain Leather",
+      "description": "Handcrafted from premium vegetable-tanned leather. Features six card slots, two slip pockets, and a spacious bill compartment.",
+      "images": [
+        "assets/images/bifold_wallet.jpg"
+      ],
+      "colors": [
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        }
+      ],
+      "finish": "Vegetable Tanned",
+      "rating": 4.9,
+      "reviewsCount": 28,
+      "isNewArrival": true,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-9",
+      "name": "Minimalist Cardholder",
+      "slug": "minimalist-cardholder",
+      "price": 95,
+      "category": "Accessories",
+      "shortDescription": "Sleek Pocket Organizer",
+      "description": "Engineered for simplicity. Fits up to six cards and folded bills with an ultra-slim silhouette that won't bulk in your pocket.",
+      "images": [
+        "assets/images/accessories_cat.jpg"
+      ],
+      "colors": [
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 4.7,
+      "reviewsCount": 19,
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-10",
+      "name": "Artisan Dress Belt",
+      "slug": "artisan-dress-belt",
+      "price": 145,
+      "category": "Details",
+      "shortDescription": "Vegetable Tanned Craftsmanship",
+      "description": "Durable full-grain leather with hand-burnished edges and a solid silver-polished brass buckle, perfect for formal and casual wear.",
+      "images": [
+        "assets/images/leather_belt.jpg"
+      ],
+      "colors": [
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "finish": "Vegetable Tanned",
+      "rating": 4.8,
+      "reviewsCount": 55,
+      "isNewArrival": true,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-11",
+      "name": "Heritage Key Clip",
+      "slug": "heritage-key-clip",
+      "price": 65,
+      "category": "Details",
+      "shortDescription": "Solid Brass & Leather Strap",
+      "description": "A rugged and elegant key organizer featuring thick saddle leather and a durable solid brass clip that attaches to belt loops.",
+      "images": [
+        "assets/images/details_cat.jpg"
+      ],
+      "colors": [
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 4.6,
+      "reviewsCount": 8,
+      "isNewArrival": false,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-12",
+      "name": "Biker Leather Jacket",
+      "slug": "biker-leather-jacket",
+      "price": 850,
+      "category": "Apparel",
+      "shortDescription": "Heavyweight Distressed Cowhide",
+      "description": "An iconic asymmetrical double-rider motorcycle jacket built from high-grade distressed calfskin. Guaranteed to last a lifetime.",
+      "images": [
+        "assets/images/leather_jacket.jpg"
+      ],
+      "colors": [
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
+        }
+      ],
+      "finish": "Pebbled",
+      "rating": 5,
+      "reviewsCount": 14,
+      "isNewArrival": true,
+      "isFeatured": false
+    },
+    {
+      "id": "prod-13",
+      "name": "Artisan Leather Gloves",
+      "slug": "artisan-leather-gloves",
+      "price": 125,
+      "category": "Apparel",
+      "shortDescription": "Cashmere Lined Warmth",
+      "description": "Meticulously stitched soft lambskin leather gloves lined with 100% premium cashmere for cold weather protection and maximum tactile control.",
+      "images": [
+        "assets/images/apparel_cat.jpg"
+      ],
+      "colors": [
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "finish": "Full Grain",
+      "rating": 4.9,
+      "reviewsCount": 22,
       "isNewArrival": false,
       "isFeatured": false
     }
