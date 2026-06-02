@@ -59,6 +59,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Someone is at the door. Show me."
 - [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
   - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
+- [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
+  - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 
 ## Contributing
 
