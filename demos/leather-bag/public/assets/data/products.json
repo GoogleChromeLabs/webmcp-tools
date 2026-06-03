@@ -16,6 +16,16 @@
           "id": "mahogany",
           "name": "Mahogany",
           "hex": "#4d3423"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "cognac",
+          "name": "Cognac",
+          "hex": "#8b4513"
         }
       ],
       "finish": "Full Grain",
@@ -40,6 +50,16 @@
           "id": "tan",
           "name": "Tan",
           "hex": "#a67c52"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "walnut",
+          "name": "Walnut",
+          "hex": "#773f1a"
         }
       ],
       "finish": "Vegetable Tanned",
@@ -79,6 +99,11 @@
           "id": "black",
           "name": "Black",
           "hex": "#1a1a1a"
+        },
+        {
+          "id": "navy",
+          "name": "Navy",
+          "hex": "#0a1128"
         }
       ],
       "finish": "Full Grain",
@@ -110,12 +135,17 @@
         {
           "id": "brown",
           "name": "Brown",
-          "hex": "#5C4033"
+          "hex": "#5c4033"
         },
         {
           "id": "black",
           "name": "Black",
           "hex": "#1a1a1a"
+        },
+        {
+          "id": "cognac",
+          "name": "Cognac",
+          "hex": "#8b4513"
         }
       ],
       "finish": "Full Grain",
@@ -140,6 +170,16 @@
           "id": "black",
           "name": "Black",
           "hex": "#1a1a1a"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
+        },
+        {
+          "id": "chestnut",
+          "name": "Chestnut",
+          "hex": "#5a3825"
         }
       ],
       "finish": "Full Grain",
@@ -164,6 +204,16 @@
           "id": "cognac",
           "name": "Cognac",
           "hex": "#8b4513"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "walnut",
+          "name": "Walnut",
+          "hex": "#773f1a"
         }
       ],
       "finish": "Pebbled",
@@ -188,6 +238,16 @@
           "id": "burgundy",
           "name": "Burgundy",
           "hex": "#800020"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
         }
       ],
       "finish": "Full Grain",
@@ -217,6 +277,16 @@
           "id": "tan",
           "name": "Tan",
           "hex": "#a67c52"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
+        },
+        {
+          "id": "cognac",
+          "name": "Cognac",
+          "hex": "#8b4513"
         }
       ],
       "finish": "Vegetable Tanned",
@@ -246,6 +316,16 @@
           "id": "tan",
           "name": "Tan",
           "hex": "#a67c52"
+        },
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
+        },
+        {
+          "id": "navy",
+          "name": "Navy",
+          "hex": "#0a1128"
         }
       ],
       "finish": "Full Grain",
@@ -275,6 +355,11 @@
           "id": "black",
           "name": "Black",
           "hex": "#1a1a1a"
+        },
+        {
+          "id": "tan",
+          "name": "Tan",
+          "hex": "#a67c52"
         }
       ],
       "finish": "Vegetable Tanned",
@@ -299,6 +384,11 @@
           "id": "tan",
           "name": "Tan",
           "hex": "#a67c52"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
         }
       ],
       "finish": "Full Grain",
@@ -323,6 +413,11 @@
           "id": "mahogany",
           "name": "Mahogany",
           "hex": "#4d3423"
+        },
+        {
+          "id": "black",
+          "name": "Black",
+          "hex": "#1a1a1a"
         }
       ],
       "finish": "Pebbled",
@@ -347,6 +442,11 @@
           "id": "black",
           "name": "Black",
           "hex": "#1a1a1a"
+        },
+        {
+          "id": "mahogany",
+          "name": "Mahogany",
+          "hex": "#4d3423"
         }
       ],
       "finish": "Full Grain",

@@ -59,63 +59,91 @@
           [formRoot]="cartForm"
           class="add-to-cart-form space-y-8"
         >
-          <input type="hidden" [formField]="cartForm.color" />
-          <!-- Color Selection -->
-          <div class="color-selection">
-            <div class="flex justify-between items-center mb-4">
-              <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{model().color}}</span></span>
-            </div>
-            
-            <div class="flex gap-4">
-              @for (color of product.colors; track color.id) {
-                <button 
-                  type="button"
-                  class="color-btn" 
-                  [class.active]="model().color === color.name"
-                  (click)="selectColor(color.name)"
-                  [attr.aria-label]="'Select ' + color.name + ' color'"
-                  [attr.aria-pressed]="model().color === color.name"
-                >
-                  <span class="color-swatch-circle" [style.background]="color.hex"></span>
-                </button>
-              }
-            </div>
+          <div class="space-y-6">
+            @for (v of model().variations; track $index; let i = $index) {
+              <div class="variation-item border border-outline-variant/30 p-6 rounded bg-surface-container-low relative">
+                <!-- Remove Button -->
+                @if (model().variations.length > 1) {
+                  <button 
+                    type="button" 
+                    class="absolute top-4 right-4 text-outline hover:text-primary transition-colors"
+                    (click)="removeVariation(i)"
+                    aria-label="Remove variation"
+                  >
+                    <span class="material-symbols-outlined text-sm">close</span>
+                  </button>
+                }
+
+                <input type="hidden" [formField]="cartForm.variations[i].color" />
+                <!-- Color Selection -->
+                <div class="color-selection mb-6">
+                  <div class="flex justify-between items-center mb-4">
+                    <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{model().variations[i]?.color}}</span></span>
+                  </div>
+                  
+                  <div class="flex gap-4">
+                    @for (color of product.colors; track color.id) {
+                      <button 
+                        type="button"
+                        class="color-btn" 
+                        [class.active]="model().variations[i]?.color === color.name"
+                        (click)="selectColor(i, color.name)"
+                        [attr.aria-label]="'Select ' + color.name + ' color'"
+                        [attr.aria-pressed]="model().variations[i]?.color === color.name"
+                      >
+                        <span class="color-swatch-circle" [style.background]="color.hex"></span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex gap-4 items-center">
+                  <!-- Quantity Selector -->
+                  <div class="quantity-selector flex items-center border border-outline-variant rounded-md overflow-hidden bg-surface-container-lowest">
+                    <button type="button" class="qty-btn" (click)="decrementQuantity(i)" aria-label="Decrease quantity">
+                      <span class="material-symbols-outlined text-sm">remove</span>
+                    </button>
+                    <input 
+                      type="number" 
+                      class="qty-input sr-only font-body text-center w-12 border-none focus:ring-0" 
+                      [formField]="cartForm.variations[i].quantity" 
+                      aria-label="Quantity"
+                    >
+                    <span class="font-body text-center w-12">{{model().variations[i]?.quantity}}</span>
+                    <button type="button" class="qty-btn" (click)="incrementQuantity(i)" aria-label="Increase quantity">
+                      <span class="material-symbols-outlined text-sm">add</span>
+                    </button>
+                  </div>
+
+                  @if (cartForm.variations[i].quantity().touched() && cartForm.variations[i].quantity().invalid()) {
+                    <ul class="error-list !mt-0 !pl-2">
+                      @for (error of cartForm.variations[i].quantity().errors(); track error.message) {
+                        <li>{{ error.message }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </div>
+            }
           </div>
 
-          <div class="flex gap-4">
-            <!-- Quantity Selector -->
-            <div class="quantity-selector flex items-center border border-outline-variant rounded-md overflow-hidden bg-surface-container-lowest">
-              <button type="button" class="qty-btn" (click)="decrementQuantity()" aria-label="Decrease quantity">
-                <span class="material-symbols-outlined text-sm">remove</span>
-              </button>
-              <input 
-                type="number" 
-                class="qty-input sr-only font-body text-center w-12 border-none focus:ring-0" 
-                [formField]="cartForm.quantity" 
-                aria-label="Quantity"
-              >
-              <span class="font-body text-center w-12">{{model().quantity}}</span>
-              <button type="button" class="qty-btn" (click)="incrementQuantity()" aria-label="Increase quantity">
-                <span class="material-symbols-outlined text-sm">add</span>
-              </button>
-            </div>
+          <!-- Add Variation Button -->
+          <button 
+            type="button" 
+            class="w-full border border-dashed border-outline-variant hover:border-primary text-outline hover:text-primary py-3 rounded font-label text-xs uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-2"
+            (click)="addVariation()"
+          >
+            <span class="material-symbols-outlined text-sm">add</span>
+            Add Another Variation
+          </button>
 
-            <!-- Pre-order / Add to Cart Button -->
-            <button 
-              type="submit" 
-              class="flex-1 bg-primary text-on-primary py-4 px-8 font-label text-xs uppercase tracking-widest font-bold rounded hover:bg-primary-container transition-colors shadow-lg active:scale-[0.98]"
-            >
-              Add to Cart
-            </button>
-          </div>
-
-          @if (cartForm.quantity().touched() && cartForm.quantity().invalid()) {
-            <ul class="error-list">
-              @for (error of cartForm.quantity().errors(); track error) {
-                <li>{{ error.message }}</li>
-              }
-            </ul>
-          }
+          <!-- Pre-order / Add to Cart Button -->
+          <button 
+            type="submit" 
+            class="w-full bg-primary text-on-primary py-4 px-8 font-label text-xs uppercase tracking-widest font-bold rounded hover:bg-primary-container transition-colors shadow-lg active:scale-[0.98]"
+          >
+            Add to Cart
+          </button>
 
           <p class="font-label text-[10px] uppercase tracking-widest text-outline text-center flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-[14px]">local_shipping</span>
