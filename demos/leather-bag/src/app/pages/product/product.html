@@ -1,4 +1,4 @@
-@if (product) {
+@if (productResource.value(); as product) {
   <!-- Breadcrumbs -->
   <div class="container py-8">
     <nav class="breadcrumb">
@@ -20,7 +20,7 @@
           @for (img of product.images; track img) {
             <button 
               class="thumbnail-btn" 
-              [class.active]="selectedImage === img"
+              [class.active]="selectedImage() === img"
               (click)="selectImage(img)"
               aria-label="View alternate angle"
             >
@@ -31,7 +31,7 @@
         
         <!-- Main Image -->
         <div class="main-image-container editorial-shadow">
-          <img [src]="selectedImage" [alt]="product.name" class="main-image transition-opacity">
+          <img [src]="selectedImage()" [alt]="product.name" class="main-image transition-opacity">
         </div>
       </div>
 
@@ -63,7 +63,7 @@
           <!-- Color Selection -->
           <div class="color-selection">
             <div class="flex justify-between items-center mb-4">
-              <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{selectedColor}}</span></span>
+              <span class="font-label text-xs uppercase tracking-widest text-primary font-bold">Color: <span class="text-on-surface-variant font-normal">{{model().color}}</span></span>
             </div>
             
             <div class="flex gap-4">
@@ -71,10 +71,10 @@
                 <button 
                   type="button"
                   class="color-btn" 
-                  [class.active]="selectedColor === color.name"
+                  [class.active]="model().color === color.name"
                   (click)="selectColor(color.name)"
                   [attr.aria-label]="'Select ' + color.name + ' color'"
-                  [attr.aria-pressed]="selectedColor === color.name"
+                  [attr.aria-pressed]="model().color === color.name"
                 >
                   <span class="color-swatch-circle" [style.background]="color.hex"></span>
                 </button>

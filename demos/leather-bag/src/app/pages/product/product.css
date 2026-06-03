@@ -5,6 +5,7 @@
   grid-template-columns: 1fr;
   gap: 3rem;
   margin-top: 2rem;
+  align-items: start;
 }
 
 @media (min-width: 1024px) {
