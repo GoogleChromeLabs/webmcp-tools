@@ -221,3 +221,11 @@
 .hover\:text-secondary:hover { color: var(--secondary); }
 .hover\:border-secondary:hover { border-color: var(--secondary); }
 .group:hover .group-hover\:text-secondary { color: var(--secondary); }
+
+.error-list {
+  color: #ba1a1a;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+  list-style: disc;
+}

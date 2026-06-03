@@ -3,7 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
-import { form, required, FormField, submit, FormRoot, min, max } from '@angular/forms/signals';
+import { form, required, FormField, FormRoot, min, max } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-product',
@@ -20,7 +20,6 @@ export class ProductComponent implements OnInit {
   product?: Product;
   selectedColor = '';
   selectedImage = '';
-  quantity = 1;
   isReturnModalOpen = false;
 
   // Accordion State
@@ -48,11 +47,12 @@ export class ProductComponent implements OnInit {
       },
       submission: {
         action: async (formValue) => {
-          if (this.product) {
-            const chosenColor = formValue.color().value();
-            const chosenQty = formValue.quantity().value();
-            this.cartService.addToCart(this.product, chosenColor, chosenQty);
+          if (!this.product) {
+            throw new Error('Product not loaded');
           }
+          const chosenColor = formValue.color().value();
+          const chosenQty = formValue.quantity().value();
+          this.cartService.addToCart(this.product, chosenColor, chosenQty);
         }
       }
     }
@@ -92,23 +92,14 @@ export class ProductComponent implements OnInit {
   }
 
   incrementQuantity() {
-    if (this.quantity < 10) {
-      this.quantity++;
-      this.model.update(m => ({ ...m, quantity: this.quantity }));
-    }
+    this.model.update(m => ({ ...m, quantity: m.quantity + 1 }));
   }
 
   decrementQuantity() {
-    if (this.quantity > 1) {
-      this.quantity--;
-      this.model.update(m => ({ ...m, quantity: this.quantity }));
-    }
+    this.model.update(m => ({ ...m, quantity: m.quantity - 1 }));
   }
 
-  addToCart(event?: Event) {
-    if (event) event.preventDefault();
-    submit(this.cartForm);
-  }
+
 
   openReturnModal(event: Event) {
     event.preventDefault();
