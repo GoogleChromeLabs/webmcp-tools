@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, inject } from '@angular/core';
-import { provideRouter, withHashLocation, Router } from '@angular/router';
+import { provideRouter, withHashLocation, Router, withExperimentalAutoCleanupInjectors } from '@angular/router';
 
 import { provideHttpClient } from '@angular/common/http';
 import { provideExperimentalWebMcpTools } from '@angular/core';
@@ -9,7 +9,7 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withHashLocation()),
+    provideRouter(routes, withHashLocation(), withExperimentalAutoCleanupInjectors()),
     provideHttpClient(),
     provideExperimentalWebMcpForms(),
     provideExperimentalWebMcpTools([

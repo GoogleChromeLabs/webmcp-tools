@@ -57,8 +57,7 @@
         <!-- WebMCP Form for Add to Cart -->
         <form 
           [formRoot]="cartForm"
-          class="add-to-cart-form space-y-8" 
-          (submit)="addToCart($event)"
+          class="add-to-cart-form space-y-8"
         >
           <input type="hidden" [formField]="cartForm.color" />
           <!-- Color Selection -->
@@ -109,6 +108,14 @@
               Add to Cart
             </button>
           </div>
+
+          @if (cartForm.quantity().touched() && cartForm.quantity().invalid()) {
+            <ul class="error-list">
+              @for (error of cartForm.quantity().errors(); track error) {
+                <li>{{ error.message }}</li>
+              }
+            </ul>
+          }
 
           <p class="font-label text-[10px] uppercase tracking-widest text-outline text-center flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-[14px]">local_shipping</span>
