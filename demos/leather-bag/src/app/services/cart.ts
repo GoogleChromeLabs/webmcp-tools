@@ -60,4 +60,12 @@ export class CartService {
   getCartItems() {
     return this.items;
   }
+
+  clearCart(message?: string) {
+    this.items.length = 0;
+    this.totalCountSource.next(0);
+    if (message) {
+      this.cartUpdateSource.next(message);
+    }
+  }
 }

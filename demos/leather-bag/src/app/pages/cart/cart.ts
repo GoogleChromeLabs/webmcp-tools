@@ -53,4 +53,10 @@ export class CartComponent implements OnInit {
     this.shipping = this.subtotal > 500 ? 0 : 50;
     this.total = this.subtotal + this.shipping;
   }
+
+  checkout() {
+    this.cartService.clearCart('Thank you for shopping with us!');
+    this.calculateTotals();
+    this.cdr.detectChanges();
+  }
 }

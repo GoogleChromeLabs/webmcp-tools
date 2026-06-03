@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
-import { form, required, FormField, FormRoot, min, max } from '@angular/forms/signals';
+import { form, required, FormField, FormRoot, min, max, applyEach } from '@angular/forms/signals';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 
@@ -38,30 +38,34 @@ export class ProductComponent {
   shippingOpen = false;
 
   // Signal Form model linked to product default color
-  readonly model = linkedSignal<{ color: string; quantity: number }>(() => {
+  readonly model = linkedSignal<{ variations: Array<{ color: string; quantity: number }> }>(() => {
     const p = this.productResource.value();
     if (!p) {
-      return { color: '', quantity: 1 };
+      return { variations: [{ color: '', quantity: 1 }] };
     }
     const hasBrown = p.colors.some(c => c.name === 'Brown');
     const defaultColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
     return {
-      color: defaultColor,
-      quantity: 1,
+      variations: [{
+        color: defaultColor,
+        quantity: 1,
+      }]
     };
   });
 
   readonly cartForm = form(
     this.model,
     (f) => {
-      required(f.color, { message: 'Color selection is required.' });
-      min(f.quantity, 1);
-      max(f.quantity, 10);
+      applyEach(f.variations, (v) => {
+        required(v.color, { message: 'Color selection is required.' });
+        min(v.quantity, 1, { message: 'Quantity must be at least 1.' });
+        max(v.quantity, 10, { message: 'Quantity cannot exceed 10.' });
+      });
     },
     {
       experimentalWebMcpTool: {
         name: 'add_to_cart',
-        description: 'Add this premium leather bag to your shopping cart with chosen color and quantity',
+        description: 'Add this premium leather bag to your shopping cart with chosen variations (color and quantity)',
       },
       submission: {
         action: async (formValue) => {
@@ -69,28 +73,68 @@ export class ProductComponent {
           if (!product) {
             throw new Error('Product not loaded');
           }
-          const chosenColor = formValue.color().value();
-          const chosenQty = formValue.quantity().value();
-          this.cartService.addToCart(product, chosenColor, chosenQty);
+          const variations = formValue.variations().value();
+          for (const v of variations) {
+            this.cartService.addToCart(product, v.color, v.quantity);
+          }
         }
       }
     }
   );
 
-  selectColor(colorName: string) {
-    this.model.update(m => ({ ...m, color: colorName }));
+  addVariation() {
+    this.model.update(m => {
+      const p = this.productResource.value();
+      const hasBrown = p?.colors.some(c => c.name === 'Brown');
+      const defaultColor = hasBrown ? 'Brown' : (p?.colors[0]?.name || '');
+      return {
+        variations: [
+          ...m.variations,
+          { color: defaultColor, quantity: 1 }
+        ]
+      };
+    });
+  }
+
+  removeVariation(index: number) {
+    this.model.update(m => {
+      const variations = m.variations.filter((_, i) => i !== index);
+      return { variations };
+    });
+  }
+
+  selectColor(index: number, colorName: string) {
+    this.model.update(m => {
+      const variations = [...m.variations];
+      if (variations[index]) {
+        variations[index] = { ...variations[index], color: colorName };
+      }
+      return { variations };
+    });
   }
 
   selectImage(img: string) {
     this.selectedImage.set(img);
   }
 
-  incrementQuantity() {
-    this.model.update(m => ({ ...m, quantity: m.quantity + 1 }));
+  incrementQuantity(index: number) {
+    this.model.update(m => {
+      const variations = [...m.variations];
+      if (variations[index]) {
+        variations[index] = { ...variations[index], quantity: variations[index].quantity + 1 };
+      }
+      return { variations };
+    });
   }
 
-  decrementQuantity() {
-    this.model.update(m => ({ ...m, quantity: m.quantity - 1 }));
+  decrementQuantity(index: number) {
+    this.model.update(m => {
+      const variations = [...m.variations];
+      if (variations[index]) {
+        variations[index] = { ...variations[index], quantity: variations[index].quantity - 1 };
+      }
+      return { variations };
+    });
   }
 
   openReturnModal(event: Event) {
