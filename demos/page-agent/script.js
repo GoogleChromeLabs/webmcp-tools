@@ -66,17 +66,22 @@ function initChat(apiKey) {
   userInput.focus();
 }
 
-iframe.src = urlInput.value.trim();
-
 urlInput.addEventListener('keypress', (e) => {
   if (e.key !== 'Enter') return;
+  loadUrl();
+});
+
+function loadUrl() {
   const url = urlInput.value.trim();
   urlInput.value = url;
   chatWindow.innerHTML = '';
   chat = null;
+  iframe.allow = `tools ${new URL(url).origin}`;
   iframe.src = url;
   urlInput.blur();
-});
+}
+
+loadUrl();
 
 iframe.addEventListener('load', async () => {
   const tools = await getTools();
