@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, inject, input, linkedSignal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
 import { form, required, FormField, FormRoot, min, max } from '@angular/forms/signals';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-product',
@@ -11,25 +13,42 @@ import { form, required, FormField, FormRoot, min, max } from '@angular/forms/si
   templateUrl: './product.html',
   styleUrl: './product.css',
 })
-export class ProductComponent implements OnInit {
-  private route = inject(ActivatedRoute);
+export class ProductComponent {
   private productService = inject(ProductService);
   private cartService = inject(CartService);
-  private cdr = inject(ChangeDetectorRef);
 
-  product?: Product;
-  selectedColor = '';
-  selectedImage = '';
+  // Set by `withComponentInputBinding()` from URL parameter `:id`
+  readonly id = input<string>();
+
+  readonly productResource = rxResource({
+    params: () => this.id(),
+    stream: ({ params: id }) => {
+      if (!id) return of(undefined);
+      return this.productService.getProductBySlug(id);
+    },
+  });
+
+  // Selected image linked to default image of the product
+  readonly selectedImage = linkedSignal(() => this.productResource.value()?.images[0] || '');
+
   isReturnModalOpen = false;
 
   // Accordion State
   detailsOpen = true;
   shippingOpen = false;
 
-  // Signal Form for cart options
-  readonly model = signal({
-    color: '',
-    quantity: 1
+  // Signal Form model linked to product default color
+  readonly model = linkedSignal<{ color: string; quantity: number }>(() => {
+    const p = this.productResource.value();
+    if (!p) {
+      return { color: '', quantity: 1 };
+    }
+    const hasBrown = p.colors.some(c => c.name === 'Brown');
+    const defaultColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
+    return {
+      color: defaultColor,
+      quantity: 1,
+    };
   });
 
   readonly cartForm = form(
@@ -40,55 +59,30 @@ export class ProductComponent implements OnInit {
       max(f.quantity, 10);
     },
     {
-      // Opt-in to implicit WebMCP tool add_to_cart with custom schema and submission action
       experimentalWebMcpTool: {
         name: 'add_to_cart',
         description: 'Add this premium leather bag to your shopping cart with chosen color and quantity',
       },
       submission: {
         action: async (formValue) => {
-          if (!this.product) {
+          const product = this.productResource.value();
+          if (!product) {
             throw new Error('Product not loaded');
           }
           const chosenColor = formValue.color().value();
           const chosenQty = formValue.quantity().value();
-          this.cartService.addToCart(this.product, chosenColor, chosenQty);
+          this.cartService.addToCart(product, chosenColor, chosenQty);
         }
       }
     }
   );
 
-  ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const slug = params.get('id');
-      if (slug) {
-        this.productService.getProductBySlug(slug).subscribe(p => {
-          this.product = p;
-          if (p) {
-            const hasBrown = p.colors.some(c => c.name === 'Brown');
-            const defaultColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
-            this.selectedColor = defaultColor;
-            this.selectedImage = p.images[0] || '';
-            
-            // Initialize form model
-            this.model.set({
-              color: defaultColor,
-              quantity: 1
-            });
-          }
-          this.cdr.detectChanges();
-        });
-      }
-    });
-  }
-
   selectColor(colorName: string) {
-    this.selectedColor = colorName;
     this.model.update(m => ({ ...m, color: colorName }));
   }
 
   selectImage(img: string) {
-    this.selectedImage = img;
+    this.selectedImage.set(img);
   }
 
   incrementQuantity() {
@@ -98,8 +92,6 @@ export class ProductComponent implements OnInit {
   decrementQuantity() {
     this.model.update(m => ({ ...m, quantity: m.quantity - 1 }));
   }
-
-
 
   openReturnModal(event: Event) {
     event.preventDefault();
