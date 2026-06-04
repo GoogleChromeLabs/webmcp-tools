@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebMCP — Give agents tools, not DOM</title>
+  <meta name="description" content="A side-by-side demo of how AI agents interact with web pages today versus a future where pages expose structured tools via WebMCP." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grad" aria-hidden="true"></div>
+  <div class="bg-noise" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 12 L9 6 L9 10 L21 10 L21 14 L9 14 L9 18 Z" fill="currentColor"/></svg>
+      </span>
+      <span>WebMCP</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#compare">Demo</a>
+      <a href="#how">How it works</a>
+      <a href="#start">Get started</a>
+      <a href="#spec" class="nav-cta">Spec ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <p class="eyebrow"><span class="dot"></span> A web platform proposal</p>
+      <h1 class="hero-title">
+        Agents use <em>tools</em>,<br/>not <span class="strike">scraping</span>.
+      </h1>
+      <div class="hero-lede">
+        <p>Today, AI agents scrape the DOM, the accessibility tree, and take screenshots -
+        brittle, slow, easy to get wrong, and vulnerable to prompt injection attacks.</p>
+        <p><strong>WebMCP</strong> lets your site declare its capabilities as structured tools that agents can call directly, faster, more secure and with fewer tokens.</p>
+      </div>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#compare">See the difference</a>
+        <a class="btn btn-ghost" href="#how">How it works</a>
+      </div>
+      <div class="hero-stats">
+        <div><span class="stat-num">~40+</span><span class="stat-label">DOM nodes to parse</span></div>
+        <div class="stat-arrow" aria-hidden="true">→</div>
+        <div><span class="stat-num accent">3</span><span class="stat-label">tools, called directly</span></div>
+      </div>
+    </section>
+
+    <!-- COMPARE -->
+    <section class="compare" id="compare">
+      <header class="section-head">
+        <p class="eyebrow"><span class="dot"></span> Side by side</p>
+        <h2>The same booking widget, two ways to be controlled.</h2>
+        <p class="section-sub">
+          Press <strong>Run agent</strong> to watch an AI try to book a slot on each side.
+          Left: scrape the DOM. Right: call a tool.
+        </p>
+        <div class="run-bar">
+          <button class="btn btn-run" id="run-sim">
+            <span class="run-icon" aria-hidden="true">▶</span>
+            <span class="run-label">Run agent: “Book me Tuesday at 2pm”</span>
+          </button>
+          <button class="btn btn-ghost btn-reset" id="reset-sim" aria-label="Reset demo">Reset</button>
+        </div>
+      </header>
+
+      <div class="split">
+        <!-- WITHOUT -->
+        <article class="panel panel--without" data-mode="without">
+          <header class="panel-head">
+            <span class="panel-tag panel-tag--warn">Without WebMCP</span>
+            <h3>Agent must scrape</h3>
+            <p>It guesses meaning from <code>aria-*</code>, classnames, and shape.</p>
+          </header>
+
+          <div class="stage">
+            <div class="widget" id="widget-without">
+              <!-- Calendar widget injected by JS -->
+            </div>
+            <div class="annotations" id="annotations" aria-hidden="true"></div>
+            <div class="scan-cursor" id="scan-cursor" aria-hidden="true"></div>
+          </div>
+
+          <footer class="panel-foot">
+            <div class="agent-log" id="log-without" aria-live="polite">
+              <div class="log-head">Agent observation log</div>
+              <ol class="log-list"></ol>
+            </div>
+          </footer>
+        </article>
+
+        <!-- DIVIDER -->
+        <div class="seam" aria-hidden="true">
+          <span class="seam-vs">vs</span>
+        </div>
+
+        <!-- WITH -->
+        <article class="panel panel--with" data-mode="with">
+          <header class="panel-head">
+            <span class="panel-tag panel-tag--ok">With WebMCP</span>
+            <h3>Agent calls tools</h3>
+            <p>The page declares typed capabilities. The agent just calls them.</p>
+          </header>
+
+          <div class="stage">
+            <div class="widget" id="widget-with">
+              <!-- Calendar widget injected by JS -->
+            </div>
+          </div>
+
+          <footer class="panel-foot">
+            <div class="tools-panel" id="tools-panel">
+              <div class="tools-head">
+                <span class="tools-title">Registered tools</span>
+                <span class="tools-count" id="tools-count">0</span>
+              </div>
+              <ul class="tools-list" id="tools-list"></ul>
+              <div class="tool-call" id="tool-call" hidden>
+                <div class="tool-call-head">Last call</div>
+                <pre class="tool-call-body"><code id="tool-call-code"></code></pre>
+              </div>
+            </div>
+          </footer>
+        </article>
+      </div>
+      <div class="webmcp-status" id="webmcp-status">
+        <p id="insert-status" role="status" aria-live="polite"></p>
+        <div class="extension-info">
+          <p>With the extension, you can:</p>
+          <ul>
+            <li>See which tools are registered on a page, by monitoring the <code>navigator.modelContext</code> API.</li>
+            <li>Manually call tools and execute functions.</li>
+            <li>Verify your JSON Schema is correctly defined and that the browser can parse data as the tool expects.</li>
+            <li>View structured output or error messages returned by your tool to ensure they're written clearly and formatted correctly, so an agent can understand it.</li>
+            <li>Talk to the agent using natural language, to see if it can correctly identify and invoke the appropriate WebMCP tools.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how" id="how">
+      <header class="section-head">
+        <p class="eyebrow"><span class="dot"></span> The idea, in three steps</p>
+        <h2>How WebMCP works</h2>
+      </header>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Your site registers tools</h3>
+          <p>
+            On any page, declare the actions an agent can take. Each tool has a name,
+            description, and JSON schema — the same shape as a server-side MCP tool.
+          </p>
+<pre class="code"><code><span class="c-key">navigator</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
+  name: <span class="c-str">"bookSlot"</span>,
+  title: <span class="c-str">"Book a consultation slot"</span>,
+  description: <span class="c-str">"Reserve a 30-minute consultation."</span>,
+  inputSchema: {
+    type: <span class="c-str">"object"</span>,
+    properties: {
+      date:  { type: <span class="c-str">"string"</span>, format: <span class="c-str">"date"</span> },
+      time:  { type: <span class="c-str">"string"</span> },
+      name:  { type: <span class="c-str">"string"</span> },
+      email: { type: <span class="c-str">"string"</span>, format: <span class="c-str">"email"</span> }
+    },
+    required: [<span class="c-str">"date"</span>, <span class="c-str">"time"</span>, <span class="c-str">"name"</span>, <span class="c-str">"email"</span>]
+  },
+  annotations: { readOnlyHint: <span class="c-key">false</span> },
+  execute: <span class="c-key">async</span> (input, client) =&gt; {
+    <span class="c-key">return await</span> <span class="c-fn">api</span>.<span class="c-fn">book</span>(input);
+  }
+});</code></pre>
+        </div>
+
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>The browser exposes them</h3>
+          <p>
+            A WebMCP-aware extension (or, eventually, the browser itself) collects
+            registered tools and presents them to the user's agent — alongside
+            the page's URL, title, and origin permission scope.
+          </p>
+          <div class="diagram">
+            <div class="dgm-card dgm-page">your page</div>
+            <div class="dgm-arrow" aria-hidden="true"></div>
+            <div class="dgm-card dgm-ext">browser / extension</div>
+            <div class="dgm-arrow" aria-hidden="true"></div>
+            <div class="dgm-card dgm-agent">your agent</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Agents call instead of guess</h3>
+          <p>
+            No more “find the right button.” The agent sees a contract, supplies
+            structured arguments, and your code does the rest — with the user
+            still in the loop for permission and confirmation.
+          </p>
+<pre class="code"><code><span class="c-comment">// the agent's view</span>
+{
+  <span class="c-key">"tool"</span>: <span class="c-str">"bookSlot"</span>,
+  <span class="c-key">"arguments"</span>: {
+    <span class="c-key">"date"</span>: <span class="c-str">"2026-05-19"</span>,
+    <span class="c-key">"time"</span>: <span class="c-str">"14:00"</span>,
+    <span class="c-key">"name"</span>: <span class="c-str">"Sarah Drasner"</span>,
+    <span class="c-key">"email"</span>: <span class="c-str">"sarah@example.com"</span>
+  }
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- GET STARTED -->
+    <section class="start" id="start">
+      <header class="section-head">
+        <p class="eyebrow"><span class="dot"></span> Try it yourself</p>
+        <h2>Get started</h2>
+        <p class="section-sub">There are two APIs you can use to set up your website tools.</p>
+      </header>
+
+      <div class="start-grid">
+        <div class="start-card">
+          <div class="start-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 6 L2 12 L8 18 M16 6 L22 12 L16 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Imperative API</h3>
+          <p>Define different types of tools with standard JavaScript — form input, navigation, state management, or any other function on your page. The booking widget above uses this approach. Here's its <code>getAvailability</code> tool — the same one you'd see if you opened the WebMCP inspector on this page:</p>
+<pre class="code"><code><span class="c-key">navigator</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
+  name: <span class="c-str">"getAvailability"</span>,
+  title: <span class="c-str">"Get booking availability"</span>,
+  description: <span class="c-str">"List bookable consultation times within a date range."</span>,
+  inputSchema: {
+    type: <span class="c-str">"object"</span>,
+    properties: {
+      startDate: { type: <span class="c-str">"string"</span>, format: <span class="c-str">"date"</span> },
+      endDate:   { type: <span class="c-str">"string"</span>, format: <span class="c-str">"date"</span> }
+    },
+    required: [<span class="c-str">"startDate"</span>, <span class="c-str">"endDate"</span>]
+  },
+  annotations: { readOnlyHint: <span class="c-key">true</span> },
+  execute: ({ startDate, endDate }) =&gt; {
+    <span class="c-key">return</span> calendar.<span class="c-fn">slotsBetween</span>(startDate, endDate);
+  }
+});</code></pre>
+          <a class="btn btn-ghost" href="https://developer.chrome.com/docs/ai/webmcp/imperative-api" target="_blank" rel="noopener">Learn more ↗</a>
+        </div>
+
+        <div class="start-card">
+          <div class="start-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h16v4H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Declarative API</h3>
+          <p>Add a few attributes to a standard HTML <code>&lt;form&gt;</code> to expose it as a WebMCP tool — no JavaScript wiring required. The same <code>bookSlot</code> capability from the demo above, written as plain HTML:</p>
+<pre class="code"><code><span class="c-tag">&lt;form</span> <span class="c-key">toolname</span>=<span class="c-str">"bookSlot"</span>
+      <span class="c-key">tooldescription</span>=<span class="c-str">"Reserve a 30-min consultation"</span>
+      <span class="c-key">toolautosubmit</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;input</span> <span class="c-key">type</span>=<span class="c-str">"date"</span> <span class="c-key">name</span>=<span class="c-str">"date"</span>
+         <span class="c-key">toolparamdescription</span>=<span class="c-str">"Date of the booking"</span> <span class="c-key">required</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;input</span> <span class="c-key">type</span>=<span class="c-str">"time"</span> <span class="c-key">name</span>=<span class="c-str">"time"</span>
+         <span class="c-key">toolparamdescription</span>=<span class="c-str">"Start time (24h)"</span> <span class="c-key">required</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;input</span> <span class="c-key">name</span>=<span class="c-str">"name"</span>
+         <span class="c-key">toolparamdescription</span>=<span class="c-str">"Full name"</span> <span class="c-key">required</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;input</span> <span class="c-key">type</span>=<span class="c-str">"email"</span> <span class="c-key">name</span>=<span class="c-str">"email"</span>
+         <span class="c-key">toolparamdescription</span>=<span class="c-str">"Confirmation email"</span> <span class="c-key">required</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;button</span> <span class="c-key">type</span>=<span class="c-str">"submit"</span><span class="c-tag">&gt;</span>Book<span class="c-tag">&lt;/button&gt;</span>
+<span class="c-tag">&lt;/form&gt;</span></code></pre>
+          <a class="btn btn-ghost" href="https://developer.chrome.com/docs/ai/webmcp/declarative-api" target="_blank" rel="noopener">Learn more ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="spec">
+      <div class="cta-inner">
+        <p class="eyebrow eyebrow--light"><span class="dot"></span> Build with WebMCP</p>
+        <h2>Try it. Ship it. <em>Shape it.</em></h2>
+        <p class="cta-sub">
+          WebMCP is under active discussion and subject to change. If you try
+          these APIs and have feedback, we'd love to hear it.
+        </p>
+
+        <div class="cta-grid">
+          <a class="cta-card" href="https://github.com/webmachinelearning/webmcp?tab=readme-ov-file" target="_blank" rel="noopener">
+            <h3>Read the WebMCP explainer</h3>
+            <p>Raise questions and participate in discussion on the spec repo.</p>
+            <span class="cta-card-host">github.com/webmachinelearning/webmcp <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://developer.chrome.com/docs/ai/webmcp/best-practices" target="_blank" rel="noopener">
+            <h3>WebMCP best practices</h3>
+            <p>Reference patterns for building agent-ready sites.</p>
+            <span class="cta-card-host">chrome &middot; WebMCP best practices <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://developer.chrome.com/docs/ai/webmcp/use-cases" target="_blank" rel="noopener">
+            <h3>Use cases</h3>
+            <p>What kinds of tools should you expose, and when?</p>
+            <span class="cta-card-host">chrome &middot; WebMCP use cases <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://github.com/webmachinelearning/webmcp#imperative-api" target="_blank" rel="noopener">
+            <h3>Spec Repo</h3>
+            <p>See the repo and file an issue.</p>
+            <span class="cta-card-host">chrome &middot; webmcp repo <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://bandarra.me/projects?tag=WebMCP" target="_blank" rel="noopener">
+            <h3>Try fun demos</h3>
+            <p>Working WebMCP code to fork and play with from Chrome DevRel, Andre Bandarra.</p>
+            <span class="cta-card-host">bandarra.me/projects <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://chromestatus.com/feature/5117755740913664" target="_blank" rel="noopener">
+            <h3>Chrome Status</h3>
+            <p>Review the Chrome implementation status and timeline.</p>
+            <span class="cta-card-host">chromestatus.com/feature/5117755740913664 <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="http://goo.gle/chrome-ai-dev-preview-join" target="_blank" rel="noopener">
+            <h3>Early Preview Program</h3>
+            <p>Get an early look at new APIs and access our mailing list.</p>
+            <span class="cta-card-host">goo.gle/chrome-ai-dev-preview-join <span class="cta-card-arrow">↗</span></span>
+          </a>
+
+          <a class="cta-card" href="https://crbug.com/new?component=2021259" target="_blank" rel="noopener">
+            <h3>File a Chromium bug</h3>
+            <p>Hit an issue with Chrome's implementation? Let the team know.</p>
+            <span class="cta-card-host">crbug.com/new <span class="cta-card-arrow">↗</span></span>
+          </a>
+        </div>
+
+        <p class="cta-followup">
+          Also worth your time: debugging your registered tools with the new
+          <strong><a href="https://developer.chrome.com/docs/devtools/application/webmcp" target="_blank" rel="noopener">WebMCP support in Chrome DevTools</a></strong>, and the proposed
+          <strong><a href="https://developer.chrome.com/docs/devtools/agents/use-cases/lighthouse-audit" target="_blank" rel="noopener">Lighthouse audit for the agentic web</a></strong> — we'd love your
+          feedback on both.
+        </p>
+
+        <p class="cta-foot">
+          Some links point to early-access docs and may change as the spec evolves.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Original demo by a human (<a href="https://x.com/sarah_edo" target="_blank" rel="noopener">Sarah Drasner</a>). For humans (and the agents acting on their behalf).</p>
+    <p>Built with vanilla HTML, CSS, and JS. <a href="https://github.com/GoogleChromeLabs/webmcp-tools" target="_blank" rel="noopener">View source ↗</a></p>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
