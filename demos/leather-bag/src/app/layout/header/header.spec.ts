@@ -1,6 +1,17 @@
+import { describe, beforeEach, it, expect } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { Header } from './header';
+import { provideRouter } from '@angular/router';
+
+try {
+  TestBed.initTestEnvironment(
+    BrowserTestingModule,
+    platformBrowserTesting()
+  );
+} catch {
+  // Already initialized
+}
 
 describe('Header', () => {
   let component: Header;
@@ -9,6 +20,9 @@ describe('Header', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Header],
+      providers: [
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Header);
