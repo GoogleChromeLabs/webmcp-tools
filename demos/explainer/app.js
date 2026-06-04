@@ -318,17 +318,17 @@
 
   // ----- WEBMCP REGISTRATION ---------------------------------
   // Detect the real WebMCP API. If present, tools are registered with the
-  // browser via navigator.modelContext.registerTool — a connected agent (or
+  // browser via document.modelContext.registerTool — a connected agent (or
   // the WebMCP / Model Context Tool Inspector extension) can then call them.
   // If absent, we fall back to an in-page registry so the visual demo still
   // works.
-  const HAS_WEBMCP = !!(globalThis.navigator && navigator.modelContext &&
-                       typeof navigator.modelContext.registerTool === "function");
+  const HAS_WEBMCP = !!(globalThis.navigator && document.modelContext &&
+                       typeof document.modelContext.registerTool === "function");
 
   if (statusEl) {
     if (HAS_WEBMCP) {
       statusEl.classList.add("is-live");
-      statusEl.innerHTML = `<span class="webmcp-dot"></span> Congrats! <code>navigator.modelContext</code> is detected — these tools are live to your agent. Install the install the <a href="https://chromewebstore.google.com/detail/webmcp-model-context-tool/gbpdfapgefenggkahomfgkhfehlcenpd" target="_blank" rel="noopener">WebMCP extension</a> to experiment with the right panel. For instance, you can write in natural language that would like to <strong>book an appointment on the 21st at 11 AM</strong>, and see the agent call the tools to make it happen!
+      statusEl.innerHTML = `<span class="webmcp-dot"></span> Congrats! <code>document.modelContext</code> is detected — these tools are live to your agent. Install the install the <a href="https://chromewebstore.google.com/detail/webmcp-model-context-tool/gbpdfapgefenggkahomfgkhfehlcenpd" target="_blank" rel="noopener">WebMCP extension</a> to experiment with the right panel. For instance, you can write in natural language that would like to <strong>book an appointment on the 21st at 11 AM</strong>, and see the agent call the tools to make it happen!
 `;
     } else {
       statusEl.classList.add("is-shim");
@@ -353,7 +353,7 @@
 
     if (HAS_WEBMCP) {
       try {
-        navigator.modelContext.registerTool({
+        document.modelContext.registerTool({
           name: spec.name,
           title: spec.title,
           description: spec.description,
