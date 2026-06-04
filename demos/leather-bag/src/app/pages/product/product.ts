@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product';
 import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
-import { form, required, FormField, FormRoot, min, max, applyEach } from '@angular/forms/signals';
+import { form, required, FormField, FormRoot, min, max, applyEach, disabled } from '@angular/forms/signals';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
 
@@ -56,6 +56,7 @@ export class ProductComponent {
   readonly cartForm = form(
     this.model,
     (f) => {
+      disabled(f, { when: () => this.productResource.isLoading() });
       applyEach(f.variations, (v) => {
         required(v.color, { message: 'Color selection is required.' });
         min(v.quantity, 1, { message: 'Quantity must be at least 1.' });
