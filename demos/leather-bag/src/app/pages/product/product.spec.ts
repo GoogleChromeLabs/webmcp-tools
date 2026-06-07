@@ -1,6 +1,6 @@
 import { describe, beforeEach, it, expect } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
+
 import { ProductComponent } from './product';
 import { ProductService, Product } from '../../services/product';
 import { provideHttpClient } from '@angular/common/http';
@@ -10,14 +10,6 @@ import { Component } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 
-try {
-  TestBed.initTestEnvironment(
-    BrowserTestingModule,
-    platformBrowserTesting()
-  );
-} catch {
-  // Already initialized
-}
 
 const mockProduct: Product = {
   id: '1',
