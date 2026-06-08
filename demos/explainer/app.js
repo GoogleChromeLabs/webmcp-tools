@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+ 
 /* ============================================================
    WebMCP demo — interactive logic
    ============================================================ */
@@ -322,7 +327,7 @@
   // the WebMCP / Model Context Tool Inspector extension) can then call them.
   // If absent, we fall back to an in-page registry so the visual demo still
   // works.
-  const HAS_WEBMCP = !!(globalThis.navigator && document.modelContext &&
+  const HAS_WEBMCP = !!(document.modelContext &&
                        typeof document.modelContext.registerTool === "function");
 
   if (statusEl) {
