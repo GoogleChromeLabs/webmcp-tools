@@ -164,7 +164,7 @@
             On any page, declare the actions an agent can take. Each tool has a name,
             description, and JSON schema — the same shape as a server-side MCP tool.
           </p>
-<pre class="code"><code><span class="c-key">navigator</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
+<pre class="code"><code><span class="c-key">document</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
   name: <span class="c-str">"bookSlot"</span>,
   title: <span class="c-str">"Book a consultation slot"</span>,
   description: <span class="c-str">"Reserve a 30-minute consultation."</span>,
@@ -239,7 +239,7 @@
           </div>
           <h3>Imperative API</h3>
           <p>Define different types of tools with standard JavaScript — form input, navigation, state management, or any other function on your page. The booking widget above uses this approach. Here's its <code>getAvailability</code> tool — the same one you'd see if you opened the WebMCP inspector on this page:</p>
-<pre class="code"><code><span class="c-key">navigator</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
+<pre class="code"><code><span class="c-key">document</span>.<span class="c-fn">modelContext</span>.<span class="c-fn">registerTool</span>({
   name: <span class="c-str">"getAvailability"</span>,
   title: <span class="c-str">"Get booking availability"</span>,
   description: <span class="c-str">"List bookable consultation times within a date range."</span>,
