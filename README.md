@@ -9,6 +9,9 @@ This repository contains a suite of developer utilities and demos designed to su
 
 ## Demos
 
+- [**A mini-site explainer of WebMCP**](https://googlechromelabs.github.io/webmcp-tools/demos/explainer/):
+  A side-by-side demo of how AI agents interact with a web page before WebMCP (site scraping)
+  and a future where the page declares structured tools with **WebMCP**.
 - [**Travel WebMCP Demo (Imperative)**](demos/react-flightsearch/): A React-based flight search application designed to demonstrate WebMCP integration. This project showcases how a web application can expose structured tools to an AI agent or automation layer, allowing it to programmatically interact with the UI (searching flights, applying filters, reading results) via a standardized interface.
 - [**Le Petit Bistro (Declarative)**](demos/french-bistro/): A WebMCP simple implementation for a restaurant reservation system. It allows an AI agent to interact directly with a web-based booking form, validating and submitting data on behalf of the user using declarative tool definitions.
 - [**WebMCP zaMaker! (Imperative)**](demos/pizza-maker/): A demo where AI agents can control size, style, toppings, and layers to build the perfect pizza using imperative tools.
