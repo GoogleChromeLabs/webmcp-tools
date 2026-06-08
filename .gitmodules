@@ -1,4 +1,4 @@
 [submodule "model-context-tool-inspector"]
         path = model-context-tool-inspector
         url = git@github.com:beaufortfrancois/model-context-tool-inspector.git
-        branch = f6bf8a8f5a92536bad0db578a626e32f7935f79d # Version 1.9.7
+        branch = 7066d24d6d0010e17494dffae0ba35ab3696c0b9 # Version 1.9.10
