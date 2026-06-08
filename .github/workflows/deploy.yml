@@ -82,6 +82,7 @@ jobs:
           cp -r demos/leather-bag/dist/leather-bag/browser deployment-root/demos/leather-bag
           cp -r demos/smart-home/dist deployment-root/demos/smart-home
           cp -r demos/page-agent deployment-root/demos/page-agent
+          cp -r demos/explainer deployment-root/demos/explainer
 
 
       - name: Setup Pages
