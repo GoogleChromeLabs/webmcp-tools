@@ -12,7 +12,6 @@ describe('Home', () => {
     await TestBed.configureTestingModule({
       imports: [Home],
       providers: [
-        provideHttpClient(),
         provideRouter([]),
       ],
     }).compileComponents();
