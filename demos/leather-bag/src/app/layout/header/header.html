@@ -7,7 +7,13 @@
       <a routerLink="/" class="brand-title serif">LUXE LEATHER</a>
     </div>
     <nav class="nav-links font-label uppercase">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Home</a>
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link"
+        >Home</a
+      >
       <a href="#" class="nav-link">New Arrivals</a>
       <a href="#" class="nav-link">Men</a>
       <a href="#" class="nav-link">Women</a>
@@ -20,7 +26,7 @@
       <a routerLink="/cart" aria-label="Shopping Bag" class="icon-btn">
         <span class="material-symbols-outlined">shopping_bag</span>
         @if (cartCount() > 0) {
-          <span class="cart-badge">{{cartCount()}}</span>
+          <span class="cart-badge">{{ cartCount() }}</span>
         }
       </a>
     </div>

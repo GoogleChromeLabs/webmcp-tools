@@ -1,7 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
+import { Header } from './layout/header/header';
 import { CartService } from './services/cart';
 
 @Component({
@@ -10,21 +10,21 @@ import { CartService } from './services/cart';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit {
+export class App {
   protected readonly title = signal('leather-bag');
   private cartService = inject(CartService);
-  toastMessage = '';
-  showToast = false;
+  toastMessage = signal('');
+  showToast = signal(false);
 
-  ngOnInit() {
-    this.cartService.cartUpdate$.subscribe(msg => {
-      this.toastMessage = msg;
-      this.showToast = true;
-      setTimeout(() => this.showToast = false, 3000);
+  constructor() {
+    this.cartService.cartUpdate$.subscribe((msg) => {
+      this.toastMessage.set(msg);
+      this.showToast.set(true);
+      setTimeout(() => this.showToast.set(false), 3000);
     });
   }
 
   closeToast() {
-    this.showToast = false;
+    this.showToast.set(false);
   }
 }

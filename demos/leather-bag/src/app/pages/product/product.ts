@@ -1,11 +1,19 @@
-import { Component, inject, input, linkedSignal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { ProductService, Product } from '../../services/product';
-import { CartService } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
-import { form, required, FormField, FormRoot, min, max, applyEach, disabled } from '@angular/forms/signals';
+import { Component, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
+import {
+  applyEach,
+  disabled,
+  form,
+  FormField,
+  FormRoot,
+  max,
+  min,
+  required,
+} from '@angular/forms/signals';
+import { RouterLink } from '@angular/router';
+import { CartService } from '../../services/cart';
+import { ProductService } from '../../services/product';
 
 @Component({
   selector: 'app-product',
@@ -18,30 +26,24 @@ export class ProductComponent {
   private cartService = inject(CartService);
 
   // Set by `withComponentInputBinding()` from URL parameter `:id`
-  readonly id = input.required<string>();
+  // TODO: Make that a required input
+  // There is currently a bug in Angular itself, which is responsible for reading that required input too early when the `experimentalWebMcpTool` is configured on the form
+  // which then throws NG0950 Input "id" is required but no value is available yet
+  readonly id = input<string>('');
 
   readonly productResource = rxResource({
-    params: () => {
-      try {
-        return this.id();
-      } catch {
-        return undefined;
-      }
-    },
-    stream: ({ params: id }) => {
-      if (!id) return of(undefined);
-      return this.productService.getProductBySlug(id);
-    },
+    params: () => this.id(),
+    stream: ({ params: id }) => this.productService.getProductBySlug(id),
   });
 
   // Selected image linked to default image of the product
   readonly selectedImage = linkedSignal(() => this.productResource.value()?.images[0] || '');
 
-  isReturnModalOpen = false;
+  isReturnModalOpen = signal(false);
 
   // Accordion State
-  detailsOpen = true;
-  shippingOpen = false;
+  detailsOpen = signal(true);
+  shippingOpen = signal(false);
 
   // Signal Form model linked to product default color
   readonly model = linkedSignal<{ variations: Array<{ color: string; quantity: number }> }>(() => {
@@ -49,13 +51,15 @@ export class ProductComponent {
     if (!p) {
       return { variations: [{ color: '', quantity: 1 }] };
     }
-    const hasBrown = p.colors.some(c => c.name === 'Brown');
-    const defaultColor = hasBrown ? 'Brown' : (p.colors[0]?.name || '');
+    const hasBrown = p.colors.some((c) => c.name === 'Brown');
+    const defaultColor = hasBrown ? 'Brown' : p.colors[0]?.name || '';
     return {
-      variations: [{
-        color: defaultColor,
-        quantity: 1,
-      }]
+      variations: [
+        {
+          color: defaultColor,
+          quantity: 1,
+        },
+      ],
     };
   });
 
@@ -84,34 +88,31 @@ export class ProductComponent {
           for (const v of variations) {
             this.cartService.addToCart(product, v.color, v.quantity);
           }
-        }
-      }
-    }
+        },
+      },
+    },
   );
 
   addVariation() {
-    this.model.update(m => {
+    this.model.update((m) => {
       const p = this.productResource.value();
-      const hasBrown = p?.colors.some(c => c.name === 'Brown');
-      const defaultColor = hasBrown ? 'Brown' : (p?.colors[0]?.name || '');
+      const hasBrown = p?.colors.some((c) => c.name === 'Brown');
+      const defaultColor = hasBrown ? 'Brown' : p?.colors[0]?.name || '';
       return {
-        variations: [
-          ...m.variations,
-          { color: defaultColor, quantity: 1 }
-        ]
+        variations: [...m.variations, { color: defaultColor, quantity: 1 }],
       };
     });
   }
 
   removeVariation(index: number) {
-    this.model.update(m => {
+    this.model.update((m) => {
       const variations = m.variations.filter((_, i) => i !== index);
       return { variations };
     });
   }
 
   selectColor(index: number, colorName: string) {
-    this.model.update(m => {
+    this.model.update((m) => {
       const variations = [...m.variations];
       if (variations[index]) {
         variations[index] = { ...variations[index], color: colorName };
@@ -125,7 +126,7 @@ export class ProductComponent {
   }
 
   incrementQuantity(index: number) {
-    this.model.update(m => {
+    this.model.update((m) => {
       const variations = [...m.variations];
       if (variations[index]) {
         variations[index] = { ...variations[index], quantity: variations[index].quantity + 1 };
@@ -135,7 +136,7 @@ export class ProductComponent {
   }
 
   decrementQuantity(index: number) {
-    this.model.update(m => {
+    this.model.update((m) => {
       const variations = [...m.variations];
       if (variations[index]) {
         variations[index] = { ...variations[index], quantity: variations[index].quantity - 1 };
@@ -146,10 +147,10 @@ export class ProductComponent {
 
   openReturnModal(event: Event) {
     event.preventDefault();
-    this.isReturnModalOpen = true;
+    this.isReturnModalOpen.set(true);
   }
 
   closeReturnModal() {
-    this.isReturnModalOpen = false;
+    this.isReturnModalOpen.set(false);
   }
 }

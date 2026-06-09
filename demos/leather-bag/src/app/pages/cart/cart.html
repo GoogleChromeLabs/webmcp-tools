@@ -1,7 +1,7 @@
 <div class="cart-container">
   <h1 class="serif cart-title">Your Shopping Bag</h1>
 
-  @if (items.length === 0) {
+  @if (items().length === 0) {
     <div class="empty-cart">
       <p class="font-body empty-cart-text">Your bag is currently empty.</p>
       <a routerLink="/search" class="btn-primary continue-btn">Continue Shopping</a>
@@ -10,33 +10,41 @@
     <div class="cart-grid">
       <!-- Cart Items -->
       <div class="cart-items">
-        @for (item of items; track item.product.id + item.color) {
+        @for (item of items(); track $index) {
           <div class="cart-item">
             <div class="item-image">
-              <img [src]="item.product.images[0]" [alt]="item.product.name">
+              <img [src]="item.product.images[0]" [alt]="item.product.name" />
             </div>
             <div class="item-details">
               <div class="item-header">
-                <h2 class="font-label item-name">{{item.product.name}}</h2>
-                <span class="font-body item-price">{{item.product.price | currency}}</span>
+                <h2 class="font-label item-name">{{ item.product.name }}</h2>
+                <span class="font-body item-price">{{ item.product.price | currency }}</span>
               </div>
-              <p class="font-body item-meta">Color: {{item.color}}</p>
-              
+              <p class="font-body item-meta">Color: {{ item.color }}</p>
+
               <div class="item-actions">
                 <!-- Quantity Controls -->
                 <div class="quantity-selector">
-                  <button type="button" class="qty-btn" (click)="decrementQuantity(item)" aria-label="Decrease quantity">
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    (click)="decrementQuantity(item)"
+                    aria-label="Decrease quantity"
+                  >
                     <span class="material-symbols-outlined">remove</span>
                   </button>
-                  <span class="font-body qty-value">{{item.quantity}}</span>
-                  <button type="button" class="qty-btn" (click)="incrementQuantity(item)" aria-label="Increase quantity">
+                  <span class="font-body qty-value">{{ item.quantity }}</span>
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    (click)="incrementQuantity(item)"
+                    aria-label="Increase quantity"
+                  >
                     <span class="material-symbols-outlined">add</span>
                   </button>
                 </div>
-                
-                <button type="button" class="remove-btn" (click)="removeItem(item)">
-                  Remove
-                </button>
+
+                <button type="button" class="remove-btn" (click)="removeItem(item)">Remove</button>
               </div>
             </div>
           </div>
@@ -47,30 +55,28 @@
       <div class="cart-summary">
         <div class="summary-card">
           <h2 class="font-label summary-title">Order Summary</h2>
-          
+
           <div class="summary-rows">
             <div class="summary-row font-body">
               <span>Subtotal</span>
-              <span>{{subtotal | currency}}</span>
+              <span>{{ subtotal() | currency }}</span>
             </div>
             <div class="summary-row font-body">
               <span>Shipping</span>
-              <span>{{shipping === 0 ? 'Free' : (shipping | currency)}}</span>
+              <span>{{ shipping() === 0 ? 'Free' : (shipping() | currency) }}</span>
             </div>
           </div>
-          
+
           <div class="summary-total font-bold">
             <span>Total</span>
-            <span>{{total | currency}}</span>
+            <span>{{ total() | currency }}</span>
           </div>
-          
+
           <button class="checkout-btn uppercase font-label" (click)="checkout()">
             Proceed to Checkout
           </button>
-          
-          <p class="summary-note font-body">
-            Free shipping on orders over $500.
-          </p>
+
+          <p class="summary-note font-body">Free shipping on orders over $500.</p>
         </div>
       </div>
     </div>
