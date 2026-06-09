@@ -35,7 +35,7 @@ async function getConfig() {
     return {
       name: tool.name,
       description: tool.description,
-      parameters: tool.inputSchema
+      parametersJsonSchema: tool.inputSchema
         ? JSON.parse(tool.inputSchema)
         : { type: 'object', properties: {} },
     };
