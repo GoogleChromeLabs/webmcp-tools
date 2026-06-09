@@ -57,6 +57,5 @@ export class CartComponent implements OnInit {
   checkout() {
     this.cartService.clearCart('Thank you for shopping with us!');
     this.calculateTotals();
-    this.cdr.detectChanges();
   }
 }
