@@ -15,6 +15,7 @@
     />
     <title>Le Petit Bistro | WebMCP declarative demo</title>
     <link href="style.css" rel="stylesheet" />
+    <link href="agent.css" rel="stylesheet" />
 
     <link
       rel="preload"
@@ -146,6 +147,28 @@
 
       <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
     </dialog>
+    <div id="agent-container">
+      <button id="agent-toggle" title="Chat with our AI Assistant">💬</button>
+      <div id="agent-chat" class="hidden">
+        <div id="agent-header">
+          <h3>Bistro Assistant</h3>
+          <button id="agent-logout" title="Log Out">Log Out</button>
+        </div>
+        <div id="agent-chat-window"></div>
+        <div id="agent-setup" class="hidden">
+          <p>Enter your Gemini API Key to start chatting.</p>
+          <input type="password" id="agent-api-key-input" placeholder="AIzaSy..." />
+          <button id="agent-save-key-btn">Save & Start</button>
+        </div>
+        <div id="agent-chat-container" class="hidden">
+          <div id="agent-input-area">
+            <input type="text" id="agent-user-input" placeholder="Type a message..." />
+            <button id="agent-send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="script.js"></script>
+    <script type="module" src="agent.js"></script>
   </body>
 </html>

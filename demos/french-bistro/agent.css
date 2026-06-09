@@ -1,0 +1,176 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#agent-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#agent-toggle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--black);
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#agent-toggle:hover {
+  transform: scale(1.1);
+}
+
+#agent-chat {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  width: 350px;
+  height: 500px;
+  background-color: var(--cream);
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+#agent-chat.hidden {
+  display: none;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+#agent-header {
+  background-color: var(--black);
+  color: var(--gold);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#agent-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  font-family: 'Playfair Display', serif;
+}
+
+#agent-logout {
+  background: none;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 0.7em;
+  padding: 2px 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+#agent-chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #fffaf0;
+}
+
+.agent-message {
+  padding: 10px 14px;
+  border-radius: 8px;
+  max-width: 85%;
+  font-size: 0.9em;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.agent-message.user {
+  background-color: var(--black);
+  color: var(--gold);
+  align-self: flex-end;
+  border-bottom-right-radius: 0;
+}
+
+.agent-message.agent {
+  background-color: #eee;
+  color: #333;
+  align-self: flex-start;
+  border-bottom-left-radius: 0;
+  border: 1px solid #ddd;
+}
+
+.agent-message.system {
+  background-color: #fef9e7;
+  color: #856404;
+  font-size: 0.8em;
+  align-self: center;
+  text-align: center;
+  border: 1px solid #ffeeba;
+  width: 90%;
+}
+
+#agent-input-area {
+  padding: 15px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+}
+
+#agent-user-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+#agent-send-btn {
+  padding: 8px 15px;
+  background-color: var(--black);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#agent-setup {
+  padding: 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 100%;
+  justify-content: center;
+}
+
+#agent-api-key-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+#agent-save-key-btn {
+  padding: 10px;
+  background-color: var(--black);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none !important;
+}
