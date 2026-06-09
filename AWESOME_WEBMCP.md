@@ -60,6 +60,16 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Someone is at the door. Show me."
 - [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
   - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
+- [WebMCP Registry](https://webmcp-registry.dev) - A self-serve public directory of domains 
+  that expose WebMCP tools. Submit your domain directly, verify ownership with a DNS TXT 
+  record, and get listed immediately — no approval required. Searchable by keyword or 
+  category via a public API. Built on [@webmcp-registry/kit](https://www.npmjs.com/package/@webmcp-registry/kit), 
+  an open source SDK for defining tools with Zod schemas, registering them from React 
+  components, and syncing contracts to the registry automatically from CI with one command. 
+  The registry registers its own tools via the kit so agents can search it, look up domain 
+  contracts, and discover what any URL exposes before visiting it.
+  - **Example Prompt:** "Search the WebMCP Registry for domains with a checkout tool" or 
+    "What tools does webmcp-registry.dev expose?"
 - [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
