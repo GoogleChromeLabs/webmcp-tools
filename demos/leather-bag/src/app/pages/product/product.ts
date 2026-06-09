@@ -18,10 +18,16 @@ export class ProductComponent {
   private cartService = inject(CartService);
 
   // Set by `withComponentInputBinding()` from URL parameter `:id`
-  readonly id = input<string>();
+  readonly id = input.required<string>();
 
   readonly productResource = rxResource({
-    params: () => this.id(),
+    params: () => {
+      try {
+        return this.id();
+      } catch {
+        return undefined;
+      }
+    },
     stream: ({ params: id }) => {
       if (!id) return of(undefined);
       return this.productService.getProductBySlug(id);
@@ -66,7 +72,7 @@ export class ProductComponent {
     {
       experimentalWebMcpTool: {
         name: 'add_to_cart',
-        description: 'Add this premium leather bag to your shopping cart with chosen variations (color and quantity)',
+        description: 'Add item to the shopping cart with chosen variations (color and quantity)',
       },
       submission: {
         action: async (formValue) => {
