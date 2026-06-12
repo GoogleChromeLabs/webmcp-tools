@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenAI } from 'https://esm.sh/@google/genai';
-
 const agentToggle = document.getElementById('agent-toggle');
 const agentChat = document.getElementById('agent-chat');
 const agentChatWindow = document.getElementById('agent-chat-window');
@@ -16,7 +14,7 @@ const agentApiKeyInput = document.getElementById('agent-api-key-input');
 const agentSaveKeyBtn = document.getElementById('agent-save-key-btn');
 const agentLogoutBtn = document.getElementById('agent-logout');
 
-let ai, chat;
+let ai, chat, worker;
 
 async function getTools() {
   if (!window.document.modelContext) {
@@ -47,11 +45,91 @@ async function getConfig() {
 }
 
 const storedKey = localStorage.getItem('gemini_api_key');
-if (storedKey) {
-  initChat(storedKey);
+
+const params = new URLSearchParams(window.location.search);
+if (params.has('sharedworker')) {
+  initSharedWorker(storedKey);
 } else {
-  agentSetup.classList.remove('hidden');
-  agentChatContainer.classList.add('hidden');
+  if (storedKey) {
+    initChat(storedKey);
+  } else {
+    agentSetup.classList.remove('hidden');
+    agentChatContainer.classList.add('hidden');
+  }
+}
+
+function initSharedWorker(apiKey) {
+  worker = new SharedWorker('agent-worker.js', { type: 'module', extendedLifetime: true });
+  worker.port.onmessage = async (event) => {
+    const { type, payload, id } = event.data;
+
+    switch (type) {
+      case 'STATUS_RESPONSE':
+        if (payload.initialized) {
+          agentSetup.classList.add('hidden');
+          agentChatContainer.classList.remove('hidden');
+          agentChatWindow.innerHTML = '';
+          payload.messages.forEach((m) => appendMessage(m.sender, m.text, m.className));
+        } else if (apiKey) {
+          worker.port.postMessage({ type: 'INIT', payload: { apiKey } });
+        } else {
+          agentSetup.classList.remove('hidden');
+          agentChatContainer.classList.add('hidden');
+        }
+        break;
+
+      case 'INITIALIZED':
+        agentSetup.classList.add('hidden');
+        agentChatContainer.classList.remove('hidden');
+        if (agentChatWindow.innerHTML === '') {
+          appendMessage(
+            'System',
+            'Welcome to Le Petit Bistro! How can I help you today?',
+            'system',
+          );
+        }
+        break;
+
+      case 'APPEND_MESSAGE':
+        appendMessage(payload.sender, payload.text, payload.className);
+        break;
+
+      case 'LOGGED_OUT':
+        agentChatWindow.innerHTML = '';
+        agentSetup.classList.remove('hidden');
+        agentChatContainer.classList.add('hidden');
+        break;
+
+      case 'GET_TOOLS':
+        const tools = await getTools();
+        // FIXME: tool.window needs to be removed because it's not serializable.
+        tools.map((tool) => {
+          delete tool.window;
+          return tool;
+        });
+        worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: tools, id });
+        break;
+
+      case 'EXECUTE_TOOL':
+        try {
+          // FIXME: Find a way to get tools with `window` parameter.
+          payload.tool.window = window;
+          const result = await document.modelContext.executeTool(payload.tool, payload.args);
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: result, id });
+        } catch (error) {
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message }, id });
+        }
+        break;
+
+      case 'SUBMIT_FINISHED':
+        agentUserInput.disabled = false;
+        agentSendBtn.disabled = false;
+        agentUserInput.focus();
+        break;
+    }
+  };
+  worker.port.start();
+  worker.port.postMessage({ type: 'GET_STATUS' });
 }
 
 agentToggle.addEventListener('click', () => {
@@ -63,14 +141,18 @@ agentToggle.addEventListener('click', () => {
 
 agentSaveKeyBtn.addEventListener('click', () => {
   const key = agentApiKeyInput.value.trim();
-  if (key) {
-    localStorage.setItem('gemini_api_key', key);
-    initChat(key);
+  if (!key) return;
+  localStorage.setItem('gemini_api_key', key);
+  if (worker) {
+    worker.port.postMessage({ type: 'INIT', payload: { apiKey: key } });
+    return;
   }
+  initChat(key);
 });
 
-function initChat(apiKey) {
-  ai = new GoogleGenAI({ apiKey: apiKey });
+async function initChat(apiKey) {
+  const { GoogleGenAI } = await import("https://esm.sh/@google/genai");
+  ai = new GoogleGenAI({ apiKey });
   agentSetup.classList.add('hidden');
   agentChatContainer.classList.remove('hidden');
   appendMessage('System', 'Welcome to Le Petit Bistro! How can I help you today?', 'system');
@@ -78,6 +160,10 @@ function initChat(apiKey) {
 
 agentLogoutBtn.addEventListener('click', () => {
   localStorage.removeItem('gemini_api_key');
+  if (worker) {
+    worker.port.postMessage({ type: 'LOGOUT' });
+    return;
+  }
   ai = null;
   chat = null;
   agentChatWindow.innerHTML = '';
@@ -91,13 +177,20 @@ agentUserInput.addEventListener('keypress', (e) => {
 });
 
 async function handleUserSubmit() {
-  try {
-    const text = agentUserInput.value.trim();
-    if (!text || !ai) return;
+  const text = agentUserInput.value.trim();
+  if (!text) return;
 
-    agentUserInput.value = '';
-    agentUserInput.disabled = true;
-    agentSendBtn.disabled = true;
+  agentUserInput.value = '';
+  agentUserInput.disabled = true;
+  agentSendBtn.disabled = true;
+
+  if (worker) {
+    worker.port.postMessage({ type: 'SEND_MESSAGE', payload: { text } });
+    return;
+  }
+
+  try {
+    if (!ai) return;
 
     appendMessage('You', text, 'user');
 
@@ -105,7 +198,6 @@ async function handleUserSubmit() {
 
     const config = await getConfig();
     const sendMessageParams = { message: text, config };
-    console.log(sendMessageParams);
     let currentResult = await chat.sendMessage(sendMessageParams);
     let finalResponseGiven = false;
 
@@ -124,7 +216,7 @@ async function handleUserSubmit() {
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
-            
+
             const result = await document.modelContext.executeTool(tool, JSON.stringify(args));
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
@@ -161,6 +253,10 @@ function appendMessage(sender, text, className) {
 // Check if WebMCP is supported
 if (!window.document.modelContext) {
   setTimeout(() => {
-    appendMessage('System', '⚠️ WebMCP API not detected. Make sure you are using a compatible browser with the experiment enabled.', 'system');
+    appendMessage(
+      'System',
+      '⚠️ WebMCP API not detected. Make sure you are using a compatible browser with the experiment enabled.',
+      'system',
+    );
   }, 1000);
 }
