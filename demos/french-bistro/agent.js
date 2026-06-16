@@ -127,6 +127,9 @@ function initSharedWorker(apiKey) {
   };
   worker.port.start();
   worker.port.postMessage({ type: 'GET_STATUS' });
+  window.addEventListener('pagehide', () => {
+    worker.port.postMessage({ type: 'CLOSE_CONNECTION' });
+  });
 }
 
 agentToggle.addEventListener('click', () => {

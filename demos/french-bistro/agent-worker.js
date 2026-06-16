@@ -18,6 +18,11 @@ self.onconnect = (e) => {
     const { type, payload, id } = event.data;
 
     switch (type) {
+      case 'CLOSE_CONNECTION':
+        ports = ports.filter(p => p !== port);
+        port.close();
+        break;
+
       case 'GET_STATUS':
         port.postMessage({ type: 'STATUS_RESPONSE', payload: { initialized: !!ai, messages } });
         break;
