@@ -10,11 +10,7 @@ let apiKey = null;
 let ports = [];
 let messages = []; // Persistent message history
 
-self._ai = ai;
-self._messages = messages;
-
 self.onconnect = (e) => {
-  console.log(e);
   const port = e.ports[0];
   ports.push(port);
 
