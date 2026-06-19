@@ -133,8 +133,12 @@ function initSharedWorker(apiKey) {
 }
 
 agentToggle.addEventListener('click', () => {
-  agentChat.classList.toggle('hidden');
-  if (!agentChat.classList.contains('hidden')) {
+  const isOpen = !agentChat.classList.toggle('hidden');
+  if (window.frameElement) {
+    window.frameElement.style.width = isOpen ? '414px' : '100px';
+    window.frameElement.style.height = isOpen ? '634px' : '100px';
+  }
+  if (isOpen) {
     agentUserInput.focus();
   }
 });

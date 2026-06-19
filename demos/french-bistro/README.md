@@ -27,7 +27,9 @@ When visiting `index.html?crossdocument`, the form submission triggers a navigat
 
 With `index.html?toolautosubmit` (or `index.html?crossdocument&toolautosubmit`), the `toolautosubmit` attribute is set on the form, which lets the agent submit the form on the user's behalf after filling it out, without requiring the user to check it manually before submitting. Otherwise when the agent finishes filling out the form, the browser brings the submit button into focus, and the agent should then tell the user to check the form contents, and submit it manually.
 
-With `index.html?sharedworker`, the demo uses a `SharedWorker` to manage the AI agent's state and message history. This is particularly useful for maintaining continuity across page navigations (e.g., when combined with `?crossdocument`). It is possible thanks to [`extendedLifetime: true`](https://developer.mozilla.org/docs/Web/API/SharedWorker/SharedWorker#extendedlifetime).
+With `index.html?sharedworker`, the demo uses a `SharedWorker` to manage the in-page AI agent's state and message history. This is particularly useful for maintaining continuity across page navigations (e.g., when combined with `?crossdocument`). It is possible thanks to [`extendedLifetime: true`](https://developer.mozilla.org/docs/Web/API/SharedWorker/SharedWorker#extendedlifetime).
+
+With `index.html?agentiframe`, the in-page AI agent lives in an `<iframe>`.
 
 Testing WebMCP audit failures can be streamlined by using specific URL parameters to simulate common tool configuration issues:
 - `index.html?notoolname` removes `toolname` form attribute
