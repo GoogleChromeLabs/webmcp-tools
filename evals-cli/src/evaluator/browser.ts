@@ -101,7 +101,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     browser = await puppeteer.launch({
       executablePath,
       headless: true,
-      args: ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
