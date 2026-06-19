@@ -110,7 +110,7 @@ function initSharedWorker(apiKey) {
       case 'EXECUTE_TOOL':
         try {
           // FIXME: Find a way to get tools with `window` parameter.
-          payload.tool.window = window;
+          payload.tool.window = window.parent || window;
           const result = await document.modelContext.executeTool(payload.tool, payload.args);
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: result, id });
         } catch (error) {
