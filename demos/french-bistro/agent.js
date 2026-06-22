@@ -109,9 +109,10 @@ function initSharedWorker(apiKey) {
 
       case 'EXECUTE_TOOL':
         try {
-          // FIXME: Find a way to get tools with `window` parameter.
-          payload.tool.window = window;
-          const result = await document.modelContext.executeTool(payload.tool, payload.args);
+          const tools = await getTools();
+          const tool = tools.find((t) => t.name === payload.tool.name);
+          if (!tool) throw new Error(`Tool ${payload.tool.name} not found`);
+          const result = await document.modelContext.executeTool(tool, payload.args);
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: result, id });
         } catch (error) {
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message }, id });
@@ -133,8 +134,12 @@ function initSharedWorker(apiKey) {
 }
 
 agentToggle.addEventListener('click', () => {
-  agentChat.classList.toggle('hidden');
-  if (!agentChat.classList.contains('hidden')) {
+  const isOpen = !agentChat.classList.toggle('hidden');
+  if (window.frameElement) {
+    window.frameElement.style.width = isOpen ? '414px' : '100px';
+    window.frameElement.style.height = isOpen ? '634px' : '100px';
+  }
+  if (isOpen) {
     agentUserInput.focus();
   }
 });

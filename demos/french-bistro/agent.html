@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bistro Assistant</title>
+    <link href="style.css" rel="stylesheet" />
+    <link href="agent.css" rel="stylesheet" />
+    <style>
+      body {
+        background: transparent !important;
+        background-image: none !important;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+      }
+      #agent-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+      }
+    </style>
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+      as="style"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+  </head>
+  <body>
+    <div id="agent-container">
+      <button id="agent-toggle" title="Chat with our AI Assistant">💬</button>
+      <div id="agent-chat" class="hidden">
+        <div id="agent-header">
+          <h3>Bistro Assistant</h3>
+          <button id="agent-logout" title="Log Out">Log Out</button>
+        </div>
+        <div id="agent-chat-window"></div>
+        <div id="agent-setup" class="hidden">
+          <p>Enter your Gemini API Key to start chatting.</p>
+          <input type="password" id="agent-api-key-input" placeholder="AIzaSy..." />
+          <button id="agent-save-key-btn">Save & Start</button>
+        </div>
+        <div id="agent-chat-container" class="hidden">
+          <div id="agent-input-area">
+            <input type="text" id="agent-user-input" placeholder="Type a message..." />
+            <button id="agent-send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="agent.js"></script>
+  </body>
+</html>

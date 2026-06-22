@@ -169,6 +169,28 @@
       </div>
     </div>
     <script type="module" src="script.js"></script>
-    <script type="module" src="agent.js"></script>
+    <script type="module">
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('agentiframe')) {
+        const agentContainer = document.getElementById('agent-container');
+        if (agentContainer) agentContainer.remove();
+
+        const iframe = document.createElement('iframe');
+        iframe.src = 'agent.html' + window.location.search;
+        iframe.style.position = 'fixed';
+        iframe.style.bottom = '0';
+        iframe.style.right = '0';
+        iframe.style.width = '100px';
+        iframe.style.height = '100px';
+        iframe.style.border = 'none';
+        iframe.style.zIndex = '1000';
+        document.body.appendChild(iframe);
+      } else {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'agent.js';
+        document.body.appendChild(script);
+      }
+    </script>
   </body>
 </html>
