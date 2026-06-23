@@ -64,6 +64,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
+- [Stacktree](https://stacktr.ee/) - Private hosting for the HTML that AI agents generate. Registers `stacktree_publish_html` via `navigator.modelContext`, so a browser agent can hand over a complete HTML document and get back a live, shareable URL with no account or sign-in. Anonymous sites are unlisted and the response includes a claim URL to keep the page permanently in a free account.
+  - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
 
 
 ## Contributing
