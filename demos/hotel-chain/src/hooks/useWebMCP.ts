@@ -20,8 +20,7 @@ export function useWebMCP(tools: WebMCPTool[]) {
   const registeredTools = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const modelContext = document.modelContext || navigator.modelContext;
-    if (!modelContext) {
+    if (!document.modelContext) {
       return;
     }
 
@@ -29,7 +28,7 @@ export function useWebMCP(tools: WebMCPTool[]) {
 
     tools.forEach(tool => {
       try {
-        modelContext.registerTool(tool, { signal: controller.signal });
+        document.modelContext!.registerTool(tool, { signal: controller.signal });
         registeredTools.current.add(tool.name);
       } catch (error) {
         console.error(`Failed to register WebMCP tool "${tool.name}":`, error);

@@ -6,10 +6,10 @@ This project demonstrates a **WebMCP** implementation for a movie ticket purchas
 
 ## 🛠️ How It Works
 
-This demo uses the `navigator.modelContext.registerTool` API in `script.js` to expose movie catalog interactions and booking capabilities to an AI agent.
+This demo uses the `document.modelContext.registerTool` API in `script.js` to expose movie catalog interactions and booking capabilities to an AI agent.
 
 ```javascript
-navigator.modelContext.registerTool({
+document.modelContext.registerTool({
   name: 'select_showtime',
   description: 'Selects a movie and a specific showtime to initiate the checkout process.',
   inputSchema: {

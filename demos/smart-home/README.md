@@ -6,7 +6,7 @@ A React-based smart home dashboard designed to showcase **WebMCP** implementatio
 
 ### 🛠️ How It Works
 
-This demo uses the **Imperative WebMCP API** (`navigator.modelContext.registerTool`) to register a high-level layout orchestrator.
+This demo uses the **Imperative WebMCP API** (`document.modelContext.registerTool`) to register a high-level layout orchestrator.
 
 * **UI Synchronization**: The orchestrator updates React state to mount or unmount control widgets with spring-based Framer Motion layout animations.
 * **Visual Feedback Banner**: Whenever the AI agent performs an action, a floating, animated status banner drops down from the top of the screen showing a spinning gear icon `⚙️` and the agent's custom explanation message. The banner automatically slides back up after 2 seconds.

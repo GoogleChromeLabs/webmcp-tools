@@ -33,8 +33,8 @@ Create a folder with the site origin under the "demos" folder and generate the f
 
 Generate valid JavaScript code to register the identified tools using the imperative API.
 
-* **Reference:** Use the syntax and patterns demonstrated in the [official examples](https://github.com/webmachinelearning/webmcp/blob/main/docs/proposal.md).
-* Use window.navigator.modelContext.registerTool({...}).
+* **Reference:** Use the syntax and patterns demonstrated in the [official examples](https://github.com/webmachinelearning/webmcp/blob/main/README.md).
+* Use document.modelContext.registerTool({...}).
 * Include the name, description, inputSchema, and the execute function.
 * **Crucial:** Inside the `execute` function, write the code to parse the `input` object and execute the actions on the website using the DOM. Add comments to help developers understand how to connect to existing page functions or DOM interactions to perform the desired action.
 

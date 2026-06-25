@@ -278,9 +278,8 @@ window.addEventListener('hashchange', updateStateFromUrl);
 updateStateFromUrl();
 
 // WebMCP Implementation
-const modelContext = document.modelContext || navigator.modelContext;
-if (modelContext) {
-  modelContext.registerTool({
+if (document.modelContext) {
+  document.modelContext.registerTool({
     name: 'update_location',
     description: "Updates the user's location.",
     inputSchema: {
@@ -302,7 +301,7 @@ if (modelContext) {
     },
   });
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'query_content',
     description: 'Filters the movie catalog by a specific genre.',
     inputSchema: {
@@ -326,7 +325,7 @@ if (modelContext) {
     },
   });
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'select_showtime',
     description: 'Selects a movie and a specific showtime to initiate the checkout process.',
     inputSchema: {

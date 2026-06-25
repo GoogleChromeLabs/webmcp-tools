@@ -24,19 +24,14 @@ export class WebmcpService {
     this.registerTools();
   }
 
-  private get modelContext(): ModelContext | undefined {
-    return document.modelContext || navigator.modelContext;
-  }
-
   private registerTools() {
-    const modelContext = this.modelContext;
-    if (!modelContext) {
+    if (!document.modelContext) {
       console.warn('modelContext is not defined. WebMCP tools will not be registered.');
       return;
     }
 
     // 1. View Product Tool
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "view_product",
       description: "Navigates to the product detail page for a given product. You can provide its exact productId, or productName.",
       inputSchema: {
@@ -64,7 +59,7 @@ export class WebmcpService {
     });
 
     // 2. Get Product Info Tool
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_product_info",
       description: "Returns detailed information about a product. You can provide its exact productId, or productName.",
       inputSchema: {
@@ -90,7 +85,7 @@ export class WebmcpService {
     });
 
     // 3. Open Cart Tool
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "open_cart",
       description: "Opens the shopping cart modal to review items and proceed to checkout.",
       execute: () => {
@@ -100,7 +95,7 @@ export class WebmcpService {
     });
 
     // 4. Search Product Tool
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "search_product",
       description: "Search for products based on the query.",
       inputSchema: {
@@ -135,7 +130,7 @@ export class WebmcpService {
     });
 
     // 5. Get Store Promos and Rules Tool
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_store_promos_and_rules",
       description: "Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).",
       execute: () => {

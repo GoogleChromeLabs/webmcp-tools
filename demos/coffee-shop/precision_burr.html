@@ -282,10 +282,9 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
   refreshCartUI();
 
-  const modelContext = document.modelContext || navigator.modelContext;
-  if (modelContext) {
+  if (document.modelContext) {
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "search_catalog",
       description: "Navigates to a product detail page.",
       inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
@@ -304,7 +303,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_order_history",
       description: "Retrieves past orders for reordering.",
       inputSchema: { type: "object", properties: {} },
@@ -320,7 +319,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "reorder_product",
       description: "Adds an item to the cart and updates the UI badge.",
       inputSchema: { type: "object", properties: { item_id: { type: "string" } }, required: ["item_id"] },
@@ -336,7 +335,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_machine_specifications",
       description: "Provides dimensions and water tank capacity for the Alchemist espresso machine.",
       inputSchema: { type: "object", properties: {} },
