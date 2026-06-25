@@ -62,7 +62,7 @@ declare global {
   /** The model context API exposed on `document.modelContext`. */
   interface ModelContext {
     /** Adds a single tool to the current context. */
-    registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
+    registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): Promise<void>;
   }
 
   interface Navigator {

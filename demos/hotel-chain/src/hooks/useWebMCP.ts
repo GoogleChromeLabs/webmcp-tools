@@ -27,9 +27,9 @@ export function useWebMCP(tools: WebMCPTool[]) {
 
     const controller = new AbortController();
 
-    tools.forEach(tool => {
+    tools.forEach(async tool => {
       try {
-        modelContext.registerTool(tool, { signal: controller.signal });
+        await modelContext.registerTool(tool, { signal: controller.signal });
         registeredTools.current.add(tool.name);
       } catch (error) {
         console.error(`Failed to register WebMCP tool "${tool.name}":`, error);
