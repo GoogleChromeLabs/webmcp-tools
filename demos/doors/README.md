@@ -11,7 +11,7 @@ It demonstrates both **declarative** (HTML attributes) and **imperative** (JavaS
   - Uses **Declarative WebMCP** (`toolname`, `tooldescription`, `toolautosubmit` on `<form>` elements) to let the model "open" doors by navigating to other pages.
 
 - **The Whispering Woods (`forest.html`)**:
-  - Uses **Imperative WebMCP** (`navigator.modelContext.registerTool`) to create a "talk" tool.
+  - Uses **Imperative WebMCP** (`document.modelContext.registerTool`) to create a "talk" tool.
   - Uses **Declarative WebMCP** (`toolname`, `tooldescription`, `toolautosubmit` on `<form>` element) to let the model "return to the hallway" by navigating to `index.html`.
 
 - **The Coral Cove (`ocean.html`)**:

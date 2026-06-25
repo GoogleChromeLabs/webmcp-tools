@@ -280,10 +280,9 @@
   
   refreshCartUI();
 
-  const modelContext = document.modelContext || navigator.modelContext;
-  if (modelContext) {
+  if (document.modelContext) {
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "search_catalog",
       description: "Navigates the boutique to find a product and opens its page.",
       inputSchema: { 
@@ -306,7 +305,7 @@
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_order_history",
       description: "Retrieves past orders to identify a user's 'usual' beans for reordering.",
       inputSchema: { type: "object", properties: {} }, 
@@ -322,7 +321,7 @@
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "reorder_product",
       description: "Adds an item to the cart and visually updates the UI bag icon.",
       inputSchema: { 
@@ -344,7 +343,7 @@
       }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
       name: "get_machine_specifications",
       description: "Provides technical dimensions, height, and water tank capacity for the Alchemist machine.",
       inputSchema: { type: "object", properties: {} },
