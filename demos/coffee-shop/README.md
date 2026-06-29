@@ -6,7 +6,7 @@ A multi-page static site demo of **WebMCP** implementation for a specialty coffe
 
 ### 🛠️ How It Works
 
-This demo uses the **Imperative WebMCP API** (`navigator.modelContext.registerTool`) to expose site-wide navigation and product-specific capabilities. 
+This demo uses the **Imperative WebMCP API** (`document.modelContext.registerTool`) to expose site-wide navigation and product-specific capabilities. 
 
 * **UI Synchronization**: Tools are designed to provide immediate visual feedback. For example, reordering a product increments a cart counter and shows a toast notification, while requesting technical specs automatically scrolls the user to the relevant section and highlights it.
 * **Multi-page Context**: Demonstrates how an agent can use a "Navigation" tool on the homepage to reach a product page where more specialized tools (like specifications) become available.

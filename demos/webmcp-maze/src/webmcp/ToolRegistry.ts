@@ -43,8 +43,7 @@ export class ToolRegistry {
    */
   constructor(game: Game) {
     this.game = game;
-    this.supported =
-      !!document.modelContext || !!navigator.modelContext;
+    this.supported = !!document.modelContext;
 
     if (!this.supported) {
       console.warn(
@@ -101,11 +100,10 @@ export class ToolRegistry {
    */
   private provideTools(tools: ModelContextTool[]): void {
     if (this.supported) {
-      const ctx = document.modelContext || navigator.modelContext!;
       this.toolController?.abort();
       this.toolController = new AbortController();
       for (const tool of tools) {
-        ctx.registerTool(tool, { signal: this.toolController.signal });
+        document.modelContext!.registerTool(tool, { signal: this.toolController.signal });
       }
     }
     this.toolMap.clear();

@@ -17,9 +17,8 @@ export function DashboardProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController();
 
-    const modelContext = document.modelContext || navigator.modelContext;
     try {
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "rearrangeDOMComponents",
         title: "Rearrange Dashboard",
         description: "Rearranges the user's home dashboard by adding, removing, or reordering smart home control components based on the user's intent.",

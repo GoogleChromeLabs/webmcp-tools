@@ -8,10 +8,10 @@ This project demonstrates a **WebMCP** implementation for an interactive real-es
 
 ## 🛠️ How It Works
 
-Unlike declarative forms, this demo uses the `navigator.modelContext.registerTool` API in `mcp.js` to expose fine-grained control over the map and filtering state to an AI agent.
+Unlike declarative forms, this demo uses the `document.modelContext.registerTool` API in `mcp.js` to expose fine-grained control over the map and filtering state to an AI agent.
 
 ```javascript
-navigator.modelContext.registerTool({
+document.modelContext.registerTool({
   name: 'apply_smart_filters',
   description: 'Apply filters to the property listings (e.g., min price, max price, min area, property type, bedrooms, specific features)',
   inputSchema: {

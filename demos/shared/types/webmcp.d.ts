@@ -65,16 +65,8 @@ declare global {
     registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
   }
 
-  interface Navigator {
-    /**
-     * WebMCP model context API. May be undefined if the browser doesn't support it.
-     * @deprecated Use `document.modelContext` instead.
-     */
-    modelContext?: ModelContext;
-  }
-
   interface Document {
     /** WebMCP model context API. May be undefined if the browser doesn't support it. */
-    modelContext?: ModelContext;
+    readonly modelContext?: ModelContext;
   }
 }

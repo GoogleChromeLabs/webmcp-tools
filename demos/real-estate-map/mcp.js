@@ -4,9 +4,8 @@
  */
 
 // Register WebMCP Tools natively
-const modelContext = document.modelContext || navigator.modelContext;
-if (modelContext) {
-  modelContext.registerTool({
+if (document.modelContext) {
+  document.modelContext.registerTool({
     name: "apply_smart_filters",
     description: "Filters the real estate properties displayed on the map and list based on criteria like location, price, property type, area, bedrooms, and specific features.",
     inputSchema: {
@@ -125,7 +124,7 @@ if (modelContext) {
     }
   });
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: "clear_filters",
     description: "Resets all filters to their default states and shows all available properties.",
     execute: () => {
@@ -134,7 +133,7 @@ if (modelContext) {
     }
   });
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: "view_property_details",
     description: "Focuses the map on a specific property by ID and opens its details window.",
     inputSchema: {
