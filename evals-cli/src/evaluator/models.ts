@@ -14,13 +14,17 @@ export function getModel(config: Config | WebmcpConfig) {
   if (config.provider === "openai" || modelId.startsWith("openai:")) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) console.warn("Warning: OPENAI_API_KEY is missing for OpenAI provider.");
-    return createOpenAI({ apiKey })(modelId.replace("openai:", ""));
+    return createOpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL })(
+      modelId.replace("openai:", ""),
+    );
   }
 
   if (config.provider === "anthropic" || modelId.startsWith("anthropic:")) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) console.warn("Warning: ANTHROPIC_API_KEY is missing for Anthropic provider.");
-    return createAnthropic({ apiKey })(modelId.replace("anthropic:", ""));
+    return createAnthropic({ apiKey, baseURL: process.env.ANTHROPIC_BASE_URL })(
+      modelId.replace("anthropic:", ""),
+    );
   }
 
   if (config.provider === "ollama" || modelId.startsWith("ollama:")) {
@@ -35,6 +39,9 @@ export function getModel(config: Config | WebmcpConfig) {
   const apiKey =
     process.env.GOOGLE_AI || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) console.warn("Warning: Missing Google/Gemini API key");
-  const google = createGoogleGenerativeAI({ apiKey });
+  const google = createGoogleGenerativeAI({
+    apiKey,
+    baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL,
+  });
   return google(modelId.replace("google:", ""));
 }
