@@ -66,6 +66,8 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
 - [Stacktree](https://stacktr.ee/) - Private hosting for the HTML that AI agents generate. Registers `stacktree_publish_html` via `document.modelContext`, so a browser agent can hand over a complete HTML document and get back a live, shareable URL with no account or sign-in. Anonymous sites are unlisted and the response includes a claim URL to keep the page permanently in a free account.
   - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
+- [Refraktor](https://chromewebstore.google.com/detail/refraktor/nkafbaaanaamfjdljndmieichdgkhgii) - An autonomous, design-conformance aware, WebMCP consumer agent. Discovers a site's registered tools, reasons over them, and can check design-token drift against a chosen reference. Available on the Chrome Web Store.
+  - **Example Prompt:** "What design palette would you recommend for a dark financial dashboard?"**
 
 
 ## Contributing
