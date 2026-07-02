@@ -14,7 +14,12 @@ export function getModel(config: Config | WebmcpConfig) {
   if (config.provider === "openai" || modelId.startsWith("openai:")) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) console.warn("Warning: OPENAI_API_KEY is missing for OpenAI provider.");
-    return createOpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL })(
+    // Use the Chat Completions API rather than the Responses API. The Responses
+    // API is OpenAI-specific; every other "OpenAI-compatible" endpoint (Ollama,
+    // vLLM, LiteLLM, corporate gateways, etc.) only implements chat completions.
+    // Chat completions works against OpenAI itself as well, so this is a safe
+    // default that keeps `baseURL` overrides usable.
+    return createOpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL }).chat(
       modelId.replace("openai:", ""),
     );
   }
@@ -32,7 +37,9 @@ export function getModel(config: Config | WebmcpConfig) {
       baseURL: process.env.OLLAMA_HOST || "http://127.0.0.1:11434/v1",
       apiKey: "ollama", // Required by standard but ignored by Ollama locally
     });
-    return ollama(modelId.replace("ollama:", ""));
+    // Ollama's OpenAI compatibility surface implements /v1/chat/completions,
+    // not /v1/responses.
+    return ollama.chat(modelId.replace("ollama:", ""));
   }
 
   // Default to Google
