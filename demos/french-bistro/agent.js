@@ -199,7 +199,7 @@ async function handleUserSubmit() {
 
     appendMessage('You', text, 'user');
 
-    chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
+    chat ??= ai.chats.create({ model: 'gemini-3.1-flash-lite' });
 
     const config = await getConfig();
     const sendMessageParams = { message: text, config };
