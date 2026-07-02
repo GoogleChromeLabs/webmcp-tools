@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+@view-transition {
+  navigation: auto;
+}
+
 #agent-container {
   position: fixed;
   bottom: 20px;
