@@ -15,6 +15,14 @@ if (isCrossDocument) {
   form.setAttribute("action", "./result.html");
 }
 
+params.forEach((value, key) => {
+  const hiddenInput = document.createElement('input');
+  hiddenInput.type = 'hidden';
+  hiddenInput.name = key;
+  hiddenInput.value = value;
+  form.appendChild(hiddenInput);
+});
+
 if (toolAutoSubmit) {
   form.setAttribute("toolautosubmit", "true");
 }

@@ -12,6 +12,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Le Petit Bistro | WebMCP declarative demo</title>
   <link href="style.css" rel="stylesheet" />
+  <link href="agent.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
     rel="stylesheet" />
 
@@ -33,8 +34,53 @@
 
     <button class="close-modal-btn" id="closeDialogBtn">Close Window</button>
   </dialog>
+  <div id="agent-container">
+    <button id="agent-toggle" title="Chat with our AI Assistant">💬</button>
+    <div id="agent-chat">
+      <div id="agent-header">
+        <h3>Bistro Assistant</h3>
+        <button id="agent-logout" title="Log Out">Log Out</button>
+      </div>
+      <div id="agent-chat-window"></div>
+      <div id="agent-setup" class="hidden">
+        <p>Enter your Gemini API Key to start chatting.</p>
+        <input type="password" id="agent-api-key-input" placeholder="AIzaSy..." />
+        <button id="agent-save-key-btn">Save & Start</button>
+      </div>
+      <div id="agent-chat-container" class="hidden">
+        <div id="agent-input-area">
+          <input type="text" id="agent-user-input" placeholder="Type a message..." />
+          <button id="agent-send-btn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <script>
     const params = new URLSearchParams(window.location.search);
+    if (params.has('agentiframe')) {
+      const agentContainer = document.getElementById('agent-container');
+      if (agentContainer) agentContainer.remove();
+
+      const iframe = document.createElement('iframe');
+      iframe.src = 'agent.html' + window.location.search;
+      iframe.onload = () => {
+        iframe.contentWindow.document.getElementById('agent-toggle').click();
+      }
+      iframe.style.position = 'fixed';
+      iframe.style.bottom = '0';
+      iframe.style.right = '0';
+      iframe.style.width = '100px';
+      iframe.style.height = '100px';
+      iframe.style.border = 'none';
+      iframe.style.zIndex = '1000';
+      document.body.appendChild(iframe);
+    } else {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'agent.js';
+      document.body.appendChild(script);
+    }
+
     const modalDetails = document.getElementById('modalDetails');
     const name = params.get('name');
     const time = params.get('time');
