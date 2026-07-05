@@ -1,0 +1,191 @@
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<!-- Floating Action Button (Bottom Left, shifts when panel opens) -->
+<div class="agent-fab flex items-center gap-3" [class.agent-fab-shifted]="(isOpen$ | async)">
+    <button (click)="toggleDrawer()"
+        class="group relative flex items-center justify-center w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none ring-4 ring-primary/20 cursor-pointer">
+        <span class="material-symbols-outlined text-2xl transition-transform duration-300 group-hover:rotate-12">
+            smart_toy
+        </span>
+        <span class="absolute -top-1 -right-1 flex h-4 w-4">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-4 w-4 bg-tertiary border-2 border-surface-container-lowest"></span>
+        </span>
+    </button>
+    <div (click)="toggleDrawer()"
+        class="hidden sm:flex items-center gap-2 bg-surface-container-lowest text-on-surface px-4 py-2 rounded-full shadow-lg border border-outline-variant/20 text-xs font-bold font-headline cursor-pointer hover:bg-surface-container-low transition-all">
+        <span>Sports AI Assistant</span>
+        <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-mono uppercase">WebMCP</span>
+    </div>
+</div>
+
+<!-- Docked Left Drawer Panel (Side-by-side push layout) -->
+<aside
+    class="agent-drawer-panel w-96 max-w-[calc(100vw-2rem)] bg-surface-container-lowest shadow-2xl border-r border-outline-variant/10 flex flex-col"
+    [class.agent-drawer-open]="isOpen$ | async"
+    [class.agent-drawer-closed]="!(isOpen$ | async)">
+
+    <!-- Drawer Header -->
+    <div class="p-5 bg-primary text-on-primary flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-on-primary/10 rounded-xl">
+                <span class="material-symbols-outlined text-2xl">smart_toy</span>
+            </div>
+            <div>
+                <h2 class="font-headline font-bold text-base leading-tight tracking-tight">Sports AI Assistant</h2>
+                <div class="flex items-center gap-2 mt-0.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
+                    <span class="text-[10px] font-mono tracking-wider opacity-90 uppercase">Gemini • WebMCP</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-1 text-on-primary">
+            @if (apiKey$ | async) {
+                <button (click)="toggleApiKeySettings()" title="API Key Settings" class="p-2 hover:bg-on-primary/10 rounded-lg transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-xl">key</span>
+                </button>
+                <button (click)="clearChat()" title="Clear Chat" class="p-2 hover:bg-on-primary/10 rounded-lg transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-xl">delete_sweep</span>
+                </button>
+            }
+            <button (click)="closeDrawer()" title="Close Assistant" class="p-2 hover:bg-on-primary/10 rounded-lg transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Drawer Body -->
+    <div class="flex-1 overflow-hidden flex flex-col relative bg-surface-container-lowest">
+
+        <!-- API Key Setup Screen -->
+        @if (showApiKeySetup || !(apiKey$ | async)) {
+            <div class="p-6 flex-1 flex flex-col justify-center items-center text-center bg-surface-container-low/50">
+                <div class="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl">key</span>
+                </div>
+                <h3 class="font-headline text-xl font-bold text-on-surface mb-2">Gemini API Key Required</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed mb-6 max-w-xs">
+                    Enter your Gemini API key to enable the AI assistant with real-time WebMCP browser tools capability.
+                </p>
+
+                <div class="w-full max-w-xs space-y-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            name="gemini_api_key"
+                            autocomplete="off"
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                            [class.key-masked]="!showKeyPassword"
+                            [(ngModel)]="apiKeyInput"
+                            (keyup.enter)="saveApiKey()"
+                            placeholder="Enter AI Studio API Key..."
+                            class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl py-3 pl-4 pr-10 text-xs font-mono text-on-surface focus:ring-2 ring-primary/30 outline-none" />
+                        <button (click)="showKeyPassword = !showKeyPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface cursor-pointer">
+                            <span class="material-symbols-outlined text-lg">
+                                {{ showKeyPassword ? 'visibility_off' : 'visibility' }}
+                            </span>
+                        </button>
+                    </div>
+
+                    <button (click)="saveApiKey()" [disabled]="!apiKeyInput.trim()"
+                        class="w-full py-3 bg-primary text-on-primary font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg hover:shadow-primary/30 transition-all disabled:opacity-50 cursor-pointer">
+                        Save & Start Chat
+                    </button>
+
+                    @if (apiKey$ | async) {
+                        <button (click)="logoutKey()" class="w-full py-2 text-error text-xs font-bold hover:underline cursor-pointer">
+                            Disconnect & Remove Key
+                        </button>
+                    }
+
+                    <div class="pt-4 border-t border-outline-variant/10">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener"
+                            class="inline-flex items-center gap-1 text-[11px] text-primary font-bold hover:underline">
+                            <span>Get a key at Google AI Studio</span>
+                            <span class="material-symbols-outlined text-xs">open_in_new</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        } @else {
+
+            <!-- Chat Stream -->
+            <div #chatContainer class="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+                @for (msg of (messages$ | async); track msg.id) {
+                    @if (msg.sender === 'user') {
+                        <div class="flex justify-end">
+                            <div class="max-w-[85%] bg-primary text-on-primary px-4 py-3 rounded-2xl rounded-tr-xs shadow-sm text-xs leading-relaxed font-medium">
+                                {{ msg.text }}
+                            </div>
+                        </div>
+                    } @else if (msg.sender === 'agent') {
+                        <div class="flex justify-start gap-2">
+                            <div class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-base">smart_toy</span>
+                            </div>
+                            <div class="max-w-[85%] bg-surface-container-low text-on-surface px-4 py-3 rounded-2xl rounded-tl-xs border border-outline-variant/10 shadow-sm text-xs leading-relaxed markdown-body"
+                                [innerHTML]="msg.text | markdown">
+                            </div>
+                        </div>
+                    } @else if (msg.sender === 'system') {
+                        <div class="flex justify-center my-1">
+                            <div class="inline-flex items-center gap-2 bg-surface-container-high/60 text-on-surface-variant px-3 py-1.5 rounded-lg text-[11px] font-mono">
+                                @if (msg.isExecuting) {
+                                    <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                                }
+                                <span>{{ msg.text }}</span>
+                            </div>
+                        </div>
+                    }
+                }
+
+                @if (isLoading$ | async) {
+                    <div class="flex justify-start gap-2">
+                        <div class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-base">smart_toy</span>
+                        </div>
+                        <div class="bg-surface-container-low px-4 py-3 rounded-2xl rounded-tl-xs border border-outline-variant/10 flex items-center gap-1.5">
+                            <span class="w-2 h-2 bg-primary rounded-full animate-bounce"></span>
+                            <span class="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                            <span class="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Quick Suggestions Pills -->
+            <div class="px-4 pt-2 pb-1 flex gap-2 overflow-x-auto hide-scrollbar border-t border-outline-variant/10 bg-surface-container-lowest">
+                @for (prompt of quickPrompts; track prompt) {
+                    <button (click)="useQuickPrompt(prompt)" [disabled]="isLoading$ | async"
+                        class="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-surface-container-low hover:bg-primary hover:text-on-primary text-on-surface-variant px-3 py-1.5 rounded-full border border-outline-variant/20 transition-all cursor-pointer">
+                        {{ prompt }}
+                    </button>
+                }
+            </div>
+
+            <!-- Input Bar -->
+            <div class="p-4 bg-surface-container-low border-t border-outline-variant/10">
+                <div class="relative flex items-center">
+                    <input
+                        [(ngModel)]="inputPrompt"
+                        (keyup.enter)="sendMessage()"
+                        [disabled]="(isLoading$ | async) ?? false"
+                        type="text"
+                        placeholder="Ask assistant to search, filter, or cart..."
+                        class="w-full bg-surface-container-lowest text-on-surface border border-outline-variant/20 rounded-xl py-3 pl-4 pr-12 text-xs focus:ring-2 ring-primary/20 outline-none disabled:opacity-50" />
+                    <button
+                        (click)="sendMessage()"
+                        [disabled]="!inputPrompt.trim() || ((isLoading$ | async) ?? false)"
+                        class="absolute right-2 text-primary p-2 hover:bg-primary/10 rounded-lg transition-colors disabled:opacity-30 cursor-pointer">
+                        <span class="material-symbols-outlined text-xl">send</span>
+                    </button>
+                </div>
+            </div>
+
+        }
+    </div>
+</aside>

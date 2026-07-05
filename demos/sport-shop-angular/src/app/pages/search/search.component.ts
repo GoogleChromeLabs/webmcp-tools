@@ -7,7 +7,6 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
-import { AiSidebarComponent } from '../../components/ai-sidebar/ai-sidebar.component';
 import { ProductCardComponent } from '../../components/product-card/product-card.component';
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
@@ -17,7 +16,7 @@ import { findMatchingProduct } from '../../utils/product-matcher';
 
 @Component({
   selector: 'app-search',
-  imports: [CommonModule, ProductCardComponent, AiSidebarComponent, ReactiveFormsModule],
+  imports: [CommonModule, ProductCardComponent, ReactiveFormsModule],
   templateUrl: './search.component.html',
 })
 export class SearchComponent implements OnInit, OnDestroy {

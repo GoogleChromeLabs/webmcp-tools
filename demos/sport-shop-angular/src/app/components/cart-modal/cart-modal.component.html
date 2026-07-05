@@ -44,7 +44,7 @@
             <!-- Details -->
             <div class="item-details-box">
               <div class="item-header-row">
-                <h3 class="font-headline truncate italic uppercase">{{ item.product.name }}</h3>
+                <h3 class="font-headline truncate italic uppercase" [title]="item.product.name">{{ item.product.name }}</h3>
                 <span class="item-price">${{ item.product.price | number:'1.2-2' }}</span>
               </div>
               <p class="item-category uppercase">{{ item.product.category }}</p>
