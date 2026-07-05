@@ -30,7 +30,7 @@ declare global {
     description: string;
 
     /** JSON Schema describing the tool's expected input. */
-    inputSchema?: object;
+    inputSchema?: object | string;
 
     /**
      * Called by the AI agent to execute this tool.
@@ -63,6 +63,12 @@ declare global {
   interface ModelContext {
     /** Adds a single tool to the current context. */
     registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): Promise<void>;
+
+    /** Returns list of registered tools. */
+    getTools(options?: { fromOrigins?: string[] }): Promise<any[]>;
+
+    /** Executes a registered tool. */
+    executeTool(tool: any, params: any): Promise<any>;
   }
 
   interface Document {
