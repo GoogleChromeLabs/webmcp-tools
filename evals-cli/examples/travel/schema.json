@@ -1,6 +1,40 @@
 {
   "tools": [
     {
+      "name": "getCityAirports",
+      "description": "Retrieves the list of airports serving a given city code (e.g. 'LON', 'NYC', 'PAR').",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cityCode": {
+            "type": "string",
+            "description": "The 3-letter IATA code of the city (e.g., 'LON', 'PAR', 'NYC').",
+            "pattern": "^[A-Z]{3}$"
+          }
+        },
+        "required": ["cityCode"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "cityName": { "type": "string" },
+          "message": { "type": "string" },
+          "airports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "string" },
+                "name": { "type": "string" }
+              },
+              "required": ["code", "name"]
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "listFlights",
       "description": "Lists all flights available in the current search results, regardless of filters.",
       "inputSchema": null,

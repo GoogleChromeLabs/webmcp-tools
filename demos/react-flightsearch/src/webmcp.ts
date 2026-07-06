@@ -1,4 +1,7 @@
 import type { Flight } from "./data/flights";
+import { airports } from "./data/airports";
+import { cityToAirports, cityNames } from "./data/cityToAirports";
+
 
 const registeredTools: Record<string, AbortController | null> = {
   searchTools: null,
@@ -105,6 +108,60 @@ export const listFlightsTool = {
     readOnlyHint: true,
   },
 };
+
+// Get all airport codes for a given city code
+export function getCityAirports(params: any) {
+  const cityCode = params.cityCode.toUpperCase();
+  if (cityToAirports[cityCode]) {
+    const cityName = cityNames[cityCode] || "Unknown City";
+    const list = cityToAirports[cityCode].map(code => ({
+      code,
+      name: airports[code] || "Unknown Airport"
+    }));
+    return { success: true, cityName, airports: list };
+  }
+  return { success: false, message: `No city found with code '${params.cityCode}'.` };
+}
+
+export const getCityAirportsTool = {
+  execute: getCityAirports,
+  name: "getCityAirports",
+  description: "Retrieves the list of airports serving a given city code (e.g. 'LON', 'NYC', 'PAR').",
+  inputSchema: {
+    type: "object",
+    properties: {
+      cityCode: {
+        type: "string",
+        description: "The 3-letter IATA code of the city (e.g., 'LON', 'PAR', 'NYC').",
+        pattern: "^[A-Z]{3}$"
+      }
+    },
+    required: ["cityCode"]
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      success: { type: "boolean" },
+      cityName: { type: "string" },
+      message: { type: "string" },
+      airports: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            code: { type: "string" },
+            name: { type: "string" }
+          },
+          required: ["code", "name"]
+        }
+      }
+    }
+  },
+  annotations: {
+    readOnlyHint: true
+  }
+};
+
 
 export type Filters = {
   stops?: number[];
