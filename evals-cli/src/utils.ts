@@ -85,6 +85,10 @@ export function countExpectedCalls(nodes: ExpectedCallNode[]): number {
   return nodes.reduce((count, node) => {
     if (isUnorderedGroup(node)) return count + countExpectedCalls(node.unordered);
     if (isOrderedGroup(node)) return count + countExpectedCalls(node.ordered);
+    // Optional nodes don't contribute to the required-step count — they may
+    // or may not fire, so counting them would inflate the progress total
+    // and misreport the denominator in per-case counters.
+    if (isFunctionCall(node) && node.optional) return count;
     return count + 1;
   }, 0);
 }
@@ -163,9 +167,6 @@ function matchSimpleUnorderedGroup(
     }
   }
 
-  const allMatched =
-    matchesCount === expectedNodesCount && executionPoolSize === expectedNodesCount;
-
   // Track which expected nodes were successfully matched
   const matchedExpectedIndices = new Set<number>();
   for (let i = 0; i < executionPoolSize; i++) {
@@ -175,10 +176,26 @@ function matchSimpleUnorderedGroup(
     }
   }
 
-  // Get unmatched expected nodes
-  const unmatchedExpectedNodes = nodes.filter(
-    (_, index) => !matchedExpectedIndices.has(index),
-  ) as FunctionCall[];
+  // Count required (non-optional) nodes for the overall pass/fail decision.
+  // An unmatched optional doesn't count as a shortfall.
+  let requiredNodesCount = 0;
+  let requiredMatchedCount = 0;
+  for (let i = 0; i < expectedNodesCount; i++) {
+    const isOptional = (nodes[i] as FunctionCall).optional === true;
+    if (isOptional) continue;
+    requiredNodesCount++;
+    if (matchedExpectedIndices.has(i)) requiredMatchedCount++;
+  }
+  const allMatched =
+    requiredMatchedCount === requiredNodesCount &&
+    executionPoolSize === matchedExpectedIndices.size;
+
+  // Unmatched *required* nodes become FAIL rows; unmatched *optional*
+  // nodes are dropped silently.
+  const unmatchedExpectedNodes = nodes.filter((node, index) => {
+    if (matchedExpectedIndices.has(index)) return false;
+    return (node as FunctionCall).optional !== true;
+  }) as FunctionCall[];
 
   // Map result array
   const mappedResults: TrajectoryResult[] = [];
@@ -201,7 +218,8 @@ function matchSimpleUnorderedGroup(
     }
   }
 
-  // Any leftover unmatched expected nodes are added as failures with no actual execution
+  // Any leftover unmatched required expected nodes are added as failures
+  // with no actual execution. Optional leftovers were filtered out above.
   for (const expected of unmatchedExpectedNodes) {
     mappedResults.push({ expected, actual: null, outcome: "fail" });
   }
@@ -228,6 +246,7 @@ function matchNestedUnorderedGroup(
   const bestState = {
     matches: false,
     maxPasses: -1,
+    consumed: 0,
     mappedResults: [] as TrajectoryResult[],
   };
 
@@ -256,6 +275,7 @@ function matchNestedUnorderedGroup(
       if (currentPasses > bestState.maxPasses) {
         bestState.maxPasses = currentPasses;
         bestState.matches = currentMatches;
+        bestState.consumed = currentConsumed;
         bestState.mappedResults = [...currentMappedResults];
       }
       return;
@@ -288,9 +308,13 @@ function matchNestedUnorderedGroup(
 
   backtrack(0, 0, true, 0, []);
 
+  // Prefer the actual consumed count from the best backtracking result.
+  // With optional nodes potentially returning consumed: 0, the caller's
+  // pre-computed `expectedTotalConsumed` (required-only) may not reflect
+  // the pool we truly walked through.
   return {
     matches: bestState.matches,
-    consumed: expectedTotalConsumed,
+    consumed: bestState.maxPasses >= 0 ? bestState.consumed : expectedTotalConsumed,
     mappedResults: bestState.mappedResults,
   };
 }
@@ -306,6 +330,11 @@ export function matchExpectedNode(
     return matchSequence(node.ordered, executions, startIndex);
   } else if (isFunctionCall(node)) {
     if (startIndex >= executions.length) {
+      // No more actuals: optionals silently drop out of the trajectory;
+      // required nodes fail with an actual:null row.
+      if (node.optional) {
+        return { matches: true, consumed: 0, mappedResults: [] };
+      }
       return {
         matches: false,
         consumed: 1,
@@ -314,6 +343,12 @@ export function matchExpectedNode(
     }
     const actual = executions[startIndex];
     const outcome = functionCallOutcome(node, actual);
+    // An optional node that would otherwise fail simply doesn't consume
+    // the current actual — the next expected node gets a chance at it.
+    // If it would pass, we consume normally (greedy match).
+    if (node.optional && outcome === "fail") {
+      return { matches: true, consumed: 0, mappedResults: [] };
+    }
     return {
       matches: outcome === "pass",
       consumed: 1,
