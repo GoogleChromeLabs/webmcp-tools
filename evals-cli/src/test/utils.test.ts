@@ -279,14 +279,8 @@ describe("functionCallOutcome", () => {
   });
 
   it("fails when only one side is null", () => {
-    assert.strictEqual(
-      functionCallOutcome(null, { functionName: "foo", args: {} }),
-      "fail",
-    );
-    assert.strictEqual(
-      functionCallOutcome({ functionName: "foo", arguments: {} }, null),
-      "fail",
-    );
+    assert.strictEqual(functionCallOutcome(null, { functionName: "foo", args: {} }), "fail");
+    assert.strictEqual(functionCallOutcome({ functionName: "foo", arguments: {} }, null), "fail");
   });
 
   it("fails when the function name differs", () => {
@@ -324,10 +318,7 @@ describe("functionCallOutcome", () => {
     // no-arg tool like `get_cart`. The model's SDK still surfaces the call
     // with an empty args object, which should not be scored as a mismatch.
     assert.strictEqual(
-      functionCallOutcome(
-        { functionName: "get_cart" },
-        { functionName: "get_cart", args: {} },
-      ),
+      functionCallOutcome({ functionName: "get_cart" }, { functionName: "get_cart", args: {} }),
       "pass",
     );
     // Even non-empty actual args pass when the eval doesn't constrain them.
