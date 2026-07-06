@@ -69,11 +69,7 @@ export async function executeLocalEvals(
       testCount++;
       try {
         const response = await backendImpl.executeLocalEvals(test);
-
-        let executedCalls: ToolCall[] = [];
-        if (response && response.functionName) {
-          executedCalls = [response as ToolCall];
-        }
+        const executedCalls: ToolCall[] = response.toolCalls;
 
         const trajectories = test.expectedCall
           ? evaluateExecutionTrajectory(test.expectedCall, executedCalls)
@@ -110,7 +106,18 @@ export async function executeLocalEvals(
             }
           }
         }
-      } catch {
+      } catch (e) {
+        // Surface the underlying error even without --debug. Previously this
+        // catch swallowed everything, so backend/SDK/regex/etc. failures
+        // showed up as an opaque case-level ERROR with no way to diagnose
+        // without editing the CLI. Debug mode keeps the full stack.
+        const message = e instanceof Error ? e.message : String(e);
+        if (config.debug) {
+          console.error(`\n[eval error] ${test.name ?? "(unnamed)"}:`, e);
+        } else {
+          console.error(`\n[eval error] ${test.name ?? "(unnamed)"}: ${message}`);
+        }
+
         errorCount++;
         const result: TestResult = {
           test,
