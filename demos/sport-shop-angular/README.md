@@ -2,25 +2,25 @@
 
 🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular
 
-A premium, modern e-commerce storefront for high-performance sports equipment, built with Angular and WebMCP (Web Model Context Protocol). This project demonstrates how an integrated **On-Site AI Assistant** and browser-level AI agents can interact with an e-commerce site to search catalog items, check promotions and store policies, manage a shopping cart, and complete checkouts.
+An e-commerce storefront for sports equipment, built with Angular and WebMCP. This project demonstrates how an integrated **On-Site AI Assistant** and browser-level AI agents interact with an e-commerce site to search catalog items, check promotions and store policies, manage a shopping cart, and complete checkouts.
 
 ## 🌟 Key Features
 
-- **On-Site AI Assistant (Gemini 3.1 Flash Lite)**: An embedded, slide-out agent drawer powered by Google GenAI (`@google/genai`). The assistant dynamically discovers and executes WebMCP tools directly in-browser (`document.modelContext`), featuring:
-  - Real-time tool execution status indicators in the chat stream (e.g. ⚙️ Executing tool... / ✅ Executed).
+- **On-Site AI Assistant (Gemini 3.1 Flash Lite)**: An embedded, slide-out agent drawer powered by Google GenAI (`@google/genai`). The assistant discovers and executes WebMCP tools directly in-browser (`document.modelContext`), featuring:
+  - Real-time tool execution status indicators in the chat stream (e.g., ⚙️ Executing tool... / ✅ Executed).
   - Quick prompt presets (e.g., "Find basketball items under $50", "What promotions are available?").
-  - Persistent Gemini API key management stored securely in `localStorage` with masked input toggle.
-  - Formatted markdown response rendering for lists, tables, and product details.
-- **Comprehensive WebMCP Tool Integration**:
+  - Persistent Gemini API key management stored in `localStorage` with a masked input toggle.
+  - Markdown response rendering for lists, tables, and product details.
+- **WebMCP Tool Integration**:
   - **Application-wide (Global)**: Available on all pages for catalog navigation and store policies.
-  - **Search Page (`/search`)**: Interactive result querying, price range filtering, and direct cart additions.
-  - **Cart Modal**: Cart inspection, delivery option updates (`ship` vs `pickup`), item removal, and multi-step checkout execution.
-- **Advanced Search & Discovery**: Multi-layered search flow with price refinement (Under $50, $50–$100, $100+), size filtering (adult vs child/youth), and category browsing (Basketball, Soccer, Baseball, Running).
-- **Automated Store Rules & Promotions**:
-  - Basketball 3-for-2 promo logic applied automatically at checkout.
+  - **Search Page (`/search`)**: Result querying, price range filtering, and direct cart additions.
+  - **Cart Modal**: Cart inspection, delivery option updates (`ship` vs `pickup`), item removal, and checkout execution.
+- **Search & Filtering**: Search flow with price refinement (Under $50, $50–$100, $100+), size filtering (adult vs child), and category browsing (Basketball, Soccer, Baseball, Running).
+- **Store Rules & Promotions**:
+  - Basketball 3-for-2 promo logic applied at checkout.
   - Local pickup eligibility validation (Soccer & Running gear only).
-- **Reactive Cart & Checkout**: Real-time state management using Angular Signals with subtotal, discount, and total calculations.
-- **Premium Design System**: Glassmorphism aesthetic, modern typography (Inter), custom HSL-based color tokens, and smooth drawer/modal transitions.
+- **Cart & Checkout**: State management using Angular Signals with subtotal, discount, and total calculations.
+- **Design System**: Built with HSL-based color tokens, Inter typography, and responsive drawer/modal layouts.
 
 ## 🤖 WebMCP Tools Reference
 
@@ -28,7 +28,7 @@ WebMCP Sports registers 13 in-browser tools categorized by scope:
 
 ### 🌐 Global / Application-wide Tools (`WebmcpService`)
 - `view_product`: Navigates to a product detail page by `productId` or `productName`.
-- `get_product_info`: Returns detailed product metadata for a given `productId` or `productName`.
+- `get_product_info`: Returns product metadata for a given `productId` or `productName`.
 - `open_cart`: Opens the shopping cart modal.
 - `search_product`: Navigates to the search page with optional `query`, `category` (`ALL`, `BASKETBALL`, `SOCCER`, `BASEBALL`, `RUNNING`), and `size` (`ALL`, `adult`, `child`).
 - `get_store_promos_and_rules`: Returns active store promotions (e.g., Basketball 3-for-2) and local pickup eligibility rules.
@@ -88,12 +88,12 @@ To use the embedded AI assistant in local development:
 
 ## 📂 Project Structure
 
-- `src/app/pages`: Core application views (Home, Search, Product Detail)
-- `src/app/components`: Reusable UI modules (Header, Hero, Agent Drawer, AI Sidebar, Cart Modal, Product Cards)
+- `src/app/pages`: Application views (Home, Search, Product Detail)
+- `src/app/components`: UI modules (Header, Hero, Agent Drawer, AI Sidebar, Cart Modal, Product Cards)
 - `src/app/services`: Core services:
   - `agent.service.ts`: Gemini 3.1 Flash Lite orchestration & in-browser WebMCP tool execution.
   - `webmcp.service.ts`: Global WebMCP tool registrations.
-  - `cart.service.ts`: Reactive cart state & promo calculation.
+  - `cart.service.ts`: Cart state & promo calculation.
   - `product.service.ts`: Product catalog & search filtering.
   - `ui.service.ts`: UI modal and drawer state management.
 - `src/app/models`: Data models (`Product`, `CartItem`)
@@ -107,4 +107,5 @@ Run unit tests with Vitest:
 ```bash
 npm test
 ```
+
 
