@@ -85,9 +85,7 @@ export function mapJsonSchemaToVercelTools(
       description: toolDef.description,
       parameters: jsonSchema(parameters),
       inputSchema: jsonSchema(parameters),
-      ...(execute
-        ? { execute: async (args: unknown) => execute(toolDef.functionName, args) }
-        : {}),
+      ...(execute ? { execute: async (args: unknown) => execute(toolDef.functionName, args) } : {}),
     };
   });
 
