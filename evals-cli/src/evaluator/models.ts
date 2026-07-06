@@ -7,6 +7,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { Config, WebmcpConfig } from "../types/config.js";
+import { makeSignaturePreservingFetch } from "./googleThoughtSignatures.js";
 
 export function getModel(config: Config | WebmcpConfig) {
   const modelId = config.model || "google:gemini-3-flash-preview";
@@ -19,9 +20,22 @@ export function getModel(config: Config | WebmcpConfig) {
     // vLLM, LiteLLM, corporate gateways, etc.) only implements chat completions.
     // Chat completions works against OpenAI itself as well, so this is a safe
     // default that keeps `baseURL` overrides usable.
-    return createOpenAI({ apiKey, baseURL: process.env.OPENAI_BASE_URL }).chat(
-      modelId.replace("openai:", ""),
-    );
+    //
+    // When the compat proxy fronts Vertex-backed Gemini (detected by the
+    // model id), inject a fetch wrapper that preserves `thought_signature`
+    // fields across multi-turn tool-calling — without it, Vertex 400s on
+    // turn 2. Auto-enable to keep single-line usage working; force on/off
+    // via OPENAI_PRESERVE_GOOGLE_THOUGHT_SIGNATURES=1|0 if the heuristic
+    // gets it wrong.
+    const gemini = /(?:^|[:/])(google|gemini)/.test(modelId);
+    const envFlag = process.env.OPENAI_PRESERVE_GOOGLE_THOUGHT_SIGNATURES;
+    const preserveSignatures = envFlag === "1" || (envFlag !== "0" && gemini);
+
+    return createOpenAI({
+      apiKey,
+      baseURL: process.env.OPENAI_BASE_URL,
+      ...(preserveSignatures ? { fetch: makeSignaturePreservingFetch() } : {}),
+    }).chat(modelId.replace("openai:", ""));
   }
 
   if (config.provider === "anthropic" || modelId.startsWith("anthropic:")) {
