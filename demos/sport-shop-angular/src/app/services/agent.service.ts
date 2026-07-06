@@ -89,7 +89,7 @@ export class AgentService {
     this.messagesSubject.next([welcomeMsg]);
   }
 
-  private async getTools(): Promise<any[]> {
+  private async getTools(): Promise<ModelContextRegisteredTool[]> {
     if (!document.modelContext) {
       return [];
     }
@@ -112,14 +112,10 @@ export class AgentService {
     const functionDeclarations = tools.map((tool) => {
       let parametersJsonSchema: any = { type: 'object', properties: {} };
       if (tool.inputSchema) {
-        if (typeof tool.inputSchema === 'string') {
-          try {
-            parametersJsonSchema = JSON.parse(tool.inputSchema);
-          } catch (e) {
-            console.error('Error parsing tool inputSchema:', e);
-          }
-        } else {
-          parametersJsonSchema = tool.inputSchema;
+        try {
+          parametersJsonSchema = JSON.parse(tool.inputSchema);
+        } catch (e) {
+          console.error('Error parsing tool inputSchema:', e);
         }
       }
       return {
@@ -133,6 +129,9 @@ export class AgentService {
   }
 
   async sendMessage(text: string) {
+    const modelContext = document.modelContext;
+    if (!modelContext) throw new Error('WebMCP is not supported in this browser environment');
+
     const apiKey = this.apiKeySubject.value;
     if (!apiKey) {
       this.addMessage('system', '⚠️ Gemini API key is missing. Please enter your API key to proceed.');
@@ -180,9 +179,6 @@ export class AgentService {
               const tools = await this.getTools();
               const tool = tools.find((t) => t.name === name);
               if (!tool) throw new Error(`Tool ${name} not found`);
-
-              const modelContext = document.modelContext;
-              if (!modelContext) throw new Error('WebMCP is not supported in this browser environment');
 
               const rawResult = await modelContext.executeTool(
                 tool,
