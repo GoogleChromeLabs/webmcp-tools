@@ -5,10 +5,24 @@
 
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
-import { Tool } from "../types/tools.js";
+import { Tool, ToolCall } from "../types/tools.js";
+
+/**
+ * Result of running a single test through the local (non-browser) path.
+ *
+ * `toolCalls` is the full trajectory of tool invocations the model made
+ * across all agent-loop steps — in order — not just the first one. An
+ * empty array means the model responded with text and no tool calls.
+ *
+ * `text` is the model's final natural-language response, if any.
+ */
+export type LocalEvalResult = {
+  toolCalls: ToolCall[];
+  text?: string;
+};
 
 export interface Backend {
-  executeLocalEvals(test: Eval): Promise<any>;
+  executeLocalEvals(test: Eval): Promise<LocalEvalResult>;
 
   executeInBrowserEvals(
     tests: Array<Eval>,

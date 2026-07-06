@@ -11,6 +11,11 @@ export type Config = {
   model: string;
   debug?: boolean;
   runs?: number;
+  // Upper bound on the local agent loop's step count. Fed to
+  // `stopWhen: stepCountIs(maxSteps)` in `executeLocalEvals`. Larger values
+  // let longer trajectories complete; smaller values cap runaway loops.
+  // Ignored by `executeInBrowserEvals`.
+  maxSteps?: number;
 };
 
 export type WebmcpConfig = {
@@ -21,4 +26,5 @@ export type WebmcpConfig = {
   model: string;
   debug?: boolean;
   runs?: number;
+  maxSteps?: number;
 };

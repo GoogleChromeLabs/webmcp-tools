@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { generateText, ToolLoopAgent } from "ai";
+import { generateText, stepCountIs, ToolLoopAgent } from "ai";
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
-import { Backend, RunEvent } from "../backends/index.js";
+import { Backend, LocalEvalResult, RunEvent } from "../backends/index.js";
 import { createBrowserTool } from "../evaluator/browser.js";
 import {
   mapJsonSchemaToVercelTools,
@@ -18,12 +18,19 @@ import {
   mapRawBrowserToolsToConfig,
 } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
+import { MockResolver } from "../evaluator/mockResolver.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
+
+// Default upper bound on the local agent loop's step count. Large enough for
+// any reasonable trajectory in evals.json; small enough that a stuck model
+// terminates without burning tokens. Overridable via `--max-steps=N`.
+const DEFAULT_MAX_STEPS = 6;
 
 export class VercelBackend implements Backend {
   private aiModel: any;
   private modelName: string;
   private debug: boolean;
+  private maxSteps: number;
 
   constructor(
     config: Config | WebmcpConfig,
@@ -32,17 +39,27 @@ export class VercelBackend implements Backend {
     this.modelName = config.model || "gemini-3-flash-preview";
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
+    this.maxSteps = config.maxSteps ?? DEFAULT_MAX_STEPS;
   }
 
-  async executeLocalEvals(test: Eval): Promise<any> {
+  async executeLocalEvals(test: Eval): Promise<LocalEvalResult> {
     const aiMessages = mapMessages(test.messages);
-    let aiResult;
 
-    aiResult = await generateText({
+    // Fresh resolver per test — cursor state must not leak across cases.
+    const resolver = new MockResolver(test.expectedCall);
+    const executableTools = mapJsonSchemaToVercelTools(this.tools, (fnName, args) =>
+      resolver.resolve(fnName, args),
+    );
+
+    const aiResult = await generateText({
       model: this.aiModel,
       system: SYSTEM_PROMPT,
       messages: aiMessages,
-      tools: mapJsonSchemaToVercelTools(this.tools),
+      tools: executableTools,
+      // Enables multi-step trajectories. Tools have execute functions now,
+      // so without a stopWhen the loop would run until the model itself
+      // stops calling tools — which can be never. Cap it explicitly.
+      stopWhen: stepCountIs(this.maxSteps),
       experimental_onToolCallStart: this.debug
         ? (event) => {
             console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
@@ -73,15 +90,20 @@ export class VercelBackend implements Backend {
         : undefined,
     });
 
-    if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-      const call: any = aiResult.toolCalls[0];
-      return {
-        functionName: call.toolName,
-        args: call.input || call.args || call.arguments || {},
-      };
-    } else {
-      return { text: aiResult.text };
+    // Gather every tool call from every step in trajectory order. Previously
+    // only aiResult.toolCalls[0] was surfaced, which both dropped subsequent
+    // steps and dropped parallel calls within a single step.
+    const toolCalls: ToolCall[] = [];
+    for (const step of aiResult.steps ?? []) {
+      for (const call of (step.toolCalls ?? []) as any[]) {
+        toolCalls.push({
+          functionName: call.toolName,
+          args: call.input || call.args || call.arguments || {},
+        });
+      }
     }
+
+    return { toolCalls, text: aiResult.text };
   }
 
   async executeInBrowserEvals(

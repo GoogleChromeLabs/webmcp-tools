@@ -43,6 +43,11 @@ export type FunctionCall = {
   // Optional: when omitted (or explicitly null), the eval imposes no
   // constraint on the tool call's arguments — any actual args are accepted.
   arguments?: object | null;
+  // Optional: mock output returned to the model when it invokes this tool
+  // during a local (non-browser) multi-step trajectory. When omitted, an
+  // empty object `{}` is returned. Only consulted by `executeLocalEvals` —
+  // browser evals always use real tool results.
+  mockOutput?: unknown;
 };
 
 export type TestResult = {
