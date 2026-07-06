@@ -48,6 +48,13 @@ export type FunctionCall = {
   // empty object `{}` is returned. Only consulted by `executeLocalEvals` —
   // browser evals always use real tool results.
   mockOutput?: unknown;
+  // When true, this call is not required for the trajectory to pass.
+  // Useful for tool calls some models make and others don't (e.g. an
+  // eager model calling `get_current_results` for a summary between
+  // steps). A skipped optional contributes no PASS, no FAIL, and no
+  // consumed actual — it's simply omitted from the reconciliation.
+  // If the model does make the call, it matches normally.
+  optional?: boolean;
 };
 
 export type TestResult = {

@@ -273,6 +273,163 @@ describe("evaluateExecutionTrajectory", () => {
   });
 });
 
+describe("optional tool calls", () => {
+  it("skips an unmatched optional in an ordered sequence", () => {
+    // Expected: [search, get_summary?, get_product].
+    // Actual: [search, get_product] — the summary step was skipped.
+    // Trajectory should PASS with just the two required rows.
+    const expected: ExpectedCallNode[] = [
+      {
+        ordered: [
+          { functionName: "search" },
+          { functionName: "get_summary", optional: true },
+          { functionName: "get_product" },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [
+      { functionName: "search", args: {} },
+      { functionName: "get_product", args: {} },
+    ];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    assert.deepStrictEqual(
+      results.map((r) => ({ fn: (r.expected as any)?.functionName ?? null, outcome: r.outcome })),
+      [
+        { fn: "search", outcome: "pass" },
+        { fn: "get_product", outcome: "pass" },
+      ],
+    );
+  });
+
+  it("matches an optional in an ordered sequence when the model does emit it", () => {
+    // Same expected trajectory as above, but the model DID make the
+    // optional call. All three rows should PASS.
+    const expected: ExpectedCallNode[] = [
+      {
+        ordered: [
+          { functionName: "search" },
+          { functionName: "get_summary", optional: true },
+          { functionName: "get_product" },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [
+      { functionName: "search", args: {} },
+      { functionName: "get_summary", args: {} },
+      { functionName: "get_product", args: {} },
+    ];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    assert.strictEqual(results.length, 3);
+    for (const r of results) assert.strictEqual(r.outcome, "pass");
+  });
+
+  it("leaves required nodes as FAIL when actual is truncated but skips trailing optional", () => {
+    // Expected: [search, get_product, get_summary?].
+    // Actual: [search] — required get_product missing, optional summary skipped.
+    const expected: ExpectedCallNode[] = [
+      {
+        ordered: [
+          { functionName: "search" },
+          { functionName: "get_product" },
+          { functionName: "get_summary", optional: true },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [{ functionName: "search", args: {} }];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    assert.deepStrictEqual(
+      results.map((r) => ({ fn: (r.expected as any)?.functionName ?? null, outcome: r.outcome })),
+      [
+        { fn: "search", outcome: "pass" },
+        { fn: "get_product", outcome: "fail" },
+      ],
+    );
+  });
+
+  it("skips an unmatched optional inside a simple unordered group", () => {
+    // Unordered {add_topping, get_summary?}. Actual only has add_topping.
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          { functionName: "add_topping" },
+          { functionName: "get_summary", optional: true },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [{ functionName: "add_topping", args: { topping: "onion" } }];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    // Only the required node produces a row.
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual((results[0].expected as any).functionName, "add_topping");
+    assert.strictEqual(results[0].outcome, "pass");
+  });
+
+  it("matches an optional inside a simple unordered group when the model emits it", () => {
+    // Same expected, actual now includes the optional.
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          { functionName: "add_topping" },
+          { functionName: "get_summary", optional: true },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [
+      { functionName: "get_summary", args: {} },
+      { functionName: "add_topping", args: { topping: "onion" } },
+    ];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    assert.strictEqual(results.length, 2);
+    for (const r of results) assert.strictEqual(r.outcome, "pass");
+  });
+
+  it("skips an unmatched optional inside a nested unordered group", () => {
+    // Trigger the matchNestedUnorderedGroup path with a group as a
+    // sibling. Actual only has search + update_cart; the optional
+    // get_summary is skipped.
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          {
+            ordered: [{ functionName: "search" }, { functionName: "update_cart" }],
+          },
+          { functionName: "get_summary", optional: true },
+        ],
+      },
+    ];
+    const actual: ToolCall[] = [
+      { functionName: "search", args: {} },
+      { functionName: "update_cart", args: {} },
+    ];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    // Just the two required rows, both pass.
+    assert.strictEqual(results.length, 2);
+    assert.deepStrictEqual(
+      results.map((r) => (r.expected as any).functionName),
+      ["search", "update_cart"],
+    );
+    for (const r of results) assert.strictEqual(r.outcome, "pass");
+  });
+
+  it("still FAILs when the actual has extra calls beyond expected + optional", () => {
+    // Extras that don't match anything (required or optional) still fail
+    // — optional isn't a wildcard, it's a specific-call permission.
+    const expected: ExpectedCallNode[] = [
+      { functionName: "search" },
+      { functionName: "get_summary", optional: true },
+    ];
+    const actual: ToolCall[] = [
+      { functionName: "search", args: {} },
+      { functionName: "something_else", args: {} },
+    ];
+    const results = evaluateExecutionTrajectory(expected, actual);
+    // search passes; the extra call is a trailing unexpected actual and
+    // should be reported as a fail.
+    const outcomes = results.map((r) => r.outcome);
+    assert.ok(outcomes.includes("fail"), `expected at least one fail, got ${outcomes.join(",")}`);
+  });
+});
+
 describe("functionCallOutcome", () => {
   it("passes when both expected and actual are null", () => {
     assert.strictEqual(functionCallOutcome(null, null), "pass");
@@ -361,6 +518,34 @@ describe("functionCallOutcome", () => {
       ),
       "fail",
     );
+  });
+});
+
+describe("countExpectedCalls with optional", () => {
+  it("excludes optional nodes from the required-step count", () => {
+    const nodes: ExpectedCallNode[] = [
+      { functionName: "search" },
+      { functionName: "get_summary", optional: true },
+      { functionName: "get_product" },
+    ];
+    // 3 total nodes, 2 required.
+    assert.strictEqual(countExpectedCalls(nodes), 2);
+  });
+
+  it("excludes optional nodes from ordered/unordered subtrees", () => {
+    const nodes: ExpectedCallNode[] = [
+      {
+        ordered: [
+          { functionName: "a" },
+          { functionName: "b_optional", optional: true },
+          {
+            unordered: [{ functionName: "c" }, { functionName: "d_optional", optional: true }],
+          },
+        ],
+      },
+    ];
+    // Required leaves: a, c → 2.
+    assert.strictEqual(countExpectedCalls(nodes), 2);
   });
 });
 
