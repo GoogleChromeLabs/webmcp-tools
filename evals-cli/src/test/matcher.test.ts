@@ -53,6 +53,54 @@ describe("matcher", () => {
         assert.strictEqual(matchesArgument({ $pattern: ".*" }, 123), false);
         assert.strictEqual(matchesArgument({ $pattern: ".*" }, null), false);
       });
+
+      describe("inline flag prefix", () => {
+        it("honors (?i) for case-insensitive matching", () => {
+          // The bare regex `^colour$` is case-sensitive in V8, and `(?i)` is
+          // POSIX/Python syntax that V8 doesn't parse natively — without the
+          // `buildPattern` shim this would throw SyntaxError.
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "Color"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "colour"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "COLOR"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "colourful"), false);
+        });
+
+        it("honors (?i) mid-substring", () => {
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "Purple Shoes"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "BUY PURPLE!"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "red"), false);
+        });
+
+        it("honors multiple inline flags, e.g. (?is)", () => {
+          // `s` (dotall) lets `.` match newlines; `i` is case-insensitive.
+          // Both should compose from a single prefix.
+          assert.strictEqual(matchesArgument({ $pattern: "(?is)foo.bar" }, "FOO\nBAR"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)foo.bar" }, "FOO\nBAR"), false);
+        });
+
+        it("leaves patterns without an inline-flag prefix unchanged", () => {
+          // Regression guard: patterns that don't start with `(?flags)` must
+          // continue to work with case-sensitive default matching.
+          assert.strictEqual(matchesArgument({ $pattern: "^Color$" }, "Color"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "^Color$" }, "color"), false);
+        });
+
+        it("throws on unsupported inline flags with a useful message", () => {
+          // `x` (extended, POSIX/Perl free-spacing) is not supported by V8 —
+          // silently accepting it would mislead authors into thinking
+          // whitespace/comments in patterns get stripped.
+          assert.throws(
+            () => matchesArgument({ $pattern: "(?x) foo # bar" }, "foo"),
+            /Unsupported inline flag "\(\?x\)"/,
+          );
+        });
+
+        it("does not swallow a genuine SyntaxError from a malformed pattern", () => {
+          // Malformed regexes still throw — the shim only handles the inline
+          // flag prefix, not general error recovery.
+          assert.throws(() => matchesArgument({ $pattern: "(?i)[unclosed" }, "anything"), SyntaxError);
+        });
+      });
     });
 
     describe("$contains", () => {

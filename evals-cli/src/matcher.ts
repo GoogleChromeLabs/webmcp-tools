@@ -40,7 +40,7 @@ function matchesConstraint(constraint: any, actual: any): boolean {
       if (typeof actual !== "string") {
         return false;
       }
-      const pattern = new RegExp(constraint[key]);
+      const pattern = buildPattern(constraint[key]);
       if (!pattern.test(actual)) {
         return false;
       }
@@ -77,6 +77,43 @@ function matchesConstraint(constraint: any, actual: any): boolean {
     // Future constraints will go here
   }
   return true;
+}
+
+/**
+ * JS regex flags accepted by `new RegExp(pattern, flags)`. `x` (extended,
+ * POSIX/Perl free-spacing) is deliberately NOT included — V8 doesn't support
+ * it and silently accepting it would give eval authors a false sense that
+ * whitespace/comments in patterns are ignored.
+ */
+const SUPPORTED_INLINE_FLAGS = new Set(["d", "g", "i", "m", "s", "u", "v", "y"]);
+
+/**
+ * Build a RegExp from a `$pattern` value.
+ *
+ * Accepts an optional leading inline-flag prefix `(?flags)` — POSIX/Python
+ * syntax that eval authors reach for reflexively when they want
+ * case-insensitive matching, e.g. `"(?i)^colou?r$"`. V8 doesn't parse the
+ * `(?flags)` form natively, so without stripping it here the RegExp
+ * constructor throws `SyntaxError: Invalid group` and the whole eval turns
+ * into an opaque case-level ERROR.
+ *
+ * Supported flag characters are the ones `new RegExp(pattern, flags)`
+ * accepts (`d g i m s u v y`). Unknown flags throw.
+ */
+function buildPattern(rawPattern: string): RegExp {
+  const match = /^\(\?([a-zA-Z]+)\)/.exec(rawPattern);
+  if (!match) return new RegExp(rawPattern);
+
+  const flags = match[1];
+  for (const flag of flags) {
+    if (!SUPPORTED_INLINE_FLAGS.has(flag)) {
+      throw new SyntaxError(
+        `Unsupported inline flag "(?${flag})" in $pattern ${JSON.stringify(rawPattern)}. ` +
+          `Supported flags: ${[...SUPPORTED_INLINE_FLAGS].join(", ")}.`,
+      );
+    }
+  }
+  return new RegExp(rawPattern.slice(match[0].length), flags);
 }
 
 /**
