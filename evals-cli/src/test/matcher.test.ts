@@ -98,7 +98,10 @@ describe("matcher", () => {
         it("does not swallow a genuine SyntaxError from a malformed pattern", () => {
           // Malformed regexes still throw — the shim only handles the inline
           // flag prefix, not general error recovery.
-          assert.throws(() => matchesArgument({ $pattern: "(?i)[unclosed" }, "anything"), SyntaxError);
+          assert.throws(
+            () => matchesArgument({ $pattern: "(?i)[unclosed" }, "anything"),
+            SyntaxError,
+          );
         });
       });
     });
