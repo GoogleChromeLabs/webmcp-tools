@@ -5,7 +5,12 @@
 
 import { describe, it } from "node:test";
 import * as assert from "node:assert";
-import { evaluateExecutionTrajectory, sortObjectKeys, countExpectedCalls } from "../utils.js";
+import {
+  evaluateExecutionTrajectory,
+  functionCallOutcome,
+  sortObjectKeys,
+  countExpectedCalls,
+} from "../utils.js";
 import { ExpectedCallNode } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 
@@ -265,6 +270,106 @@ describe("evaluateExecutionTrajectory", () => {
     assert.throws(() => {
       evaluateExecutionTrajectory(expected, []);
     }, /Unordered group too large/);
+  });
+});
+
+describe("functionCallOutcome", () => {
+  it("passes when both expected and actual are null", () => {
+    assert.strictEqual(functionCallOutcome(null, null), "pass");
+  });
+
+  it("fails when only one side is null", () => {
+    assert.strictEqual(
+      functionCallOutcome(null, { functionName: "foo", args: {} }),
+      "fail",
+    );
+    assert.strictEqual(
+      functionCallOutcome({ functionName: "foo", arguments: {} }, null),
+      "fail",
+    );
+  });
+
+  it("fails when the function name differs", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", arguments: {} },
+        { functionName: "bar", args: {} },
+      ),
+      "fail",
+    );
+  });
+
+  it("passes matching args", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", arguments: { a: 1 } },
+        { functionName: "foo", args: { a: 1 } },
+      ),
+      "pass",
+    );
+  });
+
+  it("fails on mismatched args", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", arguments: { a: 1 } },
+        { functionName: "foo", args: { a: 2 } },
+      ),
+      "fail",
+    );
+  });
+
+  it("treats a missing `arguments` field as an unconstrained match", () => {
+    // Common case: the eval author omits `arguments` from evals.json for a
+    // no-arg tool like `get_cart`. The model's SDK still surfaces the call
+    // with an empty args object, which should not be scored as a mismatch.
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "get_cart" },
+        { functionName: "get_cart", args: {} },
+      ),
+      "pass",
+    );
+    // Even non-empty actual args pass when the eval doesn't constrain them.
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "get_cart" },
+        { functionName: "get_cart", args: { verbose: true } },
+      ),
+      "pass",
+    );
+  });
+
+  it("treats an explicit `arguments: null` as an unconstrained match", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "get_cart", arguments: null },
+        { functionName: "get_cart", args: {} },
+      ),
+      "pass",
+    );
+  });
+
+  it("treats explicit `arguments: {}` as a strict no-args assertion", () => {
+    // Opposite of the omit-key case: an author who writes `"arguments": {}`
+    // is asserting the call takes no args. `{}` matches `{}` under the
+    // existing recursive check.
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", arguments: {} },
+        { functionName: "foo", args: {} },
+      ),
+      "pass",
+    );
+    // A stricter reading of `{}` ("no extra keys allowed") would still be
+    // enforced by matchesArgument — documented here as a regression guard.
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", arguments: {} },
+        { functionName: "foo", args: { x: 1 } },
+      ),
+      "fail",
+    );
   });
 });
 

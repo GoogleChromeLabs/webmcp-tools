@@ -44,10 +44,14 @@ export function functionCallOutcome(
   if (expected === null && actual === null) return "pass";
   if (!expected || !actual) return "fail";
 
-  return expected.functionName === actual.functionName &&
-    matchesArgument(expected.arguments, actual.args)
-    ? "pass"
-    : "fail";
+  if (expected.functionName !== actual.functionName) return "fail";
+
+  // An eval that omits `arguments` (or sets it to null) imposes no constraint
+  // on the tool call's arguments. Treat any actual args — including the empty
+  // object `{}` that most SDKs emit for no-arg tool calls — as a match.
+  if (expected.arguments == null) return "pass";
+
+  return matchesArgument(expected.arguments, actual.args) ? "pass" : "fail";
 }
 
 export interface TrajectoryResult {

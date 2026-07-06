@@ -40,7 +40,9 @@ export type Eval = {
 
 export type FunctionCall = {
   functionName: string;
-  arguments: object;
+  // Optional: when omitted (or explicitly null), the eval imposes no
+  // constraint on the tool call's arguments — any actual args are accepted.
+  arguments?: object | null;
 };
 
 export type TestResult = {
