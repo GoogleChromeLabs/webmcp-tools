@@ -341,10 +341,11 @@ describe("functionCallOutcome", () => {
     );
   });
 
-  it("treats explicit `arguments: {}` as a strict no-args assertion", () => {
-    // Opposite of the omit-key case: an author who writes `"arguments": {}`
-    // is asserting the call takes no args. `{}` matches `{}` under the
-    // existing recursive check.
+  it("treats explicit `arguments: {}` as an unconstrained match under subset semantics", () => {
+    // With object matching now subset-based (see matcher.ts:matchesRecursive),
+    // an empty expected object imposes no constraints on any of actual's
+    // keys — the loop "for every key in expected" doesn't iterate. Any actual
+    // shape matches.
     assert.strictEqual(
       functionCallOutcome(
         { functionName: "foo", arguments: {} },
@@ -352,14 +353,13 @@ describe("functionCallOutcome", () => {
       ),
       "pass",
     );
-    // A stricter reading of `{}` ("no extra keys allowed") would still be
-    // enforced by matchesArgument — documented here as a regression guard.
+    // Extra keys in actual are permitted — same as any other subset match.
     assert.strictEqual(
       functionCallOutcome(
         { functionName: "foo", arguments: {} },
         { functionName: "foo", args: { x: 1 } },
       ),
-      "fail",
+      "pass",
     );
   });
 });

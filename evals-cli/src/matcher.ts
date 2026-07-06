@@ -137,12 +137,20 @@ function isConstraintObject(obj: any): boolean {
 
 /**
  * Recursively checks equality between two values.
- * If values are objects or arrays, it recurses into them.
- * Crucially, it calls `matchesArgument` for children, enabling nested constraints.
  *
- * @param expected The expected structure.
- * @param actual The actual structure.
- * @returns True if structures match recursively.
+ * Object matching is **subset-based**: every key present in `expected` must
+ * exist in `actual` with a matching value, but extra keys in `actual` are
+ * ignored. This means an eval that specifies only the args it cares about
+ * (e.g. `{ query: { $contains: "shoe" } }`) matches a real tool call that
+ * also happens to include model-added fields like `pagination`.
+ *
+ * Array matching stays **strict**: expected and actual must have the same
+ * length and match positionally. Arrays are typically meaningful sequences
+ * (`line_items`, `selected_options`, ...) where silently accepting extra
+ * elements would surprise authors more often than help.
+ *
+ * Recurses via `matchesArgument`, so nested constraints (`$pattern`,
+ * `$contains`, `$any`, ...) continue to work inside subset-matched objects.
  */
 function matchesRecursive(expected: any, actual: any): boolean {
   if (expected === actual) {
@@ -158,14 +166,25 @@ function matchesRecursive(expected: any, actual: any): boolean {
     return false;
   }
 
-  const keys1 = Object.keys(expected);
-  const keys2 = Object.keys(actual);
-
-  if (keys1.length !== keys2.length) {
+  // Arrays keep strict length + positional matching.
+  const expectedIsArray = Array.isArray(expected);
+  if (expectedIsArray !== Array.isArray(actual)) {
     return false;
   }
+  if (expectedIsArray) {
+    if (expected.length !== actual.length) {
+      return false;
+    }
+    for (let i = 0; i < expected.length; i++) {
+      if (!matchesArgument(expected[i], actual[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-  for (const key of keys1) {
+  // Objects use subset-match: extra keys in `actual` are allowed.
+  for (const key of Object.keys(expected)) {
     if (
       !Object.prototype.hasOwnProperty.call(actual, key) ||
       !matchesArgument(expected[key], actual[key])

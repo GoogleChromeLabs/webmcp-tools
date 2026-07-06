@@ -39,6 +39,83 @@ describe("matcher", () => {
     });
   });
 
+  describe("subset object matching", () => {
+    it("accepts extra keys in actual at the top level", () => {
+      // The motivating case: an eval that constrains `query` but doesn't
+      // mention `pagination` should still pass when the model adds
+      // pagination on its own.
+      assert.strictEqual(
+        matchesArgument(
+          { catalog: { query: { $contains: "shoe" } } },
+          { catalog: { query: "purple shoe", pagination: { limit: 5 } } },
+        ),
+        true,
+      );
+    });
+
+    it("accepts extra keys at nested levels", () => {
+      assert.strictEqual(
+        matchesArgument(
+          { catalog: { query: "shoe" } },
+          { catalog: { query: "shoe", pagination: { limit: 5 }, sort: "asc" } },
+        ),
+        true,
+      );
+    });
+
+    it("still fails when an expected key is missing from actual", () => {
+      // Subset relaxes extras-in-actual, not missing-keys-in-actual.
+      assert.strictEqual(matchesArgument({ query: "shoe" }, { pagination: { limit: 5 } }), false);
+    });
+
+    it("still fails when an expected key has the wrong value", () => {
+      // Extras allowed; wrong values not.
+      assert.strictEqual(
+        matchesArgument({ query: "shoe" }, { query: "boot", pagination: {} }),
+        false,
+      );
+    });
+
+    it('treats an empty expected object as "any object accepted"', () => {
+      // Consequence of subset semantics: `{}` imposes no constraints.
+      assert.strictEqual(matchesArgument({}, {}), true);
+      assert.strictEqual(matchesArgument({}, { anything: "goes" }), true);
+      // Non-object actuals still don't match — expected is an object.
+      assert.strictEqual(matchesArgument({}, null), false);
+      assert.strictEqual(matchesArgument({}, "not-an-object"), false);
+      assert.strictEqual(matchesArgument({}, [1, 2]), false);
+    });
+
+    it("keeps arrays strict on length", () => {
+      // Arrays are typically meaningful sequences (line_items,
+      // selected_options, ...). Extra elements would surprise more often
+      // than help — they stay strict-length.
+      assert.strictEqual(matchesArgument([1, 2], [1, 2, 3]), false);
+      assert.strictEqual(matchesArgument([1, 2], [1]), false);
+      assert.strictEqual(matchesArgument([{ a: 1 }], [{ a: 1, b: 2 }]), true); // element subset applies
+    });
+
+    it("composes with nested constraints inside subset objects", () => {
+      const schema = {
+        catalog: {
+          query: { $contains: "shoe" },
+          filters: { color: { $pattern: "^[Pp]urple$" } },
+        },
+      };
+      // Actual carries extra `pagination` alongside the constrained keys.
+      assert.strictEqual(
+        matchesArgument(schema, {
+          catalog: {
+            query: "purple shoe",
+            filters: { color: "Purple", material: "canvas" },
+            pagination: { limit: 10 },
+          },
+        }),
+        true,
+      );
+    });
+  });
+
   describe("constraints", () => {
     describe("$pattern", () => {
       it("matches strings against regex", () => {
