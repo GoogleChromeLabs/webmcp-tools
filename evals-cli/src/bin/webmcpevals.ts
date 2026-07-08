@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Copyright 2026 Google LLC
  * SPDX-License-Identifier: Apache-2.0
@@ -20,6 +22,23 @@ import { sortObjectKeys, cleanOldReports } from "../utils.js";
 dotenv.config();
 
 const args = minimist(process.argv.slice(2));
+
+if (args.help || args.h) {
+  console.log(`
+Usage: webmcpevals [options]
+
+Options:
+  --url <string>       URL of the page to evaluate (required)
+  --evals <string>     Path to the evals JSON file (required)
+  --backend <string>   Execution backend (gemini, ollama, vercel) (default: vercel)
+  --provider <string>  Model provider (e.g., google, openai, anthropic) (default: gemini)
+  --model <string>     Model name (default: gemini-3-flash-preview)
+  --runs <number>      Number of runs (default: 1)
+  --debug, --verbose   Enable debug output
+  --help, -h           Show help
+`);
+  process.exit(0);
+}
 
 if (!args.url) {
   console.error("The 'url' argument is required.");

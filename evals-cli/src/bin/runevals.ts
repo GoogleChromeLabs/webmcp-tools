@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Copyright 2026 Google LLC
  * SPDX-License-Identifier: Apache-2.0
@@ -18,6 +20,24 @@ import { cleanOldReports } from "../utils.js";
 dotenv.config();
 
 const args = minimist(process.argv.slice(2));
+
+if (args.help || args.h) {
+  console.log(`
+Usage: runevals [options]
+
+Options:
+  --tools <string>     Path to the tool schema JSON file (required)
+  --evals <string>     Path to the evals JSON file (required)
+  --backend <string>   Execution backend (gemini, ollama, vercel) (default: gemini)
+  --provider <string>  Model provider (e.g., google, openai, anthropic)
+  --model <string>     Model name (default: gemini-3-flash-preview)
+  --runs <number>      Number of runs (default: 1)
+  --max-steps <number> Maximum evaluation steps
+  --help, -h           Show help
+`);
+  process.exit(0);
+}
+
 if (!args.tools) {
   console.error("The 'tools' argument is required.");
   process.exit(1);

@@ -1,0 +1,57 @@
+name: npm Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: "npm"
+          cache-dependency-path: "evals-cli/package-lock.json"
+
+      - name: Install dependencies
+        working-directory: ./evals-cli
+        run: npm ci
+
+      - name: Build distribution
+        working-directory: ./evals-cli
+        run: npm run build
+
+      - name: Dry run (verify build & CLI help commands)
+        working-directory: ./evals-cli
+        run: |
+          node dist/bin/webmcpevals.js --help
+          node dist/bin/runevals.js --help
+          node dist/bin/serve.js --help
+          npm publish --dry-run
+
+      # Configure Node.js with Wombat registry for publishing
+      - name: Setup Node.js for Wombat registry
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://wombat-dressing-room.appspot.com/"
+
+      - name: Publish to npm (Wombat)
+        working-directory: ./evals-cli
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

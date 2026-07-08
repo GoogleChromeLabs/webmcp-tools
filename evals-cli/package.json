@@ -1,14 +1,27 @@
 {
-  "name": "webmcp-evals-cli",
+  "name": "webmcp-evals",
   "version": "0.1.0",
   "description": "A command-line tool to run evals for WebMCP schema definitions",
   "license": "Apache-2.0",
+  "bin": {
+    "runevals": "dist/bin/runevals.js",
+    "webmcp-evals": "dist/bin/webmcpevals.js",
+    "webmcp-evals-serve": "dist/bin/serve.js",
+    "webmcpevals": "dist/bin/webmcpevals.js"
+  },
+  "files": [
+    "dist",
+    "ui/dist",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "scripts": {
     "postinstall": "npm install --prefix ui",
-    "build": "tsc",
+    "build": "tsc && npm run build --prefix ui",
     "test": "tsc && node --test dist/test/*.test.js",
-    "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js",
+    "serve": "npm run build && node dist/bin/serve.js",
     "lint": "oxlint",
     "format": "oxfmt --write"
   },
