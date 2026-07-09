@@ -21,66 +21,90 @@
     }
 
     // 2. Declarative tools (forms) on this window
-    try {
-      const forms = win.document.querySelectorAll('form[toolname]');
-      for (const form of forms) {
-        const name = form.getAttribute('toolname');
-        const description = form.getAttribute('tooldescription') || '';
+    const forms = win.document.querySelectorAll('form[toolname]');
+    for (const form of forms) {
+      const name = form.getAttribute('toolname');
+      const description = form.getAttribute('tooldescription') || '';
 
-        // Build inputSchema
-        const properties = {};
-        const required = [];
-        const elements = form.querySelectorAll('input[name], select[name], textarea[name]');
-        for (const el of elements) {
-          const propName = el.name;
-          const propDesc = el.getAttribute('toolparamdescription') || '';
-          let type = 'string';
-          let enumValues = undefined;
+      // Build inputSchema
+      const properties = {};
+      const required = [];
+      const elements = form.querySelectorAll('input[name], select[name], textarea[name]');
+      for (const el of elements) {
+        const propName = el.name;
+        const propDesc = el.getAttribute('toolparamdescription') || '';
+        let type = 'string';
+        let enumValues = undefined;
 
-          if (el.tagName === 'SELECT') {
-            type = 'string';
-            enumValues = Array.from(el.options).map((opt) => opt.value || opt.text);
-          } else if (el.type === 'number' || el.type === 'range') {
-            type = 'number';
-          } else if (el.type === 'checkbox') {
-            type = 'boolean';
-          }
-
-          const property = { type };
-          if (propDesc) {
-            property.description = propDesc;
-          }
-          if (enumValues) {
-            property.enum = enumValues;
-          }
-          properties[propName] = property;
-
-          if (el.hasAttribute('required')) {
-            required.push(propName);
-          }
+        if (el.tagName === 'SELECT') {
+          type = 'string';
+          enumValues = Array.from(el.options).map((opt) => opt.value || opt.text);
+        } else if (el.type === 'number' || el.type === 'range') {
+          type = 'number';
+        } else if (el.type === 'checkbox') {
+          type = 'boolean';
         }
 
-        const inputSchema = {
-          type: 'object',
-          properties,
-        };
-        if (required.length > 0) {
-          inputSchema.required = required;
+        const property = { type };
+        if (propDesc) {
+          property.description = propDesc;
         }
+        if (enumValues) {
+          property.enum = enumValues;
+        }
+        properties[propName] = property;
 
-        tools.push({
-          name,
-          description,
-          inputSchema: JSON.stringify(inputSchema),
-          window: win,
-          _form: form,
-        });
+        if (el.hasAttribute('required')) {
+          required.push(propName);
+        }
       }
-    } catch (e) {
-      // Ignore cross-origin frame document access errors
+
+      const inputSchema = {
+        type: 'object',
+        properties,
+      };
+      if (required.length > 0) {
+        inputSchema.required = required;
+      }
+
+      tools.push({
+        name,
+        description,
+        inputSchema: JSON.stringify(inputSchema),
+        window: win,
+        origin: win.origin,
+        _form: form,
+      });
     }
 
     return tools;
+  }
+
+  function getRemoteTools(win) {
+    return new Promise((resolve) => {
+      const requestId = Math.random().toString(36).substring(2);
+      const timer = setTimeout(() => {
+        window.removeEventListener('message', listener);
+        resolve([]);
+      }, 500);
+
+      const listener = (event) => {
+        const { data } = event;
+        if (data && data.type === 'WEBMCP_GET_TOOLS_RESPONSE' && data.requestId === requestId) {
+          clearTimeout(timer);
+          window.removeEventListener('message', listener);
+          const toolsWithWindow = (data.tools || []).map((t) => ({
+            ...t,
+            window: win,
+            _isRemote: true,
+          }));
+          resolve(toolsWithWindow);
+        }
+      };
+
+      window.addEventListener('message', listener);
+      win.postMessage({ type: 'WEBMCP_GET_TOOLS_REQUEST', requestId }, '*');
+    });
   }
 
   class ModelContext extends EventTarget {
@@ -185,17 +209,19 @@
       } catch (e) { }
 
       const allTools = [];
+      const remoteToolPromises = [];
+
       for (const win of allWindows) {
-        try {
-          // Check if we can access the window origin
-          if (win.origin === window.origin || win.document) {
-            allTools.push(...getLocalTools(win));
-          }
-        } catch (e) {
-          // Cross-origin, ignore
+        if (win === window) {
+          allTools.push(...getLocalTools(window));
+        } else {
+          remoteToolPromises.push(getRemoteTools(win));
         }
       }
-
+      const remoteToolsResults = await Promise.all(remoteToolPromises);
+      for (const remoteTools of remoteToolsResults) {
+        allTools.push(...remoteTools);
+      }
       const uniqueTools = [];
       const seenNames = new Set();
       for (const t of allTools) {
@@ -205,24 +231,41 @@
         }
       }
 
-      let filteredTools = uniqueTools;
-      if (options && Array.isArray(options.fromOrigins)) {
-        const origins = new Set(options.fromOrigins);
-        filteredTools = uniqueTools.filter((t) => {
-          const win = t.window || window;
-          try {
-            return origins.has(win.origin);
-          } catch (e) {
-            return false;
-          }
-        });
-      }
+      const origins = Array.isArray(options?.fromOrigins) ? new Set(options.fromOrigins) : null;
+
+      const filteredTools = uniqueTools.filter((t) =>
+        t.origin === window.origin || (origins && origins.size > 0 && origins.has(t.origin))
+      );
 
       return filteredTools;
     }
 
     async executeTool(tool, args) {
       const win = tool.window || window;
+
+      if (tool._isRemote) {
+        return new Promise((resolve, reject) => {
+          const requestId = Math.random().toString(36).substring(2);
+          const listener = (event) => {
+            const { data } = event;
+            if (data && data.type === 'WEBMCP_EXECUTE_TOOL_RESPONSE' && data.requestId === requestId) {
+              window.removeEventListener('message', listener);
+              if (data.success) {
+                resolve(data.result);
+              } else {
+                reject(new Error(data.error));
+              }
+            }
+          };
+          window.addEventListener('message', listener);
+          win.postMessage({
+            type: 'WEBMCP_EXECUTE_TOOL_REQUEST',
+            requestId,
+            name: tool.name,
+            args,
+          }, '*');
+        });
+      }
 
       if (win !== window && win.document && win.document.modelContext && win.document.modelContext.executeTool) {
         return win.document.modelContext.executeTool(tool, args);
@@ -437,6 +480,58 @@
     value: modelContext,
     writable: false,
     configurable: true,
+  });
+
+  window.addEventListener('message', async ({ data, source }) => {
+    if (data.type === 'WEBMCP_GET_TOOLS_REQUEST') {
+      const localTools = getLocalTools(window);
+      const serializableTools = localTools.map((t) => ({
+        name: t.name,
+        description: t.description,
+        inputSchema: t.inputSchema,
+        origin: t.origin,
+        annotations: t.annotations,
+      }));
+      source.postMessage(
+        {
+          type: 'WEBMCP_GET_TOOLS_RESPONSE',
+          requestId: data.requestId,
+          tools: serializableTools,
+        },
+        '*'
+      );
+    }
+
+    if (data.type === 'WEBMCP_EXECUTE_TOOL_REQUEST') {
+      const { name, args, requestId } = data;
+      try {
+        const localTools = getLocalTools(window);
+        const tool = localTools.find((t) => t.name === name);
+        if (!tool) {
+          throw new Error(`Tool ${name} not found`);
+        }
+        const result = await modelContext.executeTool(tool, args);
+        source.postMessage(
+          {
+            type: 'WEBMCP_EXECUTE_TOOL_RESPONSE',
+            requestId,
+            success: true,
+            result,
+          },
+          '*'
+        );
+      } catch (err) {
+        source.postMessage(
+          {
+            type: 'WEBMCP_EXECUTE_TOOL_RESPONSE',
+            requestId,
+            success: false,
+            error: err.message || String(err),
+          },
+          '*'
+        );
+      }
+    }
   });
 
   if (window.document.readyState === 'loading') {
