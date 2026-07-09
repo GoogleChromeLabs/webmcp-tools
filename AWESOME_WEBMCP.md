@@ -1,10 +1,11 @@
 # Awesome WebMCP
 
-A curated list of awesome WebMCP demos.
+A curated list of awesome WebMCP demos, libraries, and tools.
 
 ## Contents
 
 - [Demos](#demos)
+- [Libraries & Tools](#libraries--tools)
 - [Contributing](#contributing)
 
 ## Demos
@@ -67,6 +68,10 @@ A curated list of awesome WebMCP demos.
 - [Stacktree](https://stacktr.ee/) - Private hosting for the HTML that AI agents generate. Registers `stacktree_publish_html` via `document.modelContext`, so a browser agent can hand over a complete HTML document and get back a live, shareable URL with no account or sign-in. Anonymous sites are unlisted and the response includes a claim URL to keep the page permanently in a free account.
   - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
 
+## Libraries & Tools
+
+- [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
+- [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 
 ## Contributing
 
