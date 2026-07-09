@@ -103,7 +103,11 @@ function initSharedWorker(apiKey) {
       case 'GET_TOOLS':
         const tools = await getTools();
         // FIXME: tool.window needs to be removed because it's not serializable.
-        const serializableTools = tools.map(({ window, ...toolWithoutWindow }) => toolWithoutWindow);
+        const serializableTools = tools.map(({ name, description, inputSchema }) => ({
+          name,
+          description,
+          inputSchema,
+        }));
         worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: serializableTools, id });
         break;
 
