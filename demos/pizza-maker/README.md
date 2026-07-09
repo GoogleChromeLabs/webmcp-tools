@@ -4,6 +4,8 @@
 
 This project demonstrates a **WebMCP** implementation for an interactive pizza builder. It allows an AI agent to interact directly with the pizza creation process, such as adding toppings, changing styles, and adjusting sizes by registering custom tools.
 
+It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
+
 ## 🛠️ How It Works
 
 Unlike declarative forms, this demo uses the `document.modelContext.registerTool` API in `script.js` to expose fine-grained control over the application state to an AI agent.

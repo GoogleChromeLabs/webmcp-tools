@@ -68,6 +68,7 @@ jobs:
           mkdir -p deployment-root/demos
 
           cp -r demos/french-bistro deployment-root/demos/french-bistro
+          cp -r demos/shared deployment-root/demos/shared
           cp -r demos/react-flightsearch/dist deployment-root/demos/react-flightsearch
           cp -r demos/pizza-maker deployment-root/demos/pizza-maker
           cp -r demos/doors deployment-root/demos/doors
