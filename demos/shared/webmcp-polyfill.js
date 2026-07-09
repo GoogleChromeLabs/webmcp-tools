@@ -89,8 +89,8 @@
       }, 500);
 
       const listener = (event) => {
-        const { data } = event;
-        if (data && data.type === 'WEBMCP_GET_TOOLS_RESPONSE' && data.requestId === requestId) {
+        const { data, source } = event;
+        if (source === win && data && data.type === 'WEBMCP_GET_TOOLS_RESPONSE' && data.requestId === requestId) {
           clearTimeout(timer);
           window.removeEventListener('message', listener);
           const toolsWithWindow = (data.tools || []).map((t) => ({
@@ -215,7 +215,16 @@
         if (win === window) {
           allTools.push(...getLocalTools(window));
         } else {
-          remoteToolPromises.push(getRemoteTools(win));
+          let isSameOrigin = false;
+          try {
+            isSameOrigin = !!win.document;
+          } catch (e) {}
+
+          if (isSameOrigin) {
+            allTools.push(...getLocalTools(win));
+          } else {
+            remoteToolPromises.push(getRemoteTools(win));
+          }
         }
       }
       const remoteToolsResults = await Promise.all(remoteToolPromises);
@@ -247,8 +256,8 @@
         return new Promise((resolve, reject) => {
           const requestId = Math.random().toString(36).substring(2);
           const listener = (event) => {
-            const { data } = event;
-            if (data && data.type === 'WEBMCP_EXECUTE_TOOL_RESPONSE' && data.requestId === requestId) {
+            const { data, source } = event;
+            if (source === win && data && data.type === 'WEBMCP_EXECUTE_TOOL_RESPONSE' && data.requestId === requestId) {
               window.removeEventListener('message', listener);
               if (data.success) {
                 resolve(data.result);
