@@ -58,7 +58,23 @@ export function sanitizeSchema(obj: any): any {
   return clone;
 }
 
-export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, any> {
+/**
+ * Convert WebMCP tool definitions into the Vercel AI SDK tool shape.
+ *
+ * When `execute` is provided, each generated tool gains an `execute`
+ * function that delegates to it, keyed by tool name. This turns tools
+ * from pure schemas into callables and, combined with a
+ * `stopWhen: stepCountIs(N > 1)` on `generateText`, lets the model loop
+ * across multiple tool-calling turns — which is what `executeLocalEvals`
+ * uses to drive multi-step trajectories via `MockResolver`.
+ *
+ * When `execute` is omitted, tools are returned as pure schemas and the
+ * SDK terminates after the first assistant turn — the legacy behavior.
+ */
+export function mapJsonSchemaToVercelTools(
+  inputTools: Tool[],
+  execute?: (functionName: string, args: unknown) => unknown | Promise<unknown>,
+): Record<string, any> {
   const tools: Record<string, any> = {};
   inputTools.forEach((toolDef: any) => {
     const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
@@ -69,6 +85,7 @@ export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, a
       description: toolDef.description,
       parameters: jsonSchema(parameters),
       inputSchema: jsonSchema(parameters),
+      ...(execute ? { execute: async (args: unknown) => execute(toolDef.functionName, args) } : {}),
     };
   });
 

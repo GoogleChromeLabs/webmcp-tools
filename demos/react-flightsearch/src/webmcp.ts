@@ -308,11 +308,10 @@ export const searchFlightsTool = {
 };
 
 export function registerFlightSearchTools() {
-  const modelContext = document.modelContext || navigator.modelContext;
-  if (modelContext) {
+  if (document.modelContext) {
     if (!registeredTools.searchTools) {
       registeredTools.searchTools = new AbortController();
-      modelContext.registerTool(searchFlightsTool, { signal: registeredTools.searchTools.signal });
+      document.modelContext.registerTool(searchFlightsTool, { signal: registeredTools.searchTools.signal });
     }
   }
 }
@@ -325,16 +324,14 @@ export function unregisterFlightSearchTools() {
 }
 
 export function registerFlightResultsTools() {
-  const modelContext = document.modelContext || navigator.modelContext;
-
-  if (modelContext) {
+  if (document.modelContext) {
     if (!registeredTools.resultsTools) {
       registeredTools.resultsTools = new AbortController();
       const options = { signal: registeredTools.resultsTools.signal };
-      modelContext.registerTool(listFlightsTool, options);
-      modelContext.registerTool(setFiltersTool, options);
-      modelContext.registerTool(resetFiltersTool, options);
-      modelContext.registerTool(searchFlightsTool, options);
+      document.modelContext.registerTool(listFlightsTool, options);
+      document.modelContext.registerTool(setFiltersTool, options);
+      document.modelContext.registerTool(resetFiltersTool, options);
+      document.modelContext.registerTool(searchFlightsTool, options);
     }
   }
 }

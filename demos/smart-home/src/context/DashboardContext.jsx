@@ -17,36 +17,37 @@ export function DashboardProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController();
 
-    const modelContext = document.modelContext || navigator.modelContext;
-    try {
-      modelContext.registerTool({
-        name: "rearrangeDOMComponents",
-        title: "Rearrange Dashboard",
-        description: "Rearranges the user's home dashboard by adding, removing, or reordering smart home control components based on the user's intent.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            componentIds: {
-              type: "array",
-              items: { type: "string" },
-              description: "Array of component IDs to display on the dashboard. Examples: 'thermostat_control', 'camera_front_door', 'lock_front_door', 'smart_lights_living_room', 'energy_summary', 'weather_widget', 'media_player_living_room', 'alarm_panel', 'air_quality_sensor', 'robot_vacuum', 'solar_grid'"
-            }
+    (async() => {
+      try {
+        await document.modelContext.registerTool({
+          name: "rearrangeDOMComponents",
+          title: "Rearrange Dashboard",
+          description: "Rearranges the user's home dashboard by adding, removing, or reordering smart home control components based on the user's intent.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              componentIds: {
+                type: "array",
+                items: { type: "string" },
+                description: "Array of component IDs to display on the dashboard. Examples: 'thermostat_control', 'camera_front_door', 'lock_front_door', 'smart_lights_living_room', 'energy_summary', 'weather_widget', 'media_player_living_room', 'alarm_panel', 'air_quality_sensor', 'robot_vacuum', 'solar_grid'"
+              }
+            },
+            required: ["componentIds"]
           },
-          required: ["componentIds"]
-        },
-        execute: async (input) => {
-          setIsAgentActive(true);
-          setDashboardComponents(input.componentIds);
-          
-          setTimeout(() => setIsAgentActive(false), 2000);
-          return "Dashboard successfully updated with requested components.";
-        }
-      }, { signal: controller.signal });
+          execute: async (input) => {
+            setIsAgentActive(true);
+            setDashboardComponents(input.componentIds);
 
-      console.log("WebMCP tool registered via modelContext");
-    } catch (e) {
-      console.error(e);
-    }
+            setTimeout(() => setIsAgentActive(false), 2000);
+            return "Dashboard successfully updated with requested components.";
+          }
+        }, { signal: controller.signal });
+
+        console.log("WebMCP tool registered via modelContext");
+      } catch (e) {
+        console.error(e);
+      }
+    })();
 
     return () => {
       controller.abort();

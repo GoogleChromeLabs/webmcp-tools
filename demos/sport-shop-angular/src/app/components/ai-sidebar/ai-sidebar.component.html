@@ -4,18 +4,33 @@
 -->
 
 <div class="bg-surface-container-lowest rounded-2xl shadow-premium border border-outline-variant/10 flex flex-col h-full overflow-hidden">
-    <div class="p-6 bg-primary text-on-primary">
-        <div class="flex items-center gap-3 mb-1">
-            <span class="material-symbols-outlined">smart_toy</span>
-            <h2 class="font-headline font-bold tracking-tight">Sports AI Assistant</h2>
+    <div class="p-6 bg-primary text-on-primary flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <span class="material-symbols-outlined">smart_toy</span>
+                <h2 class="font-headline font-bold tracking-tight">Sports AI Assistant</h2>
+            </div>
+            <p class="text-[10px] uppercase font-black tracking-widest opacity-80">WEBMCP POWERED</p>
         </div>
-        <p class="text-[10px] uppercase font-black tracking-widest opacity-80">AI ASSISTANT ACTIVE</p>
+        <button (click)="openAgentDrawer()" class="p-2 bg-on-primary/10 hover:bg-on-primary/20 rounded-xl transition-colors" title="Expand Floating Assistant">
+            <span class="material-symbols-outlined text-xl">open_in_full</span>
+        </button>
     </div>
-    <div class="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
+    <div class="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar">
         <div class="bg-surface-container-low p-4 rounded-xl rounded-tl-none border-l-4 border-primary">
             <p class="text-sm leading-relaxed text-on-surface">
                 {{ message }}
             </p>
+        </div>
+        <div class="p-4 bg-primary/5 rounded-xl border border-primary/20 text-xs text-on-surface-variant flex flex-col gap-2">
+            <div class="flex items-center gap-2 font-bold text-primary">
+                <span class="material-symbols-outlined text-base">auto_awesome</span>
+                <span>Interactive Agent</span>
+            </div>
+            <p>Use the bottom-left floating button or click below to launch the full agent drawer with WebMCP actions.</p>
+            <button (click)="openAgentDrawer()" class="mt-1 w-full py-2 bg-primary text-on-primary font-bold rounded-lg text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all">
+                Launch AI Assistant
+            </button>
         </div>
     </div>
     <div class="p-6 bg-surface-container-low border-t border-outline-variant/10">

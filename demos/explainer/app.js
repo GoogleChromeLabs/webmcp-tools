@@ -344,7 +344,7 @@
   // Internal mirror, used by the on-page tools panel UI.
   const localRegistry = [];
 
-  function registerTool(spec) {
+  async function registerTool(spec) {
     // Wrap execute so EVERY invocation — whether from the in-page sim or a
     // real WebMCP agent — flashes the matching tool card and shows the call
     // in the "Last call" panel. Tools no longer need to call flashTool() themselves.
@@ -358,7 +358,7 @@
 
     if (HAS_WEBMCP) {
       try {
-        document.modelContext.registerTool({
+        await document.modelContext.registerTool({
           name: spec.name,
           title: spec.title,
           description: spec.description,

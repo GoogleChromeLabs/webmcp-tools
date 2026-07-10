@@ -39,6 +39,83 @@ describe("matcher", () => {
     });
   });
 
+  describe("subset object matching", () => {
+    it("accepts extra keys in actual at the top level", () => {
+      // The motivating case: an eval that constrains `query` but doesn't
+      // mention `pagination` should still pass when the model adds
+      // pagination on its own.
+      assert.strictEqual(
+        matchesArgument(
+          { catalog: { query: { $contains: "shoe" } } },
+          { catalog: { query: "purple shoe", pagination: { limit: 5 } } },
+        ),
+        true,
+      );
+    });
+
+    it("accepts extra keys at nested levels", () => {
+      assert.strictEqual(
+        matchesArgument(
+          { catalog: { query: "shoe" } },
+          { catalog: { query: "shoe", pagination: { limit: 5 }, sort: "asc" } },
+        ),
+        true,
+      );
+    });
+
+    it("still fails when an expected key is missing from actual", () => {
+      // Subset relaxes extras-in-actual, not missing-keys-in-actual.
+      assert.strictEqual(matchesArgument({ query: "shoe" }, { pagination: { limit: 5 } }), false);
+    });
+
+    it("still fails when an expected key has the wrong value", () => {
+      // Extras allowed; wrong values not.
+      assert.strictEqual(
+        matchesArgument({ query: "shoe" }, { query: "boot", pagination: {} }),
+        false,
+      );
+    });
+
+    it('treats an empty expected object as "any object accepted"', () => {
+      // Consequence of subset semantics: `{}` imposes no constraints.
+      assert.strictEqual(matchesArgument({}, {}), true);
+      assert.strictEqual(matchesArgument({}, { anything: "goes" }), true);
+      // Non-object actuals still don't match — expected is an object.
+      assert.strictEqual(matchesArgument({}, null), false);
+      assert.strictEqual(matchesArgument({}, "not-an-object"), false);
+      assert.strictEqual(matchesArgument({}, [1, 2]), false);
+    });
+
+    it("keeps arrays strict on length", () => {
+      // Arrays are typically meaningful sequences (line_items,
+      // selected_options, ...). Extra elements would surprise more often
+      // than help — they stay strict-length.
+      assert.strictEqual(matchesArgument([1, 2], [1, 2, 3]), false);
+      assert.strictEqual(matchesArgument([1, 2], [1]), false);
+      assert.strictEqual(matchesArgument([{ a: 1 }], [{ a: 1, b: 2 }]), true); // element subset applies
+    });
+
+    it("composes with nested constraints inside subset objects", () => {
+      const schema = {
+        catalog: {
+          query: { $contains: "shoe" },
+          filters: { color: { $pattern: "^[Pp]urple$" } },
+        },
+      };
+      // Actual carries extra `pagination` alongside the constrained keys.
+      assert.strictEqual(
+        matchesArgument(schema, {
+          catalog: {
+            query: "purple shoe",
+            filters: { color: "Purple", material: "canvas" },
+            pagination: { limit: 10 },
+          },
+        }),
+        true,
+      );
+    });
+  });
+
   describe("constraints", () => {
     describe("$pattern", () => {
       it("matches strings against regex", () => {
@@ -52,6 +129,57 @@ describe("matcher", () => {
       it("fails if actual is not a string", () => {
         assert.strictEqual(matchesArgument({ $pattern: ".*" }, 123), false);
         assert.strictEqual(matchesArgument({ $pattern: ".*" }, null), false);
+      });
+
+      describe("inline flag prefix", () => {
+        it("honors (?i) for case-insensitive matching", () => {
+          // The bare regex `^colour$` is case-sensitive in V8, and `(?i)` is
+          // POSIX/Python syntax that V8 doesn't parse natively — without the
+          // `buildPattern` shim this would throw SyntaxError.
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "Color"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "colour"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "COLOR"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)^colou?r$" }, "colourful"), false);
+        });
+
+        it("honors (?i) mid-substring", () => {
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "Purple Shoes"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "BUY PURPLE!"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)purple" }, "red"), false);
+        });
+
+        it("honors multiple inline flags, e.g. (?is)", () => {
+          // `s` (dotall) lets `.` match newlines; `i` is case-insensitive.
+          // Both should compose from a single prefix.
+          assert.strictEqual(matchesArgument({ $pattern: "(?is)foo.bar" }, "FOO\nBAR"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "(?i)foo.bar" }, "FOO\nBAR"), false);
+        });
+
+        it("leaves patterns without an inline-flag prefix unchanged", () => {
+          // Regression guard: patterns that don't start with `(?flags)` must
+          // continue to work with case-sensitive default matching.
+          assert.strictEqual(matchesArgument({ $pattern: "^Color$" }, "Color"), true);
+          assert.strictEqual(matchesArgument({ $pattern: "^Color$" }, "color"), false);
+        });
+
+        it("throws on unsupported inline flags with a useful message", () => {
+          // `x` (extended, POSIX/Perl free-spacing) is not supported by V8 —
+          // silently accepting it would mislead authors into thinking
+          // whitespace/comments in patterns get stripped.
+          assert.throws(
+            () => matchesArgument({ $pattern: "(?x) foo # bar" }, "foo"),
+            /Unsupported inline flag "\(\?x\)"/,
+          );
+        });
+
+        it("does not swallow a genuine SyntaxError from a malformed pattern", () => {
+          // Malformed regexes still throw — the shim only handles the inline
+          // flag prefix, not general error recovery.
+          assert.throws(
+            () => matchesArgument({ $pattern: "(?i)[unclosed" }, "anything"),
+            SyntaxError,
+          );
+        });
       });
     });
 

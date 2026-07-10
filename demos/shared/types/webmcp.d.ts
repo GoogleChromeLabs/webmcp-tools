@@ -9,7 +9,7 @@
  * @see https://webmachinelearning.github.io/webmcp/
  */
 
-export {};
+export { };
 
 declare global {
   /** Client object passed to tool execute callbacks. */
@@ -59,22 +59,34 @@ declare global {
     };
   }
 
+  interface ModelContextRegisteredTool {
+    /** Unique identifier for the tool. */
+    name: string;
+
+    /** Natural-language description of what the tool does. */
+    description: string;
+
+    /** JSON Schema describing the tool's expected input. */
+    inputSchema?: string;
+
+    // TODO: Add necessary fields when needed.
+  }
+
   /** The model context API exposed on `document.modelContext`. */
   interface ModelContext {
     /** Adds a single tool to the current context. */
-    registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): void;
-  }
+    registerTool(tool: ModelContextTool, options?: { signal?: AbortSignal }): Promise<void>;
 
-  interface Navigator {
-    /**
-     * WebMCP model context API. May be undefined if the browser doesn't support it.
-     * @deprecated Use `document.modelContext` instead.
-     */
-    modelContext?: ModelContext;
+    /** Returns list of registered tools. */
+    // TODO: Add options support (e.g. fromOrigins) when needed.
+    getTools(): Promise<ModelContextRegisteredTool[]>;
+
+    /** Executes a registered tool. */
+    executeTool(tool: ModelContextRegisteredTool, params: string): Promise<unknown>;
   }
 
   interface Document {
     /** WebMCP model context API. May be undefined if the browser doesn't support it. */
-    modelContext?: ModelContext;
+    readonly modelContext?: ModelContext;
   }
 }

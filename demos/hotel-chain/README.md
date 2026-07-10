@@ -15,11 +15,11 @@ L'Atelier is a luxury hospitality group offering curated stays in Tokyo, Paris, 
 
 ## 🤖 WebMCP Integration
 
-This application exposes several tools to the `navigator.modelContext` API, allowing an AI agent (like a sidepanel assistant) to navigate and perform actions on behalf of the user.
+This application exposes several tools to the `document.modelContext` API, allowing an AI agent (like a sidepanel assistant) to navigate and perform actions on behalf of the user.
 
 ### Imperative Tools
 
-These tools are registered via `navigator.modelContext.registerTool`:
+These tools are registered via `document.modelContext.registerTool`:
 
 | Tool Name | Description | Parameters |
 | :--- | :--- | :--- |
@@ -57,7 +57,7 @@ The final confirmation step uses a **Declarative Tool**, where the agent can pop
    ```
 
 3. **Verify WebMCP**:
-   Open the browser console and check `navigator.modelContext`. If you are using a WebMCP-enabled browser or extension, you can see the registered tools.
+   Open the browser console and check `document.modelContext`. If you are using a WebMCP-enabled browser or extension, you can see the registered tools.
 
 ---
 *Note: This is a demo application for the WebMCP standard. All hotel data and payment methods are mocked.*

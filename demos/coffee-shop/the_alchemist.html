@@ -206,10 +206,9 @@
 
     refreshCartUI();
 
-    const modelContext = document.modelContext || navigator.modelContext;
-    if (modelContext) {
+    if (document.modelContext) {
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
         name: "get_machine_specifications",
         description: "Provides technical dimensions, height, and water tank capacity for the Alchemist machine.",
         inputSchema: { type: "object", properties: {}, required: [] },

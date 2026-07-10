@@ -55,6 +55,12 @@ The project is structured as follows:
     OPENAI_API_KEY=your_openai_api_key
     ANTHROPIC_API_KEY=your_anthropic_api_key
     # OLLAMA_HOST=http://localhost:11434 (if using a remote or non-standard port Ollama)
+
+    # Optional: override the provider endpoint (useful for corporate LLM
+    # gateways or self-hosted, OpenAI-compatible services).
+    # OPENAI_BASE_URL=https://your-proxy.example.com/v1
+    # ANTHROPIC_BASE_URL=https://your-proxy.example.com/anthropic
+    # GOOGLE_GENERATIVE_AI_BASE_URL=https://your-proxy.example.com/google
     ```
 
 3.  **Build the Project**

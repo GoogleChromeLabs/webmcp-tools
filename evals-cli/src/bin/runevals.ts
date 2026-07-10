@@ -40,6 +40,7 @@ const config: Config = {
   provider: args.provider,
   model: args.model || "gemini-3-flash-preview",
   runs: args.runs ? parseInt(args.runs, 10) : 1,
+  maxSteps: args["max-steps"] ? parseInt(args["max-steps"], 10) : undefined,
 };
 
 const toolsSchema: ToolsSchema = JSON.parse(
