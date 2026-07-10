@@ -130,11 +130,12 @@ console.log(`\nPass count: ${color(`${finalResults.passCount}/${totalSteps}`)} (
 const report = renderWebmcpReport(config, finalResults);
 
 const reportName = `report-${Date.now()}.html`;
+const absoluteReportPath = resolve(process.cwd(), reportName);
 
 await cleanOldReports();
 await writeFile(reportName, report);
-console.log(`Report saved to ${reportName}`);
+console.log(`Report saved to: file://${absoluteReportPath}`);
 
-await open(reportName);
+await open(absoluteReportPath);
 
 process.exit();
