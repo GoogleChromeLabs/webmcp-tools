@@ -8,6 +8,18 @@ import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.j
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
+export function formatReportDate(date: Date = new Date()): string {
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  });
+}
+
 export function renderReport(config: Config, testResults: TestResults): string {
   return `
 <!DOCTYPE html>
@@ -34,8 +46,9 @@ export function renderReport(config: Config, testResults: TestResults): string {
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans p-8 antialiased">
     <div class="max-w-5xl mx-auto space-y-8">
-        <header class="border-b border-slate-200 pb-6 mb-8">
+        <header class="border-b border-slate-200 pb-6 mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+            <span class="text-sm text-slate-500 font-medium">Generated on ${formatReportDate()}</span>
         </header>
         
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -443,8 +456,9 @@ export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResult
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans p-8 antialiased">
     <div class="max-w-5xl mx-auto space-y-8">
-        <header class="border-b border-slate-200 pb-6 mb-8">
+        <header class="border-b border-slate-200 pb-6 mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-2">
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+            <span class="text-sm text-slate-500 font-medium">Generated on ${formatReportDate()}</span>
         </header>
         
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
