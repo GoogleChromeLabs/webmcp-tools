@@ -65,6 +65,9 @@ A curated list of awesome WebMCP demos.
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
 
+- [agentk playground](https://agentk.stacktr.ee) - DevOps, smart-home, issue-tracker, and shop demos built with agentk, a React command-palette library (cmdk fork) where one JSON Schema tool catalog serves both a ⌘K palette for humans and WebMCP registration for agents; each demo route registers its tools on load.
+  - [Code](https://github.com/stevysmith/agentk)
+  - **Example Prompt:** "Turn off the living-room lights and set the thermostat to 68" (on [/smart-home](https://agentk.stacktr.ee/smart-home))
 
 ## Contributing
 
