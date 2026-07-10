@@ -6,6 +6,7 @@
 import { readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
 import * as dotenv from "dotenv";
+import open from "open";
 import { Eval } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import { SingleBar } from "cli-progress";
@@ -79,8 +80,11 @@ progressBar.stop();
 const report = renderReport(config, finalResults);
 
 const reportName = `report-${Date.now()}.html`;
+const absoluteReportPath = resolve(process.cwd(), reportName);
 
 await cleanOldReports();
 await writeFile(reportName, report);
-console.log(`\nReport saved to ${reportName}`);
+console.log(`\nReport saved to: file://${absoluteReportPath}`);
+
+await open(absoluteReportPath);
 process.exit();
