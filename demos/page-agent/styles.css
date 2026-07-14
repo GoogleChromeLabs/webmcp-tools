@@ -272,4 +272,15 @@ input:checked + .slider:before {
     border-left: 4px solid #6c757d;
 }
 
+.token-indicator {
+    background: #e2f0d9;
+    color: #385723;
+    font-size: 0.85em;
+    font-family: monospace;
+    margin-right: auto;
+    border: 1px solid #c5e0b4;
+    border-left: 4px solid #548235;
+}
+
+
 

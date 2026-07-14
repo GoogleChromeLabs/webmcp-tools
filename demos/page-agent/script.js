@@ -332,8 +332,22 @@ async function handleUserSubmit() {
 
     chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
 
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+    let networkCallsCount = 0;
+    const startTime = performance.now();
+
+    const addUsage = (result) => {
+      networkCallsCount++;
+      if (result && result.usageMetadata) {
+        totalInputTokens += result.usageMetadata.promptTokenCount || 0;
+        totalOutputTokens += result.usageMetadata.candidatesTokenCount || 0;
+      }
+    };
+
     const sendMessageParams = { message: text, config: await getConfig() };
     let currentResult = await chat.sendMessage(sendMessageParams);
+    addUsage(currentResult);
     let finalResponseGiven = false;
 
     while (!finalResponseGiven) {
@@ -390,8 +404,16 @@ async function handleUserSubmit() {
         }
         const sendMessageParams = { message: toolResponses, config: await getConfig() };
         currentResult = await chat.sendMessage(sendMessageParams);
+        addUsage(currentResult);
       }
     }
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+    appendMessage(
+      'System',
+      `📊 Turn metrics:<br>↳ Input (Billed): <strong>${totalInputTokens.toLocaleString()}</strong> tokens<br>↳ Output (Billed): <strong>${totalOutputTokens.toLocaleString()}</strong> tokens<br>↳ Total: <strong>${(totalInputTokens + totalOutputTokens).toLocaleString()}</strong> tokens<br>↳ Roundtrips: <strong>${networkCallsCount}</strong><br>↳ Time elapsed: <strong>${duration}s</strong>`,
+      'token-indicator'
+    );
 
     userInput.disabled = false;
     sendBtn.disabled = false;
