@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "description": "Evaluation framework and CLI for WebMCP tools and agentic workflows",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GoogleChromeLabs/webmcp-tools.git",
+    "directory": "evals-cli"
+  },
   "bin": {
     "webmcp-evals": "dist/bin/webmcp-evals.js"
   },
@@ -13,6 +18,9 @@
     "LICENSE"
   ],
   "type": "module",
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com"
+  },
   "scripts": {
     "build": "tsc",
     "test": "tsc && node --test dist/test/*.test.js",
