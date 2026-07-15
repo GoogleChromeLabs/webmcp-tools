@@ -125,7 +125,19 @@ export class WebmcpService {
         if (params && params.size && params.size !== 'ALL') searchParams.size = params.size;
 
         this.router.navigate(['/search'], { queryParams: searchParams });
-        return { success: true, message: `Navigating to search results for ${JSON.stringify(searchParams)}` };
+        const results = this.productService.searchProducts(
+          searchParams.q,
+          searchParams.category,
+          undefined,
+          undefined,
+          searchParams.size
+        );
+        return {
+          success: true,
+          message: `Navigating to search results for ${JSON.stringify(searchParams)}`,
+          count: results.length,
+          products: results
+        };
       }
     });
 

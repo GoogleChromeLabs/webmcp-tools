@@ -96,7 +96,7 @@ export function mapJsonSchemaToVercelTools(
  * Normalizes raw tool configurations dynamically fetched from the browser loop.
  */
 export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[]): Tool[] {
-  if (rawTools && Array.isArray(rawTools)) {
+  if (rawTools && Array.isArray(rawTools) && rawTools.length > 0) {
     return rawTools.map((t: any) => {
       const schema = t.inputSchema;
       let parameters;

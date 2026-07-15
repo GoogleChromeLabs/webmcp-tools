@@ -106,52 +106,57 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     process.exit(1);
   });
 
-  const config: WebmcpConfig = {
-    url,
-    evalsFile,
-    backend: opts.backend,
-    model: opts.model,
-    runs: opts.runs,
-    maxSteps: opts.maxSteps,
-    outputDir: opts.outputDir,
-    reporter: opts.reporter,
-  };
+  try {
+    const config: WebmcpConfig = {
+      url,
+      evalsFile,
+      backend: opts.backend,
+      model: opts.model,
+      runs: opts.runs,
+      maxSteps: opts.maxSteps,
+      outputDir: opts.outputDir,
+      reporter: opts.reporter,
+    };
 
-  const tools = await listToolsFromPage(config.url);
+    const tools = await listToolsFromPage(config.url);
 
-  const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
+    const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
 
-  const reporters = opts.reporter || ["console", "html"];
-  const useConsole = reporters.includes("console");
+    const reporters = opts.reporter || ["console", "html"];
+    const useConsole = reporters.includes("console");
 
-  let spinner: ReturnType<typeof ora> | undefined;
-  const resultsList: any[] = [];
+    let spinner: ReturnType<typeof ora> | undefined;
+    const resultsList: any[] = [];
 
-  if (useConsole) {
-    spinner = ora({ discardStdin: false });
-  }
-
-  const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
-    if (useConsole && spinner) {
-      if (event.type === "start") {
-        spinner.start(`Running evals (${event.total} steps)...`);
-      } else if (event.type === "progress") {
-        resultsList.push(event.result);
-        const passRate = (
-          (resultsList.filter((r) => r.outcome === "pass").length / resultsList.length) *
-          100
-        ).toFixed(2);
-        spinner.text = `Running... pass rate: ${passRate}% (${resultsList.length} steps)`;
-      }
+    if (useConsole) {
+      spinner = ora({ discardStdin: false });
     }
-  });
 
-  if (useConsole && spinner) {
-    spinner.stop();
-    printConsoleSummary(finalResults);
+    const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
+      if (useConsole && spinner) {
+        if (event.type === "start") {
+          spinner.start(`Running evals (${event.total} steps)...`);
+        } else if (event.type === "progress") {
+          resultsList.push(event.result);
+          const passRate = (
+            (resultsList.filter((r) => r.outcome === "pass").length / resultsList.length) *
+            100
+          ).toFixed(2);
+          spinner.text = `Running... pass rate: ${passRate}% (${resultsList.length} steps)`;
+        }
+      }
+    });
+
+    if (useConsole && spinner) {
+      spinner.stop();
+      printConsoleSummary(finalResults);
+    }
+
+    await outputReports(config, finalResults, reporters, opts.outputDir, opts.open, true);
+  } catch (error: any) {
+    console.error(`\n${chalk.red.bold("❌ Error:")} ${error.message || error}\n`);
+    process.exit(1);
   }
-
-  await outputReports(config, finalResults, reporters, opts.outputDir, opts.open, true);
 }
 
 function printConsoleSummary(finalResults: any): void {

@@ -11,7 +11,7 @@ import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
 import { Backend, LocalEvalResult, RunEvent } from "../backends/index.js";
-import { createBrowserTool } from "../evaluator/browser.js";
+import { createBrowserTool, getToolsFromBrowserPage } from "../evaluator/browser.js";
 import {
   mapJsonSchemaToVercelTools,
   mapMessages,
@@ -93,13 +93,16 @@ export class VercelBackend implements Backend {
     // Gather every tool call from every step in trajectory order. Previously
     // only aiResult.toolCalls[0] was surfaced, which both dropped subsequent
     // steps and dropped parallel calls within a single step.
+    const validToolNames = new Set(this.tools.map((t) => t.functionName));
     const toolCalls: ToolCall[] = [];
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
-        toolCalls.push({
-          functionName: call.toolName,
-          args: call.input || call.args || call.arguments || {},
-        });
+        if (validToolNames.has(call.toolName)) {
+          toolCalls.push({
+            functionName: call.toolName,
+            args: call.input || call.args || call.arguments || {},
+          });
+        }
       }
     }
 
@@ -117,11 +120,12 @@ export class VercelBackend implements Backend {
     let browser: Browser | null = null;
     let page: Page | null = null;
 
+    const puppeteerFlags = ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"];
     try {
       browser = await puppeteer.launch({
         executablePath,
         headless: true,
-        args: ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"],
+        args: puppeteerFlags,
       });
 
       console.log("Browser initialized for actual evals");
@@ -163,7 +167,15 @@ export class VercelBackend implements Backend {
 
         testCount++;
         let currentMessages = [...test.messages];
-        let currentTools = [...tools];
+        let rawBrowserTools = await getToolsFromBrowserPage(page);
+        let initialFallbackTools = tools.length > 0 ? tools : this.tools;
+        let currentTools = mapRawBrowserToolsToConfig(rawBrowserTools, initialFallbackTools);
+
+        if (currentTools.length === 0) {
+          throw new Error(
+            `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${puppeteerFlags.join(" ")}"]`,
+          );
+        }
 
         try {
           const model = getModel(config);
@@ -205,10 +217,11 @@ export class VercelBackend implements Backend {
                   );
                 }
               : undefined,
-            prepareStep: (_opts: any): any => {
-              let rawTools = page!.webmcp.tools();
-
-              currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
+            prepareStep: async (_opts: any): Promise<any> => {
+              let rawTools = await getToolsFromBrowserPage(page!);
+              if (rawTools.length > 0) {
+                currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
+              }
 
               // Clear the object
               for (const key in aiToolsWithExecution) {
