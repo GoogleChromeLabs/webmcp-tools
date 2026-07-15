@@ -28,24 +28,28 @@ export function createBrowserTool(t: Tool, page: Page): any {
       let executionResult: any = {};
 
       try {
-        const toolResult = await page.evaluate(async (name, callArgs) => {
-          if (document.modelContext) {
-            const mc = document.modelContext;
-            if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
-              const tools = await mc.getTools();
-              const tool = tools.find((item) => item.name === name);
-              if (tool) {
-                const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
-                try {
-                  return { success: true, data: JSON.parse(resStr as string) };
-                } catch {
-                  return { success: true, data: resStr };
+        const toolResult = await page.evaluate(
+          async (name, callArgs) => {
+            if (document.modelContext) {
+              const mc = document.modelContext;
+              if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
+                const tools = await mc.getTools();
+                const tool = tools.find((item) => item.name === name);
+                if (tool) {
+                  const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
+                  try {
+                    return { success: true, data: JSON.parse(resStr as string) };
+                  } catch {
+                    return { success: true, data: resStr };
+                  }
                 }
               }
             }
-          }
-          return { success: false };
-        }, t.functionName, args);
+            return { success: false };
+          },
+          t.functionName,
+          args,
+        );
 
         if (toolResult && toolResult.success) {
           executionResult.result = toolResult.data;
@@ -82,7 +86,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
       if (typeof r === "string") {
         try {
           r = JSON.parse(r);
-        } catch { }
+        } catch {}
       }
 
       // Attempt to drill down into structured responses

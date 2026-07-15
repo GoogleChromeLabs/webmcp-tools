@@ -120,7 +120,9 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
 
     const tools = await listToolsFromPage(config.url);
 
-    const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
+    const tests: Array<Eval> = JSON.parse(
+      await readFile(resolve(process.cwd(), evalsFile), "utf-8"),
+    );
 
     const reporters = opts.reporter || ["console", "html"];
     const useConsole = reporters.includes("console");

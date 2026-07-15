@@ -92,7 +92,7 @@ npx webmcp-evals local -t examples/travel/schema.json -e examples/travel/evals.j
 With Gemini backend and specified model:
 
 ```bash
-npx webmcp-evals local -b gemini -m gemini-2.5-pro -t examples/travel/schema.json -e examples/travel/evals.json
+npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/travel/schema.json -e examples/travel/evals.json
 ```
 
 | Option               | Required | Description                        |

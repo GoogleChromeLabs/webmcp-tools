@@ -19,12 +19,22 @@ describe("GeminiBackend", () => {
   ];
 
   it("should return correct description", () => {
-    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt", sampleTools);
+    const backend = new GeminiBackend(
+      "dummy-api-key",
+      "gemini-3.5-flash",
+      "System prompt",
+      sampleTools,
+    );
     assert.strictEqual(backend.describe(), "Gemini Backend using model: gemini-3.5-flash");
   });
 
   it("should throw not implemented for executeInBrowserEvals", () => {
-    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt", sampleTools);
+    const backend = new GeminiBackend(
+      "dummy-api-key",
+      "gemini-3.5-flash",
+      "System prompt",
+      sampleTools,
+    );
     assert.rejects(
       async () => {
         await backend.executeInBrowserEvals([], sampleTools, {} as any);
@@ -34,7 +44,12 @@ describe("GeminiBackend", () => {
   });
 
   it("should execute local evals and return tool calls when functionCalls response exists", async () => {
-    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt", sampleTools);
+    const backend = new GeminiBackend(
+      "dummy-api-key",
+      "gemini-3.5-flash",
+      "System prompt",
+      sampleTools,
+    );
 
     (backend as any).googleGenAI = {
       models: {
@@ -65,7 +80,12 @@ describe("GeminiBackend", () => {
   });
 
   it("should execute local evals and return text fallback when no function calls returned", async () => {
-    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt", sampleTools);
+    const backend = new GeminiBackend(
+      "dummy-api-key",
+      "gemini-3.5-flash",
+      "System prompt",
+      sampleTools,
+    );
 
     (backend as any).googleGenAI = {
       models: {
@@ -88,7 +108,12 @@ describe("GeminiBackend", () => {
   });
 
   it("should map multi-turn messages correctly during API execution", async () => {
-    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt", sampleTools);
+    const backend = new GeminiBackend(
+      "dummy-api-key",
+      "gemini-3.5-flash",
+      "System prompt",
+      sampleTools,
+    );
 
     let passedRequest: any = null;
     (backend as any).googleGenAI = {
@@ -111,7 +136,12 @@ describe("GeminiBackend", () => {
       name: "Multi-turn test",
       messages: [
         { role: "user", type: "message", content: "Search soccer ball" },
-        { role: "model", type: "functioncall", name: "search_product", arguments: { query: "soccer" } },
+        {
+          role: "model",
+          type: "functioncall",
+          name: "search_product",
+          arguments: { query: "soccer" },
+        },
         { role: "user", type: "functionresponse", name: "search_product", response: { count: 3 } },
       ],
       expectedCall: null,
@@ -123,8 +153,14 @@ describe("GeminiBackend", () => {
     assert.strictEqual(passedRequest.config.systemInstruction, "System prompt");
     assert.deepStrictEqual(passedRequest.contents, [
       { role: "user", parts: [{ text: "Search soccer ball" }] },
-      { role: "model", parts: [{ functionCall: { name: "search_product", args: { query: "soccer" } } }] },
-      { role: "user", parts: [{ functionResponse: { name: "search_product", response: { count: 3 } } }] },
+      {
+        role: "model",
+        parts: [{ functionCall: { name: "search_product", args: { query: "soccer" } } }],
+      },
+      {
+        role: "user",
+        parts: [{ functionResponse: { name: "search_product", response: { count: 3 } } }],
+      },
     ]);
   });
 });

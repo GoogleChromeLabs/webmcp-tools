@@ -19,12 +19,22 @@ describe("OllamaBackend", () => {
   ];
 
   it("should return correct description", () => {
-    const backend = new OllamaBackend("http://127.0.0.1:11434", "qwen2.5:14b", "System prompt", sampleTools);
+    const backend = new OllamaBackend(
+      "http://127.0.0.1:11434",
+      "qwen2.5:14b",
+      "System prompt",
+      sampleTools,
+    );
     assert.strictEqual(backend.describe(), "Ollama Backend using model: qwen2.5:14b");
   });
 
   it("should throw not implemented for executeInBrowserEvals", () => {
-    const backend = new OllamaBackend("http://127.0.0.1:11434", "qwen2.5:14b", "System prompt", sampleTools);
+    const backend = new OllamaBackend(
+      "http://127.0.0.1:11434",
+      "qwen2.5:14b",
+      "System prompt",
+      sampleTools,
+    );
     assert.rejects(
       async () => {
         await backend.executeInBrowserEvals([], sampleTools, {} as any);
@@ -34,7 +44,12 @@ describe("OllamaBackend", () => {
   });
 
   it("should execute local evals and return tool calls when Ollama returns tool_calls", async () => {
-    const backend = new OllamaBackend("http://127.0.0.1:11434", "qwen2.5:14b", "System prompt", sampleTools);
+    const backend = new OllamaBackend(
+      "http://127.0.0.1:11434",
+      "qwen2.5:14b",
+      "System prompt",
+      sampleTools,
+    );
 
     let passedRequest: any = null;
     (backend as any).ollama = {
@@ -73,7 +88,12 @@ describe("OllamaBackend", () => {
   });
 
   it("should execute local evals and return text fallback when tool_calls is missing", async () => {
-    const backend = new OllamaBackend("http://127.0.0.1:11434", "qwen2.5:14b", "System prompt", sampleTools);
+    const backend = new OllamaBackend(
+      "http://127.0.0.1:11434",
+      "qwen2.5:14b",
+      "System prompt",
+      sampleTools,
+    );
 
     (backend as any).ollama = {
       chat: async () => {
