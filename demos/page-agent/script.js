@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenAI } from 'https://esm.sh/@google/genai';
+import { executeDeclarativeBatch } from '../shared/webmcp-batch.js';
 
 const setupContainer = document.getElementById('setup-container');
 const chatContainer = document.getElementById('chat-container');
@@ -91,75 +92,6 @@ function getTSType(schema) {
     case 'object': return 'any';
     default: return 'any';
   }
-}
-
-function resolveReferences(val, results) {
-  if (typeof val === 'string') {
-    if (val.startsWith('$ref:')) {
-      const refPath = val.slice(5);
-      return getNestedProperty(results, refPath);
-    }
-    return val;
-  }
-  
-  if (Array.isArray(val)) {
-    return val.map(item => resolveReferences(item, results));
-  }
-  
-  if (val !== null && typeof val === 'object') {
-    const resolved = {};
-    for (const [k, v] of Object.entries(val)) {
-      resolved[k] = resolveReferences(v, results);
-    }
-    return resolved;
-  }
-  
-  return val;
-}
-
-function getNestedProperty(obj, path) {
-  const parts = path.split('.');
-  let current = obj;
-  for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
-    current = current[part];
-  }
-  return current;
-}
-
-async function executeDeclarativeBatch(steps, executeToolFn) {
-  const results = {};
-  const outputs = [];
-
-  for (const step of steps) {
-    const { id, tool, args } = step;
-    const resolvedArgs = resolveReferences(args, results);
-    
-    try {
-      const result = await executeToolFn(tool, resolvedArgs);
-      if (id) {
-        results[id] = result;
-      }
-      outputs.push({
-        id,
-        tool,
-        args: resolvedArgs,
-        success: true,
-        result: result
-      });
-    } catch (err) {
-      outputs.push({
-        id,
-        tool,
-        args: resolvedArgs,
-        success: false,
-        error: err.message || String(err)
-      });
-      break;
-    }
-  }
-  
-  return outputs;
 }
 
 async function executeBatchLocally(steps) {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-function resolveReferences(val, results) {
+export function resolveReferences(val, results) {
   if (typeof val === 'string') {
     if (val.startsWith('$ref:')) {
       const refPath = val.slice(5); // e.g. "step1.property"
@@ -27,7 +27,7 @@ function resolveReferences(val, results) {
   return val;
 }
 
-function getNestedProperty(obj, path) {
+export function getNestedProperty(obj, path) {
   const parts = path.split('.');
   let current = obj;
   for (const part of parts) {
@@ -37,7 +37,7 @@ function getNestedProperty(obj, path) {
   return current;
 }
 
-async function executeDeclarativeBatch(steps, executeToolFn) {
+export async function executeDeclarativeBatch(steps, executeToolFn) {
   const results = {};
   const outputs = [];
 
@@ -72,9 +72,10 @@ async function executeDeclarativeBatch(steps, executeToolFn) {
   return outputs;
 }
 
-// Browser implementation and registration
-if (typeof window !== 'undefined' && window.document && window.document.modelContext) {
-  window.document.modelContext.registerTool({
+export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined) {
+  if (!modelContext) return;
+
+  modelContext.registerTool({
     name: 'execute_batch',
     description: 'Execute a sequential list of WebMCP tool calls, resolving data dependencies between steps (e.g. referencing previous steps output via "$ref:stepId.property").',
     inputSchema: {
@@ -107,12 +108,12 @@ if (typeof window !== 'undefined' && window.document && window.document.modelCon
     },
     execute: async ({ steps }) => {
       const executeToolFn = async (toolName, args) => {
-        const tools = await window.document.modelContext.getTools();
+        const tools = await modelContext.getTools();
         const targetTool = tools.find(t => t.name === toolName);
         if (!targetTool) {
           throw new Error(`Tool ${toolName} not found`);
         }
-        return await window.document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
+        return await modelContext.executeTool(targetTool, JSON.stringify(args || {}));
       };
       
       const outputs = await executeDeclarativeBatch(steps, executeToolFn);
@@ -126,11 +127,7 @@ if (typeof window !== 'undefined' && window.document && window.document.modelCon
   }, { exposedTo: ['*'] }).catch(() => {});
 }
 
-// Node.js exports for unit testing
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    resolveReferences,
-    getNestedProperty,
-    executeDeclarativeBatch
-  };
+// Auto-register in browser environment if modelContext is available
+if (typeof window !== 'undefined' && window.document && window.document.modelContext) {
+  registerExecuteBatchTool(window.document.modelContext);
 }

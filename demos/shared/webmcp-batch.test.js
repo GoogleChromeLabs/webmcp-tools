@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-const test = require('node:test');
-const assert = require('node:assert');
-const { resolveReferences, getNestedProperty, executeDeclarativeBatch } = require('./webmcp-batch.js');
+import test from 'node:test';
+import assert from 'node:assert';
+import { resolveReferences, getNestedProperty, executeDeclarativeBatch } from './webmcp-batch.js';
 
 test('getNestedProperty helper', () => {
   const obj = {
