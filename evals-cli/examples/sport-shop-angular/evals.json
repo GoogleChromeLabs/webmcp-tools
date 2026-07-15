@@ -17,6 +17,11 @@
             "$contains": "ball"
           }
         }
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
       }
     ]
   },
@@ -38,22 +43,28 @@
         }
       },
       {
-        "unordered": [
-          {
-            "functionName": "get_store_promos_and_rules",
-            "arguments": {}
-          },
-          {
-            "functionName": "get_current_search_results",
-            "arguments": {}
-          },
-          {
-            "functionName": "refine_search",
-            "arguments": {
-              "priceRange": "0-49.99"
-            }
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
+      },
+      {
+        "functionName": "get_store_promos_and_rules",
+        "arguments": {},
+        "optional": true
+      },
+      {
+        "functionName": "refine_search",
+        "arguments": {
+          "priceRange": {
+            "$pattern": "^(0-49\\.99|50-99\\.99)$"
           }
-        ]
+        },
+        "optional": true
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
       }
     ]
   }

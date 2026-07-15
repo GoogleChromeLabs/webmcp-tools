@@ -4,14 +4,19 @@
  */
 
 import { generateText, stepCountIs, ToolLoopAgent } from "ai";
-import puppeteer, { Browser, Page } from "puppeteer-core";
+import { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
 import { Backend, LocalEvalResult, RunEvent } from "../backends/index.js";
-import { createBrowserTool } from "../evaluator/browser.js";
+import {
+  createBrowserTool,
+  getToolsFromBrowserPage,
+  launchBrowser,
+  PUPPETEER_FLAGS,
+} from "../evaluator/browser.js";
 import {
   mapJsonSchemaToVercelTools,
   mapMessages,
@@ -93,13 +98,16 @@ export class VercelBackend implements Backend {
     // Gather every tool call from every step in trajectory order. Previously
     // only aiResult.toolCalls[0] was surfaced, which both dropped subsequent
     // steps and dropped parallel calls within a single step.
+    const validToolNames = new Set(this.tools.map((t) => t.functionName));
     const toolCalls: ToolCall[] = [];
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
-        toolCalls.push({
-          functionName: call.toolName,
-          args: call.input || call.args || call.arguments || {},
-        });
+        if (validToolNames.has(call.toolName)) {
+          toolCalls.push({
+            functionName: call.toolName,
+            args: call.input || call.args || call.arguments || {},
+          });
+        }
       }
     }
 
@@ -118,16 +126,14 @@ export class VercelBackend implements Backend {
     let page: Page | null = null;
 
     try {
-      browser = await puppeteer.launch({
-        executablePath,
-        headless: true,
-        args: ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"],
-      });
+      browser = await launchBrowser();
 
       console.log("Browser initialized for actual evals");
     } catch (error) {
       if (browser) await browser.close();
-      throw new Error(`Failed to initialize browser for actual evals: ${error}`);
+      throw new Error(
+        `Failed to initialize browser for actual evals (Flags="${PUPPETEER_FLAGS.join(" ")}"): ${error}`,
+      );
     }
 
     const runs = config.runs || 1;
@@ -163,7 +169,15 @@ export class VercelBackend implements Backend {
 
         testCount++;
         let currentMessages = [...test.messages];
-        let currentTools = [...tools];
+        let rawBrowserTools = await getToolsFromBrowserPage(page);
+        let initialFallbackTools = tools.length > 0 ? tools : this.tools;
+        let currentTools = mapRawBrowserToolsToConfig(rawBrowserTools, initialFallbackTools);
+
+        if (currentTools.length === 0) {
+          throw new Error(
+            `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+          );
+        }
 
         try {
           const model = getModel(config);
@@ -205,10 +219,11 @@ export class VercelBackend implements Backend {
                   );
                 }
               : undefined,
-            prepareStep: (_opts: any): any => {
-              let rawTools = page!.webmcp.tools();
-
-              currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
+            prepareStep: async (_opts: any): Promise<any> => {
+              let rawTools = await getToolsFromBrowserPage(page!);
+              if (rawTools.length > 0) {
+                currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
+              }
 
               // Clear the object
               for (const key in aiToolsWithExecution) {

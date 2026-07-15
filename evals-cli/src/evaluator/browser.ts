@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../demos/shared/types/webmcp.d.ts" />
+
 import puppeteer, { Browser, Page } from "puppeteer-core";
 import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
@@ -24,23 +27,34 @@ export function createBrowserTool(t: Tool, page: Page): any {
     execute: async (args: any) => {
       let executionResult: any = {};
 
-      const tools = page.webmcp.tools();
-      if (tools.length === 0) {
-        return { error: "no tools were found" };
-      }
-
-      const tool = tools.find((tool) => tool.name === t.functionName);
-      if (!tool) {
-        return { error: `no tool named "${t.functionName}" were found` };
-      }
-
       try {
-        const result = await tool.execute(args);
+        const toolResult = await page.evaluate(
+          async (name, callArgs) => {
+            if (document.modelContext) {
+              const mc = document.modelContext;
+              if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
+                const tools = await mc.getTools();
+                const tool = tools.find((item) => item.name === name);
+                if (tool) {
+                  const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
+                  try {
+                    return { success: true, data: JSON.parse(resStr as string) };
+                  } catch {
+                    return { success: true, data: resStr };
+                  }
+                }
+              }
+            }
+            return { success: false };
+          },
+          t.functionName,
+          args,
+        );
 
-        if (result.status === "Completed") {
-          executionResult.result = result.output;
+        if (toolResult && toolResult.success) {
+          executionResult.result = toolResult.data;
         } else {
-          return { error: result.errorText };
+          return { error: `no tool named "${t.functionName}" was found` };
         }
 
         // If executionResult.result is null, it is due to a navigation happening.
@@ -84,6 +98,39 @@ export function createBrowserTool(t: Tool, page: Page): any {
   } as any);
 }
 
+export async function getToolsFromBrowserPage(page: Page): Promise<any[]> {
+  return await page.evaluate(async () => {
+    if (document.modelContext && typeof document.modelContext.getTools === "function") {
+      try {
+        const raw = await document.modelContext.getTools();
+        return (raw || []).map((t) => ({
+          name: t.name,
+          description: t.description,
+          inputSchema: t.inputSchema,
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+}
+
+export const PUPPETEER_FLAGS = [
+  "--enable-features=WebMCP",
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+];
+
+export async function launchBrowser(): Promise<Browser> {
+  const executablePath = await findChromePath();
+  return await puppeteer.launch({
+    executablePath,
+    headless: true,
+    args: PUPPETEER_FLAGS,
+  });
+}
+
 /**
  * Launches Chrome Canary, navigates to the given URL, and retrieves the list
  * of tools exposed by the page via Puppeteer.
@@ -98,11 +145,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
 
   try {
     console.log(`Launching Chrome Canary from: ${executablePath}`);
-    browser = await puppeteer.launch({
-      executablePath,
-      headless: true,
-      args: ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    browser = await launchBrowser();
 
     const page = await browser.newPage();
 
@@ -118,9 +161,14 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
       );
     }
 
-    const rawTools = page.webmcp.tools();
+    const rawTools = await getToolsFromBrowserPage(page);
+    if (rawTools.length === 0) {
+      throw new Error(
+        `WebMCP Tools are not available on ${url} (0 tools registered on page).\nDebug info: [URL="${url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+      );
+    }
 
-    console.log(`Found ${rawTools.length} tool(s) via Puppeteer.`);
+    console.log(`Found ${rawTools.length} tool(s) via Puppeteer/Native API.`);
     return mapRawBrowserToolsToConfig(rawTools, []);
   } finally {
     if (browser) {

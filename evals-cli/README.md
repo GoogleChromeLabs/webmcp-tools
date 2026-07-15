@@ -1,139 +1,124 @@
-# WebMCP Evals
+# WebMCP Evals (`webmcp-evals`)
 
-A TypeScript framework for evaluating the tool-calling capabilities of Large Language Models (LLMs). This project allows you to define test cases (evals) and schemas to verify if an interactive agent correctly calls tools based on user inputs.
+> [!WARNING]
+> `webmcp-evals` is experimental tooling for evaluating WebMCP schema definitions, tool calling, and agentic workflows.
+
+A TypeScript evaluation framework and CLI for testing the tool-calling capabilities of Large Language Models (LLMs) against WebMCP tools and browser sessions.
 
 ## Features
 
-- **Backends**: Execution support for `@google/genai` (`gemini`). Integrations for local models (`ollama`), as well as full **Vercel AI SDK** (`vercel`) integration for robust multi-provider support (OpenAI, Anthropic) are available but currently considered experimental.
-- **Evaluation Loop**: Automatically runs defined test cases against the model and compares actual tool calls with expected ones.
-- **Hierarchical Reporting**: Generates interactive, grouped HTML reports. Iteration runs sharing the same case `name` are categorized under a single Case Group accordion, presenting aggregated pass rate stats (e.g., `4/5 Passed`), soft color-coded status cards (emerald green for all-pass, rose red for any-fail), and intelligent default expansion of failing iterations.
-- **Extensible**: Easy to add new backends or evaluation sets.
+- **CLI Interface**: Built with `commander` providing `local` and `browser` commands.
+- **Execution Modes**:
+  - **`local`**: Runs evaluations against static JSON tool schema definition files.
+  - **`browser`**: Runs live evaluations against WebMCP tools exposed on web pages via Puppeteer.
+- **Model Backends**: Supports `@google/genai` (`gemini`), Ollama (`ollama`), and Vercel AI SDK (`vercel`).
+- **Reporters**: Supports `console`, `json`, and `html` output to the `.evals` directory.
+- **Constraint-Based Matching**: Matches expected tool calls using regex patterns, numerical ranges, type checks, and orderings (`ordered` and `unordered`).
 
 ## Architecture
 
-The project is structured as follows:
-
-- `src/`: Source code.
-  - `bin/`: CLI command entry points.
-    - `runevals.ts`: Runs the evaluation loop using static tool schemas from a JSON file.
-    - `webmcpevals.ts`: Runs the evaluation loop by fetching tool schemas live from a browser page via the WebMCP API.
-    - `serve.ts`: Starts the WebMCP Evals Web UI sidecar.
-  - `evaluator/`: The core evaluation engine.
-    - `index.ts`: Orchestrates the evaluation execution loops.
-    - `models.ts`: LLM instantiation mappings (Gemini, OpenAI, Anthropic, Ollama).
-    - `browser.ts`: Browser automation (Puppeteer) for testing and discovering WebMCP tools.
-    - `mappers.ts` & `prompts.ts`: Data standardization utilities and system prompts.
-  - `server/`: Express backend for the sidecar Web UI.
-  - `report/`: Generates HTML execution reports.
-  - `types/`: TypeScript definitions for configurations, evaluations, and tool schemas.
-  - `matcher.ts`: Evaluates the correctness of AI-generated tool calls against expected constraints.
-- `examples/`: Detailed examples and test data.
-  - `travel/`: A travel agent example containing `schema.json` and `evals.json`.
-
-## Prerequisites
-
-- Node.js (v18+ recommended)
-- Appropriate API Keys (Google GenAI, OpenAI, or Anthropic, depending on the backend used)
-- Chrome Canary 150+ with the `#enable-webmcp-testing` flag enabled (for `webmcpevals` only)
+```
+src/
+├── bin/
+│   └── webmcp-evals.ts      # Main CLI entrypoint
+├── commands/
+│   └── index.ts             # Command handlers (local and browser)
+├── backends/                # LLM execution backends (Gemini, Vercel AI SDK, Ollama)
+├── evaluator/               # Core evaluation orchestration and browser automation
+├── matcher.ts               # Argument matching and trajectory evaluation engine
+├── report/                  # HTML report templates and rendering
+└── types/                   # TypeScript definitions
+```
 
 ## Setup
 
-1.  **Install Dependencies**
+1. **Install Dependencies**
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
-    _Note: This will also automatically install dependencies for the `ui` sub-project via a `postinstall` script._
+2. **Configure Environment**
 
-2.  **Configure Environment**
+   Create a `.env` file in your project directory with required API keys:
 
-    Create a `.env` file in the root directory and add any required configuration or API keys:
+   ```bash
+   GOOGLE_AI=your_gemini_api_key
+   OPENAI_API_KEY=your_openai_api_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   # OLLAMA_HOST=http://localhost:11434
 
-    ```bash
-    GOOGLE_AI=your_gemini_api_key
-    OPENAI_API_KEY=your_openai_api_key
-    ANTHROPIC_API_KEY=your_anthropic_api_key
-    # OLLAMA_HOST=http://localhost:11434 (if using a remote or non-standard port Ollama)
+   # Optional: override the provider endpoint (useful for corporate LLM
+   # gateways or self-hosted, OpenAI-compatible services).
+   # OPENAI_BASE_URL=https://your-proxy.example.com/v1
+   # ANTHROPIC_BASE_URL=https://your-proxy.example.com/anthropic
+   # GOOGLE_GENERATIVE_AI_BASE_URL=https://your-proxy.example.com/google
+   ```
 
-    # Optional: override the provider endpoint (useful for corporate LLM
-    # gateways or self-hosted, OpenAI-compatible services).
-    # OPENAI_BASE_URL=https://your-proxy.example.com/v1
-    # ANTHROPIC_BASE_URL=https://your-proxy.example.com/anthropic
-    # GOOGLE_GENERATIVE_AI_BASE_URL=https://your-proxy.example.com/google
-    ```
+3. **Build the Package**
 
-3.  **Build the Project**
-
-    Compile the TypeScript code to JavaScript:
-
-    ```bash
-    npm run build
-    ```
+   ```bash
+   npm run build
+   ```
 
 ## Usage
 
-### `runevals` — file-based tool schemas
+> [!NOTE]
+> When running the published package, use `npx webmcp-evals <command>`. When developing locally prior to publishing, build first (`npm run build`) and run `node dist/bin/webmcp-evals.js <command>`.
 
-Loads tool schemas from a local JSON file.
+### Global Options
 
-```bash
-node dist/bin/runevals.js --tools=examples/travel/schema.json --evals=examples/travel/evals.json
-```
+Shared across commands:
 
-With Ollama:
+| Option         | Shorthand | Default            | Description                                  |
+| -------------- | --------- | ------------------ | -------------------------------------------- |
+| `--backend`    | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
+| `--model`      | `-m`      | `gemini-3.5-flash` | Model identifier                             |
+| `--runs`       | `-r`      | `1`                | Number of runs per test case                 |
+| `--max-steps`  | —         | —                  | Maximum agent step count                     |
+| `--reporter`   | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
+| `--output-dir` | `-o`      | `.evals`           | Output directory for reports                 |
 
-```bash
-node dist/bin/runevals.js --model=qwen3:8b --backend=ollama --tools=examples/travel/schema.json --evals=examples/travel/evals.json
-```
+---
 
-| Argument     | Required | Default                  | Description                                                              |
-| ------------ | -------- | ------------------------ | ------------------------------------------------------------------------ |
-| `--tools`    | Yes      | —                        | Path to the tool schema JSON file                                        |
-| `--evals`    | Yes      | —                        | Path to the evals JSON file                                              |
-| `--backend`  | No       | `gemini`                 | Execution backend (`gemini`, `ollama`, or `vercel`)                      |
-| `--provider` | No       | `google`                 | Model provider (e.g., `openai`, `anthropic`, `google`) if using `vercel` |
-| `--model`    | No       | `gemini-3-flash-preview` | Model name                                                               |
+### Command: `local`
 
-### `webmcpevals` — live tool schemas via WebMCP
-
-Launches Chrome Canary, navigates to the given URL, and retrieves tool schemas live from the page via Puppeteer. Requires Chrome Canary 150+ with the `chrome://flags/#enable-webmcp-testing` flag enabled.
+Evaluates static tool schema JSON files.
 
 ```bash
-node dist/bin/webmcpevals.js --url=https://example.com/my-webmcp-app --evals=examples/travel/evals.json
+npx webmcp-evals local -t examples/travel/schema.json -e examples/travel/evals.json
 ```
 
-| Argument     | Required | Default                  | Description                                                         |
-| ------------ | -------- | ------------------------ | ------------------------------------------------------------------- |
-| `--url`      | Yes      | —                        | URL of the page exposing WebMCP tools                               |
-| `--evals`    | Yes      | —                        | Path to the evals JSON file                                         |
-| `--backend`  | No       | `vercel`                 | Must be `vercel` (live browser evaluation requires `ToolLoopAgent`) |
-| `--provider` | No       | `gemini`                 | Model provider to use with Vercel (e.g., `openai`, `anthropic`)     |
-| `--model`    | No       | `gemini-3-flash-preview` | Model name                                                          |
-
-### `serve` — WebMCP Evals UI sidecar
-
-Starts a local web server to provide a visual interface for configuring and running evaluations.
+With Gemini backend and specified model:
 
 ```bash
-node dist/bin/serve.js --port=8080
+npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/travel/schema.json -e examples/travel/evals.json
 ```
 
-| Argument | Required | Default | Description               |
-| -------- | -------- | ------- | ------------------------- |
-| `--port` | No       | `8080`  | Port to run the server on |
+| Option               | Required | Description                        |
+| -------------------- | -------- | ---------------------------------- |
+| `-t, --tools <path>` | Yes      | Path to tool schema JSON file      |
+| `-e, --evals <path>` | Yes      | Path to evals test suite JSON file |
 
-## Evaluation Case Structure
+---
 
-Each test case (eval) in the JSON definitions files supports the following properties:
+### Command: `browser`
 
-| Property       | Type                 | Required | Description                                                                                                                                                                                     |
-| -------------- | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`         | `string`             | No       | Descriptive name of the evaluation case. If provided, multiple execution iterations of this case (or stability runs) will be grouped together in the HTML report under a single accordion case. |
-| `messages`     | `Message[]`          | Yes      | An array of user prompts or conversation turns (multi-turn agent scenarios).                                                                                                                    |
-| `expectedCall` | `ExpectedCallNode[]` | No       | The list of expected tool calls. Can be `null` if no tool calls are expected.                                                                                                                   |
+Evaluates live WebMCP tools on a web page using Puppeteer.
 
-### Example
+```bash
+npx webmcp-evals browser -u https://example.com/demo -e examples/travel/evals.json --open
+```
+
+| Option               | Required | Default | Description                                      |
+| -------------------- | -------- | ------- | ------------------------------------------------ |
+| `-u, --url <url>`    | Yes      | —       | Target web page URL                              |
+| `-e, --evals <path>` | Yes      | —       | Path to evals test suite JSON file               |
+| `--open`             | No       | `false` | Opens the HTML report in browser upon completion |
+
+---
+
+## Test Suite Schema (`evals.json`)
 
 ```json
 [
@@ -151,7 +136,7 @@ Each test case (eval) in the JSON definitions files supports the following prope
         "functionName": "searchProducts",
         "arguments": {
           "query": "running shoes",
-          "maxPrice": 120
+          "maxPrice": { "$lte": 120 }
         }
       }
     ]
@@ -159,62 +144,16 @@ Each test case (eval) in the JSON definitions files supports the following prope
 ]
 ```
 
-## Expected Call Evaluation
+### Argument Matching Operators
 
-By default, an array of expected tool calls in `expectedCall` are checked in the exact sequential order they appear (an implicit `ordered` list).
-
-You can use explicit `ordered` and `unordered` wrappers to validate trajectories that may occur in a different, non-sequential order, and nest them as deeply as needed.
-
-### Complex Orderings Example
-
-```json
-{
-  "expectedCall": [
-    { "functionName": "login" },
-    {
-      "unordered": [
-        { "functionName": "set_pizza_style", "arguments": { "style": "Pesto" } },
-        { "functionName": "set_pizza_size", "arguments": { "size": "Small" } }
-      ]
-    },
-    { "functionName": "checkout" }
-  ]
-}
-```
-
-- **`ordered`**: Validates that all nested models must be executed in exactly the sequential order provided.
-- **`unordered`**: Validates that all nested models must be executed, but they can arrive in any order.
-
-## Argument Constraints
-
-You can use constraint operators to match argument values flexibly. A constraint object is identified when **all** its keys start with `$`.
-
-### Supported Operators
-
-| Operator              | Description             | Example                         |
-| --------------------- | ----------------------- | ------------------------------- |
-| **`$pattern`**        | Regex match             | `{"$pattern": "^2026-\\d{2}$"}` |
-| **`$contains`**       | Substring match         | `{"$contains": "York"}`         |
-| **`$gt`**, **`$gte`** | Greater than (or equal) | `{"$gte": 1}`                   |
-| **`$lt`**, **`$lte`** | Less than (or equal)    | `{"$lt": 100}`                  |
-| **`$type`**           | Type check              | `{"$type": "string"}`           |
-| **`$any`**            | Presence check          | `{"$any": true}`                |
-
-### Example
-
-```json
-{
-  "expectedCall": {
-    "functionName": "searchFlights",
-    "arguments": {
-      "destination": "NYC",
-      "outboundDate": { "$pattern": "^2026-01-\\d{2}$" },
-      "passengers": { "$gte": 1 },
-      "preferences": { "$any": true }
-    }
-  }
-}
-```
+| Operator      | Description             | Example                         |
+| ------------- | ----------------------- | ------------------------------- |
+| `$pattern`    | Regex match             | `{"$pattern": "^2026-\\d{2}$"}` |
+| `$contains`   | Substring match         | `{"$contains": "York"}`         |
+| `$gt`, `$gte` | Greater than (or equal) | `{"$gte": 1}`                   |
+| `$lt`, `$lte` | Less than (or equal)    | `{"$lte": 120}`                 |
+| `$type`       | Type check              | `{"$type": "string"}`           |
+| `$any`        | Field presence check    | `{"$any": true}`                |
 
 ## License
 

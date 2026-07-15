@@ -1,14 +1,21 @@
 {
-  "name": "webmcp-evals-cli",
+  "name": "webmcp-evals",
   "version": "0.1.0",
-  "description": "A command-line tool to run evals for WebMCP schema definitions",
+  "description": "Evaluation framework and CLI for WebMCP tools and agentic workflows",
   "license": "Apache-2.0",
+  "bin": {
+    "webmcp-evals": "dist/bin/webmcp-evals.js"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
   "scripts": {
-    "postinstall": "npm install --prefix ui",
     "build": "tsc",
     "test": "tsc && node --test dist/test/*.test.js",
-    "serve": "tsc && npm run build --prefix ui && node dist/bin/serve.js",
     "lint": "oxlint",
     "format": "oxfmt --write"
   },
@@ -18,15 +25,12 @@
     "@ai-sdk/openai": "^3.0.33",
     "@google/genai": "^1.38.0",
     "@types/cli-progress": "^3.11.6",
-    "@types/minimist": "^1.2.5",
     "ai": "^6.0.98",
     "chalk": "^5.6.2",
     "cli-progress": "^3.12.0",
     "cli-table3": "^0.6.5",
-    "cors": "^2.8.6",
+    "commander": "^13.1.0",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "minimist": "^1.2.8",
     "ollama": "^0.6.3",
     "open": "^11.0.0",
     "ora": "^9.3.0",
@@ -34,8 +38,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
     "@types/node": "^25.0.10",
     "eslint-plugin-license-header": "^0.9.0",
     "oxfmt": "^0.36.0",
