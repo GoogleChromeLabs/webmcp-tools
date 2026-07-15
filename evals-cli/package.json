@@ -1,6 +1,6 @@
 {
   "name": "webmcp-evals",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Evaluation framework and CLI for WebMCP tools and agentic workflows",
   "license": "Apache-2.0",
   "bin": {
