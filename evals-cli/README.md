@@ -86,13 +86,13 @@ Shared across commands:
 Evaluates static tool schema JSON files.
 
 ```bash
-npx webmcp-evals local -t examples/travel/schema.json -e examples/travel/evals.json
+npx webmcp-evals local -t examples/pizza-maker/schema.json -e examples/pizza-maker/evals.json
 ```
 
 With Gemini backend and specified model:
 
 ```bash
-npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/travel/schema.json -e examples/travel/evals.json
+npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/pizza-maker/schema.json -e examples/pizza-maker/evals.json
 ```
 
 | Option               | Required | Description                        |
@@ -107,7 +107,7 @@ npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/travel/schema.j
 Evaluates live WebMCP tools on a web page using Puppeteer.
 
 ```bash
-npx webmcp-evals browser -u https://example.com/demo -e examples/travel/evals.json --open
+npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/evals.json --open
 ```
 
 | Option               | Required | Default | Description                                      |
