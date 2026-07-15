@@ -44,11 +44,19 @@ export async function executeDeclarativeBatch(steps, executeToolFn) {
   for (const step of steps) {
     const { id, tool, args } = step;
     const resolvedArgs = resolveReferences(args, results);
-    
+
     try {
       const result = await executeToolFn(tool, resolvedArgs);
+      let parsedResult = result;
+      if (typeof result === 'string') {
+        try {
+          parsedResult = JSON.parse(result);
+        } catch {
+          // Keep original string if not valid JSON
+        }
+      }
       if (id) {
-        results[id] = result;
+        results[id] = parsedResult;
       }
       outputs.push({
         id,
