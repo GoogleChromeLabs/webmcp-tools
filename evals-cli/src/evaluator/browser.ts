@@ -125,7 +125,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
 
   try {
     console.log(`Launching Chrome Canary from: ${executablePath}`);
-    const puppeteerFlags = ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"];
+    const puppeteerFlags = ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"];
     browser = await puppeteer.launch({
       executablePath,
       headless: true,

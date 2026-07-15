@@ -120,7 +120,7 @@ export class VercelBackend implements Backend {
     let browser: Browser | null = null;
     let page: Page | null = null;
 
-    const puppeteerFlags = ["--enable-features=WebMCPTesting", "--no-sandbox", "--disable-setuid-sandbox"];
+    const puppeteerFlags = ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"];
     try {
       browser = await puppeteer.launch({
         executablePath,
