@@ -4,7 +4,7 @@
  */
 
 import { generateText, stepCountIs, ToolLoopAgent } from "ai";
-import puppeteer, { Browser, Page } from "puppeteer-core";
+import { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";

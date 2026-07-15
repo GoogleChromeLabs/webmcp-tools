@@ -102,7 +102,7 @@ export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[
       let parameters;
       try {
         parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
-      } catch (e) {
+      } catch {
         parameters = {};
       }
       return {

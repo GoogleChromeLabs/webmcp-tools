@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser, Page } from "puppeteer-core";
@@ -103,7 +104,7 @@ export async function getToolsFromBrowserPage(page: Page): Promise<any[]> {
           description: t.description,
           inputSchema: t.inputSchema,
         }));
-      } catch (e) {
+      } catch {
         return [];
       }
     }
