@@ -48,6 +48,11 @@
         "optional": true
       },
       {
+        "functionName": "get_store_promos_and_rules",
+        "arguments": {},
+        "optional": true
+      },
+      {
         "functionName": "refine_search",
         "arguments": {
           "priceRange": {
