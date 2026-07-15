@@ -11,7 +11,12 @@ import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
 import { Backend, LocalEvalResult, RunEvent } from "../backends/index.js";
-import { createBrowserTool, getToolsFromBrowserPage } from "../evaluator/browser.js";
+import {
+  createBrowserTool,
+  getToolsFromBrowserPage,
+  launchBrowser,
+  PUPPETEER_FLAGS,
+} from "../evaluator/browser.js";
 import {
   mapJsonSchemaToVercelTools,
   mapMessages,
@@ -120,18 +125,15 @@ export class VercelBackend implements Backend {
     let browser: Browser | null = null;
     let page: Page | null = null;
 
-    const puppeteerFlags = ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"];
     try {
-      browser = await puppeteer.launch({
-        executablePath,
-        headless: true,
-        args: puppeteerFlags,
-      });
+      browser = await launchBrowser();
 
       console.log("Browser initialized for actual evals");
     } catch (error) {
       if (browser) await browser.close();
-      throw new Error(`Failed to initialize browser for actual evals: ${error}`);
+      throw new Error(
+        `Failed to initialize browser for actual evals (Flags="${PUPPETEER_FLAGS.join(" ")}"): ${error}`,
+      );
     }
 
     const runs = config.runs || 1;
@@ -173,7 +175,7 @@ export class VercelBackend implements Backend {
 
         if (currentTools.length === 0) {
           throw new Error(
-            `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${puppeteerFlags.join(" ")}"]`,
+            `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
           );
         }
 

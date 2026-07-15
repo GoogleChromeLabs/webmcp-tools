@@ -111,6 +111,21 @@ export async function getToolsFromBrowserPage(page: Page): Promise<any[]> {
   });
 }
 
+export const PUPPETEER_FLAGS = [
+  "--enable-features=WebMCP",
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+];
+
+export async function launchBrowser(): Promise<Browser> {
+  const executablePath = await findChromePath();
+  return await puppeteer.launch({
+    executablePath,
+    headless: true,
+    args: PUPPETEER_FLAGS,
+  });
+}
+
 /**
  * Launches Chrome Canary, navigates to the given URL, and retrieves the list
  * of tools exposed by the page via Puppeteer.
@@ -125,12 +140,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
 
   try {
     console.log(`Launching Chrome Canary from: ${executablePath}`);
-    const puppeteerFlags = ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"];
-    browser = await puppeteer.launch({
-      executablePath,
-      headless: true,
-      args: puppeteerFlags,
-    });
+    browser = await launchBrowser();
 
     const page = await browser.newPage();
 
@@ -149,7 +159,7 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     const rawTools = await getToolsFromBrowserPage(page);
     if (rawTools.length === 0) {
       throw new Error(
-        `WebMCP Tools are not available on ${url} (0 tools registered on page).\nDebug info: [URL="${url}", Executable="${executablePath}", Flags="${puppeteerFlags.join(" ")}"]`,
+        `WebMCP Tools are not available on ${url} (0 tools registered on page).\nDebug info: [URL="${url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
       );
     }
 
