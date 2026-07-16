@@ -82,8 +82,13 @@ describe("OllamaBackend", () => {
     assert.strictEqual(passedRequest.messages[0].role, "system");
     assert.strictEqual(passedRequest.messages[0].content, "System prompt");
     assert.deepStrictEqual(result, {
-      functionName: "search_product",
-      args: { query: "helmet" },
+      toolCalls: [
+        {
+          functionName: "search_product",
+          args: { query: "helmet" },
+        },
+      ],
+      text: undefined,
     });
   });
 
@@ -112,6 +117,6 @@ describe("OllamaBackend", () => {
     };
 
     const result = await backend.executeLocalEvals(testEval);
-    assert.deepStrictEqual(result, { text: "No tool calls generated." });
+    assert.deepStrictEqual(result, { toolCalls: [], text: "Hello" });
   });
 });

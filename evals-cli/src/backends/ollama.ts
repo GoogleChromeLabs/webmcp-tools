@@ -7,7 +7,7 @@ import { Ollama, Message as OllamaMessage, Tool as OllamaTool } from "ollama";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, Message, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, RunEvent } from "./index.js";
+import { Backend, LocalEvalResult, RunEvent } from "./index.js";
 
 export class OllamaBackend implements Backend {
   private ollama: Ollama;
@@ -21,16 +21,8 @@ export class OllamaBackend implements Backend {
     this.ollama = new Ollama({ host });
   }
 
-  async executeLocalEvals(test: Eval): Promise<any> {
-    const toolCall = await this.execute(test.messages);
-    if (toolCall) {
-      return {
-        functionName: toolCall.functionName,
-        args: toolCall.args || {},
-      };
-    } else {
-      return { text: "No tool calls generated." };
-    }
+  async executeLocalEvals(test: Eval): Promise<LocalEvalResult> {
+    return this.execute(test.messages);
   }
 
   executeInBrowserEvals(
@@ -46,7 +38,7 @@ export class OllamaBackend implements Backend {
     return `Ollama Backend using model: ${this.model}`;
   }
 
-  async execute(messages: Message[]): Promise<ToolCall | null> {
+  async execute(messages: Message[]): Promise<LocalEvalResult> {
     let ollamaTools: Array<OllamaTool> = this.tools.map((t) => {
       return {
         function: {
@@ -105,17 +97,16 @@ export class OllamaBackend implements Backend {
       stream: false,
     });
 
-    if (!response.message.tool_calls) {
-      return null;
-    }
-
-    const toolCalls: Array<ToolCall> = response.message.tool_calls.map((t) => {
+    const toolCalls: Array<ToolCall> = (response.message.tool_calls || []).map((t) => {
       return {
-        args: t.function.arguments,
+        args: t.function.arguments as Record<string, unknown>,
         functionName: t.function.name,
       };
     });
 
-    return toolCalls[0];
+    return {
+      toolCalls,
+      text: response.message.content || undefined,
+    };
   }
 }
