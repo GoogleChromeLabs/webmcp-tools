@@ -7,7 +7,7 @@ import { Content, FunctionDeclaration, GoogleGenAI } from "@google/genai";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, Message, TestResults } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, RunEvent } from "./index.js";
+import { Backend, LocalEvalResult, RunEvent } from "./index.js";
 
 export class GeminiBackend implements Backend {
   private googleGenAI: GoogleGenAI;
@@ -21,16 +21,8 @@ export class GeminiBackend implements Backend {
     this.googleGenAI = new GoogleGenAI({ apiKey });
   }
 
-  async executeLocalEvals(test: Eval): Promise<any> {
-    const toolCall = await this.execute(test.messages);
-    if (toolCall) {
-      return {
-        functionName: toolCall.functionName,
-        args: toolCall.args || {},
-      };
-    } else {
-      return { text: "No tool calls generated." };
-    }
+  async executeLocalEvals(test: Eval): Promise<LocalEvalResult> {
+    return this.execute(test.messages);
   }
 
   executeInBrowserEvals(
@@ -46,7 +38,7 @@ export class GeminiBackend implements Backend {
     return `Gemini Backend using model: ${this.model}`;
   }
 
-  async execute(messages: Message[]): Promise<ToolCall | null> {
+  async execute(messages: Message[]): Promise<LocalEvalResult> {
     const functionDeclarations: Array<FunctionDeclaration> = this.tools.map((t) => {
       return {
         name: t.functionName,
@@ -102,19 +94,23 @@ export class GeminiBackend implements Backend {
 
     const response = await this.googleGenAI.models.generateContent(request);
 
-    if (!response.functionCalls) {
-      return null;
-    }
-
-    const functionCalls: Array<ToolCall> = response.functionCalls
+    const toolCalls: Array<ToolCall> = (response.functionCalls || [])
       .filter((f) => f.name && f.args)
       .map((f) => {
         return {
-          args: f.args!,
+          args: f.args as Record<string, unknown>,
           functionName: f.name!,
         };
       });
 
-    return functionCalls[0];
+    const textParts = response.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text)
+      .filter((t): t is string => Boolean(t))
+      .join("");
+
+    return {
+      toolCalls,
+      text: textParts || undefined,
+    };
   }
 }

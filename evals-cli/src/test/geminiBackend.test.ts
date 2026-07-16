@@ -61,6 +61,20 @@ describe("GeminiBackend", () => {
                 args: { query: "running shoes" },
               },
             ],
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      functionCall: {
+                        name: "search_product",
+                        args: { query: "running shoes" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
           };
         },
       },
@@ -74,8 +88,13 @@ describe("GeminiBackend", () => {
 
     const result = await backend.executeLocalEvals(testEval);
     assert.deepStrictEqual(result, {
-      functionName: "search_product",
-      args: { query: "running shoes" },
+      toolCalls: [
+        {
+          functionName: "search_product",
+          args: { query: "running shoes" },
+        },
+      ],
+      text: undefined,
     });
   });
 
@@ -92,6 +111,13 @@ describe("GeminiBackend", () => {
         generateContent: async (_request: any) => {
           return {
             functionCalls: null,
+            candidates: [
+              {
+                content: {
+                  parts: [{ text: "No tool calls generated." }],
+                },
+              },
+            ],
           };
         },
       },
@@ -104,7 +130,7 @@ describe("GeminiBackend", () => {
     };
 
     const result = await backend.executeLocalEvals(testEval);
-    assert.deepStrictEqual(result, { text: "No tool calls generated." });
+    assert.deepStrictEqual(result, { toolCalls: [], text: "No tool calls generated." });
   });
 
   it("should map multi-turn messages correctly during API execution", async () => {
@@ -125,6 +151,20 @@ describe("GeminiBackend", () => {
               {
                 name: "search_product",
                 args: {},
+              },
+            ],
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      functionCall: {
+                        name: "search_product",
+                        args: {},
+                      },
+                    },
+                  ],
+                },
               },
             ],
           };
