@@ -5,9 +5,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { createRequire } from "node:module";
 import { Command } from "commander";
 import dotenv from "dotenv";
 import { runLocalCommand, runWebCommand } from "../commands/index.js";
+
+const require = createRequire(import.meta.url);
+const pkg = require("../../package.json");
 
 dotenv.config();
 
@@ -16,7 +20,7 @@ const program = new Command();
 program
   .name("webmcp-evals")
   .description("Evaluation framework and CLI for WebMCP tools and agentic workflows")
-  .version("0.0.2");
+  .version(pkg.version);
 
 // Global options shared across commands
 program
