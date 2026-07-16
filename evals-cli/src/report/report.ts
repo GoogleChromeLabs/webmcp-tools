@@ -59,11 +59,7 @@ export function renderReport(config: Config, testResults: TestResults): string {
 
 function renderEvalsSummary(testResults: TestResults): string {
   const totalEvals = testResults.passCount + testResults.failCount + testResults.errorCount;
-  const passRate = (
-    totalEvals > 0
-      ? (testResults.passCount / totalEvals) * 100
-      : 0
-  ).toFixed(1);
+  const passRate = (totalEvals > 0 ? (testResults.passCount / totalEvals) * 100 : 0).toFixed(1);
 
   const caseNames = new Set(
     testResults.results.map(
@@ -175,7 +171,7 @@ function renderDetails(testResults: Array<TestResult>): string {
     }
 
     run.steps.push({
-      stepIndex: result.stepIndex || (run.steps.length + 1),
+      stepIndex: result.stepIndex || run.steps.length + 1,
       originalIndex,
       result,
     });
@@ -325,15 +321,11 @@ function renderRunIteration(
   `;
 }
 
-function renderStepDetails(
-  stepEval: TestStep,
-  totalSteps: number,
-): string {
+function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
   const { stepIndex, result } = stepEval;
 
   const functionNameOutcome =
-    (result.test.expectedCall?.[0] as FunctionCall)?.functionName ===
-    result.response?.functionName
+    (result.test.expectedCall?.[0] as FunctionCall)?.functionName === result.response?.functionName
       ? "pass"
       : "fail";
 
@@ -407,7 +399,6 @@ function renderStepDetails(
   `;
 }
 
-
 function renderTrajectory(trajectory?: any[]): string {
   if (!trajectory || trajectory.length === 0) return "";
 
@@ -431,20 +422,24 @@ function renderTrajectory(trajectory?: any[]): string {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
                 '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
-              thoughts +
+                thoughts +
                 "</pre></div>";
             }
             if (step.availableTools && step.availableTools.length > 0) {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">' +
-                'Available Tools (' + step.availableTools.length + '):' +
-                '</em>' +
-              '<div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans">' +
+                "Available Tools (" +
+                step.availableTools.length +
+                "):" +
+                "</em>" +
+                '<div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans">' +
                 step.availableTools
                   .map(
                     (t: any) =>
                       '<div class="flex items-start">' +
-                      '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="' + t.functionName + '">' +
+                      '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="' +
+                      t.functionName +
+                      '">' +
                       t.functionName +
                       "</span>" +
                       "</div>" +

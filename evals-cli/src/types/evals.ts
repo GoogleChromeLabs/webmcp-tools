@@ -66,7 +66,6 @@ export type TestResult = {
   stepIndex?: number;
 };
 
-
 export type TestResults = {
   results: Array<TestResult>;
   testCount: number;

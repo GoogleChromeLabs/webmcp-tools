@@ -271,9 +271,10 @@ export class VercelBackend implements Backend {
             }
           }
 
-          const rawSteps = resultPayload.steps && resultPayload.steps.length > 0
-            ? resultPayload.steps
-            : stepsHistory;
+          const rawSteps =
+            resultPayload.steps && resultPayload.steps.length > 0
+              ? resultPayload.steps
+              : stepsHistory;
 
           const trajectory = rawSteps.map((step, idx) => ({
             text: step.text,
