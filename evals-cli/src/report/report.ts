@@ -282,7 +282,7 @@ function renderRunIteration(run: TestRun): string {
 
           <div class="space-y-4">
             <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
-            ${run.steps.map((step) => renderStepDetails(step)).join("")}
+            ${run.steps.map((step) => renderStepDetails(step, run.steps.length, run.runIndex)).join("")}
           </div>
 
           ${renderTrajectory(run.trajectory)}
@@ -292,7 +292,7 @@ function renderRunIteration(run: TestRun): string {
   `;
 }
 
-function renderStepDetails(stepEval: TestStep): string {
+function renderStepDetails(stepEval: TestStep, totalSteps: number, runIndex: number): string {
   const { stepIndex, originalIndex, result } = stepEval;
 
   const functionNameOutcome =
@@ -319,7 +319,7 @@ function renderStepDetails(stepEval: TestStep): string {
     <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
       <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
         <h5 class="text-xs font-semibold text-slate-700">
-          Step #${stepIndex} <span class="text-slate-400 font-normal ml-1">(Overall Test #${originalIndex})</span>
+          Step #${stepIndex}/${totalSteps} <span class="text-slate-400 font-normal ml-1">(Overall Test #${originalIndex} of Run #${runIndex})</span>
         </h5>
         <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusColor}">
           ${result.outcome.toUpperCase()}
@@ -390,12 +390,34 @@ function renderTrajectory(trajectory?: any[]): string {
               (index + 1) +
               "</strong>";
 
-            if (step.text) {
+            const thoughts = step.reasoningText || step.text;
+            if (thoughts) {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
                 '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
-                step.text +
+              thoughts +
                 "</pre></div>";
+            }
+            if (step.availableTools && step.availableTools.length > 0) {
+              html +=
+                '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">' +
+                'Available Tools (' + step.availableTools.length + '):' +
+                '</em>' +
+                '<ul class="space-y-2 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto">' +
+                step.availableTools
+                  .map(
+                    (t: any) =>
+                      '<li class="flex items-start space-x-2 text-xs">' +
+                      '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded shrink-0 text-[10px]">' +
+                      t.functionName +
+                      "</span>" +
+                      '<span class="text-slate-600 mt-0.5">' +
+                      (t.description || '<em class="text-slate-400">No description</em>') +
+                      "</span>" +
+                      "</li>",
+                  )
+                  .join("") +
+                "</ul></div>";
             }
             if (step.toolCalls && step.toolCalls.length > 0) {
               html +=

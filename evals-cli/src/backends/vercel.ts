@@ -179,6 +179,9 @@ export class VercelBackend implements Backend {
           );
         }
 
+        const availableToolsPerStep: Array<Array<Tool>> = [];
+        const stepsHistory: any[] = [];
+
         try {
           const model = getModel(config);
 
@@ -212,18 +215,26 @@ export class VercelBackend implements Backend {
                   }
                 }
               : undefined,
-            onStepFinish: config.debug
-              ? (event) => {
-                  console.log(
-                    `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-                  );
-                }
-              : undefined,
+            onStepFinish: (event) => {
+              if (config.debug) {
+                console.log(
+                  `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+                );
+              }
+              stepsHistory.push({
+                text: event.text,
+                reasoningText: event.reasoningText,
+                toolCalls: event.toolCalls,
+                toolResults: event.toolResults,
+              });
+            },
             prepareStep: async (_opts: any): Promise<any> => {
               let rawTools = await getToolsFromBrowserPage(page!);
               if (rawTools.length > 0) {
                 currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
               }
+
+              availableToolsPerStep.push([...currentTools]);
 
               // Clear the object
               for (const key in aiToolsWithExecution) {
@@ -260,7 +271,17 @@ export class VercelBackend implements Backend {
             }
           }
 
-          const trajectory = resultPayload.steps || [];
+          const rawSteps = resultPayload.steps && resultPayload.steps.length > 0
+            ? resultPayload.steps
+            : stepsHistory;
+
+          const trajectory = rawSteps.map((step, idx) => ({
+            text: step.text,
+            reasoningText: step.reasoningText,
+            toolCalls: step.toolCalls,
+            toolResults: step.toolResults,
+            availableTools: availableToolsPerStep[idx] || [],
+          }));
 
           const trajectories = test.expectedCall
             ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
@@ -319,12 +340,20 @@ export class VercelBackend implements Backend {
         } catch (e: any) {
           console.warn("Error running test:", e);
           errorCount++;
+          const trajectory = stepsHistory.map((step, idx) => ({
+            text: step.text,
+            reasoningText: step.reasoningText,
+            toolCalls: step.toolCalls,
+            toolResults: step.toolResults,
+            availableTools: availableToolsPerStep[idx] || [],
+          }));
           const result: TestResult = {
             test,
             response: null as any,
             outcome: "error",
             runIndex: r + 1,
             stepIndex: 1,
+            trajectory,
           };
           testResults.push(result);
           if (onEvent) {
