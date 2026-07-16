@@ -16,7 +16,7 @@ const program = new Command();
 program
   .name("webmcp-evals")
   .description("Evaluation framework and CLI for WebMCP tools and agentic workflows")
-  .version("0.1.0");
+  .version("0.0.2");
 
 // Global options shared across commands
 program
