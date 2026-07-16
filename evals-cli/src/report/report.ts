@@ -97,13 +97,23 @@ function renderConfiguration(config: Config): string {
 </ul>`;
 }
 
-interface CaseGroup {
+interface TestStep {
+  stepIndex: number;
+  originalIndex: number;
+  result: TestResult;
+}
+
+interface TestRun {
+  runIndex: number;
+  steps: TestStep[];
+  outcome: "pass" | "fail" | "error";
+  messages: Message[];
+  trajectory?: any[];
+}
+
+interface TestCase {
   name: string;
-  results: Array<{
-    runIndex: number;
-    originalIndex: number;
-    result: TestResult;
-  }>;
+  runs: TestRun[];
   passCount: number;
   failCount: number;
   errorCount: number;
@@ -111,7 +121,7 @@ interface CaseGroup {
 }
 
 function renderDetails(testResults: Array<TestResult>): string {
-  const groupsMap = new Map<string, CaseGroup>();
+  const groupsMap = new Map<string, TestCase>();
   let originalIndex = 1;
 
   for (const result of testResults) {
@@ -123,7 +133,7 @@ function renderDetails(testResults: Array<TestResult>): string {
     if (!groupsMap.has(caseName)) {
       groupsMap.set(caseName, {
         name: caseName,
-        results: [],
+        runs: [],
         passCount: 0,
         failCount: 0,
         errorCount: 0,
@@ -132,13 +142,31 @@ function renderDetails(testResults: Array<TestResult>): string {
     }
 
     const group = groupsMap.get(caseName)!;
-    const runIndex = group.results.length + 1;
+    const runIdx = result.runIndex || 1;
 
-    group.results.push({
-      runIndex,
+    let run = group.runs.find((r) => r.runIndex === runIdx);
+    if (!run) {
+      run = {
+        runIndex: runIdx,
+        steps: [],
+        outcome: "pass",
+        messages: result.test.messages,
+        trajectory: result.trajectory,
+      };
+      group.runs.push(run);
+    }
+
+    run.steps.push({
+      stepIndex: result.stepIndex || (run.steps.length + 1),
       originalIndex,
       result,
     });
+
+    if (result.outcome === "error") {
+      run.outcome = "error";
+    } else if (result.outcome === "fail" && run.outcome !== "error") {
+      run.outcome = "fail";
+    }
 
     group.totalCount++;
     if (result.outcome === "pass") {
@@ -156,12 +184,12 @@ function renderDetails(testResults: Array<TestResult>): string {
 
   return `
     <div class="space-y-6">
-      ${groups.map((group) => renderCaseGroup(group)).join("")}
+      ${groups.map((group) => renderTestCase(group)).join("")}
     </div>
   `;
 }
 
-function renderCaseGroup(group: CaseGroup): string {
+function renderTestCase(group: TestCase): string {
   const hasFailures = group.failCount > 0 || group.errorCount > 0;
   const isOpen = hasFailures ? "open" : "";
 
@@ -206,38 +234,21 @@ function renderCaseGroup(group: CaseGroup): string {
         </summary>
         
         <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-5">
-          ${group.results.map(({ runIndex, originalIndex, result }) => renderRunIteration(runIndex, originalIndex, result)).join("")}
+          ${group.runs.map((run) => renderRunIteration(run)).join("")}
         </div>
       </details>
     </div>
   `;
 }
 
-function renderRunIteration(
-  runIndex: number,
-  originalIndex: number,
-  testResult: TestResult,
-): string {
-  const isPass = testResult.outcome === "pass";
+function renderRunIteration(run: TestRun): string {
+  const isPass = run.outcome === "pass";
   const isOpen = !isPass ? "open" : "";
 
-  const functionNameOutcome =
-    (testResult.test.expectedCall?.[0] as FunctionCall)?.functionName ===
-    testResult.response?.functionName
-      ? "pass"
-      : "fail";
-
-  const argsOutcome = matchesArgument(
-    (testResult.test.expectedCall?.[0] as FunctionCall)?.arguments,
-    testResult.response?.args,
-  )
-    ? "pass"
-    : "fail";
-
   const badgeClass =
-    testResult.outcome === "pass"
+    run.outcome === "pass"
       ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-      : testResult.outcome === "fail"
+      : run.outcome === "fail"
         ? "bg-rose-100 text-rose-800 border-rose-200"
         : "bg-amber-100 text-amber-800 border-amber-200";
 
@@ -249,11 +260,10 @@ function renderRunIteration(
             <svg class="w-4 h-4 text-slate-400 group-open/run:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="font-semibold">Run #${runIndex}</span>
-            <span class="text-slate-400 text-xs">(Overall Test #${originalIndex})</span>
+            <span class="font-semibold">Run #${run.runIndex}</span>
           </div>
           <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}">
-            ${testResult.outcome.toUpperCase()}
+            ${run.outcome.toUpperCase()}
           </span>
         </summary>
         
@@ -266,64 +276,101 @@ function renderRunIteration(
               </svg>
             </summary>
             <div class="p-3 border-t border-slate-150 bg-slate-50/20">
-              ${renderMessages(testResult.test.messages)}
+              ${renderMessages(run.messages)}
             </div>
           </details>
 
-          <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
-            <h4 class="text-xs font-semibold text-slate-600 bg-slate-50/80 p-3 border-b border-slate-200">
-              <a href="#result-${originalIndex}" class="hover:text-blue-600 transition-colors">Evaluation Match Details</a>
-            </h4>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
-                  <tr>
-                    <th class="px-4 py-2">Type</th>
-                    <th class="px-4 py-2">Expected Pattern</th>
-                    <th class="px-4 py-2">Actual Result</th>
-                    <th class="px-4 py-2 w-24">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr class="hover:bg-slate-50/30">
-                    <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
-                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(testResult.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
-                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${testResult.response?.functionName || null}</code></td>
-                    <td class="px-4 py-3">
-                      <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
-                        ${functionNameOutcome.toUpperCase()}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr class="hover:bg-slate-50/30">
-                    <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
-                    <td class="px-4 py-3">
-                      <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys((testResult.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2)}</pre>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3">
-                      <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys(testResult.response?.args) || null, null, 2)}</pre>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                      <span class="${argsOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs mt-2 inline-block">
-                        ${argsOutcome.toUpperCase()}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="space-y-4">
+            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
+            ${run.steps.map((step) => renderStepDetails(step)).join("")}
           </div>
 
-          ${renderTrajectory(testResult.trajectory)}
+          ${renderTrajectory(run.trajectory)}
         </div>
       </details>
     </div>
   `;
 }
+
+function renderStepDetails(stepEval: TestStep): string {
+  const { stepIndex, originalIndex, result } = stepEval;
+
+  const functionNameOutcome =
+    (result.test.expectedCall?.[0] as FunctionCall)?.functionName ===
+    result.response?.functionName
+      ? "pass"
+      : "fail";
+
+  const argsOutcome = matchesArgument(
+    (result.test.expectedCall?.[0] as FunctionCall)?.arguments,
+    result.response?.args,
+  )
+    ? "pass"
+    : "fail";
+
+  const statusColor =
+    result.outcome === "pass"
+      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+      : result.outcome === "fail"
+        ? "text-rose-700 bg-rose-50 border-rose-200"
+        : "text-amber-700 bg-amber-50 border-amber-200";
+
+  return `
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #${stepIndex} <span class="text-slate-400 font-normal ml-1">(Overall Test #${originalIndex})</span>
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusColor}">
+          ${result.outcome.toUpperCase()}
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(result.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${result.response?.functionName || null}</code></td>
+              <td class="px-4 py-3">
+                <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
+                  ${functionNameOutcome.toUpperCase()}
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys((result.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2)}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys(result.response?.args) || null, null, 2)}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="${argsOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs mt-2 inline-block">
+                  ${argsOutcome.toUpperCase()}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
 
 function renderTrajectory(trajectory?: any[]): string {
   if (!trajectory || trajectory.length === 0) return "";

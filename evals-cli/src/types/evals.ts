@@ -62,7 +62,10 @@ export type TestResult = {
   response: ToolCall | null;
   outcome: "pass" | "fail" | "error";
   trajectory?: any[];
+  runIndex?: number;
+  stepIndex?: number;
 };
+
 
 export type TestResults = {
   results: Array<TestResult>;

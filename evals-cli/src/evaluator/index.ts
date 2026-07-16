@@ -77,13 +77,20 @@ export async function executeLocalEvals(
 
         if (trajectories.length === 0) {
           // No expected calls and no actual calls
-          const result: TestResult = { test, response: null, outcome: "pass" };
+          const result: TestResult = {
+            test,
+            response: null,
+            outcome: "pass",
+            runIndex: r + 1,
+            stepIndex: 1,
+          };
           testResults.push(result);
           passCount++;
           if (onEvent) {
             onEvent({ type: "progress", testNumber: testCount, result });
           }
         } else {
+          let stepIndex = 1;
           for (const traj of trajectories) {
             const stepResult: TestResult = {
               test: {
@@ -93,6 +100,8 @@ export async function executeLocalEvals(
               },
               response: traj.actual,
               outcome: traj.outcome,
+              runIndex: r + 1,
+              stepIndex: stepIndex++,
             };
             testResults.push(stepResult);
             if (traj.outcome === "pass") {
@@ -123,6 +132,8 @@ export async function executeLocalEvals(
           test,
           response: null as any,
           outcome: "error",
+          runIndex: r + 1,
+          stepIndex: 1,
         };
         testResults.push(result);
         if (onEvent) {

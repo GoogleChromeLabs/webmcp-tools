@@ -268,13 +268,21 @@ export class VercelBackend implements Backend {
 
           if (trajectories.length === 0) {
             const response: any = { text: resultPayload.text };
-            const stepResult: TestResult = { test, response, outcome: "pass", trajectory };
+            const stepResult: TestResult = {
+              test,
+              response,
+              outcome: "pass",
+              trajectory,
+              runIndex: r + 1,
+              stepIndex: 1,
+            };
             testResults.push(stepResult);
             passCount++;
             if (onEvent) {
               onEvent({ type: "progress", testNumber: testCount, result: stepResult });
             }
           } else {
+            let stepIndex = 1;
             for (const traj of trajectories) {
               let response: any = traj.actual;
               if (!response && executedCalls.length === 0 && resultPayload.text) {
@@ -292,6 +300,8 @@ export class VercelBackend implements Backend {
                 response,
                 outcome: traj.outcome,
                 trajectory,
+                runIndex: r + 1,
+                stepIndex: stepIndex++,
               };
 
               testResults.push(stepResult);
@@ -313,6 +323,8 @@ export class VercelBackend implements Backend {
             test,
             response: null as any,
             outcome: "error",
+            runIndex: r + 1,
+            stepIndex: 1,
           };
           testResults.push(result);
           if (onEvent) {
