@@ -8,6 +8,16 @@ import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.j
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
+function escapeHtml(str: string | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function renderReport(config: Config, testResults: TestResults): string {
   return `
 <!DOCTYPE html>
@@ -58,15 +68,29 @@ export function renderReport(config: Config, testResults: TestResults): string {
 }
 
 function renderEvalsSummary(testResults: TestResults): string {
-  const passRate = (
-    (testResults.passCount / (testResults.passCount + testResults.failCount)) *
-    100
-  ).toFixed(1);
+  const totalEvals = testResults.passCount + testResults.failCount + testResults.errorCount;
+  const passRate = (totalEvals > 0 ? (testResults.passCount / totalEvals) * 100 : 0).toFixed(1);
+
+  const caseNames = new Set(
+    testResults.results.map(
+      (r) =>
+        r.test.name ||
+        (r.test.messages[0] && r.test.messages[0].type === "message"
+          ? r.test.messages[0].content
+          : ""),
+    ),
+  );
+  const totalCases = caseNames.size;
+  const runs = testResults.results.reduce((max, r) => Math.max(max, r.runIndex || 1), 1);
+
   return `
+        <p class="text-sm text-slate-500 mb-4 font-medium">
+          Evaluated ${totalCases} test case${totalCases !== 1 ? "s" : ""} across ${runs} run${runs !== 1 ? "s" : ""}.
+        </p>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col">
                 <span class="text-sm text-slate-500 font-medium">Total Evals</span>
-                <span class="text-2xl font-bold text-slate-900">${testResults.testCount}</span>
+                <span class="text-2xl font-bold text-slate-900">${totalEvals}</span>
             </div>
             <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex flex-col">
                 <span class="text-sm text-emerald-600 font-medium">Passed</span>
@@ -97,13 +121,23 @@ function renderConfiguration(config: Config): string {
 </ul>`;
 }
 
-interface CaseGroup {
+interface TestStep {
+  stepIndex: number;
+  originalIndex: number;
+  result: TestResult;
+}
+
+interface TestRun {
+  runIndex: number;
+  steps: TestStep[];
+  outcome: "pass" | "fail" | "error";
+  messages: Message[];
+  trajectory?: any[];
+}
+
+interface TestCase {
   name: string;
-  results: Array<{
-    runIndex: number;
-    originalIndex: number;
-    result: TestResult;
-  }>;
+  runs: TestRun[];
   passCount: number;
   failCount: number;
   errorCount: number;
@@ -111,19 +145,19 @@ interface CaseGroup {
 }
 
 function renderDetails(testResults: Array<TestResult>): string {
-  const groupsMap = new Map<string, CaseGroup>();
+  const groupsMap = new Map<string, TestCase>();
   let originalIndex = 1;
 
   for (const result of testResults) {
     const firstMsg = result.test.messages[0];
     const fallbackName =
-      firstMsg && firstMsg.type === "message" ? firstMsg.content : `Case #${originalIndex}`;
+      firstMsg && firstMsg.type === "message" ? firstMsg.content : `Test case #${originalIndex}`;
     const caseName = result.test.name || fallbackName;
 
     if (!groupsMap.has(caseName)) {
       groupsMap.set(caseName, {
         name: caseName,
-        results: [],
+        runs: [],
         passCount: 0,
         failCount: 0,
         errorCount: 0,
@@ -132,13 +166,31 @@ function renderDetails(testResults: Array<TestResult>): string {
     }
 
     const group = groupsMap.get(caseName)!;
-    const runIndex = group.results.length + 1;
+    const runIdx = result.runIndex || 1;
 
-    group.results.push({
-      runIndex,
+    let run = group.runs.find((r) => r.runIndex === runIdx);
+    if (!run) {
+      run = {
+        runIndex: runIdx,
+        steps: [],
+        outcome: "pass",
+        messages: result.test.messages,
+        trajectory: result.trajectory,
+      };
+      group.runs.push(run);
+    }
+
+    run.steps.push({
+      stepIndex: result.stepIndex || run.steps.length + 1,
       originalIndex,
       result,
     });
+
+    if (result.outcome === "error") {
+      run.outcome = "error";
+    } else if (result.outcome === "fail" && run.outcome !== "error") {
+      run.outcome = "fail";
+    }
 
     group.totalCount++;
     if (result.outcome === "pass") {
@@ -153,15 +205,16 @@ function renderDetails(testResults: Array<TestResult>): string {
   }
 
   const groups = Array.from(groupsMap.values());
+  const totalCases = groups.length;
 
   return `
     <div class="space-y-6">
-      ${groups.map((group) => renderCaseGroup(group)).join("")}
+      ${groups.map((group, index) => renderTestCase(group, index + 1, totalCases)).join("")}
     </div>
   `;
 }
 
-function renderCaseGroup(group: CaseGroup): string {
+function renderTestCase(group: TestCase, caseIndex: number, totalCases: number): string {
   const hasFailures = group.failCount > 0 || group.errorCount > 0;
   const isOpen = hasFailures ? "open" : "";
 
@@ -185,6 +238,7 @@ function renderCaseGroup(group: CaseGroup): string {
       : "bg-rose-100 text-rose-800 border-rose-200";
 
   const passRateText = `${group.passCount}/${group.totalCount} Passed`;
+  const totalRuns = group.runs.length;
 
   return `
     <div class="${containerClass}">
@@ -194,19 +248,22 @@ function renderCaseGroup(group: CaseGroup): string {
             <svg class="w-5 h-5 text-slate-400 group-open/case:rotate-90 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
             </svg>
-            <h3 class="text-base font-semibold ${titleColorClass} truncate font-sans">
-              ${group.name}
-            </h3>
+            <div class="truncate">
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Test case #${caseIndex}/${totalCases}</span>
+              <h3 class="text-base font-semibold ${titleColorClass} truncate font-sans">
+                ${escapeHtml(group.name)}
+              </h3>
+            </div>
           </div>
           <div class="flex items-center space-x-3 shrink-0">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold border ${badgeClass}">
+            <span class="px-3 py-1 rounded text-xs font-semibold border ${badgeClass}">
               ${passRateText}
             </span>
           </div>
         </summary>
         
         <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-5">
-          ${group.results.map(({ runIndex, originalIndex, result }) => renderRunIteration(runIndex, originalIndex, result)).join("")}
+          ${group.runs.map((run) => renderRunIteration(run, caseIndex, totalCases, totalRuns)).join("")}
         </div>
       </details>
     </div>
@@ -214,32 +271,25 @@ function renderCaseGroup(group: CaseGroup): string {
 }
 
 function renderRunIteration(
-  runIndex: number,
-  originalIndex: number,
-  testResult: TestResult,
+  run: TestRun,
+  caseIndex: number,
+  totalCases: number,
+  totalRuns: number,
 ): string {
-  const isPass = testResult.outcome === "pass";
+  const isPass = run.outcome === "pass";
   const isOpen = !isPass ? "open" : "";
 
-  const functionNameOutcome =
-    (testResult.test.expectedCall?.[0] as FunctionCall)?.functionName ===
-    testResult.response?.functionName
-      ? "pass"
-      : "fail";
-
-  const argsOutcome = matchesArgument(
-    (testResult.test.expectedCall?.[0] as FunctionCall)?.arguments,
-    testResult.response?.args,
-  )
-    ? "pass"
-    : "fail";
+  const totalSteps = run.steps.length;
+  const passedSteps = run.steps.filter((s) => s.result.outcome === "pass").length;
 
   const badgeClass =
-    testResult.outcome === "pass"
+    run.outcome === "pass"
       ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-      : testResult.outcome === "fail"
+      : run.outcome === "fail"
         ? "bg-rose-100 text-rose-800 border-rose-200"
         : "bg-amber-100 text-amber-800 border-amber-200";
+
+  const runBadgeText = `${passedSteps}/${totalSteps} Passed`;
 
   return `
     <div class="border border-slate-200 rounded-lg bg-white shadow-xs overflow-hidden">
@@ -249,11 +299,10 @@ function renderRunIteration(
             <svg class="w-4 h-4 text-slate-400 group-open/run:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            <span class="font-semibold">Run #${runIndex}</span>
-            <span class="text-slate-400 text-xs">(Overall Test #${originalIndex})</span>
+            <span class="font-semibold">Run #${run.runIndex}/${totalRuns}</span>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}">
-            ${testResult.outcome.toUpperCase()}
+          <span class="px-2.5 py-0.5 rounded text-xs font-semibold border ${badgeClass}">
+            ${runBadgeText}
           </span>
         </summary>
         
@@ -266,61 +315,96 @@ function renderRunIteration(
               </svg>
             </summary>
             <div class="p-3 border-t border-slate-150 bg-slate-50/20">
-              ${renderMessages(testResult.test.messages)}
+              ${renderMessages(run.messages)}
             </div>
           </details>
 
-          <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
-            <h4 class="text-xs font-semibold text-slate-600 bg-slate-50/80 p-3 border-b border-slate-200">
-              <a href="#result-${originalIndex}" class="hover:text-blue-600 transition-colors">Evaluation Match Details</a>
-            </h4>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
-                  <tr>
-                    <th class="px-4 py-2">Type</th>
-                    <th class="px-4 py-2">Expected Pattern</th>
-                    <th class="px-4 py-2">Actual Result</th>
-                    <th class="px-4 py-2 w-24">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr class="hover:bg-slate-50/30">
-                    <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
-                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(testResult.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
-                    <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${testResult.response?.functionName || null}</code></td>
-                    <td class="px-4 py-3">
-                      <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
-                        ${functionNameOutcome.toUpperCase()}
-                      </span>
-                    </td>
-                  </tr>
-                  <tr class="hover:bg-slate-50/30">
-                    <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
-                    <td class="px-4 py-3">
-                      <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys((testResult.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2)}</pre>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3">
-                      <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys(testResult.response?.args) || null, null, 2)}</pre>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                      <span class="${argsOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs mt-2 inline-block">
-                        ${argsOutcome.toUpperCase()}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="space-y-4">
+            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
+            ${run.steps.map((step) => renderStepDetails(step, run.steps.length)).join("")}
           </div>
 
-          ${renderTrajectory(testResult.trajectory)}
+          ${renderTrajectory(run.trajectory)}
         </div>
       </details>
+    </div>
+  `;
+}
+
+function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
+  const { stepIndex, result } = stepEval;
+
+  const functionNameOutcome =
+    (result.test.expectedCall?.[0] as FunctionCall)?.functionName === result.response?.functionName
+      ? "pass"
+      : "fail";
+
+  const argsOutcome = matchesArgument(
+    (result.test.expectedCall?.[0] as FunctionCall)?.arguments,
+    result.response?.args,
+  )
+    ? "pass"
+    : "fail";
+
+  const statusColor =
+    result.outcome === "pass"
+      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+      : result.outcome === "fail"
+        ? "text-rose-700 bg-rose-50 border-rose-200"
+        : "text-amber-700 bg-amber-50 border-amber-200";
+
+  return `
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #${stepIndex}/${totalSteps}
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusColor}">
+          ${result.outcome.toUpperCase()}
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml((result.test.expectedCall?.[0] as FunctionCall)?.functionName || null)}</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(result.response?.functionName || null)}</code></td>
+              <td class="px-4 py-3">
+                <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
+                  ${functionNameOutcome.toUpperCase()}
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys((result.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2))}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys(result.response?.args) || null, null, 2))}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="${argsOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs mt-2 inline-block">
+                  ${argsOutcome.toUpperCase()}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 }
@@ -343,19 +427,47 @@ function renderTrajectory(trajectory?: any[]): string {
               (index + 1) +
               "</strong>";
 
-            if (step.text) {
+            const thoughts = step.reasoningText || step.text;
+            if (thoughts) {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
                 '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
-                step.text +
+                escapeHtml(thoughts) +
                 "</pre></div>";
+            }
+            if (step.availableTools && step.availableTools.length > 0) {
+              html +=
+                '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">' +
+                "Available Tools (" +
+                step.availableTools.length +
+                "):" +
+                "</em>" +
+                '<div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans">' +
+                step.availableTools
+                  .map(
+                    (t: any) =>
+                      '<div class="flex items-start">' +
+                      '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="' +
+                      escapeHtml(t.functionName) +
+                      '">' +
+                      escapeHtml(t.functionName) +
+                      "</span>" +
+                      "</div>" +
+                      '<div class="text-xs text-slate-600 text-left align-top mt-0.5">' +
+                      (t.description
+                        ? escapeHtml(t.description)
+                        : '<em class="text-slate-400">No description</em>') +
+                      "</div>",
+                  )
+                  .join("") +
+                "</div></div>";
             }
             if (step.toolCalls && step.toolCalls.length > 0) {
               html +=
                 '<div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em>' +
                 '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
                 '<pre class="text-xs text-blue-300 font-mono m-0">' +
-                JSON.stringify(step.toolCalls, null, 2) +
+                escapeHtml(JSON.stringify(step.toolCalls, null, 2)) +
                 "</pre>" +
                 "</div></div>";
             }
@@ -364,7 +476,7 @@ function renderTrajectory(trajectory?: any[]): string {
                 '<div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em>' +
                 '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
                 '<pre class="text-xs text-emerald-300 font-mono m-0">' +
-                JSON.stringify(step.toolResults, null, 2) +
+                escapeHtml(JSON.stringify(step.toolResults, null, 2)) +
                 "</pre>" +
                 "</div></div>";
             }
@@ -390,20 +502,16 @@ function renderMessage(message: Message): string {
 
   switch (message.type) {
     case "message":
-      content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${message.content}</div>`;
+      content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(message.content)}</div>`;
       break;
     case "functioncall":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${JSON.stringify(
-        { function: message.name, args: message.arguments },
-        null,
-        2,
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${escapeHtml(
+        JSON.stringify({ function: message.name, args: message.arguments }, null, 2),
       )}</pre></div>`;
       break;
     case "functionresponse":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${JSON.stringify(
-        { function: message.name, args: message.response },
-        null,
-        2,
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${escapeHtml(
+        JSON.stringify({ function: message.name, args: message.response }, null, 2),
       )}</pre></div>`;
       break;
   }
