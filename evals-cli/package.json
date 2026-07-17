@@ -22,8 +22,8 @@
     "registry": "https://wombat-dressing-room.appspot.com"
   },
   "scripts": {
-    "build": "tsc",
-    "test": "tsc && node --test dist/test/*.test.js",
+    "build": "npm run format && tsc",
+    "test": "npm run build && node --test dist/test/*.test.js",
     "lint": "oxlint",
     "format": "oxfmt --write"
   },
