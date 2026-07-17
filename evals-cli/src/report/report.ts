@@ -263,19 +263,14 @@ function renderTestCase(group: TestCase, caseIndex: number, totalCases: number):
         </summary>
         
         <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-5">
-          ${group.runs.map((run) => renderRunIteration(run, caseIndex, totalCases, totalRuns)).join("")}
+          ${group.runs.map((run) => renderRunIteration(run, totalRuns)).join("")}
         </div>
       </details>
     </div>
   `;
 }
 
-function renderRunIteration(
-  run: TestRun,
-  caseIndex: number,
-  totalCases: number,
-  totalRuns: number,
-): string {
+function renderRunIteration(run: TestRun, totalRuns: number): string {
   const isPass = run.outcome === "pass";
   const isOpen = !isPass ? "open" : "";
 

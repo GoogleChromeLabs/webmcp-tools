@@ -6,7 +6,7 @@
 import { Browser, Page } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
-import { Tool, ToolCall } from "../types/tools.js";
+import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
 import { Backend, RunEvent } from "../backends/index.js";

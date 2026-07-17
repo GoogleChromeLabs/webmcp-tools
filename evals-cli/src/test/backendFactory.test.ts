@@ -9,10 +9,8 @@ import { createBackend } from "../backends/factory.js";
 import { GeminiBackend } from "../backends/gemini.js";
 import { OllamaBackend } from "../backends/ollama.js";
 import { VercelBackend } from "../backends/vercel.js";
-import { Tool } from "../types/tools.js";
 
 describe("Backend Factory", () => {
-  const sampleTools: Tool[] = [];
   let originalEnv: NodeJS.ProcessEnv;
 
   before(() => {
@@ -32,7 +30,7 @@ describe("Backend Factory", () => {
       toolSchemaFile: "dummy.json",
       evalsFile: "dummy.json",
     };
-    const backend = createBackend(config, sampleTools);
+    const backend = createBackend(config);
     assert.ok(backend instanceof VercelBackend);
     assert.strictEqual(backend.describe().includes("Vercel Backend"), true);
   });
@@ -44,7 +42,7 @@ describe("Backend Factory", () => {
       toolSchemaFile: "dummy.json",
       evalsFile: "dummy.json",
     };
-    const backend = createBackend(config, sampleTools);
+    const backend = createBackend(config);
     assert.ok(backend instanceof OllamaBackend);
     assert.strictEqual(backend.describe().includes("Ollama Backend"), true);
   });
@@ -62,7 +60,7 @@ describe("Backend Factory", () => {
     };
     assert.throws(
       () => {
-        createBackend(config, sampleTools);
+        createBackend(config);
       },
       { message: "Missing Google API key" },
     );
@@ -76,7 +74,7 @@ describe("Backend Factory", () => {
       toolSchemaFile: "dummy.json",
       evalsFile: "dummy.json",
     };
-    const backend = createBackend(config, sampleTools);
+    const backend = createBackend(config);
     assert.ok(backend instanceof GeminiBackend);
     assert.strictEqual(backend.describe().includes("Gemini Backend"), true);
   });

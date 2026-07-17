@@ -8,6 +8,8 @@ import { describe, it } from "node:test";
 import { GeminiBackend } from "../backends/gemini.js";
 import { Eval } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
+import { LocalToolRegistry } from "../evaluator/toolRegistry.js";
+import { MockResolver } from "../evaluator/mockResolver.js";
 
 describe("GeminiBackend", () => {
   const sampleTools: Tool[] = [
@@ -19,22 +21,12 @@ describe("GeminiBackend", () => {
   ];
 
   it("should return correct description", () => {
-    const backend = new GeminiBackend(
-      "dummy-api-key",
-      "gemini-3.5-flash",
-      "System prompt",
-      sampleTools,
-    );
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
     assert.strictEqual(backend.describe(), "Gemini Backend using model: gemini-3.5-flash");
   });
 
   it("should throw not implemented for executeInBrowserEval", () => {
-    const backend = new GeminiBackend(
-      "dummy-api-key",
-      "gemini-3.5-flash",
-      "System prompt",
-      sampleTools,
-    );
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
     assert.rejects(
       async () => {
         await backend.executeInBrowserEval({} as any, {} as any, {} as any);
@@ -44,12 +36,7 @@ describe("GeminiBackend", () => {
   });
 
   it("should execute local evals and return tool calls when functionCalls response exists", async () => {
-    const backend = new GeminiBackend(
-      "dummy-api-key",
-      "gemini-3.5-flash",
-      "System prompt",
-      sampleTools,
-    );
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
 
     (backend as any).googleGenAI = {
       models: {
@@ -86,7 +73,9 @@ describe("GeminiBackend", () => {
       expectedCall: null,
     };
 
-    const result = await backend.executeLocalEvals(testEval);
+    const resolver = new MockResolver(testEval.expectedCall);
+    const registry = new LocalToolRegistry(sampleTools, resolver);
+    const result = await backend.executeLocalEvals(testEval, registry);
     assert.deepStrictEqual(result, {
       toolCalls: [
         {
@@ -99,12 +88,7 @@ describe("GeminiBackend", () => {
   });
 
   it("should execute local evals and return text fallback when no function calls returned", async () => {
-    const backend = new GeminiBackend(
-      "dummy-api-key",
-      "gemini-3.5-flash",
-      "System prompt",
-      sampleTools,
-    );
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
 
     (backend as any).googleGenAI = {
       models: {
@@ -129,17 +113,14 @@ describe("GeminiBackend", () => {
       expectedCall: null,
     };
 
-    const result = await backend.executeLocalEvals(testEval);
+    const resolver = new MockResolver(testEval.expectedCall);
+    const registry = new LocalToolRegistry(sampleTools, resolver);
+    const result = await backend.executeLocalEvals(testEval, registry);
     assert.deepStrictEqual(result, { toolCalls: [], text: "No tool calls generated." });
   });
 
   it("should map multi-turn messages correctly during API execution", async () => {
-    const backend = new GeminiBackend(
-      "dummy-api-key",
-      "gemini-3.5-flash",
-      "System prompt",
-      sampleTools,
-    );
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
 
     let passedRequest: any = null;
     (backend as any).googleGenAI = {
@@ -187,7 +168,9 @@ describe("GeminiBackend", () => {
       expectedCall: null,
     };
 
-    await backend.executeLocalEvals(testEval);
+    const resolver = new MockResolver(testEval.expectedCall);
+    const registry = new LocalToolRegistry(sampleTools, resolver);
+    await backend.executeLocalEvals(testEval, registry);
 
     assert.strictEqual(passedRequest.model, "gemini-3.5-flash");
     assert.strictEqual(passedRequest.config.systemInstruction, "System prompt");

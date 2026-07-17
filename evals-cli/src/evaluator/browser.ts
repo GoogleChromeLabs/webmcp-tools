@@ -7,97 +7,11 @@
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser } from "puppeteer-core";
-import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
-import { mapRawBrowserToolsToConfig, sanitizeSchema } from "./mappers.js";
+import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { findChromePath } from "../utils.js";
 import { BrowserPage } from "../backends/index.js";
-
-/**
- * Creates a server-side AI SDK tool wrapper that executes arbitrary
- * WebMCP bindings inside the puppeteer browser execution context.
- */
-export function createBrowserTool(t: Tool, page: BrowserPage): any {
-  const hasParams = t.parameters && Object.keys(t.parameters).length > 0;
-  const rawParams = hasParams ? t.parameters : { type: "object", properties: {} };
-  const sanitizedParams = sanitizeSchema(rawParams);
-  return defineTool({
-    description: t.description,
-    parameters: jsonSchema(sanitizedParams) as any,
-    inputSchema: jsonSchema(sanitizedParams) as any,
-    execute: async (args: any) => {
-      let executionResult: any = {};
-
-      try {
-        const toolResult = await page.evaluate(
-          async (name: string, callArgs: any) => {
-            if (document.modelContext) {
-              const mc = document.modelContext;
-              if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
-                const tools = await mc.getTools();
-                const tool = tools.find((item) => item.name === name);
-                if (tool) {
-                  const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
-                  try {
-                    return { success: true, data: JSON.parse(resStr as string) };
-                  } catch {
-                    return { success: true, data: resStr };
-                  }
-                }
-              }
-            }
-            return { success: false };
-          },
-          t.functionName,
-          args,
-        );
-
-        if (toolResult && toolResult.success) {
-          executionResult.result = toolResult.data;
-        } else {
-          return { error: `no tool named "${t.functionName}" was found` };
-        }
-
-        // If executionResult.result is null, it is due to a navigation happening.
-        if (executionResult.result == null) {
-          await page.waitForNavigation();
-          executionResult = await page.evaluate(() => {
-            const result = document.querySelector(
-              'script[type="application/ld+json"]',
-            )?.textContent;
-            return { result, crossDocument: true };
-          });
-        }
-      } catch (e: any) {
-        if (
-          e.message.includes("Execution context was destroyed") ||
-          e.message.includes("Target closed") ||
-          e.message.includes("navigating")
-        ) {
-          await new Promise((r) => setTimeout(r, 500));
-          executionResult = {
-            result: `Tool ${t.functionName} executed and triggered a page navigation.`,
-          };
-        } else {
-          executionResult = { error: e.message || String(e) };
-        }
-      }
-
-      let r = executionResult.result;
-      if (typeof r === "string") {
-        try {
-          r = JSON.parse(r);
-        } catch {}
-      }
-
-      // Attempt to drill down into structured responses
-      if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
-        return r.content[0].text;
-      }
-      return r || executionResult.error || "Success";
-    },
-  } as any);
-}
+import { ToolRegistry } from "./toolRegistry.js";
 
 export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]> {
   return await page.evaluate(async () => {
@@ -178,36 +92,88 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
   }
 }
 
-export class BrowserToolRegistry {
+export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
-  public aiToolsWithExecution: Record<string, any> = {};
 
-  constructor(
-    private initialFallbackTools: Tool[],
-    private page: BrowserPage,
-  ) {}
+  constructor(private page: BrowserPage) {}
 
   async syncTools(): Promise<Tool[]> {
     const rawTools = await getToolsFromBrowserPage(this.page);
-    this.currentTools = mapRawBrowserToolsToConfig(
-      rawTools,
-      this.currentTools.length > 0 ? this.currentTools : this.initialFallbackTools,
-    );
-
-    // Clear object properties
-    for (const key in this.aiToolsWithExecution) {
-      delete this.aiToolsWithExecution[key];
-    }
-
-    // Re-populate execution wrappers
-    for (const t of this.currentTools) {
-      this.aiToolsWithExecution[t.functionName] = createBrowserTool(t, this.page);
-    }
-
+    this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
     return this.currentTools;
   }
 
   getCurrentTools(): Tool[] {
     return this.currentTools;
+  }
+
+  async executeTool(name: string, args: any): Promise<any> {
+    let executionResult: any = {};
+
+    try {
+      const toolResult = await this.page.evaluate(
+        async (name: string, callArgs: any) => {
+          if (document.modelContext) {
+            const mc = document.modelContext;
+            if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
+              const tools = await mc.getTools();
+              const tool = tools.find((item) => item.name === name);
+              if (tool) {
+                const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
+                try {
+                  return { success: true, data: JSON.parse(resStr as string) };
+                } catch {
+                  return { success: true, data: resStr };
+                }
+              }
+            }
+          }
+          return { success: false };
+        },
+        name,
+        args,
+      );
+
+      if (toolResult && toolResult.success) {
+        executionResult.result = toolResult.data;
+      } else {
+        return { error: `no tool named "${name}" was found` };
+      }
+
+      // If executionResult.result is null, it is due to a navigation happening.
+      if (executionResult.result == null) {
+        await this.page.waitForNavigation();
+        executionResult = await this.page.evaluate(() => {
+          const result = document.querySelector('script[type="application/ld+json"]')?.textContent;
+          return { result, crossDocument: true };
+        });
+      }
+    } catch (e: any) {
+      if (
+        e.message.includes("Execution context was destroyed") ||
+        e.message.includes("Target closed") ||
+        e.message.includes("navigating")
+      ) {
+        await new Promise((r) => setTimeout(r, 500));
+        executionResult = {
+          result: `Tool ${name} executed and triggered a page navigation.`,
+        };
+      } else {
+        executionResult = { error: e.message || String(e) };
+      }
+    }
+
+    let r = executionResult.result;
+    if (typeof r === "string") {
+      try {
+        r = JSON.parse(r);
+      } catch {}
+    }
+
+    // Attempt to drill down into structured responses
+    if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
+      return r.content[0].text;
+    }
+    return r || executionResult.error || "Success";
   }
 }

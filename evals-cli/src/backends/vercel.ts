@@ -12,10 +12,10 @@ import { findChromePath } from "../utils.js";
 import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "../backends/index.js";
 import { BrowserToolRegistry, PUPPETEER_FLAGS } from "../evaluator/browser.js";
 import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
-import { MockResolver } from "../evaluator/mockResolver.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
 import { ConsoleLogger } from "../utils/logger.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 // Default upper bound on the local agent loop's step count. Large enough for
 // any reasonable trajectory in evals.json; small enough that a stuck model
@@ -30,10 +30,7 @@ export class VercelBackend implements Backend {
 
   private logger: ConsoleLogger;
 
-  constructor(
-    config: Config | WebmcpConfig,
-    private tools: Array<Tool>,
-  ) {
+  constructor(config: Config | WebmcpConfig) {
     this.modelName = config.model || "gemini-3-flash-preview";
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
@@ -42,13 +39,11 @@ export class VercelBackend implements Backend {
     this.logger.setDebugEnabled(this.debug);
   }
 
-  async executeLocalEvals(test: Eval): Promise<LocalEvalResult> {
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
     const aiMessages = mapMessages(test.messages);
 
-    // Fresh resolver per test — cursor state must not leak across cases.
-    const resolver = new MockResolver(test.expectedCall);
-    const executableTools = mapJsonSchemaToVercelTools(this.tools, (fnName, args) =>
-      resolver.resolve(fnName, args),
+    const executableTools = mapJsonSchemaToVercelTools(registry.getCurrentTools(), (fnName, args) =>
+      registry.executeTool(fnName, args),
     );
 
     const aiResult = await generateText({
@@ -87,7 +82,7 @@ export class VercelBackend implements Backend {
     // Gather every tool call from every step in trajectory order. Previously
     // only aiResult.toolCalls[0] was surfaced, which both dropped subsequent
     // steps and dropped parallel calls within a single step.
-    const validToolNames = new Set(this.tools.map((t) => t.functionName));
+    const validToolNames = new Set(registry.getCurrentTools().map((t) => t.functionName));
     const toolCalls: ToolCall[] = [];
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
@@ -122,7 +117,7 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      const registry = new BrowserToolRegistry(this.tools, page);
+      const registry = new BrowserToolRegistry(page);
       let currentTools = await registry.syncTools();
 
       if (currentTools.length === 0) {
@@ -132,9 +127,22 @@ export class VercelBackend implements Backend {
         );
       }
 
+      const aiToolsWithExecution: Record<string, any> = {};
+      const rebuildTools = (toolsList: Tool[]) => {
+        for (const key in aiToolsWithExecution) {
+          delete aiToolsWithExecution[key];
+        }
+        const mapped = mapJsonSchemaToVercelTools(toolsList, (fnName, args) =>
+          registry.executeTool(fnName, args),
+        );
+        Object.assign(aiToolsWithExecution, mapped);
+      };
+
+      rebuildTools(currentTools);
+
       const agentWithExec = new ToolLoopAgent({
         model: this.aiModel,
-        tools: registry.aiToolsWithExecution,
+        tools: aiToolsWithExecution,
         instructions: SYSTEM_PROMPT,
         experimental_onToolCallStart: (event) => {
           this.logger.debug(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
@@ -166,6 +174,7 @@ export class VercelBackend implements Backend {
         },
         prepareStep: async (_opts: any): Promise<any> => {
           currentTools = await registry.syncTools();
+          rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;
         },

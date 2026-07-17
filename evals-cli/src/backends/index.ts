@@ -5,7 +5,8 @@
 
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
-import { Tool, ToolCall } from "../types/tools.js";
+import { ToolCall } from "../types/tools.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 export interface BrowserPage {
   evaluate(fn: string | Function, ...args: any[]): Promise<any>;
@@ -34,7 +35,7 @@ export type BrowserEvalResult = {
 };
 
 export interface Backend {
-  executeLocalEvals(test: Eval): Promise<LocalEvalResult>;
+  executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult>;
 
   executeInBrowserEval(
     test: Eval,
