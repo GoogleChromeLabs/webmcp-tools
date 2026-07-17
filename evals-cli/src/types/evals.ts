@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ToolCall } from "./tools.js";
+import { Tool, ToolCall } from "./tools.js";
 
 export type Message = ContentMessage | FunctionCallMessage | FunctionResponseMessage;
 
@@ -57,11 +57,19 @@ export type FunctionCall = {
   optional?: boolean;
 };
 
+export interface TrajectoryStep {
+  text?: string;
+  reasoningText?: string;
+  toolCalls?: any[];
+  toolResults?: any[];
+  availableTools?: Tool[];
+}
+
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
   outcome: "pass" | "fail" | "error";
-  trajectory?: any[];
+  trajectory?: TrajectoryStep[];
   runIndex?: number;
   stepIndex?: number;
 };

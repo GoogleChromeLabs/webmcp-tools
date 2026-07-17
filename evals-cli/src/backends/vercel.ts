@@ -6,7 +6,7 @@
 import { generateText, stepCountIs, ToolLoopAgent } from "ai";
 import { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
 
@@ -180,7 +180,7 @@ export class VercelBackend implements Backend {
         }
 
         const availableToolsPerStep: Array<Array<Tool>> = [];
-        const stepsHistory: any[] = [];
+        const stepsHistory: TrajectoryStep[] = [];
 
         try {
           const model = getModel(config);
