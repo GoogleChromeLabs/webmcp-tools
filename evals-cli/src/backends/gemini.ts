@@ -5,9 +5,9 @@
 
 import { Content, FunctionDeclaration, GoogleGenAI } from "@google/genai";
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, Message, TestResults } from "../types/evals.js";
+import { Eval, Message } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, LocalEvalResult, RunEvent } from "./index.js";
+import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "./index.js";
 
 export class GeminiBackend implements Backend {
   private googleGenAI: GoogleGenAI;
@@ -25,12 +25,11 @@ export class GeminiBackend implements Backend {
     return this.execute(test.messages);
   }
 
-  executeInBrowserEvals(
-    _tests: Array<Eval>,
-    _tools: Array<Tool>,
+  async executeInBrowserEval(
+    _test: Eval,
+    _page: BrowserPage,
     _config: WebmcpConfig,
-    _onEvent?: (event: RunEvent) => void,
-  ): Promise<TestResults> {
+  ): Promise<BrowserEvalResult> {
     throw new Error("Method not implemented.");
   }
 

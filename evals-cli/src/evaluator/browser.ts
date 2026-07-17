@@ -6,17 +6,18 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
-import puppeteer, { Browser, Page } from "puppeteer-core";
+import puppeteer, { Browser } from "puppeteer-core";
 import { tool as defineTool, jsonSchema } from "ai";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig, sanitizeSchema } from "./mappers.js";
 import { findChromePath } from "../utils.js";
+import { BrowserPage } from "../backends/index.js";
 
 /**
  * Creates a server-side AI SDK tool wrapper that executes arbitrary
  * WebMCP bindings inside the puppeteer browser execution context.
  */
-export function createBrowserTool(t: Tool, page: Page): any {
+export function createBrowserTool(t: Tool, page: BrowserPage): any {
   const hasParams = t.parameters && Object.keys(t.parameters).length > 0;
   const rawParams = hasParams ? t.parameters : { type: "object", properties: {} };
   const sanitizedParams = sanitizeSchema(rawParams);
@@ -29,7 +30,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
 
       try {
         const toolResult = await page.evaluate(
-          async (name, callArgs) => {
+          async (name: string, callArgs: any) => {
             if (document.modelContext) {
               const mc = document.modelContext;
               if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
@@ -98,7 +99,7 @@ export function createBrowserTool(t: Tool, page: Page): any {
   } as any);
 }
 
-export async function getToolsFromBrowserPage(page: Page): Promise<any[]> {
+export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]> {
   return await page.evaluate(async () => {
     if (document.modelContext && typeof document.modelContext.getTools === "function") {
       try {
@@ -174,5 +175,39 @@ export async function listToolsFromPage(url: string): Promise<Tool[]> {
     if (browser) {
       await browser.close();
     }
+  }
+}
+
+export class BrowserToolRegistry {
+  private currentTools: Tool[] = [];
+  public aiToolsWithExecution: Record<string, any> = {};
+
+  constructor(
+    private initialFallbackTools: Tool[],
+    private page: BrowserPage,
+  ) {}
+
+  async syncTools(): Promise<Tool[]> {
+    const rawTools = await getToolsFromBrowserPage(this.page);
+    this.currentTools = mapRawBrowserToolsToConfig(
+      rawTools,
+      this.currentTools.length > 0 ? this.currentTools : this.initialFallbackTools,
+    );
+
+    // Clear object properties
+    for (const key in this.aiToolsWithExecution) {
+      delete this.aiToolsWithExecution[key];
+    }
+
+    // Re-populate execution wrappers
+    for (const t of this.currentTools) {
+      this.aiToolsWithExecution[t.functionName] = createBrowserTool(t, this.page);
+    }
+
+    return this.currentTools;
+  }
+
+  getCurrentTools(): Tool[] {
+    return this.currentTools;
   }
 }

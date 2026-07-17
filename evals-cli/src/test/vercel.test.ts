@@ -96,7 +96,7 @@ describe("VercelBackend", () => {
     });
   });
 
-  describe("executeInBrowserEvals multi-turn message handling", () => {
+  describe("executeInBrowserEval multi-turn message handling", () => {
     it("should pass mapped messages array correctly to agentWithExec.generate", async (t) => {
       // Setup mock Tool
       const dummyTools: Tool[] = [
@@ -110,18 +110,22 @@ describe("VercelBackend", () => {
         },
       ];
 
-      // Mock file system access so findChromePath succeeds
-      t.mock.method(fs, "access", async () => {});
-
-      // Mock puppeteer to return a dummy browser and page without launching a real browser
-      t.mock.method(puppeteer, "launch", async () => ({
-        newPage: async () => ({
-          goto: async () => {},
-          close: async () => {},
-          evaluate: async () => [],
-        }),
-        close: async () => {},
-      }));
+      // Create a dummy page object that returns some dummy registered tools
+      const dummyPage: any = {
+        evaluate: async (fn: any, ...args: any[]) => {
+          // If it evaluates getToolsFromBrowserPage, return the tool metadata
+          if (fn.toString().includes("getTools")) {
+            return [
+              {
+                name: "add_topping",
+                description: "Adds a topping",
+                inputSchema: { type: "object" },
+              },
+            ];
+          }
+          return {};
+        },
+      };
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it
       let capturedPayload: any = null;
@@ -157,7 +161,7 @@ describe("VercelBackend", () => {
         expectedCall: [],
       };
 
-      await backend.executeInBrowserEvals([evalTest], dummyTools, {
+      await backend.executeInBrowserEval(evalTest, dummyPage, {
         url: "http://localhost:3000",
       } as any);
 

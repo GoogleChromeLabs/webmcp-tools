@@ -28,7 +28,7 @@ describe("OllamaBackend", () => {
     assert.strictEqual(backend.describe(), "Ollama Backend using model: qwen2.5:14b");
   });
 
-  it("should throw not implemented for executeInBrowserEvals", () => {
+  it("should throw not implemented for executeInBrowserEval", () => {
     const backend = new OllamaBackend(
       "http://127.0.0.1:11434",
       "qwen2.5:14b",
@@ -37,7 +37,7 @@ describe("OllamaBackend", () => {
     );
     assert.rejects(
       async () => {
-        await backend.executeInBrowserEvals([], sampleTools, {} as any);
+        await backend.executeInBrowserEval({} as any, {} as any, {} as any);
       },
       { message: "Method not implemented." },
     );

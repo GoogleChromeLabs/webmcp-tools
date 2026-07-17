@@ -16,6 +16,7 @@ import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import { executeLocalEvals, executeInBrowserEvals, listToolsFromPage } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
+import { createBackend } from "../backends/index.js";
 
 export interface CommandOptions {
   backend: string;
@@ -72,7 +73,8 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     });
   }
 
-  const finalResults = await executeLocalEvals(tests, tools, config, (event) => {
+  const backend = createBackend(config, tools);
+  const finalResults = await executeLocalEvals(tests, backend, config, (event) => {
     if (useConsole && progressBar) {
       if (event.type === "start") {
         console.log(event.message);
@@ -134,7 +136,8 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       spinner = ora({ discardStdin: false });
     }
 
-    const finalResults = await executeInBrowserEvals(tests, tools, config, (event) => {
+    const backend = createBackend(config, tools);
+    const finalResults = await executeInBrowserEvals(tests, backend, config, (event) => {
       if (useConsole && spinner) {
         if (event.type === "start") {
           spinner.start(`Running evals (${event.total} steps)...`);

@@ -4,8 +4,13 @@
  */
 
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
+
+export interface BrowserPage {
+  evaluate(fn: string | Function, ...args: any[]): Promise<any>;
+  waitForNavigation(options?: any): Promise<any>;
+}
 
 /**
  * Result of running a single test through the local (non-browser) path.
@@ -21,15 +26,21 @@ export type LocalEvalResult = {
   text?: string;
 };
 
+export type BrowserEvalResult = {
+  toolCalls: ToolCall[];
+  text?: string;
+  steps?: TrajectoryStep[];
+  error?: any;
+};
+
 export interface Backend {
   executeLocalEvals(test: Eval): Promise<LocalEvalResult>;
 
-  executeInBrowserEvals(
-    tests: Array<Eval>,
-    tools: Array<Tool>,
+  executeInBrowserEval(
+    test: Eval,
+    page: BrowserPage,
     config: WebmcpConfig,
-    onEvent?: (event: RunEvent) => void,
-  ): Promise<TestResults>;
+  ): Promise<BrowserEvalResult>;
 
   describe(): string;
 }
@@ -39,3 +50,5 @@ export type RunEvent =
   | { type: "progress"; testNumber: number; result: TestResult }
   | { type: "completed"; results: TestResults; reportFile?: string }
   | { type: "error"; message: string };
+
+export { createBackend } from "./factory.js";

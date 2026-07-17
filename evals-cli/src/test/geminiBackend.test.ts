@@ -28,7 +28,7 @@ describe("GeminiBackend", () => {
     assert.strictEqual(backend.describe(), "Gemini Backend using model: gemini-3.5-flash");
   });
 
-  it("should throw not implemented for executeInBrowserEvals", () => {
+  it("should throw not implemented for executeInBrowserEval", () => {
     const backend = new GeminiBackend(
       "dummy-api-key",
       "gemini-3.5-flash",
@@ -37,7 +37,7 @@ describe("GeminiBackend", () => {
     );
     assert.rejects(
       async () => {
-        await backend.executeInBrowserEvals([], sampleTools, {} as any);
+        await backend.executeInBrowserEval({} as any, {} as any, {} as any);
       },
       { message: "Method not implemented." },
     );
