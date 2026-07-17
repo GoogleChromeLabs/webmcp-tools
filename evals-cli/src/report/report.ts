@@ -454,7 +454,9 @@ function renderTrajectory(trajectory?: any[]): string {
                       "</span>" +
                       "</div>" +
                       '<div class="text-xs text-slate-600 text-left align-top mt-0.5">' +
-                      (t.description ? escapeHtml(t.description) : '<em class="text-slate-400">No description</em>') +
+                      (t.description
+                        ? escapeHtml(t.description)
+                        : '<em class="text-slate-400">No description</em>') +
                       "</div>",
                   )
                   .join("") +
@@ -503,18 +505,14 @@ function renderMessage(message: Message): string {
       content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(message.content)}</div>`;
       break;
     case "functioncall":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${escapeHtml(JSON.stringify(
-        { function: message.name, args: message.arguments },
-        null,
-        2,
-      ))}</pre></div>`;
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${escapeHtml(
+        JSON.stringify({ function: message.name, args: message.arguments }, null, 2),
+      )}</pre></div>`;
       break;
     case "functionresponse":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${escapeHtml(JSON.stringify(
-        { function: message.name, args: message.response },
-        null,
-        2,
-      ))}</pre></div>`;
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${escapeHtml(
+        JSON.stringify({ function: message.name, args: message.response }, null, 2),
+      )}</pre></div>`;
       break;
   }
   return `
