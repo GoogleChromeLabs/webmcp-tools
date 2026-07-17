@@ -81,7 +81,7 @@ function renderEvalsSummary(testResults: TestResults): string {
     ),
   );
   const totalCases = caseNames.size;
-  const runs = Math.max(...testResults.results.map((r) => r.runIndex || 1), 1);
+  const runs = testResults.results.reduce((max, r) => Math.max(max, r.runIndex || 1), 1);
 
   return `
         <p class="text-sm text-slate-500 mb-4 font-medium">
