@@ -8,6 +8,16 @@ import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.j
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
+function escapeHtml(str: string | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export function renderReport(config: Config, testResults: TestResults): string {
   return `
 <!DOCTYPE html>
@@ -241,7 +251,7 @@ function renderTestCase(group: TestCase, caseIndex: number, totalCases: number):
             <div class="truncate">
               <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Test case #${caseIndex}/${totalCases}</span>
               <h3 class="text-base font-semibold ${titleColorClass} truncate font-sans">
-                ${group.name}
+                ${escapeHtml(group.name)}
               </h3>
             </div>
           </div>
@@ -366,8 +376,8 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
           <tbody class="divide-y divide-slate-100">
             <tr class="hover:bg-slate-50/30">
               <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
-              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${(result.test.expectedCall?.[0] as FunctionCall)?.functionName || null}</code></td>
-              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${result.response?.functionName || null}</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml((result.test.expectedCall?.[0] as FunctionCall)?.functionName || null)}</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(result.response?.functionName || null)}</code></td>
               <td class="px-4 py-3">
                 <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
                   ${functionNameOutcome.toUpperCase()}
@@ -378,12 +388,12 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
               <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
               <td class="px-4 py-3">
                 <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys((result.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2)}</pre>
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys((result.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2))}</pre>
                 </div>
               </td>
               <td class="px-4 py-3">
                 <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${JSON.stringify(sortObjectKeys(result.response?.args) || null, null, 2)}</pre>
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys(result.response?.args) || null, null, 2))}</pre>
                 </div>
               </td>
               <td class="px-4 py-3 align-top">
@@ -422,7 +432,7 @@ function renderTrajectory(trajectory?: any[]): string {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
                 '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
-                thoughts +
+                escapeHtml(thoughts) +
                 "</pre></div>";
             }
             if (step.availableTools && step.availableTools.length > 0) {
@@ -438,13 +448,13 @@ function renderTrajectory(trajectory?: any[]): string {
                     (t: any) =>
                       '<div class="flex items-start">' +
                       '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="' +
-                      t.functionName +
+                      escapeHtml(t.functionName) +
                       '">' +
-                      t.functionName +
+                      escapeHtml(t.functionName) +
                       "</span>" +
                       "</div>" +
                       '<div class="text-xs text-slate-600 text-left align-top mt-0.5">' +
-                      (t.description || '<em class="text-slate-400">No description</em>') +
+                      (t.description ? escapeHtml(t.description) : '<em class="text-slate-400">No description</em>') +
                       "</div>",
                   )
                   .join("") +
@@ -455,7 +465,7 @@ function renderTrajectory(trajectory?: any[]): string {
                 '<div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em>' +
                 '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
                 '<pre class="text-xs text-blue-300 font-mono m-0">' +
-                JSON.stringify(step.toolCalls, null, 2) +
+                escapeHtml(JSON.stringify(step.toolCalls, null, 2)) +
                 "</pre>" +
                 "</div></div>";
             }
@@ -464,7 +474,7 @@ function renderTrajectory(trajectory?: any[]): string {
                 '<div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em>' +
                 '<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700">' +
                 '<pre class="text-xs text-emerald-300 font-mono m-0">' +
-                JSON.stringify(step.toolResults, null, 2) +
+                escapeHtml(JSON.stringify(step.toolResults, null, 2)) +
                 "</pre>" +
                 "</div></div>";
             }
@@ -490,21 +500,21 @@ function renderMessage(message: Message): string {
 
   switch (message.type) {
     case "message":
-      content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${message.content}</div>`;
+      content = `<div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(message.content)}</div>`;
       break;
     case "functioncall":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${JSON.stringify(
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-blue-300 m-0">${escapeHtml(JSON.stringify(
         { function: message.name, args: message.arguments },
         null,
         2,
-      )}</pre></div>`;
+      ))}</pre></div>`;
       break;
     case "functionresponse":
-      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${JSON.stringify(
+      content = `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs font-mono text-emerald-300 m-0">${escapeHtml(JSON.stringify(
         { function: message.name, args: message.response },
         null,
         2,
-      )}</pre></div>`;
+      ))}</pre></div>`;
       break;
   }
   return `
