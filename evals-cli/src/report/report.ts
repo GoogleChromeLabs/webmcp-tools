@@ -18,14 +18,33 @@ function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, "&#039;");
 }
 
+function getDetailedTimestamp(date: Date = new Date()): string {
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
+function getCompactTimestamp(date: Date = new Date()): string {
+  return date.toLocaleTimeString("en-US");
+}
+
 export function renderReport(config: Config, testResults: TestResults): string {
+  const detailedTimestamp = getDetailedTimestamp();
+  const compactTimestamp = getCompactTimestamp();
+
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebMCP Eval Results</title>
+    <title>WebMCP Evals Results ${compactTimestamp}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -46,6 +65,7 @@ export function renderReport(config: Config, testResults: TestResults): string {
     <div class="max-w-5xl mx-auto space-y-8">
         <header class="border-b border-slate-200 pb-6 mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+            <p class="text-sm text-slate-500 mt-1">Generated on ${detailedTimestamp}</p>
         </header>
         
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -85,7 +105,7 @@ function renderEvalsSummary(testResults: TestResults): string {
 
   return `
         <p class="text-sm text-slate-500 mb-4 font-medium">
-          Evaluated ${totalCases} test case${totalCases !== 1 ? "s" : ""} across ${runs} run${runs !== 1 ? "s" : ""}.
+          Evaluated <strong class="font-semibold text-slate-700">${totalCases} test case${totalCases !== 1 ? "s" : ""}</strong> across <strong class="font-semibold text-slate-700">${runs} run${runs !== 1 ? "s" : ""}</strong>.
         </p>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col">
@@ -521,13 +541,16 @@ function renderMessage(message: Message): string {
 }
 
 export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResults): string {
+  const detailedTimestamp = getDetailedTimestamp();
+  const compactTimestamp = getCompactTimestamp();
+
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebMCP Eval Results</title>
+    <title>WebMCP Evals Results ${compactTimestamp}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -548,6 +571,7 @@ export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResult
     <div class="max-w-5xl mx-auto space-y-8">
         <header class="border-b border-slate-200 pb-6 mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+            <p class="text-sm text-slate-500 mt-1">Generated on ${detailedTimestamp}</p>
         </header>
         
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
