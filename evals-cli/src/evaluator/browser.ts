@@ -73,12 +73,36 @@ export class BrowserToolRegistry implements ToolRegistry {
               const tools = await mc.getTools();
               const tool = tools.find((item) => item.name === name);
               if (tool) {
-                const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
-                try {
-                  return { success: true, data: JSON.parse(resStr as string) };
-                } catch {
-                  return { success: true, data: resStr };
-                }
+                return new Promise((resolve) => {
+                  let timer: any = null;
+
+                  const onActivated = (e: any) => {
+                    if (!e.toolName || e.toolName === name) {
+                      timer = setTimeout(() => {
+                        window.removeEventListener("toolactivated", onActivated);
+                        resolve({ success: true, data: "pending form submission" });
+                      }, 1000);
+                    }
+                  };
+
+                  window.addEventListener("toolactivated", onActivated);
+
+                  mc.executeTool(tool, JSON.stringify(callArgs || {}))
+                    .then((resStr: any) => {
+                      if (timer) clearTimeout(timer);
+                      window.removeEventListener("toolactivated", onActivated);
+                      try {
+                        resolve({ success: true, data: JSON.parse(resStr as string) });
+                      } catch {
+                        resolve({ success: true, data: resStr });
+                      }
+                    })
+                    .catch((err: any) => {
+                      if (timer) clearTimeout(timer);
+                      window.removeEventListener("toolactivated", onActivated);
+                      resolve({ success: false, error: err?.message || String(err) });
+                    });
+                });
               }
             }
           }
