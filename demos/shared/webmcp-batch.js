@@ -80,7 +80,7 @@ export async function executeDeclarativeBatch(steps, executeToolFn) {
   return outputs;
 }
 
-export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined) {
+export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined, options) {
   if (!modelContext) return;
 
   modelContext.registerTool({
@@ -132,7 +132,7 @@ export function registerExecuteBatchTool(modelContext = typeof window !== 'undef
         outputs
       };
     }
-  }, { exposedTo: ['*'] }).catch(() => {});
+  }, options).catch(() => {});
 }
 
 // Auto-register in browser environment if modelContext is available

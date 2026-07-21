@@ -4,7 +4,6 @@
  */
 
 import { GoogleGenAI } from 'https://esm.sh/@google/genai';
-import { executeDeclarativeBatch } from '../shared/webmcp-batch.js';
 
 const setupContainer = document.getElementById('setup-container');
 const chatContainer = document.getElementById('chat-container');
@@ -22,10 +21,8 @@ let ai, chat;
 
 codeModeCheckbox.addEventListener('change', () => {
   chat = null;
-  chatWindow.innerHTML = '';
   appendMessage('System', `🔄 Switched to ${codeModeCheckbox.checked ? 'Code Mode' : 'Normal Mode'}. Chat restarted.`, 'tool-indicator');
 });
-
 
 async function getTools() {
   const iframeOrigin = new URL(iframe.src).origin;
@@ -45,7 +42,7 @@ function generateTSDeclaration(tools) {
     let paramsType = 'Record<string, unknown>';
     if (tool.inputSchema) {
       try {
-        const schema = typeof tool.inputSchema === 'string' ? JSON.parse(tool.inputSchema) : tool.inputSchema;
+        const schema = JSON.parse(tool.inputSchema);
         if (schema && schema.properties) {
           const props = [];
           for (const [key, value] of Object.entries(schema.properties)) {
@@ -95,6 +92,7 @@ function getTSType(schema) {
 }
 
 async function executeBatchLocally(steps) {
+  const { executeDeclarativeBatch } = await import('../shared/webmcp-batch.js');
   const executeToolFn = async (toolName, args) => {
     const tools = await getTools();
     const targetTool = tools.find(t => t.name === toolName);
@@ -128,7 +126,7 @@ async function getConfig() {
       generateTSDeclaration(tools),
       '```',
       'Write the steps carefully and return them as the array input for `execute_batch`.',
-    ].join('\n');
+    ];
 
     const executeBatchDecl = {
       name: 'execute_batch',
@@ -173,7 +171,7 @@ async function getConfig() {
   const systemInstruction = [
     'You are an assistant embedded in a web page.',
     'CRITICAL RULE: Do not try to use other tools than the available ones.',
-  ].join('\n');
+  ];
 
   const functionDeclarations = tools.map((tool) => {
     return {
@@ -187,7 +185,6 @@ async function getConfig() {
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
-
 
 const storedKey = localStorage.getItem('gemini_api_key');
 if (storedKey) {
@@ -299,29 +296,26 @@ async function handleUserSubmit() {
             const tool = tools.find((t) => t.name == name);
             
             let result;
-            if (name === 'execute_batch' && !tool) {
+            if (codeModeCheckbox.checked && name === 'execute_batch' && !tool) {
               result = await executeBatchLocally(args.steps);
             } else {
               result = await document.modelContext.executeTool(tool, inputArgs);
             }
 
-            if (name === 'execute_batch') {
-              const batchResult = typeof result === 'string' ? JSON.parse(result) : result;
-              if (batchResult && Array.isArray(batchResult.outputs)) {
-                for (const out of batchResult.outputs) {
-                  if (out.success) {
-                    appendMessage(
-                      'Console',
-                      `⚙️ Step [${out.id || 'anonymous'}]: called <strong>${out.tool}</strong> with args: <code>${JSON.stringify(out.args)}</code><br>↳ Result: <code>${typeof out.result === 'object' ? JSON.stringify(out.result) : String(out.result)}</code>`,
-                      'console-log'
-                    );
-                  } else {
-                    appendMessage(
-                      'Console',
-                      `❌ Step [${out.id || 'anonymous'}]: call to <strong>${out.tool}</strong> failed.<br>↳ Error: <span style="color:red">${out.error}</span>`,
-                      'console-log'
-                    );
-                  }
+            if (name === 'execute_batch' && result && Array.isArray(result.outputs)) {
+              for (const out of result.outputs) {
+                if (out.success) {
+                  appendMessage(
+                    'Console',
+                    `⚙️ Step [${out.id || 'anonymous'}]: called <strong>${out.tool}</strong> with args: <code>${JSON.stringify(out.args)}</code><br>↳ Result: <code>${typeof out.result === 'object' ? JSON.stringify(out.result) : String(out.result)}</code>`,
+                    'console-log'
+                  );
+                } else {
+                  appendMessage(
+                    'Console',
+                    `❌ Step [${out.id || 'anonymous'}]: call to <strong>${out.tool}</strong> failed.<br>↳ Error: <span style="color:red">${out.error}</span>`,
+                    'console-log'
+                  );
                 }
               }
             }
