@@ -80,10 +80,8 @@ export async function executeDeclarativeBatch(steps, executeToolFn) {
   return outputs;
 }
 
-export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined, options) {
-  if (!modelContext) return;
-
-  return modelContext.registerTool({
+export function registerExecuteBatchTool(options) {
+  return document.modelContext.registerTool({
     name: 'execute_batch',
     description: 'Execute a sequential list of WebMCP tool calls, resolving data dependencies between steps (e.g. referencing previous steps output via "$ref:stepId.property").',
     inputSchema: {
@@ -116,12 +114,12 @@ export function registerExecuteBatchTool(modelContext = typeof window !== 'undef
     },
     execute: async ({ steps }) => {
       const executeToolFn = async (toolName, args) => {
-        const tools = await modelContext.getTools();
+        const tools = await document.modelContext.getTools();
         const targetTool = tools.find(t => t.name === toolName);
         if (!targetTool) {
           throw new Error(`Tool ${toolName} not found`);
         }
-        return await modelContext.executeTool(targetTool, JSON.stringify(args || {}));
+        return await document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
       };
       
       const outputs = await executeDeclarativeBatch(steps, executeToolFn);

@@ -27,13 +27,12 @@ async function syncCodeModeTool() {
     if (!codeModeAbortController) {
       codeModeAbortController = new AbortController();
       const { registerExecuteBatchTool } = await import('../shared/webmcp-batch.js');
-      await registerExecuteBatchTool(document.modelContext, { signal: codeModeAbortController.signal });
+      await registerExecuteBatchTool({ signal: codeModeAbortController.signal });
     }
   } else {
     if (codeModeAbortController) {
       codeModeAbortController.abort();
       codeModeAbortController = null;
-      document.modelContext.unregisterTool?.('execute_batch');
     }
   }
 }
@@ -219,12 +218,9 @@ loadUrl();
 
 iframe.addEventListener('load', logExposedTools);
 
-logoutBtn.addEventListener('click', async () => {
+logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('gemini_api_key');
   ai = null;
-  chat = null;
-  codeModeCheckbox.checked = false;
-  await syncCodeModeTool();
   chatWindow.innerHTML = '';
   document.body.style.backgroundColor = '';
   setupContainer.classList.remove('hidden');
@@ -246,8 +242,6 @@ async function handleUserSubmit() {
     sendBtn.disabled = true;
 
     appendMessage('You', text, 'user');
-
-    await syncCodeModeTool();
 
     chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
 
@@ -284,13 +278,9 @@ async function handleUserSubmit() {
             appendMessage('System', `⚙️ Executing tool: ${name}...`, 'tool-indicator');
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
-            if (!tool) {
-              throw new Error(`Tool ${name} not found`);
-            }
-            
             const result = await document.modelContext.executeTool(tool, inputArgs);
 
-            if (name === 'execute_batch' && result && Array.isArray(result.outputs)) {
+            if (codeModeCheckbox.checked && name === 'execute_batch' && result && Array.isArray(result.outputs)) {
               for (const out of result.outputs) {
                 if (out.success) {
                   appendMessage(
