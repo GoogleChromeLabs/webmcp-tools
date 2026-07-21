@@ -1,6 +1,6 @@
 # WebMCP Page Agent | WebMCP Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/page-agent
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/
 
 🪞 Mirror: https://chrome.dev/web-ai-demos/webmcp/page-agent/
 
@@ -82,7 +82,7 @@ The agent uses a single tool called `execute_batch` with the following parameter
 - **Real-time Feedback**: Shows system messages and live console logs when tools or scripts are being executed.
 ## 🚀 Getting Started
 
-1. Open the [Live Demo](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent).
+1. Open the [Live Demo](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/).
 2. Enter your **Gemini API Key**.
 3. Load a WebMCP-enabled demo (e.g., the default [Pizza Maker](https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/)).
 4. Start chatting! Try commands like "Add a large BBQ pizza with mushrooms and onions".
