@@ -5,9 +5,10 @@
 
 import { Ollama, Message as OllamaMessage, Tool as OllamaTool } from "ollama";
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, Message, TestResults } from "../types/evals.js";
+import { Eval, Message } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, RunEvent } from "./index.js";
+import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "./index.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 export class OllamaBackend implements Backend {
   private ollama: Ollama;
@@ -16,29 +17,19 @@ export class OllamaBackend implements Backend {
     host: string,
     private model: string,
     private systemPrompt: string,
-    private tools: Array<Tool>,
   ) {
     this.ollama = new Ollama({ host });
   }
 
-  async executeLocalEvals(test: Eval): Promise<any> {
-    const toolCall = await this.execute(test.messages);
-    if (toolCall) {
-      return {
-        functionName: toolCall.functionName,
-        args: toolCall.args || {},
-      };
-    } else {
-      return { text: "No tool calls generated." };
-    }
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
+    return this.execute(test.messages, registry.getCurrentTools());
   }
 
-  executeInBrowserEvals(
-    _tests: Array<Eval>,
-    _tools: Array<Tool>,
+  async executeInBrowserEval(
+    _test: Eval,
+    _page: BrowserPage,
     _config: WebmcpConfig,
-    _onEvent?: (event: RunEvent) => void,
-  ): Promise<TestResults> {
+  ): Promise<BrowserEvalResult> {
     throw new Error("Method not implemented.");
   }
 
@@ -46,8 +37,8 @@ export class OllamaBackend implements Backend {
     return `Ollama Backend using model: ${this.model}`;
   }
 
-  async execute(messages: Message[]): Promise<ToolCall | null> {
-    let ollamaTools: Array<OllamaTool> = this.tools.map((t) => {
+  async execute(messages: Message[], toolsList: Array<Tool>): Promise<LocalEvalResult> {
+    let ollamaTools: Array<OllamaTool> = toolsList.map((t) => {
       return {
         function: {
           description: t.description,
@@ -105,17 +96,16 @@ export class OllamaBackend implements Backend {
       stream: false,
     });
 
-    if (!response.message.tool_calls) {
-      return null;
-    }
-
-    const toolCalls: Array<ToolCall> = response.message.tool_calls.map((t) => {
+    const toolCalls: Array<ToolCall> = (response.message.tool_calls || []).map((t) => {
       return {
-        args: t.function.arguments,
+        args: t.function.arguments as Record<string, unknown>,
         functionName: t.function.name,
       };
     });
 
-    return toolCalls[0];
+    return {
+      toolCalls,
+      text: response.message.content || undefined,
+    };
   }
 }

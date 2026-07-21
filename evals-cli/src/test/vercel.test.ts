@@ -4,12 +4,12 @@
  */
 
 import * as assert from "node:assert";
-import fs from "node:fs/promises";
 import { describe, it } from "node:test";
-import puppeteer from "puppeteer-core";
 import { VercelBackend } from "../backends/vercel.js";
 import { Eval } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
+import { LocalToolRegistry } from "../evaluator/toolRegistry.js";
+import { MockResolver } from "../evaluator/mockResolver.js";
 
 // Mock the AI module since we don't want to actually hit the LLM during unit tests
 import * as ai from "ai";
@@ -31,7 +31,7 @@ describe("VercelBackend", () => {
 
       let capturedPayload: any = null;
       class TestableVercelBackend extends VercelBackend {
-        async executeLocalEvals(test: Eval): Promise<any> {
+        override async executeLocalEvals(test: Eval, _registry: any): Promise<any> {
           // Re-implement the exact lines we want to test to capture the mapped payload
           const { mapMessages } = await import("../evaluator/mappers.js");
           const aiMessages = mapMessages(test.messages);
@@ -40,10 +40,7 @@ describe("VercelBackend", () => {
         }
       }
 
-      const backend = new TestableVercelBackend(
-        { model: "gemini-3-flash-preview" } as any,
-        dummyTools,
-      );
+      const backend = new TestableVercelBackend({ model: "gemini-3-flash-preview" } as any);
 
       // Create a multi-turn eval
       const evalTest: Eval = {
@@ -67,7 +64,9 @@ describe("VercelBackend", () => {
         expectedCall: [],
       };
 
-      await backend.executeLocalEvals(evalTest);
+      const resolver = new MockResolver(evalTest.expectedCall);
+      const registry = new LocalToolRegistry(dummyTools, resolver);
+      await backend.executeLocalEvals(evalTest, registry);
 
       // Validate the payload was given the FULL message array, not just the first prompt
       assert.ok(capturedPayload, "generateText was not called");
@@ -96,32 +95,24 @@ describe("VercelBackend", () => {
     });
   });
 
-  describe("executeInBrowserEvals multi-turn message handling", () => {
+  describe("executeInBrowserEval multi-turn message handling", () => {
     it("should pass mapped messages array correctly to agentWithExec.generate", async (t) => {
-      // Setup mock Tool
-      const dummyTools: Tool[] = [
-        {
-          functionName: "add_topping",
-          description: "Adds a topping",
-          parameters: {
-            type: "object",
-            properties: { topping: { type: "string" } },
-          },
+      // Create a dummy page object that returns some dummy registered tools
+      const dummyPage: any = {
+        evaluate: async (fn: any, ..._args: any[]) => {
+          // If it evaluates getToolsFromBrowserPage, return the tool metadata
+          if (fn.toString().includes("getTools")) {
+            return [
+              {
+                name: "add_topping",
+                description: "Adds a topping",
+                inputSchema: { type: "object" },
+              },
+            ];
+          }
+          return {};
         },
-      ];
-
-      // Mock file system access so findChromePath succeeds
-      t.mock.method(fs, "access", async () => {});
-
-      // Mock puppeteer to return a dummy browser and page without launching a real browser
-      t.mock.method(puppeteer, "launch", async () => ({
-        newPage: async () => ({
-          goto: async () => {},
-          close: async () => {},
-          evaluate: async () => [],
-        }),
-        close: async () => {},
-      }));
+      };
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it
       let capturedPayload: any = null;
@@ -130,10 +121,10 @@ describe("VercelBackend", () => {
         return { steps: [], text: "mock text" };
       });
 
-      const backend = new VercelBackend(
-        { model: "gemini-3-flash-preview", url: "http://localhost:3000" } as any,
-        dummyTools,
-      );
+      const backend = new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+      } as any);
 
       // Create a multi-turn eval test message sequence
       const evalTest: Eval = {
@@ -157,7 +148,7 @@ describe("VercelBackend", () => {
         expectedCall: [],
       };
 
-      await backend.executeInBrowserEvals([evalTest], dummyTools, {
+      await backend.executeInBrowserEval(evalTest, dummyPage, {
         url: "http://localhost:3000",
       } as any);
 

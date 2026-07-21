@@ -5,9 +5,10 @@
 
 import { Content, FunctionDeclaration, GoogleGenAI } from "@google/genai";
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, Message, TestResults } from "../types/evals.js";
+import { Eval, Message } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, RunEvent } from "./index.js";
+import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "./index.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 export class GeminiBackend implements Backend {
   private googleGenAI: GoogleGenAI;
@@ -16,29 +17,19 @@ export class GeminiBackend implements Backend {
     apiKey: string,
     private model: string,
     private systemPrompt: string,
-    private tools: Array<Tool>,
   ) {
     this.googleGenAI = new GoogleGenAI({ apiKey });
   }
 
-  async executeLocalEvals(test: Eval): Promise<any> {
-    const toolCall = await this.execute(test.messages);
-    if (toolCall) {
-      return {
-        functionName: toolCall.functionName,
-        args: toolCall.args || {},
-      };
-    } else {
-      return { text: "No tool calls generated." };
-    }
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
+    return this.execute(test.messages, registry.getCurrentTools());
   }
 
-  executeInBrowserEvals(
-    _tests: Array<Eval>,
-    _tools: Array<Tool>,
+  async executeInBrowserEval(
+    _test: Eval,
+    _page: BrowserPage,
     _config: WebmcpConfig,
-    _onEvent?: (event: RunEvent) => void,
-  ): Promise<TestResults> {
+  ): Promise<BrowserEvalResult> {
     throw new Error("Method not implemented.");
   }
 
@@ -46,8 +37,8 @@ export class GeminiBackend implements Backend {
     return `Gemini Backend using model: ${this.model}`;
   }
 
-  async execute(messages: Message[]): Promise<ToolCall | null> {
-    const functionDeclarations: Array<FunctionDeclaration> = this.tools.map((t) => {
+  async execute(messages: Message[], toolsList: Array<Tool>): Promise<LocalEvalResult> {
+    const functionDeclarations: Array<FunctionDeclaration> = toolsList.map((t) => {
       return {
         name: t.functionName,
         description: t.description,
@@ -102,19 +93,23 @@ export class GeminiBackend implements Backend {
 
     const response = await this.googleGenAI.models.generateContent(request);
 
-    if (!response.functionCalls) {
-      return null;
-    }
-
-    const functionCalls: Array<ToolCall> = response.functionCalls
+    const toolCalls: Array<ToolCall> = (response.functionCalls || [])
       .filter((f) => f.name && f.args)
       .map((f) => {
         return {
-          args: f.args!,
+          args: f.args as Record<string, unknown>,
           functionName: f.name!,
         };
       });
 
-    return functionCalls[0];
+    const textParts = response.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text)
+      .filter((t): t is string => Boolean(t))
+      .join("");
+
+    return {
+      toolCalls,
+      text: textParts || undefined,
+    };
   }
 }

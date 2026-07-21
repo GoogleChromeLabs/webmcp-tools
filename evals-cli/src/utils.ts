@@ -158,13 +158,10 @@ function matchSimpleUnorderedGroup(
     return false;
   }
 
-  let matchesCount = 0;
   const visited: Array<boolean> = Array.from({ length: executionPoolSize });
   for (let i = 0; i < expectedNodesCount; i++) {
     visited.fill(false);
-    if (findAugmentingPath(i, visited)) {
-      matchesCount++;
-    }
+    findAugmentingPath(i, visited);
   }
 
   // Track which expected nodes were successfully matched
