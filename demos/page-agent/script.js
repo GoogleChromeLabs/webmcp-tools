@@ -18,10 +18,44 @@ const iframe = document.getElementById('iframe');
 const codeModeCheckbox = document.getElementById('code-mode-checkbox');
 
 let ai, chat;
+let codeModeAbortController = null;
 
-codeModeCheckbox.addEventListener('change', () => {
+async function syncCodeModeTool() {
+  if (!document.modelContext) return;
+
+  if (codeModeCheckbox.checked) {
+    if (!codeModeAbortController) {
+      codeModeAbortController = new AbortController();
+      const { registerExecuteBatchTool } = await import('../shared/webmcp-batch.js');
+      await registerExecuteBatchTool(document.modelContext, { signal: codeModeAbortController.signal });
+    }
+  } else {
+    if (codeModeAbortController) {
+      codeModeAbortController.abort();
+      codeModeAbortController = null;
+      document.modelContext.unregisterTool?.('execute_batch');
+    }
+  }
+}
+
+async function logExposedTools() {
+  const tools = await getTools();
+  appendMessage(
+    'System',
+    `🌐 ${tools.length} tools are exposed by ${iframe.src}`,
+    'tool-indicator',
+  );
+}
+
+codeModeCheckbox.addEventListener('change', async () => {
   chat = null;
-  appendMessage('System', `🔄 Switched to ${codeModeCheckbox.checked ? 'Code Mode' : 'Normal Mode'}. Chat restarted.`, 'tool-indicator');
+  await syncCodeModeTool();
+  appendMessage(
+    'System',
+    `🔄 Switched to ${codeModeCheckbox.checked ? 'Code Mode' : 'Normal Mode'}. Chat restarted.`,
+    'tool-indicator',
+  );
+  await logExposedTools();
 });
 
 async function getTools() {
@@ -91,25 +125,6 @@ function getTSType(schema) {
   }
 }
 
-async function executeBatchLocally(steps) {
-  const { executeDeclarativeBatch } = await import('../shared/webmcp-batch.js');
-  const executeToolFn = async (toolName, args) => {
-    const tools = await getTools();
-    const targetTool = tools.find(t => t.name === toolName);
-    if (!targetTool) {
-      throw new Error(`Tool ${toolName} not found`);
-    }
-    return await document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
-  };
-  
-  const outputs = await executeDeclarativeBatch(steps, executeToolFn);
-  const success = outputs.every(o => o.success);
-  return {
-    success,
-    outputs
-  };
-}
-
 async function getConfig() {
   const tools = await getTools();
   
@@ -128,42 +143,19 @@ async function getConfig() {
       'Write the steps carefully and return them as the array input for `execute_batch`.',
     ];
 
-    const executeBatchDecl = {
-      name: 'execute_batch',
-      description: 'Execute a sequential list of WebMCP tool calls, resolving data dependencies between steps (e.g. referencing previous steps output via "$ref:stepId.property").',
-      parametersJsonSchema: {
-        type: 'object',
-        properties: {
-          steps: {
-            type: 'array',
-            description: 'A list of tool call steps to run sequentially.',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                  description: 'A unique ID for this step, to reference its output in later steps.'
-                },
-                tool: {
-                  type: 'string',
-                  description: 'The name of the tool to execute.'
-                },
-                args: {
-                  type: 'object',
-                  description: 'Arguments to pass to the tool. Can contain string values like "$ref:stepId.someProperty" to resolve data from earlier steps.'
-                }
-              },
-              required: ['tool']
-            }
-          }
-        },
-        required: ['steps']
-      }
-    };
+    const functionDeclarations = tools
+      .filter((tool) => tool.name === 'execute_batch')
+      .map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parametersJsonSchema: tool.inputSchema
+          ? JSON.parse(tool.inputSchema)
+          : { type: 'object', properties: {} },
+      }));
 
     return {
       systemInstruction,
-      tools: [{ functionDeclarations: [executeBatchDecl] }]
+      tools: [{ functionDeclarations }]
     };
   }
 
@@ -173,15 +165,15 @@ async function getConfig() {
     'CRITICAL RULE: Do not try to use other tools than the available ones.',
   ];
 
-  const functionDeclarations = tools.map((tool) => {
-    return {
+  const functionDeclarations = tools
+    .filter((tool) => tool.name !== 'execute_batch')
+    .map((tool) => ({
       name: tool.name,
       description: tool.description,
       parametersJsonSchema: tool.inputSchema
         ? JSON.parse(tool.inputSchema)
         : { type: 'object', properties: {} },
-    };
-  });
+    }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
@@ -225,18 +217,14 @@ function loadUrl() {
 
 loadUrl();
 
-iframe.addEventListener('load', async () => {
-  const tools = await getTools();
-  appendMessage(
-    'System',
-    `🌐 ${tools.length} tools are exposed by ${iframe.src}`,
-    'tool-indicator',
-  );
-});
+iframe.addEventListener('load', logExposedTools);
 
-logoutBtn.addEventListener('click', () => {
+logoutBtn.addEventListener('click', async () => {
   localStorage.removeItem('gemini_api_key');
   ai = null;
+  chat = null;
+  codeModeCheckbox.checked = false;
+  await syncCodeModeTool();
   chatWindow.innerHTML = '';
   document.body.style.backgroundColor = '';
   setupContainer.classList.remove('hidden');
@@ -258,6 +246,8 @@ async function handleUserSubmit() {
     sendBtn.disabled = true;
 
     appendMessage('You', text, 'user');
+
+    await syncCodeModeTool();
 
     chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
 
@@ -294,13 +284,11 @@ async function handleUserSubmit() {
             appendMessage('System', `⚙️ Executing tool: ${name}...`, 'tool-indicator');
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
-            
-            let result;
-            if (codeModeCheckbox.checked && name === 'execute_batch' && !tool) {
-              result = await executeBatchLocally(args.steps);
-            } else {
-              result = await document.modelContext.executeTool(tool, inputArgs);
+            if (!tool) {
+              throw new Error(`Tool ${name} not found`);
             }
+            
+            const result = await document.modelContext.executeTool(tool, inputArgs);
 
             if (name === 'execute_batch' && result && Array.isArray(result.outputs)) {
               for (const out of result.outputs) {
