@@ -83,7 +83,7 @@ export async function executeDeclarativeBatch(steps, executeToolFn) {
 export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined, options) {
   if (!modelContext) return;
 
-  modelContext.registerTool({
+  return modelContext.registerTool({
     name: 'execute_batch',
     description: 'Execute a sequential list of WebMCP tool calls, resolving data dependencies between steps (e.g. referencing previous steps output via "$ref:stepId.property").',
     inputSchema: {
@@ -132,10 +132,5 @@ export function registerExecuteBatchTool(modelContext = typeof window !== 'undef
         outputs
       };
     }
-  }, options).catch(() => {});
-}
-
-// Auto-register in browser environment if modelContext is available
-if (typeof window !== 'undefined' && window.document && window.document.modelContext) {
-  registerExecuteBatchTool(window.document.modelContext);
+  }, options);
 }
