@@ -91,11 +91,8 @@ function getTSType(schema) {
   }
 }
 
-let webmcpBatchPromise;
-
 async function executeBatchLocally(steps) {
-  webmcpBatchPromise ??= import('../shared/webmcp-batch.js');
-  const { executeDeclarativeBatch } = await webmcpBatchPromise;
+  const { executeDeclarativeBatch } = await import('../shared/webmcp-batch.js');
   const executeToolFn = async (toolName, args) => {
     const tools = await getTools();
     const targetTool = tools.find(t => t.name === toolName);
