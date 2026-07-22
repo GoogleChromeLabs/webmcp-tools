@@ -20,23 +20,6 @@ const codeModeCheckbox = document.getElementById('code-mode-checkbox');
 let ai, chat;
 let codeModeAbortController = null;
 
-async function syncCodeModeTool() {
-  if (!document.modelContext) return;
-
-  if (codeModeCheckbox.checked) {
-    if (!codeModeAbortController) {
-      codeModeAbortController = new AbortController();
-      const { registerExecuteBatchTool } = await import('../shared/webmcp-batch.js');
-      await registerExecuteBatchTool({ signal: codeModeAbortController.signal });
-    }
-  } else {
-    if (codeModeAbortController) {
-      codeModeAbortController.abort();
-      codeModeAbortController = null;
-    }
-  }
-}
-
 async function logExposedTools() {
   const tools = await getTools();
   appendMessage(
@@ -48,7 +31,14 @@ async function logExposedTools() {
 
 codeModeCheckbox.addEventListener('change', async () => {
   chat = null;
-  await syncCodeModeTool();
+
+  codeModeAbortController?.abort();
+  if (codeModeCheckbox.checked) {
+    codeModeAbortController = new AbortController();
+    const { registerExecuteBatchTool } = await import('../shared/webmcp-batch.js');
+    await registerExecuteBatchTool({ signal: codeModeAbortController.signal });
+  }
+
   appendMessage(
     'System',
     `🔄 Switched to ${codeModeCheckbox.checked ? 'Code Mode' : 'Normal Mode'}. Chat restarted.`,
@@ -147,15 +137,10 @@ async function getConfig() {
       .map((tool) => ({
         name: tool.name,
         description: tool.description,
-        parametersJsonSchema: tool.inputSchema
-          ? JSON.parse(tool.inputSchema)
-          : { type: 'object', properties: {} },
+        parametersJsonSchema: JSON.parse(tool.inputSchema),
       }));
 
-    return {
-      systemInstruction,
-      tools: [{ functionDeclarations }]
-    };
+    return { systemInstruction, tools: [{ functionDeclarations }] };
   }
 
   // Normal Mode
@@ -164,15 +149,13 @@ async function getConfig() {
     'CRITICAL RULE: Do not try to use other tools than the available ones.',
   ];
 
-  const functionDeclarations = tools
-    .filter((tool) => tool.name !== 'execute_batch')
-    .map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      parametersJsonSchema: tool.inputSchema
-        ? JSON.parse(tool.inputSchema)
-        : { type: 'object', properties: {} },
-    }));
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parametersJsonSchema: tool.inputSchema
+      ? JSON.parse(tool.inputSchema)
+      : { type: 'object', properties: {} },
+  }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
