@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useWebMCP } from "use-webmcp-tool";
 import Header from "./Header";
 import Toast from "./Toast";
 import FilterPanel from "./FilterPanel";
@@ -13,9 +14,11 @@ import AppliedFilters from "./AppliedFilters";
 import type { Flight } from "../data/flights";
 import { getFlights } from "../data/flightService";
 import {
-  registerFlightResultsTools,
+  listFlightsTool,
+  setFiltersTool,
+  resetFiltersTool,
+  searchFlightsTool,
   setCurrentFlights,
-  unregisterFlightResultsTools,
 } from "../webmcp";
 import "../App.css";
 
@@ -40,6 +43,11 @@ export default function FlightResults({
   searchParams,
   setSearchParams,
 }: FlightResultsProps) {
+  useWebMCP(listFlightsTool);
+  useWebMCP(setFiltersTool);
+  useWebMCP(resetFiltersTool);
+  useWebMCP(searchFlightsTool);
+
   const routeFlights = useMemo(
     () => getFlights(searchParams.origin, searchParams.destination),
     [searchParams.origin, searchParams.destination],
@@ -164,8 +172,6 @@ export default function FlightResults({
   }, [completedRequestId]);
 
   useEffect(() => {
-    registerFlightResultsTools();
-
     const handleSetFilters = (event: CustomEvent) => {
       const defaultFilters = {
         stops: [],
@@ -222,7 +228,6 @@ export default function FlightResults({
     );
 
     return () => {
-      unregisterFlightResultsTools();
       window.removeEventListener(
         "setFilters",
         handleSetFilters as EventListener,

@@ -14,7 +14,8 @@
     "rc-slider": "^11.1.8",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.16.0"
+    "react-router-dom": "^7.16.0",
+    "use-webmcp-tool": "^0.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

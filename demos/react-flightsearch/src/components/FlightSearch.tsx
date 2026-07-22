@@ -5,11 +5,9 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useWebMCP } from "use-webmcp-tool";
 import type { SearchParams } from "../App";
-import {
-  registerFlightSearchTools,
-  unregisterFlightSearchTools,
-} from "../webmcp";
+import { searchFlightsTool } from "../webmcp";
 import { airports } from "../data/airports";
 import { cityNames } from "../data/cityToAirports";
 import "../App.css";
@@ -26,6 +24,8 @@ export default function FlightSearch({
   const navigate = useNavigate();
   const [completedRequestId, setCompletedRequestId] = React.useState<string | null>(null);
   const [errors, setErrors] = useState<{ origin?: string; destination?: string }>({});
+
+  useWebMCP(searchFlightsTool);
 
   useEffect(() => {
     if (completedRequestId) {
@@ -57,14 +57,12 @@ export default function FlightSearch({
       "searchFlights",
       handleSearchFlights as EventListener,
     );
-    registerFlightSearchTools();
 
     return () => {
       window.removeEventListener(
         "searchFlights",
         handleSearchFlights as EventListener,
       );
-      unregisterFlightSearchTools();
     };
   }, [navigate]);
 
