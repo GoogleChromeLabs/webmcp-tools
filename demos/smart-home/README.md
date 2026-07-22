@@ -1,6 +1,6 @@
 # WebMCP Smart Home | Smart Home Control Panel WebMCP Demo
 
-🚀 **Live Demo:** `https://googlechromelabs.github.io/webmcp-tools/demos/smart-home/`
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/smart-home/
 
 A React-based smart home dashboard designed to showcase **WebMCP** implementation. This project demonstrates how an AI agent can programmatically and dynamically reconfigure dashboard control widgets (adding, removing, and re-ordering tiles) to suit the user's immediate situational needs and intent.
 
