@@ -132,3 +132,39 @@ export function registerExecuteBatchTool(options) {
     }
   }, options);
 }
+
+export function getSystemInstructions(tools) {
+  const formattedTools = tools
+    .filter((tool) => tool.name !== 'execute_batch')
+    .map((tool) => {
+      let inputSchema = tool.inputSchema;
+      if (typeof inputSchema === 'string') {
+        try {
+          inputSchema = JSON.parse(inputSchema);
+        } catch {
+          inputSchema = { type: 'object', properties: {} };
+        }
+      }
+      return {
+        name: tool.name,
+        description: tool.description || '',
+        inputSchema: inputSchema || { type: 'object', properties: {} },
+      };
+    });
+
+  return [
+    'You are an assistant embedded in a web page.',
+    'You interact with the page by generating a batch of tool calls using the `execute_batch` tool.',
+    'You MUST use `execute_batch` to perform any action on the page. Do NOT attempt to use other tools directly.',
+    'Inside the batch, you specify a sequence of steps. Each step calls one of the available WebMCP tools.',
+    'You can reference the results of previous steps in subsequent steps using the format "$ref:stepId" or "$ref:stepId.property".',
+    'For example, if step 1 returns `{ id: "123" }`, you can pass `"$ref:step1.id"` as an argument in step 2.',
+    'Below are the available WebMCP tools that can be executed in a batch:',
+    '```json',
+    JSON.stringify(formattedTools, null, 2),
+    '```',
+    'Write the steps carefully and return them as the array input for `execute_batch`.',
+  ];
+}
+
+export const getSystemInstruction = getSystemInstructions;

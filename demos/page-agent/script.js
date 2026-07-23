@@ -53,84 +53,12 @@ async function getTools() {
   return tools;
 }
 
-function generateTSDeclaration(tools) {
-  let decl = `declare const mcp: {\n`;
-  for (const tool of tools) {
-    if (tool.name === 'execute_batch') continue;
-    
-    if (tool.description) {
-      decl += `  /**\n   * ${tool.description.split('\n').join('\n   * ')}\n   */\n`;
-    }
-    
-    let paramsType = 'Record<string, unknown>';
-    if (tool.inputSchema) {
-      try {
-        const schema = JSON.parse(tool.inputSchema);
-        if (schema && schema.properties) {
-          const props = [];
-          for (const [key, value] of Object.entries(schema.properties)) {
-            const isRequired = Array.isArray(schema.required) && schema.required.includes(key);
-            const propType = getTSType(value);
-            const desc = value.description ? ` // ${value.description}` : '';
-            props.push(`${key}${isRequired ? '' : '?'}: ${propType};${desc}`);
-          }
-          paramsType = `{\n    ${props.join('\n    ')}\n  }`;
-        }
-      } catch (e) {}
-    }
-    
-    decl += `  ${tool.name}: (args: ${paramsType}) => Promise<any>;\n\n`;
-    
-    const normalized = tool.name
-      .replace(/[.-]([a-zA-Z0-9])/g, (_, g) => g.toUpperCase())
-      .replace(/[^a-zA-Z0-9_]/g, '');
-    if (normalized !== tool.name) {
-      if (tool.description) {
-        decl += `  /**\n   * Alias for ${tool.name}\n   * ${tool.description.split('\n').join('\n   * ')}\n   */\n`;
-      }
-      decl += `  ${normalized}: (args: ${paramsType}) => Promise<any>;\n\n`;
-    }
-  }
-  decl += `};`;
-  return decl;
-}
-
-function getTSType(schema) {
-  if (schema.enum) {
-    return schema.enum.map(v => typeof v === 'string' ? `'${v}'` : String(v)).join(' | ');
-  }
-  switch (schema.type) {
-    case 'string': return 'string';
-    case 'number':
-    case 'integer': return 'number';
-    case 'boolean': return 'boolean';
-    case 'array':
-      if (schema.items) {
-        return `${getTSType(schema.items)}[]`;
-      }
-      return 'any[]';
-    case 'object': return 'any';
-    default: return 'any';
-  }
-}
-
 async function getConfig() {
   const tools = await getTools();
   
   if (codeModeCheckbox.checked) {
-    const systemInstruction = [
-      'You are an assistant embedded in a web page.',
-      'You interact with the page by generating a batch of tool calls using the `execute_batch` tool.',
-      'You MUST use `execute_batch` to perform any action on the page. Do NOT attempt to use other tools directly.',
-      'Inside the batch, you specify a sequence of steps. Each step calls one of the functions on the `mcp` object.',
-      'You can reference the results of previous steps in subsequent steps using the format "$ref:stepId" or "$ref:stepId.property".',
-      'For example, if step 1 returns `{ id: "123" }`, you can pass `"$ref:step1.id"` as an argument in step 2.',
-      'Below is the TypeScript declaration of the available functions under the `mcp` object:',
-      '```typescript',
-      generateTSDeclaration(tools),
-      '```',
-      'Write the steps carefully and return them as the array input for `execute_batch`.',
-    ];
+    const { getSystemInstructions } = await import('../shared/webmcp-batch.js');
+    const systemInstruction = getSystemInstructions(tools);
 
     const functionDeclarations = tools
       .filter((tool) => tool.name === 'execute_batch')
