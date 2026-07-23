@@ -11,7 +11,7 @@ import { HotelCard } from '../components/ui/HotelCard';
 import { PageHeader } from '../components/ui/PageHeader';
 import { AVAILABLE_AMENITIES, CITY_LABELS, Z_INDEX, getTargetCity } from '../constants';
 import { useHotelFilter } from '../hooks/useHotelFilter';
-import { useWebMCP } from '../hooks/useWebMCP';
+import { useWebMCP } from 'use-webmcp-tool';
 
 export default function SearchResults() {
   const location = useLocation();
@@ -32,53 +32,53 @@ export default function SearchResults() {
   } = useHotelFilter(locationQuery);
 
   // Register WebMCP Tools
-  useWebMCP([
-    {
-      name: 'filter_search_results',
-      description: 'Filter the search results by max price and required amenities',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          max_price: { type: 'number', description: 'Maximum price per night' },
-          amenities: { type: 'array', items: { type: 'string', enum: AVAILABLE_AMENITIES }, description: 'Required amenities' }
-        }
-      },
-      execute: (input: any) => {
-        if (input.max_price !== undefined) setMaxPrice(input.max_price);
-        if (input.amenities) setRequiredAmenities(input.amenities);
-        return { success: true, message: 'Filtered results on page' };
+  useWebMCP({
+    name: 'filter_search_results',
+    description: 'Filter the search results by max price and required amenities',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        max_price: { type: 'number', description: 'Maximum price per night' },
+        amenities: { type: 'array', items: { type: 'string', enum: AVAILABLE_AMENITIES }, description: 'Required amenities' }
       }
     },
-    {
-      name: 'reset_filters',
-      description: 'Remove all applied search filters and show all results for the current location.',
-      execute: () => {
-        setMaxPrice(null);
-        setRequiredAmenities([]);
-        return { success: true, message: 'All filters have been reset' };
-      }
-    },
-    {
-      name: 'get_current_search_results',
-      description: 'Retrieve the list of hotels matching the current search query and applied filters.',
-      execute: () => {
-        const allResults = [...featuredHotels, ...standardHotels];
-        return {
-          success: true,
-          count: allResults.length,
-          hotels: allResults.map(h => ({
-            id: h.id,
-            name: h.name,
-            rating: h.rating,
-            price: h.price,
-            featured: h.isFeatured,
-            amenities: h.amenities.map(a => a.filterKey),
-            description: h.description
-          }))
-        };
-      }
+    execute: (input: any) => {
+      if (input.max_price !== undefined) setMaxPrice(input.max_price);
+      if (input.amenities) setRequiredAmenities(input.amenities);
+      return { success: true, message: 'Filtered results on page' };
     }
-  ]);
+  });
+
+  useWebMCP({
+    name: 'reset_filters',
+    description: 'Remove all applied search filters and show all results for the current location.',
+    execute: () => {
+      setMaxPrice(null);
+      setRequiredAmenities([]);
+      return { success: true, message: 'All filters have been reset' };
+    }
+  });
+
+  useWebMCP({
+    name: 'get_current_search_results',
+    description: 'Retrieve the list of hotels matching the current search query and applied filters.',
+    execute: () => {
+      const allResults = [...featuredHotels, ...standardHotels];
+      return {
+        success: true,
+        count: allResults.length,
+        hotels: allResults.map(h => ({
+          id: h.id,
+          name: h.name,
+          rating: h.rating,
+          price: h.price,
+          featured: h.isFeatured,
+          amenities: h.amenities.map(a => a.filterKey),
+          description: h.description
+        }))
+      };
+    }
+  });
 
   const displayLocation = useMemo(() => {
     const city = getTargetCity(locationQuery);

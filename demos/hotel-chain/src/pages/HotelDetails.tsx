@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { hotels } from '../data/hotels';
 import { Button } from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
-import { useWebMCP } from '../hooks/useWebMCP';
+import { useWebMCP } from 'use-webmcp-tool';
 import { useBookingState } from '../hooks/useBookingState';
 import { CITY_LABELS } from '../constants';
 import { clsx } from 'clsx';
@@ -36,14 +36,14 @@ export default function HotelDetails() {
   }, [location.search]);
 
   // Register WebMCP Tool
-  useWebMCP([{
+  useWebMCP({
     name: 'start_booking',
     description: `Navigate to the booking form to reserve a room at ${hotel.name}.`,
     execute: () => {
       navigate('/book/' + hotel.id);
       return { success: true, message: `Navigated to booking form for ${hotel.name}` };
     }
-  }]);
+  });
 
   const images = [
     "https://lh3.googleusercontent.com/aida-public/AB6AXuDQxRN8_hOFnc70kYbgBrmjLNchifXRmYUKYtwuMHkQKqEzYiJJXQT8Oak14-B9uAPjYAa0JyHsXxVg7F4Uia_poQNqjnXkclGEWh90-KYEug0k2V_7uKhD134ApHp2JLOwBUGa2RNrjKafsJa_VL1q_ieTttYX53Xjv8qg8Ma-I1lCcr-3M9UOgQj_Hs0-z5HE7l46uHb5fUsOQa1ZItotouaZCVF3DGIe9E5MdW3j5ncxj2qqd9w0tW_alY4JuXL17YJRyPU8BUQ",
