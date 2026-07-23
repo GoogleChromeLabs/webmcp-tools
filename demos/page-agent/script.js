@@ -57,8 +57,8 @@ async function getConfig() {
   const tools = await getTools();
   
   if (codeModeCheckbox.checked) {
-    const { getSystemInstructions } = await import('../shared/webmcp-batch.js');
-    const systemInstruction = getSystemInstructions(tools);
+    const { getSystemInstruction } = await import('../shared/webmcp-batch.js');
+    const systemInstruction = getSystemInstruction(tools);
 
     const functionDeclarations = tools
       .filter((tool) => tool.name === 'execute_batch')

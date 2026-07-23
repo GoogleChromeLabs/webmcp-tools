@@ -133,7 +133,7 @@ export function registerExecuteBatchTool(options) {
   }, options);
 }
 
-export function getSystemInstructions(tools) {
+export function getSystemInstruction(tools) {
   const formattedTools = tools
     .filter((tool) => tool.name !== 'execute_batch')
     .map((tool) => {
@@ -166,5 +166,3 @@ export function getSystemInstructions(tools) {
     'Write the steps carefully and return them as the array input for `execute_batch`.',
   ];
 }
-
-export const getSystemInstruction = getSystemInstructions;
