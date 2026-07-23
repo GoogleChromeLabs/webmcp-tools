@@ -64,9 +64,6 @@
 
       const iframe = document.createElement('iframe');
       iframe.src = 'agent.html' + window.location.search;
-      iframe.onload = () => {
-        iframe.contentWindow.document.getElementById('agent-toggle').click();
-      }
       iframe.style.position = 'fixed';
       iframe.style.bottom = '0';
       iframe.style.right = '0';
