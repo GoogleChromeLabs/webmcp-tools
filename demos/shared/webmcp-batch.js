@@ -80,10 +80,8 @@ export async function executeDeclarativeBatch(steps, executeToolFn) {
   return outputs;
 }
 
-export function registerExecuteBatchTool(modelContext = typeof window !== 'undefined' ? window.document?.modelContext : undefined) {
-  if (!modelContext) return;
-
-  modelContext.registerTool({
+export function registerExecuteBatchTool(options) {
+  return document.modelContext.registerTool({
     name: 'execute_batch',
     description: 'Execute a sequential list of WebMCP tool calls, resolving data dependencies between steps (e.g. referencing previous steps output via "$ref:stepId.property").',
     inputSchema: {
@@ -116,12 +114,12 @@ export function registerExecuteBatchTool(modelContext = typeof window !== 'undef
     },
     execute: async ({ steps }) => {
       const executeToolFn = async (toolName, args) => {
-        const tools = await modelContext.getTools();
+        const tools = await document.modelContext.getTools();
         const targetTool = tools.find(t => t.name === toolName);
         if (!targetTool) {
           throw new Error(`Tool ${toolName} not found`);
         }
-        return await modelContext.executeTool(targetTool, JSON.stringify(args || {}));
+        return await document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
       };
       
       const outputs = await executeDeclarativeBatch(steps, executeToolFn);
@@ -132,10 +130,39 @@ export function registerExecuteBatchTool(modelContext = typeof window !== 'undef
         outputs
       };
     }
-  }, { exposedTo: ['*'] }).catch(() => {});
+  }, options);
 }
 
-// Auto-register in browser environment if modelContext is available
-if (typeof window !== 'undefined' && window.document && window.document.modelContext) {
-  registerExecuteBatchTool(window.document.modelContext);
+export function getSystemInstruction(tools) {
+  const formattedTools = tools
+    .filter((tool) => tool.name !== 'execute_batch')
+    .map((tool) => {
+      let inputSchema = tool.inputSchema;
+      if (typeof inputSchema === 'string') {
+        try {
+          inputSchema = JSON.parse(inputSchema);
+        } catch {
+          inputSchema = { type: 'object', properties: {} };
+        }
+      }
+      return {
+        name: tool.name,
+        description: tool.description || '',
+        inputSchema: inputSchema || { type: 'object', properties: {} },
+      };
+    });
+
+  return [
+    'You are an assistant embedded in a web page.',
+    'You interact with the page by generating a batch of tool calls using the `execute_batch` tool.',
+    'You MUST use `execute_batch` to perform any action on the page. Do NOT attempt to use other tools directly.',
+    'Inside the batch, you specify a sequence of steps. Each step calls one of the available WebMCP tools.',
+    'You can reference the results of previous steps in subsequent steps using the format "$ref:stepId" or "$ref:stepId.property".',
+    'For example, if step 1 returns `{ id: "123" }`, you can pass `"$ref:step1.id"` as an argument in step 2.',
+    'Below are the available WebMCP tools that can be executed in a batch:',
+    '```json',
+    JSON.stringify(formattedTools, null, 2),
+    '```',
+    'Write the steps carefully and return them as the array input for `execute_batch`.',
+  ];
 }
