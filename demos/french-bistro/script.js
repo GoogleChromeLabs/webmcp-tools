@@ -68,6 +68,13 @@ form.addEventListener('submit', function (e) {
     return;
   }
 
+  if (new URLSearchParams(window.location.search).has('agentopened')) {
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'agentopened';
+    form.appendChild(hiddenInput);
+  }
+
   if (isCrossDocument) {
     form.submit();
     return;
