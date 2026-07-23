@@ -14,6 +14,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "../..");
 const DEFAULT_CONTEXT_DIR = join(PROJECT_ROOT, "analyzer-context");
 
+export const DEFAULT_MODEL = "google:gemini-3-flash-preview";
+
 /**
  * Loads all files in the context directory and aggregates them as a single string.
  */
