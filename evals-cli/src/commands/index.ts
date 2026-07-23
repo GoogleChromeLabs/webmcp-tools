@@ -17,7 +17,7 @@ import { Tool, ToolsSchema } from "../types/tools.js";
 import { executeLocalEvals, executeInBrowserEvals } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
-import { analyzeReport } from "../analyzer/index.js";
+import { analyzeEvalReport, DEFAULT_MODEL_EVAL_ANALYZER } from "../analyzer/index.js";
 
 export interface CommandOptions {
   backend: string;
@@ -245,7 +245,7 @@ export async function runAnalyzeCommand(
     toolSchemaFile: "",
     evalsFile: "",
     backend: localOpts.backend || globalOpts.backend || "vercel",
-    model: localOpts.model || "google:gemini-3-flash-preview",
+    model: localOpts.model || DEFAULT_MODEL_EVAL_ANALYZER,
     runs: globalOpts.runs,
     outputDir: globalOpts.outputDir,
     reporter: globalOpts.reporter,
@@ -255,7 +255,7 @@ export async function runAnalyzeCommand(
   spinner.start("Analyzing evals report...");
 
   try {
-    const analysisText = await analyzeReport(reportPath, config);
+    const analysisText = await analyzeEvalReport(reportPath, config);
     spinner.stop();
 
     const timestamp = Date.now();
@@ -271,7 +271,15 @@ export async function runAnalyzeCommand(
     console.log(`\n${chalk.green.bold("📝 Analysis Report Completed:")}`);
     console.log(`Saved to: ${outputPath}\n`);
 
-    // Log a brief snippet of the executive summary to console
+    if (localOpts.open) {
+      try {
+        await open(outputPath, { app: { name: "google chrome" } });
+      } catch {
+        await open(outputPath);
+      }
+    }
+
+    // Log a brief snippet of the summary to console
     const summaryLines = analysisText.split("\n").slice(0, 15).join("\n");
     console.log(summaryLines);
     console.log("\n...\n");

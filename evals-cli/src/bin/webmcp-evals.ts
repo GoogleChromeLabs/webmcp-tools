@@ -55,13 +55,14 @@ program
 program
   .command("analyze")
   .description(
-    "Analyze an evaluation JSON report using an LLM to identify root causes and hypotheses",
+    "Analyze an evaluation JSON report using an LLM to identify root causes and hypotheses for eval failures",
   )
   .argument("<report-path>", "Path to the JSON report file (e.g. .evals/report-*.json)")
   .option(
     "-m, --model <model>",
     "Model identifier for the analyzer (defaults to google:gemini-3-pro-preview)",
   )
+  .option("--open", "Automatically open the analysis markdown report upon completion", false)
   .action(runAnalyzeCommand);
 
 program.parse(process.argv);

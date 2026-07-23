@@ -3,44 +3,41 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { readFile, readdir } from "fs/promises";
+import { readFile } from "fs/promises";
 import { resolve, dirname, join, basename, extname } from "path";
 import { fileURLToPath } from "url";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { generateText } from "ai";
 import { getModel } from "../evaluator/models.js";
 import { Config } from "../types/config.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = join(__dirname, "../..");
-const DEFAULT_CONTEXT_DIR = join(PROJECT_ROOT, "analyzer-context");
+const execAsync = promisify(exec);
 
-export const DEFAULT_MODEL = "google:gemini-3-flash-preview";
+export const DEFAULT_MODEL_EVAL_ANALYZER = "google:gemini-3-flash-preview";
 
 /**
- * Loads all files in the context directory and aggregates them as a single string.
+ * Loads the WebMCP best practices and API guides from the installed modern-web-guidance package.
  */
-async function loadContext(contextDir: string): Promise<string> {
+async function loadWebMcpContext(): Promise<string> {
   try {
-    const files = await readdir(contextDir);
-    const contentParts: string[] = [];
+    const packageJsonUrl = import.meta.resolve("modern-web-guidance/package.json");
+    const packageDir = dirname(fileURLToPath(packageJsonUrl));
+    const scriptPath = join(packageDir, "skills/modern-web-guidance/modern-web.mjs");
 
-    for (const file of files) {
-      // Load both Markdown files and text/documentation files
-      const fullPath = join(contextDir, file);
-      const content = await readFile(fullPath, "utf-8");
-      contentParts.push(`### Context Source: ${file}\n\n${content}`);
-    }
-
-    return contentParts.join("\n\n---\n\n");
+    const { stdout } = await execAsync(
+      `node "${scriptPath}" retrieve webmcp,agentic-forms,agentic-javascript-tools`,
+    );
+    return stdout;
   } catch (error: any) {
-    throw new Error(`Failed to load analyzer context from "${contextDir}": ${error.message}`);
+    throw new Error(`Failed to retrieve modern-web-guidance WebMCP context: ${error.message}`);
   }
 }
 
 /**
  * Reads the report JSON from path, with a fallback for HTML report paths.
  */
-async function readReport(reportPath: string): Promise<any> {
+async function readEvalReportJson(reportPath: string): Promise<any> {
   const fullPath = resolve(process.cwd(), reportPath);
   const ext = extname(fullPath).toLowerCase();
 
@@ -70,7 +67,7 @@ async function readReport(reportPath: string): Promise<any> {
 /**
  * Extracts the title from the corresponding HTML report file if available.
  */
-async function extractReportTitle(reportPath: string): Promise<string> {
+async function extractEvalReportTitle(reportPath: string): Promise<string> {
   const ext = extname(reportPath).toLowerCase();
   let htmlPath = reportPath;
 
@@ -96,19 +93,19 @@ async function extractReportTitle(reportPath: string): Promise<string> {
 /**
  * Main function to execute the report analysis using the configured LLM.
  */
-export async function analyzeReport(reportPath: string, config: Config): Promise<string> {
+export async function analyzeEvalReport(reportPath: string, config: Config): Promise<string> {
   // Load from the JSON report evals config, assertions (passed/failed), and trajectories.
   // - reportData.config: evaluation configuration context
   // - reportData.results.results[].outcome: passed and failed assertions
   // - reportData.results.results[].trajectory: step-by-step state (available tools), agent action (tool calls inputs), and response (tool outputs)
-  const reportData = await readReport(reportPath);
-  const webMcpSpec = await loadContext(DEFAULT_CONTEXT_DIR);
-  const reportTitle = await extractReportTitle(reportPath);
+  const reportData = await readEvalReportJson(reportPath);
+  const webMcpDomainKnowledge = await loadWebMcpContext();
+  const reportTitle = await extractEvalReportTitle(reportPath);
 
   // Default to a reasoning model for analysis if not explicitly specified
   const analyzerConfig = {
     ...config,
-    model: config.model || "google:gemini-3-flash-preview",
+    model: config.model || DEFAULT_MODEL_EVAL_ANALYZER,
   };
 
   const modelInstance = getModel(analyzerConfig);
@@ -118,7 +115,7 @@ Your role is to inspect the evaluation outcomes, identify failed steps, and dedu
 
 Here is the WebMCP Specification and best practices reference for your context:
 =========================================
-${webMcpSpec}
+${webMcpDomainKnowledge}
 =========================================
 
 Analyze the provided evaluation report JSON. For any failures, assess the trajectory using these three hypotheses:
