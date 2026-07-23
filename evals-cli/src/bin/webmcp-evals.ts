@@ -8,7 +8,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import dotenv from "dotenv";
-import { runLocalCommand, runWebCommand } from "../commands/index.js";
+import { runLocalCommand, runWebCommand, runAnalyzeCommand } from "../commands/index.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json");
@@ -50,5 +50,19 @@ program
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
   .action(runWebCommand);
+
+// Command: analyze evaluation report using an LLM
+program
+  .command("analyze")
+  .description(
+    "Analyze an evaluation JSON report using an LLM to identify root causes and hypotheses for eval failures",
+  )
+  .argument("<report-path>", "Path to the JSON report file (e.g. .evals/report-*.json)")
+  .option(
+    "-m, --model <model>",
+    "Model identifier for the analyzer (defaults to google:gemini-3-pro-preview)",
+  )
+  .option("--open", "Automatically open the analysis markdown report upon completion", false)
+  .action(runAnalyzeCommand);
 
 program.parse(process.argv);

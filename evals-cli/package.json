@@ -39,6 +39,7 @@
     "cli-table3": "^0.6.5",
     "commander": "^13.1.0",
     "dotenv": "^17.2.3",
+    "modern-web-guidance": "^0.0.177",
     "ollama": "^0.6.3",
     "open": "^11.0.0",
     "ora": "^9.3.0",
