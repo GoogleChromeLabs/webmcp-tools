@@ -95,6 +95,10 @@ async function extractReportTitle(reportPath: string): Promise<string> {
  * Main function to execute the report analysis using the configured LLM.
  */
 export async function analyzeReport(reportPath: string, config: Config): Promise<string> {
+  // Load from the JSON report evals config, assertions (passed/failed), and trajectories.
+  // - reportData.config: evaluation configuration context
+  // - reportData.results.results[].outcome: passed and failed assertions
+  // - reportData.results.results[].trajectory: step-by-step state (available tools), agent action (tool calls inputs), and response (tool outputs)
   const reportData = await readReport(reportPath);
   const webMcpSpec = await loadContext(DEFAULT_CONTEXT_DIR);
   const reportTitle = await extractReportTitle(reportPath);
@@ -142,6 +146,8 @@ Provide a natural-language paragraph summarizing the evaluation run outcomes.
 ## 4. Actionable Fixes
 [Concrete checkbox items for fixes. Omit if no failures/false positives.]`;
 
+  // The LLM processes the JSON report to extract eval config, identify failed step assertions,
+  // and analyze trajectories to deduce root causes.
   const prompt = `Please analyze the following WebMCP evaluation report JSON and provide a detailed markdown report:
 
 \`\`\`json
