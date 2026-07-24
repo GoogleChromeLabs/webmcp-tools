@@ -87,9 +87,16 @@ export class VercelBackend implements Backend {
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
         if (validToolNames.has(call.toolName)) {
+          const matchingResult: any = (step.toolResults ?? []).find(
+            (r: any) => r.toolCallId === call.toolCallId || r.toolName === call.toolName,
+          );
+          const result = matchingResult
+            ? (matchingResult.result ?? matchingResult.output)
+            : undefined;
           toolCalls.push({
             functionName: call.toolName,
             args: call.input || call.args || call.arguments || {},
+            result,
           });
         }
       }
@@ -185,13 +192,22 @@ export class VercelBackend implements Backend {
 
       // Gather executed tool calls across all steps
       const executedCalls: ToolCall[] = [];
-      if (resultPayload.steps && resultPayload.steps.length > 0) {
-        for (const step of resultPayload.steps) {
+      const stepsToIterate =
+        resultPayload.steps && resultPayload.steps.length > 0 ? resultPayload.steps : stepsHistory;
+      if (stepsToIterate && stepsToIterate.length > 0) {
+        for (const step of stepsToIterate) {
           if (step.toolCalls && step.toolCalls.length > 0) {
             for (const call of step.toolCalls) {
+              const matchingResult: any = (step.toolResults ?? []).find(
+                (r: any) => r.toolCallId === call.toolCallId || r.toolName === call.toolName,
+              );
+              const result = matchingResult
+                ? (matchingResult.result ?? matchingResult.output)
+                : undefined;
               executedCalls.push({
                 functionName: call.toolName,
                 args: (call as any).input || (call as any).args || (call as any).arguments || {},
+                result,
               });
             }
           }

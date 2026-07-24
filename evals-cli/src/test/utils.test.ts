@@ -624,6 +624,33 @@ describe("functionCallOutcome", () => {
       "pass",
     );
   });
+
+  it("passes when expected.result matches actual.result", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", result: "pending form submission" },
+        { functionName: "foo", args: {}, result: "pending form submission" },
+      ),
+      "pass",
+    );
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", result: { $contains: "confirmed" } },
+        { functionName: "foo", args: {}, result: "Reservation confirmed for 2 people" },
+      ),
+      "pass",
+    );
+  });
+
+  it("fails when expected.result does not match actual.result", () => {
+    assert.strictEqual(
+      functionCallOutcome(
+        { functionName: "foo", result: "pending form submission" },
+        { functionName: "foo", args: {}, result: "Reservation confirmed" },
+      ),
+      "fail",
+    );
+  });
 });
 
 describe("countExpectedCalls with optional", () => {

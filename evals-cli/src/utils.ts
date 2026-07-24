@@ -49,9 +49,16 @@ export function functionCallOutcome(
   // An eval that omits `arguments` (or sets it to null) imposes no constraint
   // on the tool call's arguments. Treat any actual args — including the empty
   // object `{}` that most SDKs emit for no-arg tool calls — as a match.
-  if (expected.arguments == null) return "pass";
+  if (expected.arguments != null) {
+    if (!matchesArgument(expected.arguments, actual.args)) return "fail";
+  }
 
-  return matchesArgument(expected.arguments, actual.args) ? "pass" : "fail";
+  // An eval that specifies `result` imposes a constraint on the tool execution result.
+  if (expected.result !== undefined) {
+    if (!matchesArgument(expected.result, actual.result)) return "fail";
+  }
+
+  return "pass";
 }
 
 export interface TrajectoryResult {

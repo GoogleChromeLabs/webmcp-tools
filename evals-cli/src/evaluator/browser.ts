@@ -46,52 +46,6 @@ export async function launchBrowser(): Promise<Browser> {
   });
 }
 
-/**
- * Launches Chrome Canary, navigates to the given URL, and retrieves the list
- * of tools exposed by the page via Puppeteer.
- *
- * Requires Chrome Canary 150+ with the `chrome://flags/#enable-webmcp-testing`
- * flag enabled. The browser is always closed after the tools are retrieved,
- * even if an error occurs.
- */
-export async function listToolsFromPage(url: string): Promise<Tool[]> {
-  const executablePath = await findChromePath();
-  let browser: Browser | null = null;
-
-  try {
-    console.log(`Launching Chrome Canary from: ${executablePath}`);
-    browser = await launchBrowser();
-
-    const page = await browser.newPage();
-
-    console.log(`Navigating to: ${url}`);
-    const response = await page.goto(url, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
-
-    if (!response || !response.ok()) {
-      throw new Error(
-        `Failed to navigate to ${url}. HTTP status: ${response?.status() ?? "unknown"}`,
-      );
-    }
-
-    const rawTools = await getToolsFromBrowserPage(page);
-    if (rawTools.length === 0) {
-      throw new Error(
-        `WebMCP Tools are not available on ${url} (0 tools registered on page).\nDebug info: [URL="${url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
-      );
-    }
-
-    console.log(`Found ${rawTools.length} tool(s) via Puppeteer/Native API.`);
-    return mapRawBrowserToolsToConfig(rawTools, []);
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-}
-
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
 
@@ -119,12 +73,36 @@ export class BrowserToolRegistry implements ToolRegistry {
               const tools = await mc.getTools();
               const tool = tools.find((item) => item.name === name);
               if (tool) {
-                const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
-                try {
-                  return { success: true, data: JSON.parse(resStr as string) };
-                } catch {
-                  return { success: true, data: resStr };
-                }
+                return new Promise((resolve) => {
+                  let timer: any = null;
+
+                  const onActivated = (e: any) => {
+                    if (!e.toolName || e.toolName === name) {
+                      timer = setTimeout(() => {
+                        window.removeEventListener("toolactivated", onActivated);
+                        resolve({ success: true, data: "pending form submission" });
+                      }, 1000);
+                    }
+                  };
+
+                  window.addEventListener("toolactivated", onActivated);
+
+                  mc.executeTool(tool, JSON.stringify(callArgs || {}))
+                    .then((resStr: any) => {
+                      if (timer) clearTimeout(timer);
+                      window.removeEventListener("toolactivated", onActivated);
+                      try {
+                        resolve({ success: true, data: JSON.parse(resStr as string) });
+                      } catch {
+                        resolve({ success: true, data: resStr });
+                      }
+                    })
+                    .catch((err: any) => {
+                      if (timer) clearTimeout(timer);
+                      window.removeEventListener("toolactivated", onActivated);
+                      resolve({ success: false, error: err?.message || String(err) });
+                    });
+                });
               }
             }
           }

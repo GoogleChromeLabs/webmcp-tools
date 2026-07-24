@@ -78,6 +78,16 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(page.evaluateCalls[0].args[1], { id: "btn-1" });
   });
 
+  it("should return 'pending form submission' when tool result data is 'pending form submission'", async () => {
+    const page = new MockBrowserPage();
+    page.evaluateResult = { success: true, data: "pending form submission" };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeTool("book_table", { guests: 2 });
+
+    assert.strictEqual(result, "pending form submission");
+  });
+
   it("should return error if page execution reports success: false", async () => {
     const page = new MockBrowserPage();
     page.evaluateResult = { success: false };

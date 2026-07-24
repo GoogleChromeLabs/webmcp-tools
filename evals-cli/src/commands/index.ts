@@ -162,11 +162,44 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
   }
 }
 
+import { matchesArgument } from "../matcher.js";
+
+function getFailureDetail(res: any): string {
+  if (res.outcome === "pass") return "-";
+  if (!res.response) return "No tool called";
+
+  const expected = res.test.expectedCall?.[0] as FunctionCall | undefined;
+  if (!expected) return "Unexpected tool call";
+
+  if (expected.functionName !== res.response.functionName) {
+    return `Function mismatch (expected "${expected.functionName}", got "${res.response.functionName}")`;
+  }
+
+  if (expected.arguments != null && !matchesArgument(expected.arguments, res.response.args)) {
+    return "Arguments mismatch";
+  }
+
+  if (expected.result !== undefined && !matchesArgument(expected.result, res.response.result)) {
+    const expStr =
+      typeof expected.result === "object"
+        ? JSON.stringify(expected.result)
+        : String(expected.result);
+    const actStr =
+      typeof res.response.result === "object"
+        ? JSON.stringify(res.response.result)
+        : String(res.response.result ?? null);
+    const truncatedAct = actStr.length > 40 ? actStr.slice(0, 37) + "..." : actStr;
+    return `Result mismatch: expected "${expStr}", got "${truncatedAct}"`;
+  }
+
+  return res.outcome === "error" ? "Execution error" : "Failed";
+}
+
 function printConsoleSummary(finalResults: any): void {
   console.log("\n" + chalk.bold.underline("Evaluation Summary") + "\n");
 
   const table = new Table({
-    head: ["Step", "Status", "Expected Function", "Actual Function"],
+    head: ["Step", "Status", "Expected Function", "Actual Function", "Details"],
     style: {
       head: ["cyan"],
       border: ["grey"],
@@ -181,6 +214,7 @@ function printConsoleSummary(finalResults: any): void {
       passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
       (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
       res.response?.functionName || "-",
+      getFailureDetail(res),
     ]);
   }
 
