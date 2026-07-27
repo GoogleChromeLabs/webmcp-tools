@@ -33,6 +33,7 @@ export interface CommandOptions {
   open?: boolean;
   analyze?: boolean;
   analyzerModel?: string;
+  openAnalysis?: boolean;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -111,7 +112,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
       finalResults,
       finalReporters,
       opts.outputDir,
-      false,
+      opts.open,
     );
     if (jsonPath) {
       await runAnalyzeCommand(jsonPath, opts, command);
@@ -192,7 +193,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
         finalResults,
         finalReporters,
         opts.outputDir,
-        false,
+        opts.open,
         true,
       );
       if (jsonPath) {
@@ -334,7 +335,7 @@ export async function runAnalyzeCommand(
     console.log(`\n${chalk.green.bold("📝 Analysis Report Completed:")}`);
     console.log(`Saved to: ${outputPath}\n`);
 
-    if (localOpts.open) {
+    if (localOpts.open || globalOpts.openAnalysis) {
       try {
         await open(outputPath, { app: { name: "google chrome" } });
       } catch {

@@ -14,7 +14,7 @@ import { Config } from "../types/config.js";
 
 const execAsync = promisify(exec);
 
-export const ANALYZER_MODEL_DEFAULT = "google:gemini-3-flash-preview";
+export const ANALYZER_MODEL_DEFAULT = "gemini-3.5-flash";
 
 /**
  * Loads the WebMCP best practices and API guides from the installed modern-web-guidance package.

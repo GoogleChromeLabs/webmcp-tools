@@ -70,15 +70,16 @@ src/
 
 Shared across commands:
 
-| Option             | Shorthand | Default                         | Description                                  |
-| ------------------ | --------- | ------------------------------- | -------------------------------------------- |
-| `--backend`        | `-b`      | `vercel`                        | Model backend (`vercel`, `gemini`, `ollama`) |
-| `--model`          | `-m`      | `gemini-3.5-flash`              | Model identifier                             |
-| `--runs`           | `-r`      | `1`                             | Number of runs per test case                 |
-| `--max-steps`      | —         | —                               | Maximum agent step count                     |
-| `--reporter`       | —         | `console html`                  | Reporters to use (`console`, `json`, `html`) |
-| `--output-dir`     | `-o`      | `.evals`                        | Output directory for reports                 |
-| `--analyzer-model` | —         | `google:gemini-3-flash-preview` | Model identifier for report analysis         |
+| Option             | Shorthand | Default            | Description                                  |
+| ------------------ | --------- | ------------------ | -------------------------------------------- |
+| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
+| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                             |
+| `--runs`           | `-r`      | `1`                | Number of runs per test case                 |
+| `--max-steps`      | —         | —                  | Maximum agent step count                     |
+| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
+| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                 |
+| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis         |
+| `--open-analysis`  | —         | `false`            | Automatically open the analysis report       |
 
 ---
 
@@ -129,11 +130,11 @@ Analyzes an evaluation JSON report using an LLM to identify root causes and hypo
 npx webmcp-evals analyze .evals/report-1784621327799.json --open
 ```
 
-| Argument/Option       | Required | Default                         | Description                                                        |
-| --------------------- | -------- | ------------------------------- | ------------------------------------------------------------------ |
-| `<report-path>`       | Yes      | —                               | Path to the JSON or HTML report file (e.g. `.evals/report-*.json`) |
-| `-m, --model <model>` | No       | `google:gemini-3-flash-preview` | Model identifier to run the report analysis                        |
-| `--open`              | No       | `false`                         | Automatically open the analysis markdown report in the browser     |
+| Argument/Option       | Required | Default            | Description                                                        |
+| --------------------- | -------- | ------------------ | ------------------------------------------------------------------ |
+| `<report-path>`       | Yes      | —                  | Path to the JSON or HTML report file (e.g. `.evals/report-*.json`) |
+| `-m, --model <model>` | No       | `gemini-3.5-flash` | Model identifier to run the report analysis                        |
+| `--open`              | No       | `false`            | Automatically open the analysis markdown report in the browser     |
 
 ---
 

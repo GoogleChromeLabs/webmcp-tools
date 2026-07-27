@@ -33,10 +33,11 @@ program
     "html",
   ])
   .option("-o, --output-dir <path>", "Directory for reports", ".evals")
+  .option("--analyzer-model <model>", "Model identifier for report analysis", "gemini-3.5-flash")
   .option(
-    "--analyzer-model <model>",
-    "Model identifier for report analysis",
-    "google:gemini-3-flash-preview",
+    "--open-analysis",
+    "Automatically open the analysis markdown report upon completion",
+    false,
   );
 
 // Command: run static file evals
@@ -65,10 +66,7 @@ program
     "Analyze an evaluation JSON report using an LLM to identify root causes and hypotheses for eval failures",
   )
   .argument("<report-path>", "Path to the JSON report file (e.g. .evals/report-*.json)")
-  .option(
-    "-m, --model <model>",
-    "Model identifier for the analyzer (defaults to google:gemini-3-pro-preview)",
-  )
+  .option("-m, --model <model>", "Model identifier for the analyzer (defaults to gemini-3.5-flash)")
   .option("--open", "Automatically open the analysis markdown report upon completion", false)
   .action(runAnalyzeCommand);
 
