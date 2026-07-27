@@ -5,7 +5,8 @@
 
 import { Command } from "commander";
 import { readFile, writeFile, mkdir } from "fs/promises";
-import { resolve, basename, extname } from "path";
+import { existsSync } from "fs";
+import { resolve, basename, extname, join } from "path";
 import { SingleBar } from "cli-progress";
 import chalk from "chalk";
 import Table from "cli-table3";
@@ -237,6 +238,21 @@ async function outputReports(
   }
 }
 
+function getUniqueOutputPath(dir: string, base: string): string {
+  let candidate = resolve(dir, `${base}-analysis.md`);
+  if (!existsSync(candidate)) {
+    return candidate;
+  }
+  let index = 1;
+  while (true) {
+    candidate = resolve(dir, `${base}-analysis-${index}.md`);
+    if (!existsSync(candidate)) {
+      return candidate;
+    }
+    index++;
+  }
+}
+
 export async function runAnalyzeCommand(
   reportPath: string,
   options: CommandOptions,
@@ -262,13 +278,12 @@ export async function runAnalyzeCommand(
     const analysisText = await analyzeEvalReport(reportPath, config);
     spinner.stop();
 
-    const timestamp = Date.now();
     const outputDir = globalOpts.outputDir || ".evals";
     await mkdir(resolve(process.cwd(), outputDir), { recursive: true });
 
     // Determine output filename matching the input report filename
     const base = formatShortTitle(basename(reportPath, extname(reportPath)));
-    const outputPath = resolve(process.cwd(), outputDir, `${base}-analysis-${timestamp}.md`);
+    const outputPath = getUniqueOutputPath(resolve(process.cwd(), outputDir), base);
 
     await writeFile(outputPath, analysisText, "utf-8");
 

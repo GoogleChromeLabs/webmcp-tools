@@ -41,6 +41,12 @@ async function readEvalReportJson(reportPath: string): Promise<any> {
   const fullPath = resolve(process.cwd(), reportPath);
   const ext = extname(fullPath).toLowerCase();
 
+  if (ext !== ".json" && ext !== ".html") {
+    throw new Error(
+      `Unsupported report file extension: "${ext}". The analyzer only supports JSON (.json) or HTML (.html) evaluation reports.`,
+    );
+  }
+
   let targetJsonPath = fullPath;
 
   if (ext === ".html") {
@@ -50,18 +56,35 @@ async function readEvalReportJson(reportPath: string): Promise<any> {
     targetJsonPath = join(dir, `${base}.json`);
   }
 
+  let reportRaw: string;
   try {
-    const reportRaw = await readFile(targetJsonPath, "utf-8");
-    return JSON.parse(reportRaw);
-  } catch (error: any) {
+    reportRaw = await readFile(targetJsonPath, "utf-8");
+  } catch (readError: any) {
     if (ext === ".html") {
       throw new Error(
         `No corresponding JSON report found at "${targetJsonPath}". ` +
           `Please rerun evaluations with JSON reporter enabled (e.g. '--reporter json' or '--reporter console html json').`,
       );
     }
-    throw new Error(`Failed to read JSON report from "${targetJsonPath}": ${error.message}`);
+    throw new Error(`Failed to read JSON report from "${targetJsonPath}": ${readError.message}`);
   }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(reportRaw);
+  } catch (parseError: any) {
+    throw new Error(
+      `Failed to parse JSON report from "${targetJsonPath}": The file content is not a valid JSON document.`,
+    );
+  }
+
+  if (!parsed || typeof parsed !== "object" || !parsed.config || !parsed.results) {
+    throw new Error(
+      `Invalid report structure at "${targetJsonPath}": The JSON file does not appear to be a valid WebMCP evaluation report.`,
+    );
+  }
+
+  return parsed;
 }
 
 /**
