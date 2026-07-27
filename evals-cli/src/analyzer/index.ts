@@ -91,6 +91,19 @@ async function extractEvalReportTitle(reportPath: string): Promise<string> {
 }
 
 /**
+ * Formats a report title to shorten any long timestamps (e.g. report-1784620981145 to report-17...981145)
+ */
+export function formatShortTitle(title: string): string {
+  const match = title.match(/\d{10,}/);
+  if (match) {
+    const fullNum = match[0];
+    const shortNum = fullNum.slice(0, 2) + "..." + fullNum.slice(-6);
+    return title.replace(fullNum, shortNum);
+  }
+  return title;
+}
+
+/**
  * Main function to execute the report analysis using the configured LLM.
  */
 export async function analyzeEvalReport(reportPath: string, config: Config): Promise<string> {
@@ -100,7 +113,7 @@ export async function analyzeEvalReport(reportPath: string, config: Config): Pro
   // - reportData.results.results[].trajectory: step-by-step state (available tools), agent action (tool calls inputs), and response (tool outputs)
   const reportData = await readEvalReportJson(reportPath);
   const webMcpDomainKnowledge = await loadWebMcpContext();
-  const reportTitle = await extractEvalReportTitle(reportPath);
+  const reportTitle = formatShortTitle(await extractEvalReportTitle(reportPath));
 
   // Default to a reasoning model for analysis if not explicitly specified
   const analyzerConfig = {

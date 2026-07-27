@@ -17,7 +17,11 @@ import { Tool, ToolsSchema } from "../types/tools.js";
 import { executeLocalEvals, executeInBrowserEvals } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
-import { analyzeEvalReport, DEFAULT_MODEL_EVAL_ANALYZER } from "../analyzer/index.js";
+import {
+  analyzeEvalReport,
+  DEFAULT_MODEL_EVAL_ANALYZER,
+  formatShortTitle,
+} from "../analyzer/index.js";
 
 export interface CommandOptions {
   backend: string;
@@ -263,8 +267,8 @@ export async function runAnalyzeCommand(
     await mkdir(resolve(process.cwd(), outputDir), { recursive: true });
 
     // Determine output filename matching the input report filename
-    const base = basename(reportPath, extname(reportPath));
-    const outputPath = resolve(process.cwd(), outputDir, `analysis-${base}-${timestamp}.md`);
+    const base = formatShortTitle(basename(reportPath, extname(reportPath)));
+    const outputPath = resolve(process.cwd(), outputDir, `${base}-analysis-${timestamp}.md`);
 
     await writeFile(outputPath, analysisText, "utf-8");
 
