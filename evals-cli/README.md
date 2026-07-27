@@ -118,6 +118,22 @@ npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/eva
 
 ---
 
+### Command: `analyze`
+
+Analyzes an evaluation JSON report using an LLM to identify root causes and hypotheses for evaluation failures.
+
+```bash
+npx webmcp-evals analyze .evals/report-1784621327799.json --open
+```
+
+| Argument/Option       | Required | Default                         | Description                                                        |
+| --------------------- | -------- | ------------------------------- | ------------------------------------------------------------------ |
+| `<report-path>`       | Yes      | —                               | Path to the JSON or HTML report file (e.g. `.evals/report-*.json`) |
+| `-m, --model <model>` | No       | `google:gemini-3-flash-preview` | Model identifier to run the report analysis                        |
+| `--open`              | No       | `false`                         | Automatically open the analysis markdown report in the browser     |
+
+---
+
 ## Test Suite Schema (`evals.json`)
 
 ```json
