@@ -135,6 +135,29 @@ export async function analyzeEvalReport(reportPath: string, config: Config): Pro
   // - reportData.results.results[].outcome: passed and failed assertions
   // - reportData.results.results[].trajectory: step-by-step state (available tools), agent action (tool calls inputs), and response (tool outputs)
   const reportData = await readEvalReportJson(reportPath);
+
+  // Deduplicate `availableTools` across all trajectory steps to optimize prompt tokens
+  const uniqueTools = new Map<string, any>();
+  if (reportData.results && Array.isArray(reportData.results.results)) {
+    reportData.results.results.forEach((res: any) => {
+      if (Array.isArray(res.trajectory)) {
+        res.trajectory.forEach((step: any) => {
+          if (Array.isArray(step.availableTools)) {
+            step.availableTools.forEach((tool: any) => {
+              if (tool && tool.functionName) {
+                uniqueTools.set(tool.functionName, tool);
+              }
+            });
+          }
+          delete step.availableTools;
+        });
+      }
+    });
+  }
+  if (reportData.results) {
+    reportData.results.availableTools = Array.from(uniqueTools.values());
+  }
+
   const webMcpDomainKnowledge = await loadWebMcpContext();
   const reportTitle = formatShortTitle(await extractEvalReportTitle(reportPath));
 
