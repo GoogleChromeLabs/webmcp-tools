@@ -1,6 +1,6 @@
 # UrbanEstates | WebMCP Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map/
 
 This project demonstrates a **WebMCP** implementation for an interactive real-estate map application. It allows an AI agent to interact directly with property filters, panning the map, and retrieving property details by registering custom imperative tools.
 

@@ -4,22 +4,18 @@
  */
 
 import { generateText, stepCountIs, ToolLoopAgent } from "ai";
-import puppeteer, { Browser, Page } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { countExpectedCalls, evaluateExecutionTrajectory, findChromePath } from "../utils.js";
+import { findChromePath } from "../utils.js";
 
-import { Backend, LocalEvalResult, RunEvent } from "../backends/index.js";
-import { createBrowserTool } from "../evaluator/browser.js";
-import {
-  mapJsonSchemaToVercelTools,
-  mapMessages,
-  mapRawBrowserToolsToConfig,
-} from "../evaluator/mappers.js";
+import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "../backends/index.js";
+import { BrowserToolRegistry, PUPPETEER_FLAGS } from "../evaluator/browser.js";
+import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
-import { MockResolver } from "../evaluator/mockResolver.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
+import { ConsoleLogger } from "../utils/logger.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 // Default upper bound on the local agent loop's step count. Large enough for
 // any reasonable trajectory in evals.json; small enough that a stuck model
@@ -32,23 +28,22 @@ export class VercelBackend implements Backend {
   private debug: boolean;
   private maxSteps: number;
 
-  constructor(
-    config: Config | WebmcpConfig,
-    private tools: Array<Tool>,
-  ) {
+  private logger: ConsoleLogger;
+
+  constructor(config: Config | WebmcpConfig) {
     this.modelName = config.model || "gemini-3-flash-preview";
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
     this.maxSteps = config.maxSteps ?? DEFAULT_MAX_STEPS;
+    this.logger = new ConsoleLogger();
+    this.logger.setDebugEnabled(this.debug);
   }
 
-  async executeLocalEvals(test: Eval): Promise<LocalEvalResult> {
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
     const aiMessages = mapMessages(test.messages);
 
-    // Fresh resolver per test — cursor state must not leak across cases.
-    const resolver = new MockResolver(test.expectedCall);
-    const executableTools = mapJsonSchemaToVercelTools(this.tools, (fnName, args) =>
-      resolver.resolve(fnName, args),
+    const executableTools = mapJsonSchemaToVercelTools(registry.getCurrentTools(), (fnName, args) =>
+      registry.executeTool(fnName, args),
     );
 
     const aiResult = await generateText({
@@ -60,264 +55,173 @@ export class VercelBackend implements Backend {
       // so without a stopWhen the loop would run until the model itself
       // stops calling tools — which can be never. Cap it explicitly.
       stopWhen: stepCountIs(this.maxSteps),
-      experimental_onToolCallStart: this.debug
-        ? (event) => {
-            console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-            console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-              depth: null,
-              colors: true,
-            });
-          }
-        : undefined,
-      experimental_onToolCallFinish: this.debug
-        ? (event) => {
-            if (event.success) {
-              console.log(
-                `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-              );
-              if (event.output) console.dir(event.output, { depth: null, colors: true });
-            } else {
-              console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
-            }
-          }
-        : undefined,
-      onStepFinish: this.debug
-        ? (event) => {
-            console.log(
-              `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-            );
-          }
-        : undefined,
+      experimental_onToolCallStart: (event) => {
+        this.logger.debug(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+        this.logger.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+          depth: null,
+          colors: true,
+        });
+      },
+      experimental_onToolCallFinish: (event) => {
+        if (event.success) {
+          this.logger.debug(
+            `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+          );
+          if (event.output) this.logger.dir(event.output, { depth: null, colors: true });
+        } else {
+          this.logger.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+        }
+      },
+      onStepFinish: (event) => {
+        this.logger.debug(
+          `[DEBUG] Step ${event.stepNumber} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+        );
+      },
     });
 
     // Gather every tool call from every step in trajectory order. Previously
     // only aiResult.toolCalls[0] was surfaced, which both dropped subsequent
     // steps and dropped parallel calls within a single step.
+    const validToolNames = new Set(registry.getCurrentTools().map((t) => t.functionName));
     const toolCalls: ToolCall[] = [];
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
-        toolCalls.push({
-          functionName: call.toolName,
-          args: call.input || call.args || call.arguments || {},
-        });
+        if (validToolNames.has(call.toolName)) {
+          toolCalls.push({
+            functionName: call.toolName,
+            args: call.input || call.args || call.arguments || {},
+          });
+        }
       }
     }
 
     return { toolCalls, text: aiResult.text };
   }
 
-  async executeInBrowserEvals(
-    tests: Array<Eval>,
-    tools: Array<Tool>,
+  async executeInBrowserEval(
+    test: Eval,
+    page: BrowserPage,
     config: WebmcpConfig,
-    onEvent?: (event: RunEvent) => void,
-  ): Promise<TestResults> {
-    console.log("Executing in-browser evals for config:", config);
-    const executablePath = await findChromePath();
-    let browser: Browser | null = null;
-    let page: Page | null = null;
+  ): Promise<BrowserEvalResult> {
+    const availableToolsPerStep: Array<Array<Tool>> = [];
+    const stepsHistory: TrajectoryStep[] = [];
+
+    const buildErrorTrajectory = () => {
+      return stepsHistory.map((step, idx) => ({
+        text: step.text,
+        reasoningText: step.reasoningText,
+        toolCalls: step.toolCalls,
+        toolResults: step.toolResults,
+        availableTools: availableToolsPerStep[idx] || [],
+      }));
+    };
 
     try {
-      browser = await puppeteer.launch({
-        executablePath,
-        headless: true,
-        args: ["--enable-features=WebMCP", "--no-sandbox", "--disable-setuid-sandbox"],
-      });
+      const registry = new BrowserToolRegistry(page);
+      let currentTools = await registry.syncTools();
 
-      console.log("Browser initialized for actual evals");
-    } catch (error) {
-      if (browser) await browser.close();
-      throw new Error(`Failed to initialize browser for actual evals: ${error}`);
-    }
+      if (currentTools.length === 0) {
+        const executablePath = await findChromePath();
+        throw new Error(
+          `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+        );
+      }
 
-    const runs = config.runs || 1;
-    const testsBaseTotal = tests.reduce((sum, test) => {
-      return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
-    }, 0);
-    const totalSteps = testsBaseTotal * runs;
-
-    if (onEvent) {
-      onEvent({
-        type: "start",
-        total: totalSteps,
-        message: `Running evals using ${this.describe()} (${runs} runs)`,
-      });
-    }
-
-    let testCount = 0;
-    let passCount = 0;
-    let failCount = 0;
-    let errorCount = 0;
-    const testResults: Array<TestResult> = [];
-
-    for (let r = 0; r < runs; r++) {
-      for (const test of tests) {
-        if (page) {
-          await page.close();
+      const aiToolsWithExecution: Record<string, any> = {};
+      const rebuildTools = (toolsList: Tool[]) => {
+        for (const key in aiToolsWithExecution) {
+          delete aiToolsWithExecution[key];
         }
-        page = await browser!.newPage();
-        await page.goto(config.url, {
-          waitUntil: "networkidle2",
-          timeout: 30000,
-        });
+        const mapped = mapJsonSchemaToVercelTools(toolsList, (fnName, args) =>
+          registry.executeTool(fnName, args),
+        );
+        Object.assign(aiToolsWithExecution, mapped);
+      };
 
-        testCount++;
-        let currentMessages = [...test.messages];
-        let currentTools = [...tools];
+      rebuildTools(currentTools);
 
-        try {
-          const model = getModel(config);
-
-          const aiToolsWithExecution: Record<string, any> = {};
-          for (const t of currentTools) {
-            aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
-          }
-
-          const agentWithExec = new ToolLoopAgent({
-            model,
-            tools: aiToolsWithExecution,
-            instructions: SYSTEM_PROMPT,
-            experimental_onToolCallStart: config.debug
-              ? (event) => {
-                  console.log(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
-                  console.dir((event.toolCall as any).args || (event.toolCall as any).input, {
-                    depth: null,
-                    colors: true,
-                  });
-                }
-              : undefined,
-            experimental_onToolCallFinish: config.debug
-              ? (event) => {
-                  if (event.success) {
-                    console.log(
-                      `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
-                    );
-                    if (event.output) console.dir(event.output, { depth: null, colors: true });
-                  } else {
-                    console.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
-                  }
-                }
-              : undefined,
-            onStepFinish: config.debug
-              ? (event) => {
-                  console.log(
-                    `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
-                  );
-                }
-              : undefined,
-            prepareStep: (_opts: any): any => {
-              let rawTools = page!.webmcp.tools();
-
-              currentTools = mapRawBrowserToolsToConfig(rawTools, currentTools);
-
-              // Clear the object
-              for (const key in aiToolsWithExecution) {
-                delete aiToolsWithExecution[key];
-              }
-
-              // Re-populate it
-              for (const t of currentTools) {
-                aiToolsWithExecution[t.functionName] = createBrowserTool(t, page!);
-              }
-
-              return _opts;
-            },
+      const agentWithExec = new ToolLoopAgent({
+        model: this.aiModel,
+        tools: aiToolsWithExecution,
+        instructions: SYSTEM_PROMPT,
+        experimental_onToolCallStart: (event) => {
+          this.logger.debug(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
+          this.logger.dir((event.toolCall as any).args || (event.toolCall as any).input, {
+            depth: null,
+            colors: true,
           });
-
-          // Let the agent loop run
-          const aiMessages = mapMessages(test.messages);
-
-          const resultPayload = await agentWithExec.generate({ messages: aiMessages });
-
-          // Gather executed tool calls across all steps
-          const executedCalls: any[] = [];
-          if (resultPayload.steps && resultPayload.steps.length > 0) {
-            for (const step of resultPayload.steps) {
-              if (step.toolCalls && step.toolCalls.length > 0) {
-                for (const call of step.toolCalls) {
-                  executedCalls.push({
-                    functionName: call.toolName,
-                    args:
-                      (call as any).input || (call as any).args || (call as any).arguments || {},
-                  });
-                }
-              }
-            }
-          }
-
-          const trajectory = resultPayload.steps || [];
-
-          const trajectories = test.expectedCall
-            ? evaluateExecutionTrajectory(test.expectedCall, executedCalls as ToolCall[])
-            : evaluateExecutionTrajectory([], executedCalls as ToolCall[]);
-
-          if (trajectories.length === 0) {
-            const response: any = { text: resultPayload.text };
-            const stepResult: TestResult = { test, response, outcome: "pass", trajectory };
-            testResults.push(stepResult);
-            passCount++;
-            if (onEvent) {
-              onEvent({ type: "progress", testNumber: testCount, result: stepResult });
-            }
+        },
+        experimental_onToolCallFinish: (event) => {
+          if (event.success) {
+            this.logger.debug(
+              `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+            );
+            if (event.output) this.logger.dir(event.output, { depth: null, colors: true });
           } else {
-            for (const traj of trajectories) {
-              let response: any = traj.actual;
-              if (!response && executedCalls.length === 0 && resultPayload.text) {
-                response = { text: resultPayload.text };
-              } else if (!response) {
-                response = { missing: "Did not execute this step" };
-              }
-
-              const stepResult: TestResult = {
-                test: {
-                  name: test.name,
-                  messages: currentMessages,
-                  expectedCall: traj.expected ? [traj.expected] : null,
-                },
-                response,
-                outcome: traj.outcome,
-                trajectory,
-              };
-
-              testResults.push(stepResult);
-              if (traj.outcome === "pass") {
-                passCount++;
-              } else {
-                failCount++;
-              }
-
-              if (onEvent) {
-                onEvent({ type: "progress", testNumber: testCount, result: stepResult });
-              }
-            }
+            this.logger.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
           }
-        } catch (e: any) {
-          console.warn("Error running test:", e);
-          errorCount++;
-          const result: TestResult = {
-            test,
-            response: null as any,
-            outcome: "error",
-          };
-          testResults.push(result);
-          if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result });
+        },
+        onStepFinish: (event) => {
+          this.logger.debug(
+            `[DEBUG] Step ${event.stepNumber || ""} finished (${event.finishReason}). Total Tokens: ${event.usage.totalTokens}`,
+          );
+          stepsHistory.push({
+            text: event.text,
+            reasoningText: event.reasoningText,
+            toolCalls: event.toolCalls,
+            toolResults: event.toolResults,
+          });
+        },
+        prepareStep: async (_opts: any): Promise<any> => {
+          currentTools = await registry.syncTools();
+          rebuildTools(currentTools);
+          availableToolsPerStep.push([...currentTools]);
+          return _opts;
+        },
+      });
+
+      const aiMessages = mapMessages(test.messages);
+      const resultPayload = await agentWithExec.generate({ messages: aiMessages });
+
+      // Gather executed tool calls across all steps
+      const executedCalls: ToolCall[] = [];
+      if (resultPayload.steps && resultPayload.steps.length > 0) {
+        for (const step of resultPayload.steps) {
+          if (step.toolCalls && step.toolCalls.length > 0) {
+            for (const call of step.toolCalls) {
+              executedCalls.push({
+                functionName: call.toolName,
+                args: (call as any).input || (call as any).args || (call as any).arguments || {},
+              });
+            }
           }
         }
       }
-    }
 
-    if (browser) {
-      await browser.close();
-    }
+      const rawSteps =
+        resultPayload.steps && resultPayload.steps.length > 0 ? resultPayload.steps : stepsHistory;
 
-    return {
-      results: testResults,
-      testCount,
-      passCount,
-      failCount,
-      errorCount,
-    };
+      const steps = rawSteps.map((step, idx) => ({
+        text: step.text,
+        reasoningText: step.reasoningText,
+        toolCalls: step.toolCalls,
+        toolResults: step.toolResults,
+        availableTools: availableToolsPerStep[idx] || [],
+      }));
+
+      return {
+        toolCalls: executedCalls,
+        text: resultPayload.text,
+        steps,
+      };
+    } catch (e: any) {
+      this.logger.warn("Error running test in browser:", e);
+      return {
+        toolCalls: [],
+        steps: buildErrorTrajectory(),
+        error: e,
+      };
+    }
   }
 
   describe(): string {

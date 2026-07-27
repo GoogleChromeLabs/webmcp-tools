@@ -271,6 +271,111 @@ describe("evaluateExecutionTrajectory", () => {
       evaluateExecutionTrajectory(expected, []);
     }, /Unordered group too large/);
   });
+
+  it("handles two independent ordered branches inside an unordered group", () => {
+    // Unordered containing [Branch A: a1 -> a2] and [Branch B: b1 -> b2]
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          {
+            ordered: [
+              { functionName: "a1", arguments: {} },
+              { functionName: "a2", arguments: {} },
+            ],
+          },
+          {
+            ordered: [
+              { functionName: "b1", arguments: {} },
+              { functionName: "b2", arguments: {} },
+            ],
+          },
+        ],
+      },
+    ];
+
+    // Case 1: Executing Branch B then Branch A (PASS)
+    const actualBranchBThenA: ToolCall[] = [
+      { functionName: "b1", args: {} },
+      { functionName: "b2", args: {} },
+      { functionName: "a1", args: {} },
+      { functionName: "a2", args: {} },
+    ];
+    const res1 = evaluateExecutionTrajectory(expected, actualBranchBThenA);
+    assert.strictEqual(res1.length, 4);
+    assert.ok(res1.every((r) => r.outcome === "pass"));
+
+    // Case 2: Executing Branch A then Branch B (PASS)
+    const actualBranchAThenB: ToolCall[] = [
+      { functionName: "a1", args: {} },
+      { functionName: "a2", args: {} },
+      { functionName: "b1", args: {} },
+      { functionName: "b2", args: {} },
+    ];
+    const res2 = evaluateExecutionTrajectory(expected, actualBranchAThenB);
+    assert.strictEqual(res2.length, 4);
+    assert.ok(res2.every((r) => r.outcome === "pass"));
+  });
+
+  it("enforces sequence boundaries between back-to-back unordered groups", () => {
+    // Group 1: unordered[step_a, step_b], Group 2: unordered[step_c, step_d]
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          { functionName: "step_a", arguments: {} },
+          { functionName: "step_b", arguments: {} },
+        ],
+      },
+      {
+        unordered: [
+          { functionName: "step_c", arguments: {} },
+          { functionName: "step_d", arguments: {} },
+        ],
+      },
+    ];
+
+    // Valid: [b, a, d, c] (PASS)
+    const validActual: ToolCall[] = [
+      { functionName: "step_b", args: {} },
+      { functionName: "step_a", args: {} },
+      { functionName: "step_d", args: {} },
+      { functionName: "step_c", args: {} },
+    ];
+    const resValid = evaluateExecutionTrajectory(expected, validActual);
+    assert.strictEqual(resValid.length, 4);
+    assert.ok(resValid.every((r) => r.outcome === "pass"));
+
+    // Invalid: Interleaving across the group boundary [b, c, a, d] (FAIL)
+    const invalidActual: ToolCall[] = [
+      { functionName: "step_b", args: {} },
+      { functionName: "step_c", args: {} },
+      { functionName: "step_a", args: {} },
+      { functionName: "step_d", args: {} },
+    ];
+    const resInvalid = evaluateExecutionTrajectory(expected, invalidActual);
+    assert.ok(resInvalid.some((r) => r.outcome === "fail"));
+  });
+
+  it("solves bipartite matching for duplicate function names with different argument constraints", () => {
+    // Unordered group with same tool name but distinct size constraints
+    const expected: ExpectedCallNode[] = [
+      {
+        unordered: [
+          { functionName: "set_size", arguments: { size: "large" } },
+          { functionName: "set_size", arguments: { size: "small" } },
+        ],
+      },
+    ];
+
+    // Executed in reverse order (small then large) (PASS)
+    const actual: ToolCall[] = [
+      { functionName: "set_size", args: { size: "small" } },
+      { functionName: "set_size", args: { size: "large" } },
+    ];
+
+    const result = evaluateExecutionTrajectory(expected, actual);
+    assert.strictEqual(result.length, 2);
+    assert.ok(result.every((r) => r.outcome === "pass"));
+  });
 });
 
 describe("optional tool calls", () => {

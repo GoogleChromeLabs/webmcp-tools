@@ -37,7 +37,7 @@ export class MockResolver {
 
   constructor(expected: ExpectedCallNode[] | null) {
     this.flat = expected ? flattenTrajectory(expected) : [];
-    this.consumed = new Array(this.flat.length).fill(false);
+    this.consumed = Array.from({ length: this.flat.length }, () => false);
   }
 
   resolve(functionName: string, _args: unknown): unknown {

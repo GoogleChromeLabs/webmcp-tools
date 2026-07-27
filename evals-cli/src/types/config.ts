@@ -16,6 +16,8 @@ export type Config = {
   // let longer trajectories complete; smaller values cap runaway loops.
   // Ignored by `executeInBrowserEvals`.
   maxSteps?: number;
+  outputDir?: string;
+  reporter?: string[];
 };
 
 export type WebmcpConfig = {
@@ -27,4 +29,6 @@ export type WebmcpConfig = {
   debug?: boolean;
   runs?: number;
   maxSteps?: number;
+  outputDir?: string;
+  reporter?: string[];
 };

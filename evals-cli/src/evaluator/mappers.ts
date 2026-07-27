@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { jsonSchema } from "ai";
+import { tool as defineTool, jsonSchema, Tool as VercelTool } from "ai";
 import { Tool } from "../types/tools.js";
 
 export function mapMessages(messages: any[]): any[] {
@@ -81,12 +81,11 @@ export function mapJsonSchemaToVercelTools(
     const rawParams = hasParams ? toolDef.parameters : { type: "object", properties: {} };
     const parameters = sanitizeSchema(rawParams);
 
-    tools[toolDef.functionName] = {
+    tools[toolDef.functionName] = defineTool({
       description: toolDef.description,
-      parameters: jsonSchema(parameters),
       inputSchema: jsonSchema(parameters),
-      ...(execute ? { execute: async (args: unknown) => execute(toolDef.functionName, args) } : {}),
-    };
+      execute: execute ? async (args: any) => execute(toolDef.functionName, args) : undefined,
+    } as VercelTool);
   });
 
   return tools;
@@ -96,13 +95,13 @@ export function mapJsonSchemaToVercelTools(
  * Normalizes raw tool configurations dynamically fetched from the browser loop.
  */
 export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[]): Tool[] {
-  if (rawTools && Array.isArray(rawTools)) {
+  if (rawTools && Array.isArray(rawTools) && rawTools.length > 0) {
     return rawTools.map((t: any) => {
       const schema = t.inputSchema;
       let parameters;
       try {
         parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
-      } catch (e) {
+      } catch {
         parameters = {};
       }
       return {
