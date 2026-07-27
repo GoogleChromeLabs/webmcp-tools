@@ -32,7 +32,12 @@ program
     "console",
     "html",
   ])
-  .option("-o, --output-dir <path>", "Directory for reports", ".evals");
+  .option("-o, --output-dir <path>", "Directory for reports", ".evals")
+  .option(
+    "--analyzer-model <model>",
+    "Model identifier for report analysis",
+    "google:gemini-3-flash-preview",
+  );
 
 // Command: run static file evals
 program
@@ -40,6 +45,7 @@ program
   .description("Run evals against a static JSON tool schema definition file")
   .requiredOption("-t, --tools <path>", "Path to tool schema JSON file")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+  .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runLocalCommand);
 
 // Command: run live browser evals
@@ -49,6 +55,7 @@ program
   .requiredOption("-u, --url <url>", "Target web page URL")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
+  .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runWebCommand);
 
 // Command: analyze evaluation report using an LLM

@@ -14,7 +14,7 @@ import { Config } from "../types/config.js";
 
 const execAsync = promisify(exec);
 
-export const DEFAULT_MODEL_EVAL_ANALYZER = "google:gemini-3-flash-preview";
+export const ANALYZER_MODEL_DEFAULT = "google:gemini-3-flash-preview";
 
 /**
  * Loads the WebMCP best practices and API guides from the installed modern-web-guidance package.
@@ -141,7 +141,7 @@ export async function analyzeEvalReport(reportPath: string, config: Config): Pro
   // Default to a reasoning model for analysis if not explicitly specified
   const analyzerConfig = {
     ...config,
-    model: config.model || DEFAULT_MODEL_EVAL_ANALYZER,
+    model: config.model || ANALYZER_MODEL_DEFAULT,
   };
 
   const modelInstance = getModel(analyzerConfig);
