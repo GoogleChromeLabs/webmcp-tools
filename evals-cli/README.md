@@ -70,14 +70,16 @@ src/
 
 Shared across commands:
 
-| Option         | Shorthand | Default            | Description                                  |
-| -------------- | --------- | ------------------ | -------------------------------------------- |
-| `--backend`    | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
-| `--model`      | `-m`      | `gemini-3.5-flash` | Model identifier                             |
-| `--runs`       | `-r`      | `1`                | Number of runs per test case                 |
-| `--max-steps`  | —         | —                  | Maximum agent step count                     |
-| `--reporter`   | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
-| `--output-dir` | `-o`      | `.evals`           | Output directory for reports                 |
+| Option             | Shorthand | Default            | Description                                  |
+| ------------------ | --------- | ------------------ | -------------------------------------------- |
+| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
+| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                             |
+| `--runs`           | `-r`      | `1`                | Number of runs per test case                 |
+| `--max-steps`      | —         | —                  | Maximum agent step count                     |
+| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
+| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                 |
+| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis         |
+| `--open-analysis`  | —         | `false`            | Automatically open the analysis report       |
 
 ---
 
@@ -95,10 +97,11 @@ With Gemini backend and specified model:
 npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/pizza-maker/schema.json -e examples/pizza-maker/evals.json
 ```
 
-| Option               | Required | Description                        |
-| -------------------- | -------- | ---------------------------------- |
-| `-t, --tools <path>` | Yes      | Path to tool schema JSON file      |
-| `-e, --evals <path>` | Yes      | Path to evals test suite JSON file |
+| Option               | Required | Default | Description                                         |
+| -------------------- | -------- | ------- | --------------------------------------------------- |
+| `-t, --tools <path>` | Yes      | —       | Path to tool schema JSON file                       |
+| `-e, --evals <path>` | Yes      | —       | Path to evals test suite JSON file                  |
+| `--analyze`          | No       | `false` | Automatically run LLM report analysis on completion |
 
 ---
 
@@ -110,11 +113,28 @@ Evaluates live WebMCP tools on a web page using Puppeteer.
 npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/evals.json --open
 ```
 
-| Option               | Required | Default | Description                                      |
-| -------------------- | -------- | ------- | ------------------------------------------------ |
-| `-u, --url <url>`    | Yes      | —       | Target web page URL                              |
-| `-e, --evals <path>` | Yes      | —       | Path to evals test suite JSON file               |
-| `--open`             | No       | `false` | Opens the HTML report in browser upon completion |
+| Option               | Required | Default | Description                                         |
+| -------------------- | -------- | ------- | --------------------------------------------------- |
+| `-u, --url <url>`    | Yes      | —       | Target web page URL                                 |
+| `-e, --evals <path>` | Yes      | —       | Path to evals test suite JSON file                  |
+| `--open`             | No       | `false` | Opens the HTML report in browser upon completion    |
+| `--analyze`          | No       | `false` | Automatically run LLM report analysis on completion |
+
+---
+
+### Command: `analyze`
+
+Analyzes an evaluation JSON report using an LLM to identify root causes and hypotheses for evaluation failures.
+
+```bash
+npx webmcp-evals analyze .evals/report-1784621327799.json --open
+```
+
+| Argument/Option       | Required | Default            | Description                                                        |
+| --------------------- | -------- | ------------------ | ------------------------------------------------------------------ |
+| `<report-path>`       | Yes      | —                  | Path to the JSON or HTML report file (e.g. `.evals/report-*.json`) |
+| `-m, --model <model>` | No       | `gemini-3.5-flash` | Model identifier to run the report analysis                        |
+| `--open`              | No       | `false`            | Automatically open the analysis markdown report in the browser     |
 
 ---
 
@@ -154,6 +174,26 @@ npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/eva
 | `$lt`, `$lte` | Less than (or equal)    | `{"$lte": 120}`                 |
 | `$type`       | Type check              | `{"$type": "string"}`           |
 | `$any`        | Field presence check    | `{"$any": true}`                |
+
+## Development & Testing
+
+To compile the TypeScript source files:
+
+```bash
+npm run build
+```
+
+To run the complete test suite:
+
+```bash
+npm test
+```
+
+To run only the report analyzer unit tests:
+
+```bash
+node --test dist/test/analyzer.test.js
+```
 
 ## License
 
