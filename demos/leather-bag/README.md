@@ -1,6 +1,6 @@
 # LUXE LEATHER | WebMCP E-commerce Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag/
 
 A premium, modern e-commerce storefront for hand-crafted leather products, built with Angular and WebMCP (Web Model Context Protocol). This project demonstrates how an AI agent can interact with an e-commerce site to search products, check policies, and manage a shopping cart using both **declarative** and **imperative** tool definitions.
 

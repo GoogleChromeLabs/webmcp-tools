@@ -1,10 +1,11 @@
 # Awesome WebMCP
 
-A curated list of awesome WebMCP demos.
+A curated list of awesome WebMCP demos, libraries, and tools.
 
 ## Contents
 
 - [Demos](#demos)
+- [Libraries & Tools](#libraries--tools)
 - [Contributing](#contributing)
 
 ## Demos
@@ -34,33 +35,33 @@ A curated list of awesome WebMCP demos.
   - **Example Prompt:** "I want to book a flight from New York to Los Angeles for two people on next Thursday."
 - [Animal Viewer](https://65s6dw.csb.app/) - A simple codesandbox demo page that shows either a dog or a cat image.
   - **Example Prompt:** "Show me a dog on this page"
-- [React Chess](https://matipojo.github.io/WebMCP-React-Chess) - A chess game that exposes WebMCP tools (`get-board-state`, `make-move`, `get-possible-moves`, `restart-game`, `promote-pawn`) so an AI agent can play chess through `navigator.modelContext`.
+- [React Chess](https://matipojo.github.io/WebMCP-React-Chess) - A chess game that exposes WebMCP tools (`get-board-state`, `make-move`, `get-possible-moves`, `restart-game`, `promote-pawn`) so an AI agent can play chess through `document.modelContext`.
   - **Example Prompt:** "Let's play chess. You play white. Make your opening move."
 - **Moving Beyond Screen Scraping**: A hands-on example of using WebMCP to create an agentic first experience with 10x fewer tokens
   - [Article](https://medium.com/data-science-collective/moving-beyond-screen-scraping-creating-an-agent-native-web-app-with-webmcp-4818552e1e11) | [Code](https://github.com/hugozanini/air-bird-booking-web-mcp)
-- [AI Audit](https://audit.wordlift.io/) - Audit any website's readiness for the agentic web. Exposes a `run-audit` tool via `navigator.modelContext` that lets an AI agent programmatically trigger a full AI readiness analysis (score 0–100) covering site files, SEO, structured data, content, and more.
+- [AI Audit](https://audit.wordlift.io/) - Audit any website's readiness for the agentic web. Exposes a `run-audit` tool via `document.modelContext` that lets an AI agent programmatically trigger a full AI readiness analysis (score 0–100) covering site files, SEO, structured data, content, and more.
   - **Example Prompt:** "Run an AI readiness audit on https://example.com"
 - [Blackjack Agents](https://webmcp-blackjack.heejae.dev/) - Blackjack game with multiple AI agents (player, opponent, dealer) all using WebMCP tools. Each agent autonomously observes its hand, decides to hit or stand, and repeats until done — driven by tool descriptions alone.
   - [Code](https://github.com/happyhj/webmcp-blackjack)
   - **Example Prompt:** "Play my turn"
-- [WebMCP Bridge](https://h3manth.com/ai/webmcp/) - A bridge that connects any remote MCP server to Chrome's WebMCP API (`navigator.modelContext`), letting browser-based AI agents discover and invoke tools from existing MCP servers.
+- [WebMCP Bridge](https://h3manth.com/ai/webmcp/) - A bridge that connects any remote MCP server to Chrome's WebMCP API (`document.modelContext`), letting browser-based AI agents discover and invoke tools from existing MCP servers.
   - **Example Prompt:** "Search for TC39 proposals related to decorators"
 - [WebMCP × Excalidraw x WebAI](https://shidh.in/demo/webmcp-excalidraw/) - A Web app that converts natural language descriptions into Excalidraw diagrams through a 3-tool WebMCP pipeline (generate_mermaid → validate_mermaid → render_excalidraw), with optional on-device generation using Chrome's built-in AI.
   - **Example Prompt**: "Create a flowchart showing the user login flow with error handling"
 - [WebMCP Flow](https://webmcp-flow.vercel.app/) - An AI-controllable architecture diagram builder that lets an AI agent create nodes, connect them with edges, and apply auto-layout in real time via WebMCP tools.
   - [Code](https://github.com/ttimur-dev/webmcp-flow)
   - **Example Prompt:** "Draw a typical web application architecture with authentication: browser client, API Gateway, Auth Service, User Service, PostgreSQL, Redis. Connect them with edges labeled by protocol and apply auto layout."
-- [The Morning Ritual (Imperative)](https://googlechromelabs.github.io/webmcp-tools/demos/coffee-shop) - A premium coffee boutique demo showcasing agentic reordering, technical spec analysis, and catalog navigation.
+- [The Morning Ritual (Imperative)](https://googlechromelabs.github.io/webmcp-tools/demos/coffee-shop/) - A premium coffee boutique demo showcasing agentic reordering, technical spec analysis, and catalog navigation.
   - **Example Prompt:** "Will the espresso machine fit under a 15-inch cabinet?"
-- [UrbanEstates](https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map) - A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
+- [UrbanEstates](https://googlechromelabs.github.io/webmcp-tools/demos/real-estate-map/) - A real-estate map application that demonstrates imperative tool registration, allowing an AI agent to interact with property filters and map views.
   - **Example Prompt:** "Find me an apartment in Austin", then "Find me an apartment with AC under $1,000,000."
-- [Luxe Leather](https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag) - A premium e-commerce site for hand-crafted leather goods built with Angular and WebMCP. This demo showcases how an AI agent can interact with a web application to search products, check policies, and manage a shopping cart using declarative tools.
+- [Luxe Leather](https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag/) - A premium e-commerce site for hand-crafted leather goods built with Angular and WebMCP. This demo showcases how an AI agent can interact with a web application to search products, check policies, and manage a shopping cart using declarative tools.
   - **Example Prompt:** "Find a handmade leather bag, check if they have a 30-day return policy, and if yes, add the brown one to my cart"
-- [WebMCP Smart Home](https://googlechromelabs.github.io/webmcp-tools/demos/smart-home) - A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
+- [WebMCP Smart Home](https://googlechromelabs.github.io/webmcp-tools/demos/smart-home/) - A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
   - **Example Prompt:** "Someone is at the door. Show me."
 - [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
   - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
-- [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
+- [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
@@ -69,6 +70,10 @@ A curated list of awesome WebMCP demos.
 - [Refraktor](https://chromewebstore.google.com/detail/refraktor/nkafbaaanaamfjdljndmieichdgkhgii) - An autonomous, design-conformance aware, WebMCP consumer agent. Discovers a site's registered tools, reasons over them, and can check design-token drift against a chosen reference. Available on the Chrome Web Store.
   - **Example Prompt:** "What design palette would you recommend for a dark financial dashboard?"**
 
+## Libraries & Tools
+
+- [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
+- [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 
 ## Contributing
 

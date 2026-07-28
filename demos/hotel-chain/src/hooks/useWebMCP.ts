@@ -20,7 +20,7 @@ export function useWebMCP(tools: WebMCPTool[]) {
   const registeredTools = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const modelContext = document.modelContext || navigator.modelContext;
+    const modelContext = document.modelContext;
     if (!modelContext) {
       return;
     }

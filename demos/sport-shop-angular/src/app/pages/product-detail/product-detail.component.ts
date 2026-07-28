@@ -8,12 +8,11 @@ import { ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
-import { AiSidebarComponent } from '../../components/ai-sidebar/ai-sidebar.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CommonModule, AiSidebarComponent, DecimalPipe],
+  imports: [CommonModule, DecimalPipe],
   templateUrl: './product-detail.component.html',
 })
 export class ProductDetailComponent implements OnInit {

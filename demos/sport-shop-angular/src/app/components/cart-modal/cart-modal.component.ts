@@ -40,13 +40,12 @@ export class CartModalComponent implements OnInit, OnDestroy {
   private cartToolController: AbortController | null = null;
 
   private registerCartTools() {
-    const modelContext = document.modelContext || navigator.modelContext;
-    if (modelContext) {
+    if (document.modelContext) {
       this.cartToolController = new AbortController();
       const signal = this.cartToolController.signal;
 
       // 1. Remove from Cart Tool
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "remove_from_cart",
         description: "Removes a specific product from the shopping cart. You can provide its index, exact productId, or productName. Only available when the cart is open.",
         inputSchema: {
@@ -79,7 +78,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       }, { signal });
 
       // 2. Start Checkout Tool
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "start_checkout",
         description: "Processes the items in the cart and completes the order. Only available when the cart is open and in summary state.",
         execute: () => {
@@ -92,7 +91,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       }, { signal });
 
       // 3. Confirm Order Tool
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "confirm_order",
         description: "Closes the checkout success screen. Only available after a successful checkout.",
         execute: () => {
@@ -105,7 +104,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       }, { signal });
 
       // 4. Update Delivery Option Tool
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "update_cart_delivery_option",
         description: "Updates the delivery option (ship or pickup) for an item in the cart. Only available when the cart is open.",
         inputSchema: {
@@ -148,7 +147,7 @@ export class CartModalComponent implements OnInit, OnDestroy {
       }, { signal });
 
       // 5. Get Cart Tool
-      modelContext.registerTool({
+      document.modelContext.registerTool({
         name: "get_cart",
         description: "Returns the list of items in the cart, their delivery options, subtotal, applied discounts, and final total price.",
         execute: () => {

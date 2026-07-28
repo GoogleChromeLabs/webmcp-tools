@@ -179,8 +179,7 @@ function loadPizzaStateFromURL() {
 // Load state on startup
 loadPizzaStateFromURL();
 
-const modelContext = document.modelContext || navigator.modelContext;
-if (modelContext) {
+if (document.modelContext) {
   const urlParams = new URLSearchParams(window.location.search);
   if (!urlParams.has('showButtons')) {
     document.body.classList.add('webmcp-supported');
@@ -188,7 +187,7 @@ if (modelContext) {
 
   const toolOptions = { exposedTo: ["http://localhost:8080", "http://127.0.0.1:8080", "https://chrome.dev"] };
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'set_pizza_size',
     description: 'Set the pizza size directly or infer it based on the number of people.',
     inputSchema: {
@@ -225,7 +224,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'set_pizza_style',
     description: 'Set the style of the pizza (colors/theme)',
     inputSchema: {
@@ -244,7 +243,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'toggle_layer',
     description: 'Control pizza layers (sauce, cheese). Use "add", "remove", or "toggle".',
     inputSchema: {
@@ -261,7 +260,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'add_topping',
     description: 'Add one or more toppings to the pizza',
     inputSchema: {
@@ -286,7 +285,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'remove_topping',
     description: 'Remove a specific topping from the pizza',
     inputSchema: {
@@ -312,7 +311,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'manage_pizza',
     description: 'Manage pizza state',
     inputSchema: {
@@ -334,7 +333,7 @@ if (modelContext) {
     },
   }, toolOptions);
 
-  modelContext.registerTool({
+  document.modelContext.registerTool({
     name: 'share_pizza',
     description: 'Get a shareable URL for the current pizza creation',
     inputSchema: {

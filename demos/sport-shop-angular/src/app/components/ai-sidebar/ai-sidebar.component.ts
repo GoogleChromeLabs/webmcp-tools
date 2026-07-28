@@ -6,6 +6,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AgentService } from '../../services/agent.service';
 
 @Component({
   selector: 'app-ai-sidebar',
@@ -23,10 +24,18 @@ export class AiSidebarComponent {
 
   userInput: string = "";
 
+  constructor(public agentService: AgentService) {}
+
   sendMessage() {
     if (this.userInput.trim()) {
-      this.message = "WebMCP Sports is having some technical problems, because this feature was not implemented on purpose, try again later";
+      const text = this.userInput;
       this.userInput = "";
+      this.agentService.open();
+      this.agentService.sendMessage(text);
     }
+  }
+
+  openAgentDrawer() {
+    this.agentService.open();
   }
 }

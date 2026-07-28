@@ -1,15 +1,15 @@
 # CineFlow | WebMCP Imperative Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/ticket-booking
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/ticket-booking/
 
 This project demonstrates a **WebMCP** implementation for a movie ticket purchase flow. It allows an AI agent to browse movies, filter by genre, update the user's location, and select showtimes to initiate the checkout process.
 
 ## 🛠️ How It Works
 
-This demo uses the `navigator.modelContext.registerTool` API in `script.js` to expose movie catalog interactions and booking capabilities to an AI agent.
+This demo uses the `document.modelContext.registerTool` API in `script.js` to expose movie catalog interactions and booking capabilities to an AI agent.
 
 ```javascript
-navigator.modelContext.registerTool({
+document.modelContext.registerTool({
   name: 'select_showtime',
   description: 'Selects a movie and a specific showtime to initiate the checkout process.',
   inputSchema: {

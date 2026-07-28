@@ -103,7 +103,11 @@ function initSharedWorker(apiKey) {
       case 'GET_TOOLS':
         const tools = await getTools();
         // FIXME: tool.window needs to be removed because it's not serializable.
-        const serializableTools = tools.map(({ window, ...toolWithoutWindow }) => toolWithoutWindow);
+        const serializableTools = tools.map(({ name, description, inputSchema }) => ({
+          name,
+          description,
+          inputSchema,
+        }));
         worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: serializableTools, id });
         break;
 
@@ -139,9 +143,16 @@ agentToggle.addEventListener('click', () => {
     window.frameElement.style.width = isOpen ? '414px' : '100px';
     window.frameElement.style.height = isOpen ? '634px' : '100px';
   }
+  const win = window.frameElement ? window.parent : window;
+  const url = new URL(win.location);
   if (isOpen) {
     agentUserInput.focus();
+    agentChatWindow.scrollTop = agentChatWindow.scrollHeight;
+    url.searchParams.set('agentopened', '');
+  } else {
+    url.searchParams.delete('agentopened');
   }
+  win.history.replaceState({}, '', url.toString().replace(/=(?=&|$)/g, ''));
 });
 
 agentSaveKeyBtn.addEventListener('click', () => {
@@ -199,7 +210,7 @@ async function handleUserSubmit() {
 
     appendMessage('You', text, 'user');
 
-    chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
+    chat ??= ai.chats.create({ model: 'gemini-3.1-flash-lite' });
 
     const config = await getConfig();
     const sendMessageParams = { message: text, config };
@@ -264,4 +275,8 @@ if (!window.document.modelContext) {
       'system',
     );
   }, 1000);
+}
+
+if (params.has('agentopened')) {
+  agentToggle.click();
 }

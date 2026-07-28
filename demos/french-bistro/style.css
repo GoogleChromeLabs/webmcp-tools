@@ -184,11 +184,6 @@ button.submit-btn:hover {
 
 /* --- ACTIVE CLASSES --- */
 
-/* Class to apply to the .booking-container */
-*:tool-form-active {
-  outline: none; /* Removes default blue browser focus rings */
-}
-
 /* --- 1. The Shimmer Animation (Light reflection moving across) --- */
 @keyframes gold-shimmer {
   0% {

@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Hotel Chain: Search Tokyo and filter amenities",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I am looking for a hotel in Tokyo - filter for gym and breakfast"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_location",
+        "arguments": {
+          "query": "Tokyo"
+        }
+      },
+      {
+        "functionName": "filter_search_results",
+        "arguments": {
+          "amenities": ["gym", "breakfast"]
+        }
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "Hotel Chain: Search Cleveland and filter price & parking",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I am looking for a hotel in Cleveland, max price $200, and must have free parking"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_location",
+        "arguments": {
+          "query": "Cleveland"
+        }
+      },
+      {
+        "functionName": "filter_search_results",
+        "arguments": {
+          "max_price": 200,
+          "amenities": ["free parking"]
+        }
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
+      }
+    ]
+  },
+  {
+    "name": "Hotel Chain: View hotel details directly",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "View the details for hotel 'The Aurelian Shibuya'"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "view_hotel",
+        "arguments": {
+          "hotel_name_or_id": "The Aurelian Shibuya"
+        }
+      }
+    ]
+  }
+]

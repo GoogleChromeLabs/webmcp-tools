@@ -61,8 +61,7 @@
             return document.getElementById('speech').innerText;
         }
 
-        const modelContext = document.modelContext || navigator.modelContext;
-        modelContext.registerTool({
+        document.modelContext.registerTool({
             name: 'dance',
             description: 'Dance with him',
             execute: () => {
@@ -70,7 +69,7 @@
             },
         });
 
-        modelContext.registerTool({
+        document.modelContext.registerTool({
             name: 'hide',
             description: 'Play Hide & Seek',
             execute: () => {

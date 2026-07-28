@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { jsonSchema } from "ai";
+import { tool as defineTool, jsonSchema, Tool as VercelTool } from "ai";
 import { Tool } from "../types/tools.js";
 
 export function mapMessages(messages: any[]): any[] {
@@ -58,18 +58,34 @@ export function sanitizeSchema(obj: any): any {
   return clone;
 }
 
-export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, any> {
+/**
+ * Convert WebMCP tool definitions into the Vercel AI SDK tool shape.
+ *
+ * When `execute` is provided, each generated tool gains an `execute`
+ * function that delegates to it, keyed by tool name. This turns tools
+ * from pure schemas into callables and, combined with a
+ * `stopWhen: stepCountIs(N > 1)` on `generateText`, lets the model loop
+ * across multiple tool-calling turns — which is what `executeLocalEvals`
+ * uses to drive multi-step trajectories via `MockResolver`.
+ *
+ * When `execute` is omitted, tools are returned as pure schemas and the
+ * SDK terminates after the first assistant turn — the legacy behavior.
+ */
+export function mapJsonSchemaToVercelTools(
+  inputTools: Tool[],
+  execute?: (functionName: string, args: unknown) => unknown | Promise<unknown>,
+): Record<string, any> {
   const tools: Record<string, any> = {};
   inputTools.forEach((toolDef: any) => {
     const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
     const rawParams = hasParams ? toolDef.parameters : { type: "object", properties: {} };
     const parameters = sanitizeSchema(rawParams);
 
-    tools[toolDef.functionName] = {
+    tools[toolDef.functionName] = defineTool({
       description: toolDef.description,
-      parameters: jsonSchema(parameters),
       inputSchema: jsonSchema(parameters),
-    };
+      execute: execute ? async (args: any) => execute(toolDef.functionName, args) : undefined,
+    } as VercelTool);
   });
 
   return tools;
@@ -79,13 +95,13 @@ export function mapJsonSchemaToVercelTools(inputTools: Tool[]): Record<string, a
  * Normalizes raw tool configurations dynamically fetched from the browser loop.
  */
 export function mapRawBrowserToolsToConfig(rawTools: any[], fallbackTools: Tool[]): Tool[] {
-  if (rawTools && Array.isArray(rawTools)) {
+  if (rawTools && Array.isArray(rawTools) && rawTools.length > 0) {
     return rawTools.map((t: any) => {
       const schema = t.inputSchema;
       let parameters;
       try {
         parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
-      } catch (e) {
+      } catch {
         parameters = {};
       }
       return {
