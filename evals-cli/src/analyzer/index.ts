@@ -37,7 +37,7 @@ async function loadWebMcpContext(): Promise<string> {
 /**
  * Reads the report JSON from path, with a fallback for HTML report paths.
  */
-async function readEvalReportJson(reportPath: string): Promise<any> {
+export async function readEvalReportJson(reportPath: string): Promise<any> {
   const fullPath = resolve(process.cwd(), reportPath);
   const ext = extname(fullPath).toLowerCase();
 
@@ -129,7 +129,15 @@ export function formatShortTitle(title: string): string {
 /**
  * Main function to execute the report analysis using the configured LLM.
  */
-export async function analyzeEvalReport(reportPath: string, config: Config): Promise<string> {
+export async function analyzeEvalReport(
+  reportPath: string,
+  config: Config,
+  options?: {
+    // Internal test-only parameter.
+    // We pass a mock/dummy model object during unit tests to avoid making real LLM API calls.
+    _testModel?: any;
+  },
+): Promise<string> {
   // Load from the JSON report evals config, assertions (passed/failed), and trajectories.
   // - reportData.config: evaluation configuration context
   // - reportData.results.results[].outcome: passed and failed assertions
@@ -167,7 +175,8 @@ export async function analyzeEvalReport(reportPath: string, config: Config): Pro
     model: config.model || ANALYZER_MODEL_DEFAULT,
   };
 
-  const modelInstance = getModel(analyzerConfig);
+  // Use the mock test model if provided, otherwise resolve the real model instance.
+  const modelInstance = options?._testModel || getModel(analyzerConfig);
 
   const systemPrompt = `You are a WebMCP Evals Analyzer, a specialized developer tool built to analyze agentic browser evaluation reports.
 Your role is to inspect the evaluation outcomes, identify failed steps, and deduce high-quality hypotheses explaining why the model deviated or failed.

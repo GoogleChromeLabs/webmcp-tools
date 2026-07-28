@@ -175,6 +175,26 @@ npx webmcp-evals analyze .evals/report-1784621327799.json --open
 | `$type`       | Type check              | `{"$type": "string"}`           |
 | `$any`        | Field presence check    | `{"$any": true}`                |
 
+## Development & Testing
+
+To compile the TypeScript source files:
+
+```bash
+npm run build
+```
+
+To run the complete test suite:
+
+```bash
+npm test
+```
+
+To run only the report analyzer unit tests:
+
+```bash
+node --test dist/test/analyzer.test.js
+```
+
 ## License
 
 Apache-2.0
