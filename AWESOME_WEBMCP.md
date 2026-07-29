@@ -72,6 +72,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
 - [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
+- [webmcpify](https://github.com/TueJon/webmcpify) - An agent skill that integrates WebMCP into an existing web app end to end: it inventories the app, proposes a tool manifest for approval, integrates the tools, then verifies each one in a real browser and heals failures.
 
 ## Contributing
 
