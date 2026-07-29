@@ -5,7 +5,8 @@
 
 import { Command } from "commander";
 import { readFile, writeFile, mkdir } from "fs/promises";
-import { resolve } from "path";
+import { existsSync } from "fs";
+import { resolve, basename, extname, join } from "path";
 import { SingleBar } from "cli-progress";
 import chalk from "chalk";
 import Table from "cli-table3";
@@ -17,6 +18,7 @@ import { Tool, ToolsSchema } from "../types/tools.js";
 import { executeLocalEvals, executeInBrowserEvals } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
+import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
 
 export interface CommandOptions {
   backend: string;
@@ -29,6 +31,9 @@ export interface CommandOptions {
   evals?: string;
   url?: string;
   open?: boolean;
+  analyze?: boolean;
+  analyzerModel?: string;
+  openAnalysis?: boolean;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -61,6 +66,12 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
 
   const reporters = opts.reporter || ["console", "html"];
   const useConsole = reporters.includes("console");
+  const finalReporters =
+    opts.analyze && !reporters.includes("json") ? [...reporters, "json"] : reporters;
+
+  if (opts.analyze && !reporters.includes("json")) {
+    console.log(chalk.blue("ℹ Info: JSON reporter enabled automatically for report analysis."));
+  }
 
   let progressBar: SingleBar | undefined;
   let passCount = 0;
@@ -94,7 +105,21 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     printConsoleSummary(finalResults);
   }
 
-  await outputReports(config, finalResults, reporters, opts.outputDir, opts.open);
+  if (opts.analyze) {
+    // Override open for outputReports so we only open the analysis markdown report (if requested)
+    const { jsonPath } = await outputReports(
+      config,
+      finalResults,
+      finalReporters,
+      opts.outputDir,
+      opts.open,
+    );
+    if (jsonPath) {
+      await runAnalyzeCommand(jsonPath, opts, command);
+    }
+  } else {
+    await outputReports(config, finalResults, finalReporters, opts.outputDir, opts.open);
+  }
 }
 
 export async function runWebCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -126,6 +151,12 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
 
     const reporters = opts.reporter || ["console", "html"];
     const useConsole = reporters.includes("console");
+    const finalReporters =
+      opts.analyze && !reporters.includes("json") ? [...reporters, "json"] : reporters;
+
+    if (opts.analyze && !reporters.includes("json")) {
+      console.log(chalk.blue("ℹ Info: JSON reporter enabled automatically for report analysis."));
+    }
 
     let spinner: ReturnType<typeof ora> | undefined;
     const resultsList: any[] = [];
@@ -155,7 +186,22 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       printConsoleSummary(finalResults);
     }
 
-    await outputReports(config, finalResults, reporters, opts.outputDir, opts.open, true);
+    if (opts.analyze) {
+      // Override open for outputReports so we only open the analysis markdown report (if requested)
+      const { jsonPath } = await outputReports(
+        config,
+        finalResults,
+        finalReporters,
+        opts.outputDir,
+        opts.open,
+        true,
+      );
+      if (jsonPath) {
+        await runAnalyzeCommand(jsonPath, opts, command);
+      }
+    } else {
+      await outputReports(config, finalResults, finalReporters, opts.outputDir, opts.open, true);
+    }
   } catch (error: any) {
     console.error(`\n${chalk.red.bold("❌ Error:")} ${error.message || error}\n`);
     process.exit(1);
@@ -205,29 +251,105 @@ async function outputReports(
   outputDir: string = ".evals",
   shouldOpen: boolean = false,
   isWeb: boolean = false,
-): Promise<void> {
+): Promise<{ htmlPath?: string; jsonPath?: string }> {
   if (reporters.includes("html") || reporters.includes("json")) {
     await mkdir(resolve(process.cwd(), outputDir), { recursive: true });
   }
 
+  const timestamp = Date.now();
   let htmlPath: string | undefined;
+  let jsonPath: string | undefined;
 
   if (reporters.includes("html")) {
     const reportHtml = isWeb
       ? renderWebmcpReport(config, finalResults)
       : renderReport(config, finalResults);
-    htmlPath = resolve(process.cwd(), outputDir, `report-${Date.now()}.html`);
+    htmlPath = resolve(process.cwd(), outputDir, `report-${timestamp}.html`);
     await writeFile(htmlPath, reportHtml);
     console.log(`HTML report saved to ${htmlPath}`);
   }
 
   if (reporters.includes("json")) {
-    const jsonPath = resolve(process.cwd(), outputDir, `report-${Date.now()}.json`);
+    jsonPath = resolve(process.cwd(), outputDir, `report-${timestamp}.json`);
     await writeFile(jsonPath, JSON.stringify({ config, results: finalResults }, null, 2));
     console.log(`JSON report saved to ${jsonPath}`);
   }
 
   if (shouldOpen && htmlPath) {
     await open(htmlPath);
+  }
+
+  return { htmlPath, jsonPath };
+}
+
+function getUniqueOutputPath(dir: string, base: string): string {
+  let candidate = resolve(dir, `${base}-analysis.md`);
+  if (!existsSync(candidate)) {
+    return candidate;
+  }
+  let index = 1;
+  while (true) {
+    candidate = resolve(dir, `${base}-analysis-${index}.md`);
+    if (!existsSync(candidate)) {
+      return candidate;
+    }
+    index++;
+  }
+}
+
+export async function runAnalyzeCommand(
+  reportPath: string,
+  options: CommandOptions,
+  command?: Command,
+): Promise<void> {
+  const isAnalyzeCommand = command?.name() === "analyze";
+  const localOpts = isAnalyzeCommand ? command.opts() : {};
+  const globalOpts = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+
+  const config: Config = {
+    toolSchemaFile: "",
+    evalsFile: "",
+    backend: localOpts.backend || globalOpts.backend || "vercel",
+    model: localOpts.model || globalOpts.analyzerModel || ANALYZER_MODEL_DEFAULT,
+    runs: globalOpts.runs,
+    outputDir: globalOpts.outputDir,
+    reporter: globalOpts.reporter,
+  };
+
+  const spinner = ora({ discardStdin: false });
+  spinner.start("Analyzing evals report...");
+
+  try {
+    const analysisText = await analyzeEvalReport(reportPath, config);
+    spinner.stop();
+
+    const outputDir = globalOpts.outputDir || ".evals";
+    await mkdir(resolve(process.cwd(), outputDir), { recursive: true });
+
+    // Determine output filename matching the input report filename
+    const base = formatShortTitle(basename(reportPath, extname(reportPath)));
+    const outputPath = getUniqueOutputPath(resolve(process.cwd(), outputDir), base);
+
+    await writeFile(outputPath, analysisText, "utf-8");
+
+    console.log(`\n${chalk.green.bold("📝 Analysis Report Completed:")}`);
+    console.log(`Saved to: ${outputPath}\n`);
+
+    if (localOpts.open || globalOpts.openAnalysis) {
+      try {
+        await open(outputPath, { app: { name: "google chrome" } });
+      } catch {
+        await open(outputPath);
+      }
+    }
+
+    // Log a brief snippet of the summary to console
+    const summaryLines = analysisText.split("\n").slice(0, 15).join("\n");
+    console.log(summaryLines);
+    console.log("\n...\n");
+  } catch (error: any) {
+    spinner.stop();
+    console.error(`\n${chalk.red.bold("❌ Error:")} ${error.message || error}\n`);
+    process.exit(1);
   }
 }
