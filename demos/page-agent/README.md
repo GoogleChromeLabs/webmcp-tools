@@ -34,9 +34,9 @@ When the Gemini model decides to call a tool, the agent uses `executeTool` to pe
 const result = await document.modelContext.executeTool(tool, inputArgs);
 ```
 
-### 3. Code Mode (Batch Tool Execution)
+### 3. Code Mode (Batch Tool Execution) (Experimental)
 
-Code Mode introduces an optimized way for AI agents to interact with WebMCP tools. Instead of calling multiple individual tools in separate conversational turns (which consumes more context tokens and increases latency), the agent generates a single declarative steps array that calls multiple tools sequentially, resolving data dependencies between them.
+Code Mode is an experimental feature that introduces an optimized way for AI agents to interact with WebMCP tools. Instead of calling multiple individual tools in separate conversational turns (which consumes more context tokens and increases latency), the agent generates a single declarative steps array that calls multiple tools sequentially, resolving data dependencies between them.
 
 The agent uses a single tool called `execute_batch` with the following parameters:
 
@@ -76,7 +76,7 @@ The agent uses a single tool called `execute_batch` with the following parameter
 ## ✨ Features
 
 - **Dynamic Tool Discovery**: Automatically detects tools from any WebMCP-compatible URL entered in the address bar.
-- **Normal & Code Mode**: Toggle between standard tool-calling and Cloudflare-style "Code Mode" to see the difference in context efficiency and speed.
+- **Normal & Code Mode**: Toggle between standard tool-calling and experimental "Code Mode" to see the difference in context efficiency and speed.
 - **Gemini Integration**: Uses the Gemini 3.5 Flash model to interpret user intent and map it to available tools.
 - **Cross-Origin Support**: Safely interacts with tools across different origins via the WebMCP protocol.
 - **Real-time Feedback**: Shows system messages and live console logs when tools or scripts are being executed.

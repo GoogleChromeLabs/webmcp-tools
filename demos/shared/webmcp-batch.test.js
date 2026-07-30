@@ -5,7 +5,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert';
-import { resolveReferences, getNestedProperty, executeDeclarativeBatch } from './webmcp-batch.js';
+import { resolveReferences, getNestedProperty, executeDeclarativeBatch, getSystemInstructions, getSystemInstruction } from './webmcp-batch.js';
 
 test('getNestedProperty helper', () => {
   const obj = {
@@ -145,4 +145,39 @@ test('executeDeclarativeBatch failure halts execution', async () => {
   assert.strictEqual(outputs[1].success, false);
   assert.strictEqual(outputs[1].error, 'Forced failure');
   assert.strictEqual(step3Called, false);
+});
+
+test('getSystemInstructions formats tool schemas and filters execute_batch', () => {
+  const tools = [
+    {
+      name: 'execute_batch',
+      description: 'Execute batch',
+      inputSchema: '{"type":"object"}'
+    },
+    {
+      name: 'search',
+      description: 'Search products',
+      inputSchema: JSON.stringify({
+        type: 'object',
+        properties: { query: { type: 'string' } }
+      })
+    }
+  ];
+
+  const instructions = getSystemInstructions(tools);
+  assert(Array.isArray(instructions));
+  assert.strictEqual(getSystemInstruction, getSystemInstructions);
+
+  const jsonBlockIndex = instructions.findIndex(line => line === '```json');
+  assert(jsonBlockIndex !== -1);
+  const jsonContent = instructions[jsonBlockIndex + 1];
+  const parsedTools = JSON.parse(jsonContent);
+
+  assert.strictEqual(parsedTools.length, 1);
+  assert.strictEqual(parsedTools[0].name, 'search');
+  assert.strictEqual(parsedTools[0].description, 'Search products');
+  assert.deepEqual(parsedTools[0].inputSchema, {
+    type: 'object',
+    properties: { query: { type: 'string' } }
+  });
 });

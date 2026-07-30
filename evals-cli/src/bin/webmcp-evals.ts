@@ -8,7 +8,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import dotenv from "dotenv";
-import { runLocalCommand, runWebCommand } from "../commands/index.js";
+import { runLocalCommand, runWebCommand, runAnalyzeCommand } from "../commands/index.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json");
@@ -32,7 +32,13 @@ program
     "console",
     "html",
   ])
-  .option("-o, --output-dir <path>", "Directory for reports", ".evals");
+  .option("-o, --output-dir <path>", "Directory for reports", ".evals")
+  .option("--analyzer-model <model>", "Model identifier for report analysis", "gemini-3.5-flash")
+  .option(
+    "--open-analysis",
+    "Automatically open the analysis markdown report upon completion",
+    false,
+  );
 
 // Command: run static file evals
 program
@@ -40,6 +46,7 @@ program
   .description("Run evals against a static JSON tool schema definition file")
   .requiredOption("-t, --tools <path>", "Path to tool schema JSON file")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+  .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runLocalCommand);
 
 // Command: run live browser evals
@@ -49,6 +56,18 @@ program
   .requiredOption("-u, --url <url>", "Target web page URL")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
+  .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runWebCommand);
+
+// Command: analyze evaluation report using an LLM
+program
+  .command("analyze")
+  .description(
+    "Analyze an evaluation JSON report using an LLM to identify root causes and hypotheses for eval failures",
+  )
+  .argument("<report-path>", "Path to the JSON report file (e.g. .evals/report-*.json)")
+  .option("-m, --model <model>", "Model identifier for the analyzer (defaults to gemini-3.5-flash)")
+  .option("--open", "Automatically open the analysis markdown report upon completion", false)
+  .action(runAnalyzeCommand);
 
 program.parse(process.argv);
