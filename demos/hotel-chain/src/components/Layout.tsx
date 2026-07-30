@@ -7,7 +7,7 @@ import { clsx } from 'clsx';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AVAILABLE_AMENITIES, Z_INDEX } from '../constants';
 import { hotels } from '../data/hotels';
-import { useWebMCP } from '../hooks/useWebMCP';
+import { useWebMCP } from 'use-webmcp-tool';
 import { updateBookingInfo } from '../hooks/useBookingState';
 import { Button } from './ui/Button';
 
@@ -15,73 +15,73 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useWebMCP([
-    {
-      name: 'search_location',
-      description: 'Find me a hotel in a specific location',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          query: { type: 'string', description: 'The location query (e.g. "Cleveland")' },
-          checkin_date: { type: 'string', description: 'Optional check-in date (YYYY-MM-DD)' },
-          nights: { type: 'number', description: 'Optional number of nights to stay' },
-          adults: { type: 'number', description: 'Optional number of adult guests' },
-          kids: { type: 'number', description: 'Optional number of child guests' },
-          pets: { type: 'number', description: 'Optional number of pets' }
-        },
-        required: ['query']
+  useWebMCP({
+    name: 'search_location',
+    description: 'Find me a hotel in a specific location',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'The location query (e.g. "Cleveland")' },
+        checkin_date: { type: 'string', description: 'Optional check-in date (YYYY-MM-DD)' },
+        nights: { type: 'number', description: 'Optional number of nights to stay' },
+        adults: { type: 'number', description: 'Optional number of adult guests' },
+        kids: { type: 'number', description: 'Optional number of child guests' },
+        pets: { type: 'number', description: 'Optional number of pets' }
       },
-      execute: (input: any) => {
-        const bookingUpdates: any = { query: input.query };
-        if (input.checkin_date) bookingUpdates.checkin_date = input.checkin_date;
-        if (input.nights) bookingUpdates.nights = input.nights;
-        if (input.adults !== undefined) bookingUpdates.adults = input.adults;
-        if (input.kids !== undefined) bookingUpdates.kids = input.kids;
-        if (input.pets !== undefined) bookingUpdates.pets = input.pets;
+      required: ['query']
+    },
+    execute: (input: any) => {
+      const bookingUpdates: any = { query: input.query };
+      if (input.checkin_date) bookingUpdates.checkin_date = input.checkin_date;
+      if (input.nights) bookingUpdates.nights = input.nights;
+      if (input.adults !== undefined) bookingUpdates.adults = input.adults;
+      if (input.kids !== undefined) bookingUpdates.kids = input.kids;
+      if (input.pets !== undefined) bookingUpdates.pets = input.pets;
 
-        updateBookingInfo(bookingUpdates);
-        navigate('/search?q=' + encodeURIComponent(input.query));
-        return { success: true, message: `Navigated to search results for ${input.query} with active search filters applied.` };
-      }
-    },
-    {
-      name: 'lookup_amenity',
-      description: 'Look up specific amenity or policy details for a hotel',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          hotel_id: { type: 'string', description: 'The ID of the hotel' },
-          amenity: { type: 'string', enum: AVAILABLE_AMENITIES, description: 'The amenity or policy to look up (e.g. "late checkout")' }
-        },
-        required: ['hotel_id', 'amenity']
-      },
-      execute: (input: any) => {
-        const formattedAmenity = input.amenity ? input.amenity.replace(/_/g, ' ') : input.amenity;
-        navigate(`/hotel/${input.hotel_id}?amenity=${encodeURIComponent(formattedAmenity)}`);
-        return { success: true, message: `Navigated to hotel details to show ${formattedAmenity}` };
-      }
-    },
-    {
-      name: 'view_hotel',
-      description: 'View the details of a specific hotel by name or id',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          hotel_name_or_id: { type: 'string', description: 'The exact name or ID of the hotel to view' }
-        },
-        required: ['hotel_name_or_id']
-      },
-      execute: (input: any) => {
-        const query = input.hotel_name_or_id.toLowerCase();
-        const hotel = hotels.find(h => h.id.toLowerCase() === query || h.name.toLowerCase().includes(query));
-        if (hotel) {
-          navigate(`/hotel/${hotel.id}`);
-          return { success: true, message: `Navigated to hotel details for ${hotel.name}` };
-        }
-        return { success: false, error: `Could not find a hotel matching "${input.hotel_name_or_id}". Please search first.` };
-      }
+      updateBookingInfo(bookingUpdates);
+      navigate('/search?q=' + encodeURIComponent(input.query));
+      return { success: true, message: `Navigated to search results for ${input.query} with active search filters applied.` };
     }
-  ]);
+  });
+
+  useWebMCP({
+    name: 'lookup_amenity',
+    description: 'Look up specific amenity or policy details for a hotel',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        hotel_id: { type: 'string', description: 'The ID of the hotel' },
+        amenity: { type: 'string', enum: AVAILABLE_AMENITIES, description: 'The amenity or policy to look up (e.g. "late checkout")' }
+      },
+      required: ['hotel_id', 'amenity']
+    },
+    execute: (input: any) => {
+      const formattedAmenity = input.amenity ? input.amenity.replace(/_/g, ' ') : input.amenity;
+      navigate(`/hotel/${input.hotel_id}?amenity=${encodeURIComponent(formattedAmenity)}`);
+      return { success: true, message: `Navigated to hotel details to show ${formattedAmenity}` };
+    }
+  });
+
+  useWebMCP({
+    name: 'view_hotel',
+    description: 'View the details of a specific hotel by name or id',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        hotel_name_or_id: { type: 'string', description: 'The exact name or ID of the hotel to view' }
+      },
+      required: ['hotel_name_or_id']
+    },
+    execute: (input: any) => {
+      const query = input.hotel_name_or_id.toLowerCase();
+      const hotel = hotels.find(h => h.id.toLowerCase() === query || h.name.toLowerCase().includes(query));
+      if (hotel) {
+        navigate(`/hotel/${hotel.id}`);
+        return { success: true, message: `Navigated to hotel details for ${hotel.name}` };
+      }
+      return { success: false, error: `Could not find a hotel matching "${input.hotel_name_or_id}". Please search first.` };
+    }
+  });
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white text-primary selection:bg-primary/10 selection:text-primary">
