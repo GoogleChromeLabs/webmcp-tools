@@ -82,7 +82,11 @@ declare global {
     getTools(): Promise<ModelContextRegisteredTool[]>;
 
     /** Executes a registered tool. */
-    executeTool(tool: ModelContextRegisteredTool, params: string): Promise<unknown>;
+    executeTool(
+      tool: ModelContextRegisteredTool,
+      params: string,
+      options?: { signal?: AbortSignal }
+    ): Promise<unknown>;
   }
 
   interface Document {
