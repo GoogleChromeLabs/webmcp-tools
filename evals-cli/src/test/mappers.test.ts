@@ -179,6 +179,11 @@ describe("mappers", () => {
           description: "Get current cart",
           inputSchema: { type: "object" },
         },
+        {
+          name: "add_to_cart",
+          description: "Add to cart",
+          inputSchema: undefined,
+        },
       ] as WebMCPTool[];
 
       const result = mapRawBrowserToolsToConfig(rawTools);
@@ -193,6 +198,11 @@ describe("mappers", () => {
           functionName: "get_cart",
           description: "Get current cart",
           parameters: { type: "object" },
+        },
+        {
+          functionName: "add_to_cart",
+          description: "Add to cart",
+          parameters: {},
         },
       ]);
     });
