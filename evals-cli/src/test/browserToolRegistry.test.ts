@@ -72,6 +72,40 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(result, { error: 'no tool named "click_button" was found' });
   });
 
+  it("should expose page execution failures to deterministic callers", async () => {
+    const page = new MockBrowserPage();
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, {
+      success: false,
+      error: 'no tool named "click_button" was found',
+    });
+  });
+
+  it("should expose successful structured content to deterministic callers", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "click_button",
+          description: "Click a button",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: { content: [{ type: "text", text: "clicked" }] },
+          }),
+        },
+      ],
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, { success: true, result: "clicked" });
+  });
+
   it("should return error when tool execution fails with Error status", async () => {
     const page = new MockBrowserPage();
     page.webmcp = {
@@ -160,5 +194,49 @@ describe("BrowserToolRegistry", () => {
     } finally {
       global.setTimeout = origSetTimeout;
     }
+  });
+
+  it("should propagate isError flag on structured MCP response as failure", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "failing_mcp",
+          description: "Fails with isError",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: { content: [{ type: "text", text: "Out of stock" }], isError: true },
+          }),
+        },
+      ],
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeToolChecked("failing_mcp", {});
+
+    assert.deepStrictEqual(result, { success: false, error: "Out of stock" });
+  });
+
+  it("should preserve falsy returns like false or 0 in executeTool", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "bool_tool",
+          description: "Returns false",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: false,
+          }),
+        },
+      ],
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeTool("bool_tool", {});
+
+    assert.strictEqual(result, false);
   });
 });
