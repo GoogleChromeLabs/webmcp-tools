@@ -97,17 +97,10 @@ export function mapJsonSchemaToVercelTools(
  */
 export function mapRawBrowserToolsToConfig(rawTools: WebMCPTool[]): Tool[] {
   return rawTools.map((t) => {
-    const schema = t.inputSchema;
-    let parameters;
-    try {
-      parameters = (typeof schema === "string" ? JSON.parse(schema) : schema) || {};
-    } catch {
-      parameters = {};
-    }
     return {
       description: t.description,
       functionName: t.name,
-      parameters,
+      parameters: t.inputSchema || {},
     };
   });
 }
