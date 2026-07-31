@@ -130,7 +130,7 @@ export class VercelBackend implements Backend {
 
     try {
       const registry = new BrowserToolRegistry(page);
-      let currentTools = await registry.syncTools();
+      let currentTools = registry.syncTools();
 
       if (currentTools.length === 0) {
         const executablePath = await findChromePath();
@@ -185,7 +185,7 @@ export class VercelBackend implements Backend {
           });
         },
         prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = await registry.syncTools();
+          currentTools = registry.syncTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;

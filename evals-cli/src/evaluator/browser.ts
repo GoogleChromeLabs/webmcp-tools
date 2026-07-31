@@ -34,8 +34,8 @@ export class BrowserToolRegistry implements ToolRegistry {
 
   constructor(private page: BrowserPage) {}
 
-  async syncTools(): Promise<Tool[]> {
-    const rawTools = this.page.webmcp.tools() || [];
+  syncTools(): Tool[] {
+    const rawTools = this.page.webmcp.tools();
     this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
     return this.currentTools;
   }
