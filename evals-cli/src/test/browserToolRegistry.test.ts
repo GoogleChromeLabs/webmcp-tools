@@ -97,4 +97,51 @@ describe("BrowserToolRegistry", () => {
 
     assert.deepStrictEqual(result, { error: 'no tool named "click_button" was found' });
   });
+
+  it("should execute page script, handle toolactivated, and resolve pending form submission on timeout", async () => {
+    const page = new MockBrowserPage();
+    page.evaluate = async (fn: any, ...args: any[]) => {
+      const listeners: Record<string, Function[]> = {};
+      const fakeWindow = {
+        addEventListener: (event: string, cb: Function) => {
+          listeners[event] = listeners[event] || [];
+          listeners[event].push(cb);
+        },
+        removeEventListener: (event: string, cb: Function) => {
+          if (listeners[event]) {
+            listeners[event] = listeners[event].filter((l) => l !== cb);
+          }
+        },
+      };
+      const fakeDocument = {
+        modelContext: {
+          getTools: async () => [{ name: "book_table" }],
+          executeTool: async () => {
+            // Trigger toolactivated event
+            const activatedCb = listeners["toolactivated"]?.[0];
+            if (activatedCb) {
+              activatedCb({ toolName: "book_table" });
+            }
+            // Return a promise that never resolves (simulating manual form submit wait)
+            return new Promise(() => {});
+          },
+        },
+      };
+
+      // Execute in fake environment with 10ms timeout for test speed
+      const fnStr = fn.toString();
+      const testFn = new Function(
+        "window",
+        "document",
+        "name",
+        "callArgs",
+        `return (${fnStr.replace("1000", "10")})(name, callArgs);`,
+      );
+      return testFn(fakeWindow, fakeDocument, args[0], args[1]);
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeTool("book_table", { guests: 2 });
+    assert.strictEqual(result, "pending form submission");
+  });
 });
