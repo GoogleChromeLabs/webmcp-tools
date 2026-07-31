@@ -87,9 +87,14 @@ export class VercelBackend implements Backend {
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
         if (validToolNames.has(call.toolName)) {
-          const matchingResult: any = (step.toolResults ?? []).find(
-            (r: any) => r.toolCallId === call.toolCallId || r.toolName === call.toolName,
+          const matchingResult: any = (step.toolResults ?? []).find((r: any) =>
+            call.toolCallId ? r.toolCallId === call.toolCallId : r.toolName === call.toolName,
           );
+          if (!matchingResult && call.toolCallId) {
+            this.logger.debug(
+              `[DEBUG] Could not find matching tool result for call ID "${call.toolCallId}" (${call.toolName})`,
+            );
+          }
           const result = matchingResult
             ? (matchingResult.result ?? matchingResult.output)
             : undefined;
@@ -198,9 +203,14 @@ export class VercelBackend implements Backend {
         for (const step of stepsToIterate) {
           if (step.toolCalls && step.toolCalls.length > 0) {
             for (const call of step.toolCalls) {
-              const matchingResult: any = (step.toolResults ?? []).find(
-                (r: any) => r.toolCallId === call.toolCallId || r.toolName === call.toolName,
+              const matchingResult: any = (step.toolResults ?? []).find((r: any) =>
+                call.toolCallId ? r.toolCallId === call.toolCallId : r.toolName === call.toolName,
               );
+              if (!matchingResult && call.toolCallId) {
+                this.logger.debug(
+                  `[DEBUG] Could not find matching tool result for call ID "${call.toolCallId}" (${call.toolName})`,
+                );
+              }
               const result = matchingResult
                 ? (matchingResult.result ?? matchingResult.output)
                 : undefined;
