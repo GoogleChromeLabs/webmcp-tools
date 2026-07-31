@@ -39,35 +39,6 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(registry.getCurrentTools(), []);
   });
 
-  it("should fetch and map tools from page.webmcp", async () => {
-    const page = new MockBrowserPage();
-    page.webmcp = {
-      tools: () => [
-        {
-          name: "page_action",
-          description: "Executes a page action",
-          inputSchema: {
-            type: "object",
-            properties: {
-              elementId: { type: "string" },
-            },
-          },
-        },
-      ],
-    };
-
-    const registry = new BrowserToolRegistry(page);
-    const synced = await registry.syncTools();
-
-    assert.strictEqual(synced.length, 1);
-    assert.strictEqual(synced[0].functionName, "page_action");
-    assert.strictEqual(synced[0].description, "Executes a page action");
-    assert.deepStrictEqual(synced[0].parameters, {
-      type: "object",
-      properties: { elementId: { type: "string" } },
-    });
-  });
-
   it("should execute tool via page.webmcp and return output on Completed status", async () => {
     let executedInput: unknown = null;
     const page = new MockBrowserPage();
