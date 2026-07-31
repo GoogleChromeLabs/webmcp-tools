@@ -167,17 +167,22 @@ describe("mappers", () => {
   });
 
   describe("mapRawBrowserToolsToConfig", () => {
-    it("should map raw browser tools with parsed JSON schemas", () => {
+    it("should map raw browser tools", () => {
       const rawTools = [
         {
           name: "search_gear",
           description: "Search for gear",
-          inputSchema: JSON.stringify({ type: "object", properties: { item: { type: "string" } } }),
+          inputSchema: { type: "object", properties: { item: { type: "string" } } },
         },
         {
           name: "get_cart",
           description: "Get current cart",
           inputSchema: { type: "object" },
+        },
+        {
+          name: "add_to_cart",
+          description: "Add to cart",
+          inputSchema: undefined,
         },
       ] as WebMCPTool[];
 
@@ -194,23 +199,9 @@ describe("mappers", () => {
           description: "Get current cart",
           parameters: { type: "object" },
         },
-      ]);
-    });
-
-    it("should handle invalid JSON inputSchema gracefully", () => {
-      const rawTools = [
         {
-          name: "faulty_tool",
-          description: "Faulty schema",
-          inputSchema: "invalid-json{",
-        },
-      ] as unknown as WebMCPTool[];
-      const result = mapRawBrowserToolsToConfig(rawTools);
-
-      assert.deepStrictEqual(result, [
-        {
-          functionName: "faulty_tool",
-          description: "Faulty schema",
+          functionName: "add_to_cart",
+          description: "Add to cart",
           parameters: {},
         },
       ]);
