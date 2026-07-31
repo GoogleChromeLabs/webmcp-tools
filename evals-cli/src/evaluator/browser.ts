@@ -7,20 +7,12 @@
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser } from "puppeteer-core";
+import type { WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { findChromePath } from "../utils.js";
 import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
-
-export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]> {
-  const tools = page.webmcp?.tools() || [];
-  return tools.map((t: any) => ({
-    name: t.name,
-    description: t.description,
-    inputSchema: t.inputSchema,
-  }));
-}
 
 export const PUPPETEER_FLAGS = [
   "--enable-features=WebMCP",
@@ -43,7 +35,7 @@ export class BrowserToolRegistry implements ToolRegistry {
   constructor(private page: BrowserPage) {}
 
   async syncTools(): Promise<Tool[]> {
-    const rawTools = await getToolsFromBrowserPage(this.page);
+    const rawTools = this.page.webmcp?.tools() || [];
     this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
     return this.currentTools;
   }
