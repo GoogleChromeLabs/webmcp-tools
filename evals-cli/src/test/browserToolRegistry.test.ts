@@ -144,4 +144,50 @@ describe("BrowserToolRegistry", () => {
     assert.strictEqual(page.navigationCalls.length, 1);
     assert.deepStrictEqual(result, { type: "JSON-LD" });
   });
+
+  it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
+    const listeners: Record<string, Function[]> = {};
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      on: (event: string, cb: Function) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(cb);
+      },
+      off: (event: string, cb: Function) => {
+        if (listeners[event]) {
+          listeners[event] = listeners[event].filter((l) => l !== cb);
+        }
+      },
+      tools: () => [
+        {
+          name: "book_table",
+          description: "Form-based tool without autosubmit",
+          formElement: Promise.resolve({} as any),
+          annotations: { autosubmit: false },
+          execute: async () => {
+            // Trigger toolinvoked listener like Puppeteer CDP event would
+            const invokedCb = listeners["toolinvoked"]?.[0];
+            if (invokedCb) {
+              invokedCb({ tool: { name: "book_table" } });
+            }
+            // Promise that doesn't resolve immediately (simulating form wait)
+            return new Promise(() => {});
+          },
+        },
+      ],
+    };
+
+    // Override setTimeout in execution context with fast timeout for speed
+    const registry = new BrowserToolRegistry(page);
+
+    // Fast-forward or test using speed up: since code uses 1000ms timeout, let's test execution
+    const origSetTimeout = global.setTimeout;
+    try {
+      global.setTimeout = ((cb: Function, _ms: number) => origSetTimeout(cb, 10)) as any;
+      const result = await registry.executeTool("book_table", { guests: 2 });
+      assert.strictEqual(result, "pending form submission");
+    } finally {
+      global.setTimeout = origSetTimeout;
+    }
+  });
 });

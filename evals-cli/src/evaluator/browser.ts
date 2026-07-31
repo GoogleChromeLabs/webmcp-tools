@@ -62,13 +62,68 @@ export class BrowserToolRegistry implements ToolRegistry {
         return { error: `no tool named "${name}" was found` };
       }
 
-      const res = await tool.execute(args || {});
-      if (res.status === "Completed") {
-        executionResult.result = res.output !== undefined ? res.output : "Success";
-      } else if (res.status === "Error") {
-        return { error: res.errorText || `Error executing tool "${name}"` };
+      const isDeclarativeWithoutAutosubmit =
+        Boolean(await tool.formElement) && !tool.annotations?.autosubmit;
+
+      if (isDeclarativeWithoutAutosubmit) {
+        const toolPromise = new Promise((resolve) => {
+          let timer: any = null;
+
+          const onToolInvoked = (call: any) => {
+            if (!call.tool || call.tool.name === name) {
+              timer = setTimeout(() => {
+                this.page.webmcp?.off("toolinvoked", onToolInvoked);
+                resolve({ success: true, data: "pending form submission" });
+              }, 1000);
+            }
+          };
+
+          if (this.page.webmcp) {
+            this.page.webmcp.on("toolinvoked", onToolInvoked);
+          }
+
+          tool
+            .execute(args || {})
+            .then((res: any) => {
+              if (timer) clearTimeout(timer);
+              if (this.page.webmcp) {
+                this.page.webmcp.off("toolinvoked", onToolInvoked);
+              }
+              if (res.status === "Completed") {
+                resolve({ success: true, data: res.output ?? "Success" });
+              } else if (res.status === "Error") {
+                resolve({
+                  success: false,
+                  error: res.errorText || `Error executing tool "${name}"`,
+                });
+              } else {
+                resolve({ success: false, error: `Tool execution status: ${res.status}` });
+              }
+            })
+            .catch((err: any) => {
+              if (timer) clearTimeout(timer);
+              if (this.page.webmcp) {
+                this.page.webmcp.off("toolinvoked", onToolInvoked);
+              }
+              resolve({ success: false, error: err?.message || String(err) });
+            });
+        });
+
+        const toolResult: any = await toolPromise;
+        if (toolResult && toolResult.success) {
+          executionResult.result = toolResult.data;
+        } else {
+          return { error: toolResult?.error || `Error executing tool "${name}"` };
+        }
       } else {
-        return { error: `Tool execution status: ${res.status}` };
+        const res = await tool.execute(args || {});
+        if (res.status === "Completed") {
+          executionResult.result = res.output !== undefined ? res.output : "Success";
+        } else if (res.status === "Error") {
+          return { error: res.errorText || `Error executing tool "${name}"` };
+        } else {
+          return { error: `Tool execution status: ${res.status}` };
+        }
       }
 
       // If executionResult.result is null, it is due to a navigation happening.
