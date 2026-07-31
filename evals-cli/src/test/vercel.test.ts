@@ -177,5 +177,64 @@ describe("VercelBackend", () => {
       assert.strictEqual(capturedPayload.messages[3].role, "user");
       assert.strictEqual(capturedPayload.messages[3].content, "Remove it.");
     });
+
+    it("should match tool result strictly by toolCallId when the same tool is called multiple times", async (t) => {
+      const dummyPage: any = {
+        evaluate: async (fn: any) => {
+          if (fn.toString().includes("getTools")) {
+            return [
+              {
+                name: "load_next_results",
+                description: "Loads results",
+                inputSchema: { type: "object" },
+              },
+            ];
+          }
+          return {};
+        },
+      };
+
+      t.mock.method(ai.ToolLoopAgent.prototype, "generate", async () => {
+        return {
+          steps: [
+            {
+              toolCalls: [
+                { toolName: "load_next_results", toolCallId: "call-1", input: { page: 1 } },
+                { toolName: "load_next_results", toolCallId: "call-2", input: { page: 2 } },
+              ],
+              toolResults: [
+                { toolName: "load_next_results", toolCallId: "call-1", result: "Page 1 items" },
+                { toolName: "load_next_results", toolCallId: "call-2", result: "Page 2 items" },
+              ],
+            },
+          ],
+          text: "Done loading",
+        };
+      });
+
+      const backend = new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+      } as any);
+
+      const evalTest: Eval = {
+        name: "Duplicate tool call test case",
+        messages: [{ role: "user", type: "message", content: "Load pages 1 and 2" }],
+        expectedCall: [],
+      };
+
+      const result = await backend.executeInBrowserEval(evalTest, dummyPage, {
+        url: "http://localhost:3000",
+      } as any);
+
+      assert.strictEqual(result.toolCalls.length, 2);
+      assert.strictEqual(result.toolCalls[0].functionName, "load_next_results");
+      assert.deepStrictEqual(result.toolCalls[0].args, { page: 1 });
+      assert.strictEqual(result.toolCalls[0].result, "Page 1 items");
+
+      assert.strictEqual(result.toolCalls[1].functionName, "load_next_results");
+      assert.deepStrictEqual(result.toolCalls[1].args, { page: 2 });
+      assert.strictEqual(result.toolCalls[1].result, "Page 2 items");
+    });
   });
 });

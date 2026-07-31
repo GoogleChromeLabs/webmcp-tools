@@ -6,6 +6,7 @@
 export type ToolCall = {
   args: object;
   functionName: string;
+  result?: unknown;
 };
 
 export type Tool = {
