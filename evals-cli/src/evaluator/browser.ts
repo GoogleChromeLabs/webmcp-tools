@@ -23,7 +23,7 @@ export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]>
 }
 
 export const PUPPETEER_FLAGS = [
-  "--enable-features=WebMCPTesting,DevToolsWebMCPSupport,WebMCP",
+  "--enable-features=WebMCP",
   "--no-sandbox",
   "--disable-setuid-sandbox",
 ];
