@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Find New Dallas House Under $800k",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Find me a brand new house in Dallas for under $800k."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "searchProperties",
+        "arguments": {
+          "location": "Dallas",
+          "maxPrice": 800000,
+          "propertyType": "House",
+          "minYearBuilt": 2026
+        }
+      }
+    ]
+  }
+]

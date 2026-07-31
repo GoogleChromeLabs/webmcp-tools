@@ -1,0 +1,539 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMCP Eval Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-8 antialiased">
+    <div class="max-w-5xl mx-auto space-y-8">
+        <header class="border-b border-slate-200 pb-6 mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+        </header>
+        
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Configuration</h2>
+            
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">URL</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular/</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">examples/temp-tuning/sport-shop-fail.json</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">vercel</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">gemini-3.5-flash</span></li>
+</ul>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Summary</h2>
+            
+        <p class="text-sm text-slate-500 mb-4 font-medium">
+          Evaluated 1 test case across 1 run.
+        </p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col">
+                <span class="text-sm text-slate-500 font-medium">Total Evals</span>
+                <span class="text-2xl font-bold text-slate-900">3</span>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex flex-col">
+                <span class="text-sm text-emerald-600 font-medium">Passed</span>
+                <span class="text-2xl font-bold text-emerald-700">3</span>
+            </div>
+            <div class="bg-rose-50 p-4 rounded-lg border border-rose-100 flex flex-col">
+                <span class="text-sm text-rose-600 font-medium">Failed</span>
+                <span class="text-2xl font-bold text-rose-700">0</span>
+            </div>
+            <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 flex flex-col">
+                <span class="text-sm text-amber-600 font-medium">Errors</span>
+                <span class="text-2xl font-bold text-amber-700">0</span>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col">
+                <span class="text-sm text-blue-600 font-medium">Pass Rate</span>
+                <span class="text-2xl font-bold text-blue-700">100.0%</span>
+            </div>            
+        </div>
+        </section>
+
+        <section class="space-y-6">
+            <h2 class="text-xl font-semibold text-slate-800 pb-2 border-b border-slate-200">Details</h2>
+            
+    <div class="space-y-6">
+      
+    <div class="border border-emerald-200 rounded-xl bg-white shadow-sm overflow-hidden">
+      <details class="group/case" >
+        <summary class="flex items-center justify-between p-5 cursor-pointer bg-emerald-50/40 hover:bg-emerald-50/70 transition-all duration-200 select-none">
+          <div class="flex items-center space-x-3 flex-1 min-w-0 mr-4">
+            <svg class="w-5 h-5 text-slate-400 group-open/case:rotate-90 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+            <div class="truncate">
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Test case #1/1</span>
+              <h3 class="text-base font-semibold text-emerald-900 truncate font-sans">
+                Sport Shop: Find Kid Baseball Gift Under $50
+              </h3>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 shrink-0">
+            <span class="px-3 py-1 rounded text-xs font-semibold border bg-emerald-100 text-emerald-800 border-emerald-200">
+              3/3 Passed
+            </span>
+          </div>
+        </summary>
+        
+        <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-5">
+          
+    <div class="border border-slate-200 rounded-lg bg-white shadow-xs overflow-hidden">
+      <details class="group/run" >
+        <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50/80 transition-all duration-200 select-none font-medium text-slate-700 text-sm">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-slate-400 group-open/run:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="font-semibold">Run #1/1</span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded text-xs font-semibold border bg-emerald-100 text-emerald-800 border-emerald-200">
+            3/3 Passed
+          </span>
+        </summary>
+        
+        <div class="p-4 border-t border-slate-100 bg-slate-50/30 space-y-5">
+          <details class="group/msgs bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <summary class="p-3 font-semibold text-xs text-slate-600 cursor-pointer hover:bg-slate-50 flex items-center justify-between select-none">
+              <span>Prompt & Expected Messages</span>
+              <svg class="w-4 h-4 text-slate-400 group-open/msgs:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div class="p-3 border-t border-slate-150 bg-slate-50/20">
+              <ul class="space-y-4">
+    <li class="flex flex-col space-y-2">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-xs font-medium border capitalize bg-purple-100 text-purple-800 border-purple-200">user</span>
+          <span class="text-xs text-slate-500 font-medium uppercase tracking-wider">message</span>
+        </div>
+        <div><div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">I&#039;m looking for a gift for my kid. He likes baseball. Apply filter for 50$ if available</div></div>
+    </li></ul>
+            </div>
+          </details>
+
+          <div class="space-y-4">
+            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
+            
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #1/3
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-emerald-700 bg-emerald-50 border-emerald-200">
+          PASS
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">search_product</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">search_product</code></td>
+              <td class="px-4 py-3">
+                <span class="text-emerald-600 font-bold text-xs">
+                  PASS
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;category&quot;: &quot;BASEBALL&quot;,
+  &quot;size&quot;: &quot;child&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;category&quot;: &quot;BASEBALL&quot;,
+  &quot;size&quot;: &quot;child&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-emerald-600 font-bold text-xs mt-2 inline-block">
+                  PASS
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #2/3
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-emerald-700 bg-emerald-50 border-emerald-200">
+          PASS
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">refine_search</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">refine_search</code></td>
+              <td class="px-4 py-3">
+                <span class="text-emerald-600 font-bold text-xs">
+                  PASS
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;priceRange&quot;: {
+    &quot;$pattern&quot;: &quot;^(0-49\\.99|50-99\\.99)$&quot;
+  }
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;priceRange&quot;: &quot;50-99.99&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-emerald-600 font-bold text-xs mt-2 inline-block">
+                  PASS
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #3/3
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-emerald-700 bg-emerald-50 border-emerald-200">
+          PASS
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">get_current_search_results</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">get_current_search_results</code></td>
+              <td class="px-4 py-3">
+                <span class="text-emerald-600 font-bold text-xs">
+                  PASS
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-emerald-600 font-bold text-xs mt-2 inline-block">
+                  PASS
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+          </div>
+
+          
+    <details class="group/traj bg-white rounded border border-slate-200 mt-6">
+      <summary class="p-3 font-medium text-sm text-slate-700 cursor-pointer hover:bg-slate-50 border-b border-transparent group-open/traj:border-slate-200">
+        Trajectory
+      </summary>
+      <div class="p-4 space-y-6">
+        <div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0"><div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div><strong class="block text-sm text-slate-900 font-semibold mb-2">Step 1</strong><div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Available Tools (5):</em><div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans"><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_product_info">get_product_info</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns detailed information about a product. You can provide its exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_store_promos_and_rules">get_store_promos_and_rules</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="open_cart">open_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Opens the shopping cart modal to review items and proceed to checkout.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="search_product">search_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Search for products based on the query.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="view_product">view_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Navigates to the product detail page for a given product. You can provide its exact productId, or productName.</div></div></div><div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-blue-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-call&quot;,
+    &quot;toolCallId&quot;: &quot;rEQYlqtVP0qzJbwl&quot;,
+    &quot;toolName&quot;: &quot;search_product&quot;,
+    &quot;input&quot;: {
+      &quot;size&quot;: &quot;child&quot;,
+      &quot;category&quot;: &quot;BASEBALL&quot;
+    },
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;EuwECukEARFNMg9LBR4VR4PtgcLrC8QDdaKEHvwyEtUEbmzuef1IgFopQwKlhKGIhyhhhKkLTTEnRyxftcTsXJih5ygilHvobwMFlDTJnHQUMelyWavggtyL7Xkhjaj7B6Cj/USUDlV1c1/5+Ayn/eGFDdLUFfEi4xhOogz660tKEeeS/WzOyILOOW5KAOhvKSmdanDqfA2Aqes77R+eJAWNX76X4Hq0mtPnto2r43qMweAzsKjsu0T4gsFwMv/1nizLHnhMMvvgjZZx1KAbCNNwSHbfy2WGKS3LA0QQV75tkEZj9lOB4FLpNWgcPsGuRdtfvMrb++kz4vbFEAzUJWbOMnPZ0Xr9d4GBK90VhiJ/MkCfQGruRo2a0z2Yg5EI6TrHny4DSG6XI+VV62pC4CU+cYIiuwB9VqIWv4YzzXNpILKwB8/N0itD84QKGCaONNWBnePL8LPD8k7uxdjBkcAEfNtj3jbRwalOWIUwU06phekaR9gsHWFSl5SGMEAC1ZMXrXBI/egkIfCiplCpVzCFIsbzXCPpQ7blt4xTzkrQoxE056GO2Op8/KLB5VqNUIJClFTnBJeh6Ox7COtP/iWwI156+c/UxSZ4sKgmTcJbUYB76EXvAPzsbKCsg6WSNFbl0WvjHeX6tg0rhhGq7MHz8RbcfenfLb0AaLO9q6LjuCE4Ne3/mbwyXRchFcvNO3Asbkmb+Nlbm6qgW1ZEaHN5KONA17njvlVXLNmVaPnFcJYF2UDY9fyap7vQ0siXhgZo/H2lz2vyIECpWR0FjdvXjJTYlttaWa+xPUXi1Z3jLlksIme9W2Ox2cK39Ak=&quot;
+      }
+    }
+  }
+]</pre></div></div><div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-emerald-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-result&quot;,
+    &quot;toolCallId&quot;: &quot;rEQYlqtVP0qzJbwl&quot;,
+    &quot;toolName&quot;: &quot;search_product&quot;,
+    &quot;input&quot;: {
+      &quot;size&quot;: &quot;child&quot;,
+      &quot;category&quot;: &quot;BASEBALL&quot;
+    },
+    &quot;output&quot;: {
+      &quot;success&quot;: true,
+      &quot;message&quot;: &quot;Navigating to search results for {\&quot;q\&quot;:\&quot;\&quot;,\&quot;category\&quot;:\&quot;BASEBALL\&quot;,\&quot;size\&quot;:\&quot;child\&quot;}&quot;,
+      &quot;count&quot;: 5,
+      &quot;products&quot;: [
+        {
+          &quot;id&quot;: &quot;nano-banana-glove&quot;,
+          &quot;name&quot;: &quot;Nano Banana Field Master&quot;,
+          &quot;price&quot;: 52.99,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Crafted from premium synthetic leather, the Nano Banana Field Master offers pro-grade durability and an instant break-in feel. Master every play with a glove that blends tradition with elite performance.&quot;,
+          &quot;image&quot;: &quot;assets/products/nano-banana-glove.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;youth&quot;,
+            &quot;glove&quot;,
+            &quot;gift&quot;,
+            &quot;under $50&quot;,
+            &quot;nano banana&quot;
+          ],
+          &quot;availability&quot;: 8
+        },
+        {
+          &quot;id&quot;: &quot;google-impact-balls&quot;,
+          &quot;name&quot;: &quot;Google Impact Training Balls (12pk)&quot;,
+          &quot;price&quot;: 24,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Build confidence at the plate with indestructible limited-flight training balls by Google. Engineered for repeated impact, they provide instant feedback without leaving the field.&quot;,
+          &quot;image&quot;: &quot;assets/products/google-impact-balls.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;training&quot;,
+            &quot;gift&quot;,
+            &quot;under $50&quot;,
+            &quot;google&quot;
+          ],
+          &quot;availability&quot;: 12
+        },
+        {
+          &quot;id&quot;: &quot;gemini-pro-grip-gloves&quot;,
+          &quot;name&quot;: &quot;Gemini Pro Grip Batting Gloves&quot;,
+          &quot;price&quot;: 19.99,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Dominating at the plate requires a superior hold. Gemini Pro Grip gloves feature genuine leather palms and ventilated mesh for maximum comfort and control during every swing.&quot;,
+          &quot;image&quot;: &quot;assets/products/gemini-pro-grip-gloves.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;apparel&quot;,
+            &quot;gift&quot;,
+            &quot;under $50&quot;,
+            &quot;gemini&quot;
+          ],
+          &quot;availability&quot;: 3
+        },
+        {
+          &quot;id&quot;: &quot;nano-banana-speed-bat&quot;,
+          &quot;name&quot;: &quot;Nano Banana Speed-Balance Alloy Bat&quot;,
+          &quot;price&quot;: 48.5,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Specifically engineered for the youth hitter, this Nano Banana speed-balanced alloy bat delivers explosive energy transfer and a lightweight feel for lightning-fast swings.&quot;,
+          &quot;image&quot;: &quot;assets/products/nano-banana-speed-bat.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;bat&quot;,
+            &quot;gift&quot;,
+            &quot;under $50&quot;,
+            &quot;nano banana&quot;
+          ],
+          &quot;availability&quot;: 1
+        },
+        {
+          &quot;id&quot;: &quot;nano-banana-youth-helmet&quot;,
+          &quot;name&quot;: &quot;Nano Banana Youth Helmet&quot;,
+          &quot;price&quot;: 249.99,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Durable ABS shell for youth protection with the Nano Banana signature style.&quot;,
+          &quot;image&quot;: &quot;assets/products/nano-banana-youth-helmet.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;protection&quot;,
+            &quot;helmet&quot;,
+            &quot;youth&quot;,
+            &quot;nano banana&quot;
+          ],
+          &quot;availability&quot;: 8
+        }
+      ]
+    },
+    &quot;dynamic&quot;: false,
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;EuwECukEARFNMg9LBR4VR4PtgcLrC8QDdaKEHvwyEtUEbmzuef1IgFopQwKlhKGIhyhhhKkLTTEnRyxftcTsXJih5ygilHvobwMFlDTJnHQUMelyWavggtyL7Xkhjaj7B6Cj/USUDlV1c1/5+Ayn/eGFDdLUFfEi4xhOogz660tKEeeS/WzOyILOOW5KAOhvKSmdanDqfA2Aqes77R+eJAWNX76X4Hq0mtPnto2r43qMweAzsKjsu0T4gsFwMv/1nizLHnhMMvvgjZZx1KAbCNNwSHbfy2WGKS3LA0QQV75tkEZj9lOB4FLpNWgcPsGuRdtfvMrb++kz4vbFEAzUJWbOMnPZ0Xr9d4GBK90VhiJ/MkCfQGruRo2a0z2Yg5EI6TrHny4DSG6XI+VV62pC4CU+cYIiuwB9VqIWv4YzzXNpILKwB8/N0itD84QKGCaONNWBnePL8LPD8k7uxdjBkcAEfNtj3jbRwalOWIUwU06phekaR9gsHWFSl5SGMEAC1ZMXrXBI/egkIfCiplCpVzCFIsbzXCPpQ7blt4xTzkrQoxE056GO2Op8/KLB5VqNUIJClFTnBJeh6Ox7COtP/iWwI156+c/UxSZ4sKgmTcJbUYB76EXvAPzsbKCsg6WSNFbl0WvjHeX6tg0rhhGq7MHz8RbcfenfLb0AaLO9q6LjuCE4Ne3/mbwyXRchFcvNO3Asbkmb+Nlbm6qgW1ZEaHN5KONA17njvlVXLNmVaPnFcJYF2UDY9fyap7vQ0siXhgZo/H2lz2vyIECpWR0FjdvXjJTYlttaWa+xPUXi1Z3jLlksIme9W2Ox2cK39Ak=&quot;
+      }
+    }
+  }
+]</pre></div></div></div><div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0"><div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div><strong class="block text-sm text-slate-900 font-semibold mb-2">Step 2</strong><div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Available Tools (8):</em><div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans"><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="add_search_result_to_cart">add_search_result_to_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Adds a product from the current search results to the shopping cart. You can provide its index, exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_current_search_results">get_current_search_results</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns the current search results displayed on the page.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_product_info">get_product_info</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns detailed information about a product. You can provide its exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_store_promos_and_rules">get_store_promos_and_rules</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="open_cart">open_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Opens the shopping cart modal to review items and proceed to checkout.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="refine_search">refine_search</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Refine the current search results by applying a price filter.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="search_product">search_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Search for products based on the query.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="view_product">view_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Navigates to the product detail page for a given product. You can provide its exact productId, or productName.</div></div></div><div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-blue-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-call&quot;,
+    &quot;toolCallId&quot;: &quot;vXIB6LIAEcDynTGv&quot;,
+    &quot;toolName&quot;: &quot;refine_search&quot;,
+    &quot;input&quot;: {
+      &quot;priceRange&quot;: &quot;50-99.99&quot;
+    },
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;Eq4KCqsKARFNMg9jsg7Fi10swHTl8FF7zxFIK4xO66zn+04y7dC1yaP4csJVN21r4C1NGk7VGuzPLrRIA0OCsXHM+SDSUf4EPCnvQ3aqPdwWVgGiZsVgW7qLIx7iWi/asP5ABrvaNOIMYZLdE3IGpPsQq24XPdTgdSc8we/ib4RkE2jDCN45oq4c2Tsc0PNg/S6KbbBVhVvK7GOz5FEjwrhpckXIso9/hxEtmeB+jP4l9Y97nFUZrpC0xz2dyvcoj35c2uVO9cvj5pIK2yF9jsG5WzcUcdQhrbiCbJof1rYwo8qiLwnwOlgawVsqIWg87+hkkIXY/hBjnS1RIzWLMoveuymWSPkkH9kSWTsX/OKcSd8YR3r12IR7Wod9/nrAmJ9yNL4/s+m+QfZh0xF60mz25/nwHDq0eDWqAGa9Niwt6kJ4vdVRi0+f5/UMDS8vG3fbHtzIXEzdYLnFCckSMiEclcNaYJHjxHAo+7ttYKOOxXBHo1APQnIppw8lBvRhzo/wD09JPpn0afYSrEoGpXU18SU4xNurFq7yk9YSEt+aGlOGHOiiTnEzJJIC+cuGYkl7/IrHWiB8FeValCjmhYFwLwcwnyOqaYWRFxnjeEUP9fmTHqOmHh/RAMI5DVEjVmGHbN8QkYymIcNpF8a+bC1ZxR80BXolWknVdpac9QJH88NhEs4fTUNcwbwM8P3+zSUORSs9HKU30jvj5SC647VTDiW08JIdeNg+Hh3eIzu5aH8XBB+6/zcnCvPbWvzVsz25o+uFhP4qe1j7HRXY1w5BYTDo8sjDlqMxW9tl4PmISXt1IFvzktuLNBVC/yIML2Rzk42gEaPwYerQLIXWAO2FpqxSgYgP+3gfnujt7tk5Ipa5sKqPntvpPCwvDeRjtCC1Cj71lokFbm0D3Hz4JdeObOspr4y+HaRVtbU2PpPIoqbSZ1nIVRaVKJW6gALODjaUTIrOWK5hnzzen6ZINKi0mJq64zn8Id/YutfUSFirpvRFgsxurgj24EbFIc7fRURtU9ewV7OGPZOado2R2kTInT2ghWEd1O1JFcV3zhF+Twcq9Tv5oSDstwepCT2IR2g3zyXK/a8lW//T85JHQ5HfmmqgCr/9bZu+HNCXQ4pkp6kWd8SEyyzrJ+ijRRxMsyJF1cfJX6Qc0fNl+4V+BsPGVsmQW5KKbcKKYzKGenWRwjDxsEu9EZxl8YrKAWgqM/TlOMfhXkMEpNb15pfMfnErhpyVCw17Gn4Pg/SHe8yvsZuaRDe7ZFLgWhC4aKjVtn+v+xuli/zy6ajzFHPb+ljkGRhtgsCImUOgQLYWzkZ9pb3qeqz2yjxrFzo+qVqCY8tjTrUpn14/R6226k6CFjNc11vfT4Br/Fqw7EL81H1VPYu+G9jk5/Z7v6urFlaUgn1yLC6yzaM8zAR7PfMzHO29m+dBW8pF6PlVwNyyQ1pAd37Kjv5bYX+H0vHURJeNF6YtW/gXLMCtg46cinxnk1ISK6jqVIm4sizYKd8yZYR/fMY+hbgnxm+i7c4Z/n7iBMNxDe45p59EHlO9eD5+hGc6dpGbwIWGvTUcwUxmIIXDxFRhnXhehEcH1P52hUTzdS4vKDgIuYQihtCn13ACBlvXZ6o15JWC3NDsx5q8yJl1qdVf0eAJukFquGllR/rbvE4K0Y/p/1SfWEdEApJOJ5Xs6oDNJm0U0jrMG7C5t9PqSLQFUC6CAd+gUgR3BsTDQlshCjxgCEBt1qCXv2qY/zHqUpdBtcRk/dmFYD2xAc3g&quot;
+      }
+    }
+  }
+]</pre></div></div><div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-emerald-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-result&quot;,
+    &quot;toolCallId&quot;: &quot;vXIB6LIAEcDynTGv&quot;,
+    &quot;toolName&quot;: &quot;refine_search&quot;,
+    &quot;input&quot;: {
+      &quot;priceRange&quot;: &quot;50-99.99&quot;
+    },
+    &quot;output&quot;: {
+      &quot;success&quot;: true,
+      &quot;message&quot;: &quot;Filtered results by 50-99.99&quot;
+    },
+    &quot;dynamic&quot;: false,
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;Eq4KCqsKARFNMg9jsg7Fi10swHTl8FF7zxFIK4xO66zn+04y7dC1yaP4csJVN21r4C1NGk7VGuzPLrRIA0OCsXHM+SDSUf4EPCnvQ3aqPdwWVgGiZsVgW7qLIx7iWi/asP5ABrvaNOIMYZLdE3IGpPsQq24XPdTgdSc8we/ib4RkE2jDCN45oq4c2Tsc0PNg/S6KbbBVhVvK7GOz5FEjwrhpckXIso9/hxEtmeB+jP4l9Y97nFUZrpC0xz2dyvcoj35c2uVO9cvj5pIK2yF9jsG5WzcUcdQhrbiCbJof1rYwo8qiLwnwOlgawVsqIWg87+hkkIXY/hBjnS1RIzWLMoveuymWSPkkH9kSWTsX/OKcSd8YR3r12IR7Wod9/nrAmJ9yNL4/s+m+QfZh0xF60mz25/nwHDq0eDWqAGa9Niwt6kJ4vdVRi0+f5/UMDS8vG3fbHtzIXEzdYLnFCckSMiEclcNaYJHjxHAo+7ttYKOOxXBHo1APQnIppw8lBvRhzo/wD09JPpn0afYSrEoGpXU18SU4xNurFq7yk9YSEt+aGlOGHOiiTnEzJJIC+cuGYkl7/IrHWiB8FeValCjmhYFwLwcwnyOqaYWRFxnjeEUP9fmTHqOmHh/RAMI5DVEjVmGHbN8QkYymIcNpF8a+bC1ZxR80BXolWknVdpac9QJH88NhEs4fTUNcwbwM8P3+zSUORSs9HKU30jvj5SC647VTDiW08JIdeNg+Hh3eIzu5aH8XBB+6/zcnCvPbWvzVsz25o+uFhP4qe1j7HRXY1w5BYTDo8sjDlqMxW9tl4PmISXt1IFvzktuLNBVC/yIML2Rzk42gEaPwYerQLIXWAO2FpqxSgYgP+3gfnujt7tk5Ipa5sKqPntvpPCwvDeRjtCC1Cj71lokFbm0D3Hz4JdeObOspr4y+HaRVtbU2PpPIoqbSZ1nIVRaVKJW6gALODjaUTIrOWK5hnzzen6ZINKi0mJq64zn8Id/YutfUSFirpvRFgsxurgj24EbFIc7fRURtU9ewV7OGPZOado2R2kTInT2ghWEd1O1JFcV3zhF+Twcq9Tv5oSDstwepCT2IR2g3zyXK/a8lW//T85JHQ5HfmmqgCr/9bZu+HNCXQ4pkp6kWd8SEyyzrJ+ijRRxMsyJF1cfJX6Qc0fNl+4V+BsPGVsmQW5KKbcKKYzKGenWRwjDxsEu9EZxl8YrKAWgqM/TlOMfhXkMEpNb15pfMfnErhpyVCw17Gn4Pg/SHe8yvsZuaRDe7ZFLgWhC4aKjVtn+v+xuli/zy6ajzFHPb+ljkGRhtgsCImUOgQLYWzkZ9pb3qeqz2yjxrFzo+qVqCY8tjTrUpn14/R6226k6CFjNc11vfT4Br/Fqw7EL81H1VPYu+G9jk5/Z7v6urFlaUgn1yLC6yzaM8zAR7PfMzHO29m+dBW8pF6PlVwNyyQ1pAd37Kjv5bYX+H0vHURJeNF6YtW/gXLMCtg46cinxnk1ISK6jqVIm4sizYKd8yZYR/fMY+hbgnxm+i7c4Z/n7iBMNxDe45p59EHlO9eD5+hGc6dpGbwIWGvTUcwUxmIIXDxFRhnXhehEcH1P52hUTzdS4vKDgIuYQihtCn13ACBlvXZ6o15JWC3NDsx5q8yJl1qdVf0eAJukFquGllR/rbvE4K0Y/p/1SfWEdEApJOJ5Xs6oDNJm0U0jrMG7C5t9PqSLQFUC6CAd+gUgR3BsTDQlshCjxgCEBt1qCXv2qY/zHqUpdBtcRk/dmFYD2xAc3g&quot;
+      }
+    }
+  }
+]</pre></div></div></div><div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0"><div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div><strong class="block text-sm text-slate-900 font-semibold mb-2">Step 3</strong><div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Available Tools (8):</em><div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans"><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="add_search_result_to_cart">add_search_result_to_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Adds a product from the current search results to the shopping cart. You can provide its index, exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_current_search_results">get_current_search_results</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns the current search results displayed on the page.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_product_info">get_product_info</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns detailed information about a product. You can provide its exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_store_promos_and_rules">get_store_promos_and_rules</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="open_cart">open_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Opens the shopping cart modal to review items and proceed to checkout.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="refine_search">refine_search</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Refine the current search results by applying a price filter.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="search_product">search_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Search for products based on the query.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="view_product">view_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Navigates to the product detail page for a given product. You can provide its exact productId, or productName.</div></div></div><div><em class="text-xs font-semibold text-blue-500 uppercase tracking-wider block mb-1">Tool Calls:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-blue-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-call&quot;,
+    &quot;toolCallId&quot;: &quot;UWBMtDKJP1P4ic3U&quot;,
+    &quot;toolName&quot;: &quot;get_current_search_results&quot;,
+    &quot;input&quot;: {},
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;EmYKZAERTTIPmWsbt7O8XtzatEDbMvmpHU1ARfWispKPbio0mg0boyd4m0nMLcvXltfoF9vHd2l5/0R/5pFe+GhrMorIJnuHEa3/Z1NCGmgQUd4qTybhEvbZj6SImEenP8WHSv8VJNU=&quot;
+      }
+    }
+  }
+]</pre></div></div><div><em class="text-xs font-semibold text-emerald-500 uppercase tracking-wider block mb-1">Tool Results:</em><div class="bg-slate-800 rounded-md p-3 overflow-x-auto border border-slate-700"><pre class="text-xs text-emerald-300 font-mono m-0">[
+  {
+    &quot;type&quot;: &quot;tool-result&quot;,
+    &quot;toolCallId&quot;: &quot;UWBMtDKJP1P4ic3U&quot;,
+    &quot;toolName&quot;: &quot;get_current_search_results&quot;,
+    &quot;input&quot;: {},
+    &quot;output&quot;: {
+      &quot;success&quot;: true,
+      &quot;message&quot;: &quot;Found 1 products.&quot;,
+      &quot;results&quot;: [
+        {
+          &quot;id&quot;: &quot;nano-banana-glove&quot;,
+          &quot;name&quot;: &quot;Nano Banana Field Master&quot;,
+          &quot;price&quot;: 52.99,
+          &quot;category&quot;: &quot;BASEBALL&quot;,
+          &quot;description&quot;: &quot;Crafted from premium synthetic leather, the Nano Banana Field Master offers pro-grade durability and an instant break-in feel. Master every play with a glove that blends tradition with elite performance.&quot;,
+          &quot;image&quot;: &quot;assets/products/nano-banana-glove.png&quot;,
+          &quot;size&quot;: &quot;child&quot;,
+          &quot;tags&quot;: [
+            &quot;youth&quot;,
+            &quot;glove&quot;,
+            &quot;gift&quot;,
+            &quot;under $50&quot;,
+            &quot;nano banana&quot;
+          ],
+          &quot;availability&quot;: 8
+        }
+      ]
+    },
+    &quot;dynamic&quot;: false,
+    &quot;providerMetadata&quot;: {
+      &quot;google&quot;: {
+        &quot;thoughtSignature&quot;: &quot;EmYKZAERTTIPmWsbt7O8XtzatEDbMvmpHU1ARfWispKPbio0mg0boyd4m0nMLcvXltfoF9vHd2l5/0R/5pFe+GhrMorIJnuHEa3/Z1NCGmgQUd4qTybhEvbZj6SImEenP8WHSv8VJNU=&quot;
+      }
+    }
+  }
+]</pre></div></div></div><div class="relative pl-6 border-l-2 border-slate-200 space-y-3 pb-6 last:pb-0"><div class="absolute w-3 h-3 bg-slate-200 rounded-full -left-[7px] top-1"></div><strong class="block text-sm text-slate-900 font-semibold mb-2">Step 4</strong><div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em><pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">I have searched for kids&#039; baseball products and applied the price filter of **$50.00 – $99.99**. 
+
+Here is the item matching this criteria:
+* **Nano Banana Field Master**
+  * **Price:** $52.99
+  * **Description:** Crafted from premium synthetic leather, offering pro-grade durability and an instant break-in feel. Excellent gift for a youth baseball player!
+
+If you&#039;d like to see items under $50 (such as bats, batting gloves, or training balls), let me know and I can adjust the filter for you!</pre></div><div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Available Tools (8):</em><div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans"><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="add_search_result_to_cart">add_search_result_to_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Adds a product from the current search results to the shopping cart. You can provide its index, exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_current_search_results">get_current_search_results</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns the current search results displayed on the page.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_product_info">get_product_info</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns detailed information about a product. You can provide its exact productId, or productName.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="get_store_promos_and_rules">get_store_promos_and_rules</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="open_cart">open_cart</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Opens the shopping cart modal to review items and proceed to checkout.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="refine_search">refine_search</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Refine the current search results by applying a price filter.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="search_product">search_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Search for products based on the query.</div><div class="flex items-start"><span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="view_product">view_product</span></div><div class="text-xs text-slate-600 text-left align-top mt-0.5">Navigates to the product detail page for a given product. You can provide its exact productId, or productName.</div></div></div></div>
+      </div>
+    </details>
+  
+        </div>
+      </details>
+    </div>
+  
+        </div>
+      </details>
+    </div>
+  
+    </div>
+  
+        </section>
+    </div>
+</body>    
+</html>

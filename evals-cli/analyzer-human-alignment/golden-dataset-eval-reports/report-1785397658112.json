@@ -1,0 +1,53 @@
+{
+  "config": {
+    "toolSchemaFile": "examples/real-estate/schema.json",
+    "evalsFile": "analyzer-human-alignment/golden-dataset-eval-reports/_real-estate-pass-evals.json",
+    "backend": "vercel",
+    "model": "gemini-3.5-flash",
+    "runs": 1,
+    "outputDir": "analyzer-human-alignment/golden-dataset-eval-reports",
+    "reporter": [
+      "json",
+      "html"
+    ]
+  },
+  "results": {
+    "results": [
+      {
+        "test": {
+          "name": "Calculate $500k 7% Mortgage Payment",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "What would my monthly payment be on a $500k loan at 7% interest?"
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "calculateMortgage",
+              "arguments": {
+                "loanAmount": 500000,
+                "interestRate": 7
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "calculateMortgage",
+          "args": {
+            "loanAmount": 500000,
+            "interestRate": 7
+          }
+        },
+        "outcome": "pass",
+        "runIndex": 1,
+        "stepIndex": 1
+      }
+    ],
+    "testCount": 1,
+    "passCount": 1,
+    "failCount": 0,
+    "errorCount": 0
+  }
+}

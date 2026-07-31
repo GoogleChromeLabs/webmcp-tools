@@ -1,0 +1,9 @@
+# Human Expert Ground Truth Assessment
+case: "Sport Shop: Find Kid Baseball Gift Under $50"
+overall_outcome: "PASS"
+failed_steps: []
+false_positives:
+  - step: 2 # refine_search step
+    reason: "The test passed, but it is a FALSE POSITIVE. The user asked for a gift 'under $50'. The model called refine_search with '50-99.99' instead of '0-49.99', which is a model logic error. However, the test assertion regex '^(0-49\\.99|50-99\\.99)$' was too lenient and allowed it to pass."
+fixes:
+  - "Tighten the priceRange expectedCall constraint in evals.json to only accept '0-49.99' for under $50 query"

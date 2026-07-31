@@ -1,0 +1,169 @@
+{
+  "config": {
+    "toolSchemaFile": "examples/real-estate/schema.json",
+    "evalsFile": "analyzer-human-alignment/golden-dataset-eval-reports/_real-estate-fail-evals.json",
+    "backend": "vercel",
+    "model": "gemini-3.5-flash",
+    "runs": 1,
+    "outputDir": "analyzer-human-alignment/golden-dataset-eval-reports",
+    "reporter": [
+      "json",
+      "html"
+    ]
+  },
+  "results": {
+    "results": [
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": [
+            {
+              "functionName": "searchProperties",
+              "arguments": {
+                "location": "Dallas",
+                "maxPrice": 800000,
+                "propertyType": "House",
+                "minYearBuilt": 2026
+              }
+            }
+          ]
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "propertyType": "House",
+            "maxPrice": 800000,
+            "location": "Dallas",
+            "minYearBuilt": 2025
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 1
+      },
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": null
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "location": "Dallas",
+            "maxPrice": 800000,
+            "propertyType": "House"
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 2
+      },
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": null
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "location": "Dallas"
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 3
+      },
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": null
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "location": "Dallas, TX"
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 4
+      },
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": null
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "location": "75201"
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 5
+      },
+      {
+        "test": {
+          "name": "Find New Dallas House Under $800k",
+          "messages": [
+            {
+              "role": "user",
+              "type": "message",
+              "content": "Find me a brand new house in Dallas for under $800k."
+            }
+          ],
+          "expectedCall": null
+        },
+        "response": {
+          "functionName": "searchProperties",
+          "args": {
+            "location": "Uptown Dallas"
+          }
+        },
+        "outcome": "fail",
+        "runIndex": 1,
+        "stepIndex": 6
+      }
+    ],
+    "testCount": 1,
+    "passCount": 0,
+    "failCount": 6,
+    "errorCount": 0
+  }
+}

@@ -1,0 +1,14 @@
+# Human Expert Ground Truth Assessment
+case: "Find New Dallas House Under $800k"
+overall_outcome: "FAIL"
+failed_steps: [1, 2, 3, 4, 5, 6]
+failure_categories:
+  - step: 1
+    category: "Test/Assertion Over-Rigidity"
+    reason: "The test assertion expected minYearBuilt to be exactly 2026. However, the model passed 2025 which is a reasonable parameter choice for finding a 'brand new' house in 2026 (considering houses built in late 2025 are still brand new)."
+  - step: 2
+    category: "Test/Assertion Over-Rigidity"
+    reason: "The model continued searching for more results in subsequent turns, but the test case expectedCall did not account for multiple turns or mark subsequent steps as optional."
+fixes:
+  - "Relax minYearBuilt check in evals.json using a range check or regex pattern, or accept 2025"
+  - "Add optional expectedCalls to cover subsequent search turns"

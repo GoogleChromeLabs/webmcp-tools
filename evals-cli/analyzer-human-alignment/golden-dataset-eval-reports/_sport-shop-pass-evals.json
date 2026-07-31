@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Sport Shop: Search Soccer Ball",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Search for a soccer ball."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "search_product",
+        "arguments": {
+          "category": "SOCCER",
+          "query": {
+            "$contains": "ball"
+          }
+        }
+      },
+      {
+        "functionName": "get_current_search_results",
+        "arguments": {},
+        "optional": true
+      }
+    ]
+  }
+]

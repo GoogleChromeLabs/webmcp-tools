@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Calculate $500k 7% Mortgage Payment",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "What would my monthly payment be on a $500k loan at 7% interest?"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "calculateMortgage",
+        "arguments": {
+          "loanAmount": 500000,
+          "interestRate": 7
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebMCP Eval Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-8 antialiased">
+    <div class="max-w-5xl mx-auto space-y-8">
+        <header class="border-b border-slate-200 pb-6 mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900">Evaluation Results</h1>
+        </header>
+        
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Configuration</h2>
+            
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Tool definitions</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">examples/real-estate/schema.json</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">analyzer-human-alignment/golden-dataset-eval-reports/_real-estate-fail-evals.json</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">vercel</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">gemini-3.5-flash</span></li>
+</ul>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-xl font-semibold mb-4 text-slate-800">Summary</h2>
+            
+        <p class="text-sm text-slate-500 mb-4 font-medium">
+          Evaluated 1 test case across 1 run.
+        </p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 flex flex-col">
+                <span class="text-sm text-slate-500 font-medium">Total Evals</span>
+                <span class="text-2xl font-bold text-slate-900">6</span>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex flex-col">
+                <span class="text-sm text-emerald-600 font-medium">Passed</span>
+                <span class="text-2xl font-bold text-emerald-700">0</span>
+            </div>
+            <div class="bg-rose-50 p-4 rounded-lg border border-rose-100 flex flex-col">
+                <span class="text-sm text-rose-600 font-medium">Failed</span>
+                <span class="text-2xl font-bold text-rose-700">6</span>
+            </div>
+            <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 flex flex-col">
+                <span class="text-sm text-amber-600 font-medium">Errors</span>
+                <span class="text-2xl font-bold text-amber-700">0</span>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col">
+                <span class="text-sm text-blue-600 font-medium">Pass Rate</span>
+                <span class="text-2xl font-bold text-blue-700">0.0%</span>
+            </div>            
+        </div>
+        </section>
+
+        <section class="space-y-6">
+            <h2 class="text-xl font-semibold text-slate-800 pb-2 border-b border-slate-200">Details</h2>
+            
+    <div class="space-y-6">
+      
+    <div class="border border-rose-200 rounded-xl bg-white shadow-sm overflow-hidden">
+      <details class="group/case" open>
+        <summary class="flex items-center justify-between p-5 cursor-pointer bg-rose-50/40 hover:bg-rose-50/70 transition-all duration-200 select-none">
+          <div class="flex items-center space-x-3 flex-1 min-w-0 mr-4">
+            <svg class="w-5 h-5 text-slate-400 group-open/case:rotate-90 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+            </svg>
+            <div class="truncate">
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Test case #1/1</span>
+              <h3 class="text-base font-semibold text-rose-900 truncate font-sans">
+                Find New Dallas House Under $800k
+              </h3>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 shrink-0">
+            <span class="px-3 py-1 rounded text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200">
+              0/6 Passed
+            </span>
+          </div>
+        </summary>
+        
+        <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-5">
+          
+    <div class="border border-slate-200 rounded-lg bg-white shadow-xs overflow-hidden">
+      <details class="group/run" open>
+        <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50/80 transition-all duration-200 select-none font-medium text-slate-700 text-sm">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-slate-400 group-open/run:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+            <span class="font-semibold">Run #1/1</span>
+          </div>
+          <span class="px-2.5 py-0.5 rounded text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200">
+            0/6 Passed
+          </span>
+        </summary>
+        
+        <div class="p-4 border-t border-slate-100 bg-slate-50/30 space-y-5">
+          <details class="group/msgs bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <summary class="p-3 font-semibold text-xs text-slate-600 cursor-pointer hover:bg-slate-50 flex items-center justify-between select-none">
+              <span>Prompt & Expected Messages</span>
+              <svg class="w-4 h-4 text-slate-400 group-open/msgs:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </summary>
+            <div class="p-3 border-t border-slate-150 bg-slate-50/20">
+              <ul class="space-y-4">
+    <li class="flex flex-col space-y-2">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-xs font-medium border capitalize bg-purple-100 text-purple-800 border-purple-200">user</span>
+          <span class="text-xs text-slate-500 font-medium uppercase tracking-wider">message</span>
+        </div>
+        <div><div class="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-700 whitespace-pre-wrap">Find me a brand new house in Dallas for under $800k.</div></div>
+    </li></ul>
+            </div>
+          </details>
+
+          <div class="space-y-4">
+            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
+            
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #1/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-emerald-600 font-bold text-xs">
+                  PASS
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Dallas&quot;,
+  &quot;maxPrice&quot;: 800000,
+  &quot;minYearBuilt&quot;: 2026,
+  &quot;propertyType&quot;: &quot;House&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Dallas&quot;,
+  &quot;maxPrice&quot;: 800000,
+  &quot;minYearBuilt&quot;: 2025,
+  &quot;propertyType&quot;: &quot;House&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #2/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs"></code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-rose-600 font-bold text-xs">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">null</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Dallas&quot;,
+  &quot;maxPrice&quot;: 800000,
+  &quot;propertyType&quot;: &quot;House&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #3/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs"></code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-rose-600 font-bold text-xs">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">null</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Dallas&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #4/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs"></code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-rose-600 font-bold text-xs">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">null</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Dallas, TX&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #5/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs"></code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-rose-600 font-bold text-xs">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">null</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;75201&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div class="flex items-center justify-between bg-slate-50/80 p-3 border-b border-slate-200">
+        <h5 class="text-xs font-semibold text-slate-700">
+          Step #6/6
+        </h5>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border text-rose-700 bg-rose-50 border-rose-200">
+          FAIL
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
+            <tr>
+              <th class="px-4 py-2">Type</th>
+              <th class="px-4 py-2">Expected Pattern</th>
+              <th class="px-4 py-2">Actual Result</th>
+              <th class="px-4 py-2 w-24">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs"></code></td>
+              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">searchProperties</code></td>
+              <td class="px-4 py-3">
+                <span class="text-rose-600 font-bold text-xs">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">null</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">{
+  &quot;location&quot;: &quot;Uptown Dallas&quot;
+}</pre>
+                </div>
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="text-rose-600 font-bold text-xs mt-2 inline-block">
+                  FAIL
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+          </div>
+
+          
+        </div>
+      </details>
+    </div>
+  
+        </div>
+      </details>
+    </div>
+  
+    </div>
+  
+        </section>
+    </div>
+</body>    
+</html>
