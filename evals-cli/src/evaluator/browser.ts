@@ -14,25 +14,16 @@ import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
 
 export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]> {
-  return await page.evaluate(async () => {
-    if (document.modelContext && typeof document.modelContext.getTools === "function") {
-      try {
-        const raw = await document.modelContext.getTools();
-        return (raw || []).map((t) => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema,
-        }));
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
+  const tools = page.webmcp?.tools() || [];
+  return tools.map((t: any) => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema,
+  }));
 }
 
 export const PUPPETEER_FLAGS = [
-  "--enable-features=WebMCP",
+  "--enable-features=WebMCPTesting,DevToolsWebMCPSupport,WebMCP",
   "--no-sandbox",
   "--disable-setuid-sandbox",
 ];
@@ -65,57 +56,19 @@ export class BrowserToolRegistry implements ToolRegistry {
     let executionResult: any = {};
 
     try {
-      const toolResult = await this.page.evaluate(
-        async (name: string, callArgs: any) => {
-          if (document.modelContext) {
-            const mc = document.modelContext;
-            if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
-              const tools = await mc.getTools();
-              const tool = tools.find((item) => item.name === name);
-              if (tool) {
-                return new Promise((resolve) => {
-                  let timer: any = null;
-
-                  const onActivated = (e: any) => {
-                    if (!e.toolName || e.toolName === name) {
-                      timer = setTimeout(() => {
-                        window.removeEventListener("toolactivated", onActivated);
-                        resolve({ success: true, data: "pending form submission" });
-                      }, 1000);
-                    }
-                  };
-
-                  window.addEventListener("toolactivated", onActivated);
-
-                  mc.executeTool(tool, JSON.stringify(callArgs || {}))
-                    .then((resStr: any) => {
-                      if (timer) clearTimeout(timer);
-                      window.removeEventListener("toolactivated", onActivated);
-                      try {
-                        resolve({ success: true, data: JSON.parse(resStr as string) });
-                      } catch {
-                        resolve({ success: true, data: resStr });
-                      }
-                    })
-                    .catch((err: any) => {
-                      if (timer) clearTimeout(timer);
-                      window.removeEventListener("toolactivated", onActivated);
-                      resolve({ success: false, error: err?.message || String(err) });
-                    });
-                });
-              }
-            }
-          }
-          return { success: false };
-        },
-        name,
-        args,
-      );
-
-      if (toolResult && toolResult.success) {
-        executionResult.result = toolResult.data;
-      } else {
+      const tools = this.page.webmcp?.tools() || [];
+      const tool = tools.find((t: any) => t.name === name);
+      if (!tool) {
         return { error: `no tool named "${name}" was found` };
+      }
+
+      const res = await tool.execute(args || {});
+      if (res.status === "Completed") {
+        executionResult.result = res.output !== undefined ? res.output : "Success";
+      } else if (res.status === "Error") {
+        return { error: res.errorText || `Error executing tool "${name}"` };
+      } else {
+        return { error: `Tool execution status: ${res.status}` };
       }
 
       // If executionResult.result is null, it is due to a navigation happening.

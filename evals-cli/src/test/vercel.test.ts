@@ -99,19 +99,16 @@ describe("VercelBackend", () => {
     it("should pass mapped messages array correctly to agentWithExec.generate", async (t) => {
       // Create a dummy page object that returns some dummy registered tools
       const dummyPage: any = {
-        evaluate: async (fn: any, ..._args: any[]) => {
-          // If it evaluates getToolsFromBrowserPage, return the tool metadata
-          if (fn.toString().includes("getTools")) {
-            return [
-              {
-                name: "add_topping",
-                description: "Adds a topping",
-                inputSchema: { type: "object" },
-              },
-            ];
-          }
-          return {};
+        webmcp: {
+          tools: () => [
+            {
+              name: "add_topping",
+              description: "Adds a topping",
+              inputSchema: { type: "object" },
+            },
+          ],
         },
+        evaluate: async () => ({}),
       };
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it
@@ -180,18 +177,16 @@ describe("VercelBackend", () => {
 
     it("should match tool result strictly by toolCallId when the same tool is called multiple times", async (t) => {
       const dummyPage: any = {
-        evaluate: async (fn: any) => {
-          if (fn.toString().includes("getTools")) {
-            return [
-              {
-                name: "load_next_results",
-                description: "Loads results",
-                inputSchema: { type: "object" },
-              },
-            ];
-          }
-          return {};
+        webmcp: {
+          tools: () => [
+            {
+              name: "load_next_results",
+              description: "Loads results",
+              inputSchema: { type: "object" },
+            },
+          ],
         },
+        evaluate: async () => ({}),
       };
 
       t.mock.method(ai.ToolLoopAgent.prototype, "generate", async () => {
