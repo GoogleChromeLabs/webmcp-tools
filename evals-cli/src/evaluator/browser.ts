@@ -58,48 +58,44 @@ export class BrowserToolRegistry implements ToolRegistry {
         Boolean(await tool.formElement) && !tool.annotations?.autosubmit;
 
       if (isDeclarativeWithoutAutosubmit) {
-        const toolPromise = new Promise((resolve) => {
-          let timer: any = null;
+        const toolPromise = new Promise<{ success: boolean; data?: any; error?: string }>(
+          (resolve) => {
+            let timer: NodeJS.Timeout | null = null;
 
-          const onToolInvoked = (call: any) => {
-            if (!call.tool || call.tool.name === name) {
-              timer = setTimeout(() => {
-                this.page.webmcp?.off("toolinvoked", onToolInvoked);
-                resolve({ success: true, data: "pending form submission" });
-              }, 1000);
-            }
-          };
+            const onToolInvoked = (call: WebMCPToolCall) => {
+              if (!call.tool || call.tool.name === name) {
+                timer = setTimeout(() => {
+                  resolve({ success: true, data: "pending form submission" });
+                }, 1000);
+              }
+            };
 
-          if (this.page.webmcp) {
-            this.page.webmcp.on("toolinvoked", onToolInvoked);
-          }
+            this.page.webmcp.once("toolinvoked", onToolInvoked);
 
-          tool
-            .execute(args || {})
-            .then((res: any) => {
-              if (timer) clearTimeout(timer);
-              if (this.page.webmcp) {
+            tool
+              .execute(args)
+              .then((res: WebMCPToolCallResult) => {
+                if (timer) clearTimeout(timer);
                 this.page.webmcp.off("toolinvoked", onToolInvoked);
-              }
-              if (res.status === "Completed") {
-                resolve({ success: true, data: res.output ?? "Success" });
-              } else if (res.status === "Error") {
-                resolve({
-                  success: false,
-                  error: res.errorText || `Error executing tool "${name}"`,
-                });
-              } else {
-                resolve({ success: false, error: `Tool execution status: ${res.status}` });
-              }
-            })
-            .catch((err: any) => {
-              if (timer) clearTimeout(timer);
-              if (this.page.webmcp) {
+                if (res.status === "Completed") {
+                  resolve({ success: true, data: res.output ?? "Success" });
+                } else if (res.status === "Error") {
+                  resolve({
+                    success: false,
+                    error: res.errorText || `Error executing tool "${name}"`,
+                  });
+                } else {
+                  resolve({ success: false, error: `Tool execution status: ${res.status}` });
+                }
+              })
+              .catch((err: unknown) => {
+                if (timer) clearTimeout(timer);
                 this.page.webmcp.off("toolinvoked", onToolInvoked);
-              }
-              resolve({ success: false, error: err?.message || String(err) });
-            });
-        });
+                const message = err instanceof Error ? err.message : String(err);
+                resolve({ success: false, error: message });
+              });
+          },
+        );
 
         const toolResult = await toolPromise;
         if (toolResult && toolResult.success) {

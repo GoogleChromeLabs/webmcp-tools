@@ -149,7 +149,7 @@ describe("BrowserToolRegistry", () => {
     const listeners: Record<string, Function[]> = {};
     const page = new MockBrowserPage();
     page.webmcp = {
-      on: (event: string, cb: Function) => {
+      once: (event: string, cb: Function) => {
         listeners[event] = listeners[event] || [];
         listeners[event].push(cb);
       },
