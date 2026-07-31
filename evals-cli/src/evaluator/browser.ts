@@ -35,7 +35,7 @@ export class BrowserToolRegistry implements ToolRegistry {
   constructor(private page: BrowserPage) {}
 
   async syncTools(): Promise<Tool[]> {
-    const rawTools = this.page.webmcp?.tools() || [];
+    const rawTools = this.page.webmcp.tools() || [];
     this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
     return this.currentTools;
   }
@@ -44,12 +44,12 @@ export class BrowserToolRegistry implements ToolRegistry {
     return this.currentTools;
   }
 
-  async executeTool(name: string, args: any): Promise<any> {
-    let executionResult: any = {};
+  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
+    let executionResult: { result?: any; error?: string } = {};
 
     try {
-      const tools = this.page.webmcp?.tools() || [];
-      const tool = tools.find((t: any) => t.name === name);
+      const tools = this.page.webmcp.tools() || [];
+      const tool = tools.find((t) => t.name === name);
       if (!tool) {
         return { error: `no tool named "${name}" was found` };
       }
@@ -101,14 +101,14 @@ export class BrowserToolRegistry implements ToolRegistry {
             });
         });
 
-        const toolResult: any = await toolPromise;
+        const toolResult = await toolPromise;
         if (toolResult && toolResult.success) {
           executionResult.result = toolResult.data;
         } else {
           return { error: toolResult?.error || `Error executing tool "${name}"` };
         }
       } else {
-        const res = await tool.execute(args || {});
+        const res = await tool.execute(args);
         if (res.status === "Completed") {
           executionResult.result = res.output !== undefined ? res.output : "Success";
         } else if (res.status === "Error") {
@@ -126,18 +126,19 @@ export class BrowserToolRegistry implements ToolRegistry {
           return { result, crossDocument: true };
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
       if (
-        e.message.includes("Execution context was destroyed") ||
-        e.message.includes("Target closed") ||
-        e.message.includes("navigating")
+        message.includes("Execution context was destroyed") ||
+        message.includes("Target closed") ||
+        message.includes("navigating")
       ) {
         await new Promise((r) => setTimeout(r, 500));
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
       } else {
-        executionResult = { error: e.message || String(e) };
+        executionResult = { error: message };
       }
     }
 

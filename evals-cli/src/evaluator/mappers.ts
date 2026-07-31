@@ -73,7 +73,7 @@ export function sanitizeSchema(obj: any): any {
  */
 export function mapJsonSchemaToVercelTools(
   inputTools: Tool[],
-  execute?: (functionName: string, args: unknown) => unknown | Promise<unknown>,
+  execute?: (functionName: string, args: Record<string, unknown>) => unknown | Promise<unknown>,
 ): Record<string, any> {
   const tools: Record<string, any> = {};
   inputTools.forEach((toolDef: any) => {

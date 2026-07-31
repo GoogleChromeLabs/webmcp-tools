@@ -12,7 +12,7 @@ import { ToolRegistry } from "../evaluator/toolRegistry.js";
 export interface BrowserPage {
   evaluate(fn: string | Function, ...args: any[]): Promise<any>;
   waitForNavigation(options?: any): Promise<any>;
-  webmcp?: WebMCP;
+  webmcp: WebMCP;
 }
 
 /**
