@@ -12,6 +12,7 @@ import {
   sanitizeSchema,
 } from "../evaluator/mappers.js";
 import { Tool } from "../types/tools.js";
+import { WebMCPTool } from "puppeteer-core";
 
 describe("mappers", () => {
   describe("sanitizeSchema", () => {
@@ -178,10 +179,9 @@ describe("mappers", () => {
           description: "Get current cart",
           inputSchema: { type: "object" },
         },
-      ];
-      const fallbackTools: Tool[] = [];
+      ] as WebMCPTool[];
 
-      const result = mapRawBrowserToolsToConfig(rawTools, fallbackTools);
+      const result = mapRawBrowserToolsToConfig(rawTools);
 
       assert.deepStrictEqual(result, [
         {
@@ -197,15 +197,6 @@ describe("mappers", () => {
       ]);
     });
 
-    it("should fallback when rawTools is empty or missing", () => {
-      const fallbackTools: Tool[] = [
-        { functionName: "default_tool", description: "Default", parameters: {} },
-      ];
-
-      assert.deepStrictEqual(mapRawBrowserToolsToConfig([], fallbackTools), fallbackTools);
-      assert.deepStrictEqual(mapRawBrowserToolsToConfig(null as any, fallbackTools), fallbackTools);
-    });
-
     it("should handle invalid JSON inputSchema gracefully", () => {
       const rawTools = [
         {
@@ -213,8 +204,8 @@ describe("mappers", () => {
           description: "Faulty schema",
           inputSchema: "invalid-json{",
         },
-      ];
-      const result = mapRawBrowserToolsToConfig(rawTools, []);
+      ] as unknown as WebMCPTool[];
+      const result = mapRawBrowserToolsToConfig(rawTools);
 
       assert.deepStrictEqual(result, [
         {

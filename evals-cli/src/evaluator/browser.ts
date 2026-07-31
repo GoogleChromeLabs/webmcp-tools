@@ -36,7 +36,7 @@ export class BrowserToolRegistry implements ToolRegistry {
 
   syncTools(): Tool[] {
     const rawTools = this.page.webmcp.tools();
-    this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
+    this.currentTools = mapRawBrowserToolsToConfig(rawTools);
     return this.currentTools;
   }
 
