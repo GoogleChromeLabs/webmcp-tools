@@ -13,7 +13,7 @@ import { runLocalCommand, runWebCommand, runAnalyzeCommand } from "../commands/i
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json");
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const program = new Command();
 
