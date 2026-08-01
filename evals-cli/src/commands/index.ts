@@ -285,7 +285,7 @@ function printConsoleSummary(finalResults: any): void {
         ? chalk.red
         : chalk.yellow;
   console.log(
-    `\nPass count (per step): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
+    `\nPass count (steps): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
   );
 }
 
