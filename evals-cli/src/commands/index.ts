@@ -122,6 +122,14 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   }
 }
 
+function getProgressBar(ratio: number, size = 10): string {
+  const filled = Math.min(size, Math.floor(ratio * size));
+  const empty = size - filled;
+  const filledPart = chalk.cyan("━".repeat(filled));
+  const emptyPart = chalk.gray.dim("─".repeat(empty));
+  return `${filledPart}${emptyPart}`;
+}
+
 export async function runWebCommand(options: CommandOptions, command?: Command): Promise<void> {
   const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
 
@@ -162,6 +170,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     const resultsList: any[] = [];
 
     if (useConsole) {
+      console.log();
       spinner = ora({ discardStdin: false });
     }
 
@@ -169,20 +178,30 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     const finalResults = await executeInBrowserEvals(tests, backend, config, (event) => {
       if (useConsole && spinner) {
         if (event.type === "start") {
-          spinner.start(`Running evals (${event.total} steps)...`);
+          console.log("Running evals...");
+          const bar = getProgressBar(0);
+          const coloredPercentage = chalk.cyan("0%");
+          spinner.start(
+            `${bar} ${coloredPercentage}  [Run 1/${config.runs || 1}] Test Case 1/${tests.length}`,
+          );
         } else if (event.type === "progress") {
           resultsList.push(event.result);
-          const passRate = (
-            (resultsList.filter((r) => r.outcome === "pass").length / resultsList.length) *
-            100
-          ).toFixed(2);
-          spinner.text = `Running... pass rate: ${passRate}% (${resultsList.length} steps)`;
+          const currentRun = event.result.runIndex || 1;
+          const caseIndex = event.testNumber - (currentRun - 1) * tests.length;
+          const totalCases = tests.length * (config.runs || 1);
+          const ratio = event.testNumber / totalCases;
+          const percentage = Math.round(ratio * 100);
+          const bar = getProgressBar(ratio);
+          const coloredPercentage = chalk.cyan(`${percentage}%`);
+          spinner.text = `${bar} ${coloredPercentage}  [Run ${currentRun}/${config.runs || 1}] Test Case ${caseIndex}/${tests.length}`;
         }
       }
     });
 
     if (useConsole && spinner) {
-      spinner.stop();
+      const finalBar = getProgressBar(1);
+      const coloredPercentage = chalk.cyan("100%");
+      spinner.succeed(`Evals completed! ${finalBar} ${coloredPercentage}`);
       printConsoleSummary(finalResults);
     }
 
@@ -214,20 +233,44 @@ function printConsoleSummary(finalResults: any): void {
   const table = new Table({
     head: ["Step", "Status", "Expected Function", "Actual Function"],
     style: {
-      head: ["cyan"],
+      head: ["whiteBright"],
       border: ["grey"],
     },
   });
 
-  for (let i = 0; i < finalResults.results.length; i++) {
-    const res = finalResults.results[i];
-    const passed = res.outcome === "pass";
-    table.push([
-      i + 1,
-      passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
-      (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
-      res.response?.functionName || "-",
-    ]);
+  // Group by testName, then by runIndex
+  const groupedResults = new Map<string, Map<number, any[]>>();
+  for (const res of finalResults.results) {
+    const run = res.runIndex || 1;
+    const name = res.test.name || "Unnamed Test";
+    if (!groupedResults.has(name)) {
+      groupedResults.set(name, new Map<number, any[]>());
+    }
+    const testMap = groupedResults.get(name)!;
+    if (!testMap.has(run)) {
+      testMap.set(run, []);
+    }
+    testMap.get(run)!.push(res);
+  }
+
+  for (const [testName, runs] of groupedResults.entries()) {
+    // Add overarching row for Test Case
+    table.push([{ colSpan: 4, content: chalk.bold.blue(`Test Case: ${testName}`) }]);
+
+    for (const [runIndex, steps] of runs.entries()) {
+      // Add a grouping header row for the Run
+      table.push([{ colSpan: 4, content: chalk.bold.magenta(` • [Run ${runIndex}]`) }]);
+
+      for (const res of steps) {
+        const passed = res.outcome === "pass";
+        table.push([
+          res.stepIndex,
+          passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
+          (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
+          res.response?.functionName || "-",
+        ]);
+      }
+    }
   }
 
   console.log(table.toString());
@@ -241,7 +284,9 @@ function printConsoleSummary(finalResults: any): void {
       : finalResults.passCount === 0
         ? chalk.red
         : chalk.yellow;
-  console.log(`\nPass count: ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`);
+  console.log(
+    `\nPass count (per step): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
+  );
 }
 
 async function outputReports(
