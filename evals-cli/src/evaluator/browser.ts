@@ -25,7 +25,8 @@ export async function launchBrowser(): Promise<Browser> {
   return await puppeteer.launch({
     executablePath,
     headless: true,
-    args: PUPPETEER_FLAGS,
+    // Clone so Puppeteer cannot mutate the global PUPPETEER_FLAGS.
+    args: [...PUPPETEER_FLAGS],
   });
 }
 
