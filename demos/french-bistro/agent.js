@@ -124,9 +124,9 @@ function initSharedWorker(apiKey) {
           const result = await document.modelContext.executeTool(tool, payload.args, {
             signal: abortController.signal,
           });
-          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: result, id });
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { result }, id });
         } catch (error) {
-          const aborted = abortController.signal.aborted;
+          const aborted = abortController?.signal.aborted;
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message, aborted }, id });
         } finally {
           abortController = null;
@@ -260,7 +260,7 @@ async function handleUserSubmit() {
             });
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
-            if (abortController.signal.aborted) {
+            if (abortController?.signal.aborted) {
               appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
               finalResponseGiven = true;
               break;

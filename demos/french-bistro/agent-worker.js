@@ -133,12 +133,13 @@ async function handleUserSubmit(text, port, requestId) {
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
             
-            const { result, aborted } = await requestToolExecution(port, tool, JSON.stringify(args));
+            const { result, error, aborted } = await requestToolExecution(port, tool, JSON.stringify(args));
             if (aborted) {
               appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
               finalResponseGiven = true;
               break;
             }
+            if (error) throw new Error(`${error}`);
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
             appendMessage('System', `Error: ${error.message}`, 'system');
