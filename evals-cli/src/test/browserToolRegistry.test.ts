@@ -34,7 +34,7 @@ describe("BrowserToolRegistry", () => {
     const registry = new BrowserToolRegistry(page);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
 
-    const synced = await registry.syncTools();
+    const synced = registry.syncTools();
     assert.deepStrictEqual(synced, []);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
   });
@@ -160,25 +160,5 @@ describe("BrowserToolRegistry", () => {
     } finally {
       global.setTimeout = origSetTimeout;
     }
-  });
-
-  it("should call initialize() and re-sync when page.webmcp.tools() is empty", async () => {
-    let initializeCalled = false;
-
-    const page: any = {
-      webmcp: {
-        tools: () => (initializeCalled ? [{ name: "my_tool", description: "d" }] : []),
-        initialize: async () => {
-          initializeCalled = true;
-        },
-      },
-    };
-
-    const registry = new BrowserToolRegistry(page);
-    const tools = await registry.syncTools();
-
-    assert.strictEqual(initializeCalled, true);
-    assert.strictEqual(tools.length, 1);
-    assert.strictEqual(tools[0].functionName, "my_tool");
   });
 });

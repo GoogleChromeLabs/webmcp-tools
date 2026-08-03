@@ -53,7 +53,7 @@ describe("Browser Integration", () => {
       await page.goto(url, { waitUntil: "networkidle2" });
 
       const registry = new BrowserToolRegistry(page as any);
-      const tools = await registry.syncTools();
+      const tools = registry.syncTools();
 
       assert.strictEqual(tools.length, 1);
       assert.strictEqual(tools[0].functionName, "test_spa_tool");
