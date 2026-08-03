@@ -35,8 +35,14 @@ export class BrowserToolRegistry implements ToolRegistry {
 
   constructor(private page: BrowserPage) {}
 
-  syncTools(): Tool[] {
-    const rawTools = this.page.webmcp.tools();
+  async syncTools(): Promise<Tool[]> {
+    let rawTools = this.page.webmcp.tools();
+    if (!rawTools || rawTools.length === 0) {
+      if (typeof (this.page.webmcp as any).initialize === "function") {
+        await (this.page.webmcp as any).initialize();
+      }
+      rawTools = this.page.webmcp.tools();
+    }
     this.currentTools = mapRawBrowserToolsToConfig(rawTools);
     return this.currentTools;
   }
@@ -49,8 +55,15 @@ export class BrowserToolRegistry implements ToolRegistry {
     let executionResult: { result?: any; error?: string } = {};
 
     try {
-      const tools = this.page.webmcp.tools() || [];
-      const tool = tools.find((t) => t.name === name);
+      let tools = this.page.webmcp.tools() || [];
+      let tool = tools.find((t) => t.name === name);
+      if (!tool) {
+        if (typeof (this.page.webmcp as any).initialize === "function") {
+          await (this.page.webmcp as any).initialize();
+        }
+        tools = this.page.webmcp.tools() || [];
+        tool = tools.find((t) => t.name === name);
+      }
       if (!tool) {
         return { error: `no tool named "${name}" was found` };
       }

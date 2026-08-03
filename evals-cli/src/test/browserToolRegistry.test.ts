@@ -34,7 +34,7 @@ describe("BrowserToolRegistry", () => {
     const registry = new BrowserToolRegistry(page);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
 
-    const synced = registry.syncTools();
+    const synced = await registry.syncTools();
     assert.deepStrictEqual(synced, []);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
   });
