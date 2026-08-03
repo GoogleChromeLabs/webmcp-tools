@@ -37,7 +37,8 @@ export class BrowserToolRegistry implements ToolRegistry {
 
   async syncTools(): Promise<Tool[]> {
     let rawTools = this.page.webmcp.tools();
-    if (!rawTools || rawTools.length === 0) {
+    // Work around potential Puppeteer bug, see https://github.com/GoogleChromeLabs/webmcp-tools/pull/342
+    if (rawTools.length === 0) {
       if (typeof (this.page.webmcp as any).initialize === "function") {
         await (this.page.webmcp as any).initialize();
       }
