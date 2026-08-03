@@ -21,7 +21,9 @@ export class WebmcpService {
     private cartService: CartService,
     private uiService: UiService
   ) {
-    this.registerTools();
+    setTimeout(() => {
+      this.registerTools();
+    }, 0);
   }
 
   private registerTools() {

@@ -32,6 +32,10 @@ describe("Browser Integration", () => {
                   execute: () => ({ success: true, msg: 'hello' })
                 });
               }
+              // Simulate SPA client-side router navigation after initial script load
+              setTimeout(() => {
+                window.location.hash = '#/hash-route';
+              }, 50);
             </script>
           </head>
           <body>SPA Test Page</body>
