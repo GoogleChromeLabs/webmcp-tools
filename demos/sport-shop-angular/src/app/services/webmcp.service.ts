@@ -4,7 +4,8 @@
  */
 
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, take } from 'rxjs/operators';
 import { CartService } from './cart.service';
 import { ProductService } from './product.service';
 import { UiService } from './ui.service';
@@ -21,9 +22,12 @@ export class WebmcpService {
     private cartService: CartService,
     private uiService: UiService
   ) {
-    setTimeout(() => {
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      take(1)
+    ).subscribe(() => {
       this.registerTools();
-    }, 0);
+    });
   }
 
   private registerTools() {
