@@ -7,9 +7,17 @@ import * as assert from "node:assert";
 import http from "node:http";
 import { describe, it } from "node:test";
 import { BrowserToolRegistry, launchBrowser } from "../evaluator/browser.js";
+import { findChromePath } from "../utils.js";
 
 describe("Browser Integration", () => {
   it("should discover and execute tools on SPA hash routes", async (t) => {
+    try {
+      await findChromePath();
+    } catch {
+      t.skip("Chrome Canary not found");
+      return;
+    }
+
     const server = http.createServer((_req, res) => {
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(`
@@ -39,14 +47,7 @@ describe("Browser Integration", () => {
     const port = (server.address() as any).port;
     const url = `http://localhost:${port}/#/hash-route`;
 
-    let browser: any;
-    try {
-      browser = await launchBrowser();
-    } catch {
-      t.skip("Could not launch browser");
-      server.close();
-      return;
-    }
+    const browser = await launchBrowser();
     try {
       const page = await browser.newPage();
       await page.goto(url, { waitUntil: "networkidle2" });

@@ -7,6 +7,7 @@ import { generateText, stepCountIs, ToolLoopAgent } from "ai";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
+import { findChromePath } from "../utils.js";
 
 import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "../backends/index.js";
 import { BrowserToolRegistry, PUPPETEER_FLAGS } from "../evaluator/browser.js";
@@ -132,8 +133,9 @@ export class VercelBackend implements Backend {
       let currentTools = registry.syncTools();
 
       if (currentTools.length === 0) {
+        const executablePath = await findChromePath();
         throw new Error(
-          `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+          `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
         );
       }
 

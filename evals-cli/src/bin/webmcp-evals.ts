@@ -38,11 +38,6 @@ program
     "--open-analysis",
     "Automatically open the analysis markdown report upon completion",
     false,
-  )
-  .option(
-    "--chrome-channel <channel>",
-    "Chrome browser channel (chrome, chrome-beta, chrome-canary, chrome-dev)",
-    "chrome-canary",
   );
 
 // Command: run static file evals
