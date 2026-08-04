@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { ChromeReleaseChannel } from "puppeteer-core";
+
 export type Config = {
   toolSchemaFile: string;
   evalsFile: string;
@@ -18,6 +20,7 @@ export type Config = {
   maxSteps?: number;
   outputDir?: string;
   reporter?: string[];
+  chromeChannel?: ChromeReleaseChannel;
 };
 
 export type WebmcpConfig = {
@@ -31,4 +34,5 @@ export type WebmcpConfig = {
   maxSteps?: number;
   outputDir?: string;
   reporter?: string[];
+  chromeChannel?: ChromeReleaseChannel;
 };

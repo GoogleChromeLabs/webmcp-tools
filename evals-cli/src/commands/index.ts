@@ -12,6 +12,7 @@ import chalk from "chalk";
 import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
+import type { ChromeReleaseChannel } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
@@ -34,6 +35,7 @@ export interface CommandOptions {
   analyze?: boolean;
   analyzerModel?: string;
   openAnalysis?: boolean;
+  chromeChannel?: ChromeReleaseChannel;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -51,6 +53,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     maxSteps: opts.maxSteps,
     outputDir: opts.outputDir,
     reporter: opts.reporter,
+    chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
   };
 
   const toolsSchema: ToolsSchema = JSON.parse(
@@ -143,6 +146,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       maxSteps: opts.maxSteps,
       outputDir: opts.outputDir,
       reporter: opts.reporter,
+      chromeChannel: opts.chromeChannel || "chrome-canary",
     };
 
     const tests: Array<Eval> = JSON.parse(
