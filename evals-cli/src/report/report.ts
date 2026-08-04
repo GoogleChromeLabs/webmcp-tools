@@ -138,6 +138,7 @@ function renderConfiguration(config: Config): string {
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.evalsFile}</code></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${config.backend}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${config.model}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${config.chromeChannel || "chrome-canary"}</span></li>
 </ul>`;
 }
 
@@ -645,5 +646,6 @@ function renderWebmcpConfiguration(config: WebmcpConfig): string {
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.evalsFile}</code></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${config.backend}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${config.model}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${config.chromeChannel || "chrome-canary"}</span></li>
 </ul>`;
 }

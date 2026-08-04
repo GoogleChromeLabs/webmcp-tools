@@ -97,4 +97,23 @@ describe("Report Grouping & Rendering", () => {
     const html = renderReport(mockConfig, testResults);
     assert.match(html, /Fallback Prompt Text/);
   });
+
+  it("renders chrome channel in HTML configuration section", () => {
+    const testResults: TestResults = {
+      results: [],
+      testCount: 0,
+      passCount: 0,
+      failCount: 0,
+      errorCount: 0,
+    };
+    const htmlWithChannel = renderReport(
+      { ...mockConfig, chromeChannel: "chrome-dev" },
+      testResults,
+    );
+    assert.match(htmlWithChannel, /Chrome channel/);
+    assert.match(htmlWithChannel, /chrome-dev/);
+
+    const htmlDefault = renderReport(mockConfig, testResults);
+    assert.match(htmlDefault, /chrome-canary/);
+  });
 });
