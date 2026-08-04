@@ -229,6 +229,7 @@ export async function runSmokeCommand(options: CommandOptions, command?: Command
       url,
       timeoutMs: opts.timeout,
       verbose: opts.verbose,
+      chromeChannel: opts.chromeChannel as ChromeReleaseChannel,
     });
 
     console.log("\n" + chalk.bold.underline("Smoke Test Summary") + "\n");

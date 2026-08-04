@@ -84,6 +84,7 @@ program
   .requiredOption("-u, --url <url>", "Target web page URL")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--timeout <milliseconds>", "Timeout per navigation or tool step", positiveInteger, 30000)
+  .option("-v, --verbose", "Print live step-by-step navigation and tool call logs", false)
   .action(runSmokeCommand);
 
 // Command: analyze evaluation report using an LLM

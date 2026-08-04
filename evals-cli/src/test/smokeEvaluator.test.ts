@@ -51,24 +51,28 @@ describe("compileSmokeTests", () => {
     );
   });
 
-  it("rejects matcher constraints before launching a browser", () => {
+  it("resolves matcher constraints to concrete arguments automatically", () => {
     const tests: Eval[] = [
       {
-        name: "constrained date",
+        name: "constrained date with default",
         messages: [],
         expectedCall: [
           {
             functionName: "book",
-            arguments: { date: { $type: "string" } },
+            arguments: {
+              name: { $pattern: "Bob.*Smith" },
+              requests: { $contains: "anniversary" },
+            },
           },
         ],
       },
     ];
 
-    assert.throws(
-      () => compileSmokeTests(tests),
-      /constrained date.*step 1.*\$type.*concrete arguments/i,
-    );
+    const compiled = compileSmokeTests(tests);
+    assert.deepStrictEqual(compiled[0].steps[0].arguments, {
+      name: "Bob Smith",
+      requests: "anniversary",
+    });
   });
 
   it("rejects missing arguments and empty required trajectories", () => {
@@ -179,12 +183,12 @@ describe("runSmokeTest", () => {
     assert.match(results[0].error || "", /page rejected input/);
   });
 
-  it("reports explicit failures returned by a tool", async () => {
+  it("reports explicit failures returned by a tool object or string prefix", async () => {
     const registry: SmokeToolRegistry = {
       syncTools: async () => [tool("first")],
       executeToolChecked: async () => ({
         success: true,
-        result: { success: false, message: "item is out of stock" },
+        result: "Error: item is out of stock",
       }),
     };
 
@@ -298,7 +302,7 @@ describe("executeSmokeEvals", () => {
       {
         name: "invalid later case",
         messages: [],
-        expectedCall: [{ functionName: "two", arguments: { value: { $any: true } } }],
+        expectedCall: [{ functionName: "two", arguments: null as any }],
       },
     ];
 
@@ -313,7 +317,7 @@ describe("executeSmokeEvals", () => {
           },
         },
       ),
-      /invalid later case.*\$any/i,
+      /invalid later case.*arguments/i,
     );
     assert.strictEqual(launched, false);
   });

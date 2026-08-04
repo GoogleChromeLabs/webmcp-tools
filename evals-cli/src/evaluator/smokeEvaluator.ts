@@ -4,6 +4,7 @@
  */
 
 import chalk from "chalk";
+import type { ChromeReleaseChannel } from "puppeteer-core";
 import { BrowserPage } from "../backends/index.js";
 import { Eval, ExpectedCallNode } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
@@ -16,6 +17,7 @@ export type SmokeConfig = {
   url: string;
   timeoutMs?: number;
   verbose?: boolean;
+  chromeChannel?: ChromeReleaseChannel;
 };
 
 export type CompiledSmokeStep = {
@@ -82,9 +84,70 @@ function constraintKeys(value: unknown): string[] {
   if (value === null || typeof value !== "object") return [];
 
   const entries = Object.entries(value as Record<string, unknown>);
-  const keys = entries.map(([key]) => key);
-  if (keys.length > 0 && keys.every((key) => key.startsWith("$"))) return keys;
-  return entries.flatMap(([, child]) => constraintKeys(child));
+  const dollarKeys = entries.map(([key]) => key).filter((key) => key.startsWith("$"));
+  const childKeys = entries.flatMap(([, child]) => constraintKeys(child));
+  return [...dollarKeys, ...childKeys];
+}
+
+export function resolveConcreteValue(key: string, value: unknown): any {
+  if (value === null || typeof value !== "object") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => resolveConcreteValue(key, item));
+  }
+
+  const obj = value as Record<string, unknown>;
+
+  if ("$eq" in obj) return resolveConcreteValue(key, obj.$eq);
+  if ("$contains" in obj) return resolveConcreteValue(key, obj.$contains);
+  if ("$gt" in obj) return resolveConcreteValue(key, obj.$gt);
+  if ("$gte" in obj) return resolveConcreteValue(key, obj.$gte);
+  if ("$lt" in obj) return resolveConcreteValue(key, obj.$lt);
+  if ("$lte" in obj) return resolveConcreteValue(key, obj.$lte);
+
+  if ("$pattern" in obj && typeof obj.$pattern === "string") {
+    let pattern = obj.$pattern;
+    pattern = pattern.replace(/[\^\$]/g, "");
+    pattern = pattern.replace(/\.\*/g, " ");
+    pattern = pattern.replace(/\\d\+/g, "123");
+    pattern = pattern.replace(/\[\^?.*?\]/g, "a");
+    return pattern.trim() || "sample";
+  }
+
+  if ("$type" in obj && typeof obj.$type === "string") {
+    if (obj.$type === "string") {
+      if (key.toLowerCase().includes("date")) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().split("T")[0];
+      }
+      return "sample";
+    }
+    if (obj.$type === "number") return 1;
+    if (obj.$type === "boolean") return true;
+    if (obj.$type === "array") return [];
+    if (obj.$type === "object") return {};
+  }
+
+  if ("$any" in obj) return "sample";
+
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (!k.startsWith("$")) {
+      result[k] = resolveConcreteValue(k, v);
+    }
+  }
+  return result;
+}
+
+export function resolveConcreteArguments(args: Record<string, unknown>): Record<string, unknown> {
+  const resolved: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(args)) {
+    resolved[key] = resolveConcreteValue(key, val);
+  }
+  return resolved;
 }
 
 function appendSmokeSteps(
@@ -118,17 +181,11 @@ function appendSmokeSteps(
       );
     }
 
-    const constraints = constraintKeys(node.arguments);
-    if (constraints.length > 0) {
-      throw new Error(
-        `Smoke test "${name}" step ${stepIndex} (${node.functionName}) uses matcher ` +
-          `constraint ${constraints.join(", ")}; smoke tests require concrete arguments.`,
-      );
-    }
+    const concreteArgs = resolveConcreteArguments(node.arguments as Record<string, unknown>);
 
     steps.push({
       functionName: node.functionName,
-      arguments: node.arguments,
+      arguments: concreteArgs,
       stepIndex,
     });
   }
@@ -151,6 +208,7 @@ export function compileSmokeTests(tests: Eval[]): CompiledSmokeTest[] {
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  promise.catch(() => {}); // Prevent unhandled rejections if timeout occurs first
   try {
     return await Promise.race([
       promise,
@@ -180,14 +238,31 @@ function stepError(
 }
 
 function explicitToolFailure(result: unknown): string | undefined {
+  if (typeof result === "string") {
+    const trimmed = result.trim();
+    if (/^error[:\s]/i.test(trimmed)) {
+      return `tool reported failure: ${trimmed}`;
+    }
+    try {
+      result = JSON.parse(result);
+    } catch {
+      return undefined;
+    }
+  }
+
   if (result === null || typeof result !== "object") return undefined;
   const response = result as Record<string, unknown>;
-  if (response.success !== false && response.isError !== true) return undefined;
-
-  const detail = response.error ?? response.message;
-  return typeof detail === "string" && detail.trim()
-    ? `tool reported failure: ${detail}`
-    : `tool reported failure: ${JSON.stringify(result)}`;
+  if (
+    response.success === false ||
+    response.isError === true ||
+    (response.error !== undefined && typeof response.error === "string")
+  ) {
+    const detail = response.error ?? response.message;
+    return typeof detail === "string" && detail.trim()
+      ? `tool reported failure: ${detail}`
+      : `tool reported failure: ${JSON.stringify(result)}`;
+  }
+  return undefined;
 }
 
 export async function runSmokeTest(
@@ -214,7 +289,8 @@ export async function runSmokeTest(
       );
       if (!tools.some((candidate) => candidate.functionName === step.functionName)) {
         const pollStart = Date.now();
-        while (Date.now() - pollStart < 2000) {
+        const pollCapMs = Math.min(timeoutMs, 5000);
+        while (Date.now() - pollStart < pollCapMs) {
           await new Promise((resolve) => setTimeout(resolve, 100));
           tools = await registry.syncTools();
           if (tools.some((candidate) => candidate.functionName === step.functionName)) {
@@ -274,7 +350,8 @@ export async function executeSmokeEvals(
   const compiled = compileSmokeTests(tests);
   const timeoutMs = config.timeoutMs || DEFAULT_SMOKE_TIMEOUT_MS;
   const openBrowser =
-    dependencies.launchBrowser || (async () => (await launchBrowser()) as unknown as SmokeBrowser);
+    dependencies.launchBrowser ||
+    (async () => (await launchBrowser(config.chromeChannel)) as unknown as SmokeBrowser);
   const createRegistry =
     dependencies.createRegistry ||
     ((page: SmokePage) => new BrowserToolRegistry(page) as unknown as SmokeToolRegistry);
@@ -290,10 +367,16 @@ export async function executeSmokeEvals(
       }
       const page = await browser.newPage();
       try {
-        await page.goto(config.url, {
-          waitUntil: "networkidle2",
-          timeout: timeoutMs,
-        });
+        await withTimeout(
+          Promise.resolve(
+            page.goto(config.url, {
+              waitUntil: "networkidle2",
+              timeout: timeoutMs,
+            }),
+          ),
+          timeoutMs,
+          `navigation to ${config.url}`,
+        );
         results.push(
           ...(await runSmokeTest(
             test,
