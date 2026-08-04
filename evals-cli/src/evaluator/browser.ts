@@ -6,11 +6,10 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
-import puppeteer, { Browser } from "puppeteer-core";
+import puppeteer, { Browser, ChromeReleaseChannel } from "puppeteer-core";
 import type { WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
-import { findChromePath } from "../utils.js";
 import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
 
@@ -20,10 +19,12 @@ export const PUPPETEER_FLAGS = [
   "--disable-setuid-sandbox",
 ];
 
-export async function launchBrowser(): Promise<Browser> {
-  const executablePath = await findChromePath();
+export async function launchBrowser(
+  chromeChannel: ChromeReleaseChannel = "chrome-canary",
+): Promise<Browser> {
   return await puppeteer.launch({
-    executablePath,
+    browser: "chrome",
+    channel: chromeChannel,
     headless: true,
     // Clone so Puppeteer cannot mutate the global PUPPETEER_FLAGS.
     args: [...PUPPETEER_FLAGS],

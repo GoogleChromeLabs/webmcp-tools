@@ -70,16 +70,17 @@ src/
 
 Shared across commands:
 
-| Option             | Shorthand | Default            | Description                                  |
-| ------------------ | --------- | ------------------ | -------------------------------------------- |
-| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
-| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                             |
-| `--runs`           | `-r`      | `1`                | Number of runs per test case                 |
-| `--max-steps`      | —         | —                  | Maximum agent step count                     |
-| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
-| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                 |
-| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis         |
-| `--open-analysis`  | —         | `false`            | Automatically open the analysis report       |
+| Option             | Shorthand | Default            | Description                                                             |
+| ------------------ | --------- | ------------------ | ----------------------------------------------------------------------- |
+| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`)                            |
+| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                                                        |
+| `--runs`           | `-r`      | `1`                | Number of runs per test case                                            |
+| `--max-steps`      | —         | —                  | Maximum agent step count                                                |
+| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`)                            |
+| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                                            |
+| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis                                    |
+| `--open-analysis`  | —         | `false`            | Automatically open the analysis report                                  |
+| `--chrome-channel` | —         | `chrome-canary`    | Chrome channel (`chrome`, `chrome-beta`, `chrome-canary`, `chrome-dev`) |
 
 ---
 
