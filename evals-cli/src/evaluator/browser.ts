@@ -7,29 +7,12 @@
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser } from "puppeteer-core";
+import type { WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { findChromePath } from "../utils.js";
 import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
-
-export async function getToolsFromBrowserPage(page: BrowserPage): Promise<any[]> {
-  return await page.evaluate(async () => {
-    if (document.modelContext && typeof document.modelContext.getTools === "function") {
-      try {
-        const raw = await document.modelContext.getTools();
-        return (raw || []).map((t) => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema,
-        }));
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-}
 
 export const PUPPETEER_FLAGS = [
   "--enable-features=WebMCP",
@@ -46,60 +29,14 @@ export async function launchBrowser(): Promise<Browser> {
   });
 }
 
-/**
- * Launches Chrome Canary, navigates to the given URL, and retrieves the list
- * of tools exposed by the page via Puppeteer.
- *
- * Requires Chrome Canary 150+ with the `chrome://flags/#enable-webmcp-testing`
- * flag enabled. The browser is always closed after the tools are retrieved,
- * even if an error occurs.
- */
-export async function listToolsFromPage(url: string): Promise<Tool[]> {
-  const executablePath = await findChromePath();
-  let browser: Browser | null = null;
-
-  try {
-    console.log(`Launching Chrome Canary from: ${executablePath}`);
-    browser = await launchBrowser();
-
-    const page = await browser.newPage();
-
-    console.log(`Navigating to: ${url}`);
-    const response = await page.goto(url, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
-
-    if (!response || !response.ok()) {
-      throw new Error(
-        `Failed to navigate to ${url}. HTTP status: ${response?.status() ?? "unknown"}`,
-      );
-    }
-
-    const rawTools = await getToolsFromBrowserPage(page);
-    if (rawTools.length === 0) {
-      throw new Error(
-        `WebMCP Tools are not available on ${url} (0 tools registered on page).\nDebug info: [URL="${url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
-      );
-    }
-
-    console.log(`Found ${rawTools.length} tool(s) via Puppeteer/Native API.`);
-    return mapRawBrowserToolsToConfig(rawTools, []);
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
-  }
-}
-
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
 
   constructor(private page: BrowserPage) {}
 
-  async syncTools(): Promise<Tool[]> {
-    const rawTools = await getToolsFromBrowserPage(this.page);
-    this.currentTools = mapRawBrowserToolsToConfig(rawTools, this.currentTools);
+  syncTools(): Tool[] {
+    const rawTools = this.page.webmcp.tools();
+    this.currentTools = mapRawBrowserToolsToConfig(rawTools);
     return this.currentTools;
   }
 
@@ -107,37 +44,74 @@ export class BrowserToolRegistry implements ToolRegistry {
     return this.currentTools;
   }
 
-  async executeTool(name: string, args: any): Promise<any> {
-    let executionResult: any = {};
+  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
+    let executionResult: { result?: any; error?: string } = {};
 
     try {
-      const toolResult = await this.page.evaluate(
-        async (name: string, callArgs: any) => {
-          if (document.modelContext) {
-            const mc = document.modelContext;
-            if (typeof mc.getTools === "function" && typeof mc.executeTool === "function") {
-              const tools = await mc.getTools();
-              const tool = tools.find((item) => item.name === name);
-              if (tool) {
-                const resStr = await mc.executeTool(tool, JSON.stringify(callArgs || {}));
-                try {
-                  return { success: true, data: JSON.parse(resStr as string) };
-                } catch {
-                  return { success: true, data: resStr };
-                }
-              }
-            }
-          }
-          return { success: false };
-        },
-        name,
-        args,
-      );
-
-      if (toolResult && toolResult.success) {
-        executionResult.result = toolResult.data;
-      } else {
+      const tools = this.page.webmcp.tools() || [];
+      const tool = tools.find((t) => t.name === name);
+      if (!tool) {
         return { error: `no tool named "${name}" was found` };
+      }
+
+      const isDeclarativeWithoutAutosubmit =
+        Boolean(await tool.formElement) && !tool.annotations?.autosubmit;
+
+      if (isDeclarativeWithoutAutosubmit) {
+        const toolPromise = new Promise<{ success: boolean; data?: any; error?: string }>(
+          (resolve) => {
+            let timer: NodeJS.Timeout | null = null;
+
+            const onToolInvoked = (call: WebMCPToolCall) => {
+              if (!call.tool || call.tool.name === name) {
+                timer = setTimeout(() => {
+                  resolve({ success: true, data: "pending form submission" });
+                }, 1000);
+              }
+            };
+
+            this.page.webmcp.once("toolinvoked", onToolInvoked);
+
+            tool
+              .execute(args)
+              .then((res: WebMCPToolCallResult) => {
+                if (timer) clearTimeout(timer);
+                this.page.webmcp.off("toolinvoked", onToolInvoked);
+                if (res.status === "Completed") {
+                  resolve({ success: true, data: res.output ?? "Success" });
+                } else if (res.status === "Error") {
+                  resolve({
+                    success: false,
+                    error: res.errorText || `Error executing tool "${name}"`,
+                  });
+                } else {
+                  resolve({ success: false, error: `Tool execution status: ${res.status}` });
+                }
+              })
+              .catch((err: unknown) => {
+                if (timer) clearTimeout(timer);
+                this.page.webmcp.off("toolinvoked", onToolInvoked);
+                const message = err instanceof Error ? err.message : String(err);
+                resolve({ success: false, error: message });
+              });
+          },
+        );
+
+        const toolResult = await toolPromise;
+        if (toolResult && toolResult.success) {
+          executionResult.result = toolResult.data;
+        } else {
+          return { error: toolResult?.error || `Error executing tool "${name}"` };
+        }
+      } else {
+        const res = await tool.execute(args);
+        if (res.status === "Completed") {
+          executionResult.result = res.output !== undefined ? res.output : "Success";
+        } else if (res.status === "Error") {
+          return { error: res.errorText || `Error executing tool "${name}"` };
+        } else {
+          return { error: `Tool execution status: ${res.status}` };
+        }
       }
 
       // If executionResult.result is null, it is due to a navigation happening.
@@ -148,18 +122,19 @@ export class BrowserToolRegistry implements ToolRegistry {
           return { result, crossDocument: true };
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
       if (
-        e.message.includes("Execution context was destroyed") ||
-        e.message.includes("Target closed") ||
-        e.message.includes("navigating")
+        message.includes("Execution context was destroyed") ||
+        message.includes("Target closed") ||
+        message.includes("navigating")
       ) {
         await new Promise((r) => setTimeout(r, 500));
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
       } else {
-        executionResult = { error: e.message || String(e) };
+        executionResult = { error: message };
       }
     }
 

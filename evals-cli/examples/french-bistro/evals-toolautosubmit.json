@@ -28,7 +28,9 @@
             "$contains": "anniversary"
           }
         },
-        "result": "pending form submission"
+        "result": {
+          "$contains": "welcoming you"
+        }
       }
     ]
   },
@@ -54,7 +56,9 @@
           "guests": "6",
           "seating": "Private Booth"
         },
-        "result": "pending form submission"
+        "result": {
+          "$contains": "welcoming you"
+        }
       }
     ]
   }

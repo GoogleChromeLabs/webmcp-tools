@@ -12,6 +12,9 @@ class MockBrowserPage implements BrowserPage {
   public evaluateResult: unknown = [];
   public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
   public navigationCalls: Array<{ options?: unknown }> = [];
+  public webmcp: any = {
+    tools: () => [],
+  };
 
   async evaluate(fn: string | Function, ...args: unknown[]): Promise<any> {
     this.evaluateCalls.push({ fn, args });
@@ -25,66 +28,137 @@ class MockBrowserPage implements BrowserPage {
 }
 
 describe("BrowserToolRegistry", () => {
-  it("should initialize and return empty list if page returns none", async () => {
+  it("should initialize and return empty list if page returns no tools", async () => {
     const page = new MockBrowserPage();
-    page.evaluateResult = []; // No tools on page
 
     const registry = new BrowserToolRegistry(page);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
 
-    const synced = await registry.syncTools();
+    const synced = registry.syncTools();
     assert.deepStrictEqual(synced, []);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
   });
 
-  it("should fetch and map page-level tools when present", async () => {
+  it("should execute tool via page.webmcp and return output on Completed status", async () => {
+    let executedInput: unknown = null;
     const page = new MockBrowserPage();
-    page.evaluateResult = [
-      {
-        name: "page_action",
-        description: "Executes a page action",
-        inputSchema: {
-          type: "object",
-          properties: {
-            elementId: { type: "string" },
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "click_button",
+          description: "Click a button",
+          inputSchema: { type: "object" },
+          execute: async (input: unknown) => {
+            executedInput = input;
+            return { status: "Completed", output: { status: "clicked" } };
           },
         },
-      },
-    ];
-
-    const registry = new BrowserToolRegistry(page);
-    const synced = await registry.syncTools();
-
-    assert.strictEqual(synced.length, 1);
-    assert.strictEqual(synced[0].functionName, "page_action");
-    assert.strictEqual(synced[0].description, "Executes a page action");
-    assert.deepStrictEqual(synced[0].parameters, {
-      type: "object",
-      properties: { elementId: { type: "string" } },
-    });
-  });
-
-  it("should execute tool inside page context and return success result", async () => {
-    const page = new MockBrowserPage();
-    // Simulate modelContext executeTool response:
-    page.evaluateResult = { success: true, data: { status: "clicked" } };
+      ],
+    };
 
     const registry = new BrowserToolRegistry(page);
     const result = await registry.executeTool("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, { status: "clicked" });
-    assert.strictEqual(page.evaluateCalls.length, 1);
-    assert.strictEqual(page.evaluateCalls[0].args[0], "click_button");
-    assert.deepStrictEqual(page.evaluateCalls[0].args[1], { id: "btn-1" });
+    assert.deepStrictEqual(executedInput, { id: "btn-1" });
   });
 
-  it("should return error if page execution reports success: false", async () => {
+  it("should return error when tool is not found", async () => {
     const page = new MockBrowserPage();
-    page.evaluateResult = { success: false };
 
     const registry = new BrowserToolRegistry(page);
     const result = await registry.executeTool("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, { error: 'no tool named "click_button" was found' });
+  });
+
+  it("should return error when tool execution fails with Error status", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "failing_tool",
+          description: "Fails always",
+          inputSchema: { type: "object" },
+          execute: async () => {
+            return { status: "Error", errorText: "Execution failed in page context" };
+          },
+        },
+      ],
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeTool("failing_tool", {});
+
+    assert.deepStrictEqual(result, { error: "Execution failed in page context" });
+  });
+
+  it("should handle navigation when tool execution output is null", async () => {
+    const page = new MockBrowserPage();
+    page.evaluateResult = { result: '{"type":"JSON-LD"}', crossDocument: true };
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "nav_tool",
+          description: "Navigates page",
+          inputSchema: { type: "object" },
+          execute: async () => {
+            return { status: "Completed", output: null };
+          },
+        },
+      ],
+    };
+
+    const registry = new BrowserToolRegistry(page);
+    const result = await registry.executeTool("nav_tool", {});
+
+    assert.strictEqual(page.navigationCalls.length, 1);
+    assert.deepStrictEqual(result, { type: "JSON-LD" });
+  });
+
+  it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
+    const listeners: Record<string, Function[]> = {};
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      once: (event: string, cb: Function) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(cb);
+      },
+      off: (event: string, cb: Function) => {
+        if (listeners[event]) {
+          listeners[event] = listeners[event].filter((l) => l !== cb);
+        }
+      },
+      tools: () => [
+        {
+          name: "book_table",
+          description: "Form-based tool without autosubmit",
+          formElement: Promise.resolve({} as any),
+          annotations: { autosubmit: false },
+          execute: async () => {
+            // Trigger toolinvoked listener like Puppeteer CDP event would
+            const invokedCb = listeners["toolinvoked"]?.[0];
+            if (invokedCb) {
+              invokedCb({ tool: { name: "book_table" } });
+            }
+            // Promise that doesn't resolve immediately (simulating form wait)
+            return new Promise(() => {});
+          },
+        },
+      ],
+    };
+
+    // Override setTimeout in execution context with fast timeout for speed
+    const registry = new BrowserToolRegistry(page);
+
+    // Fast-forward or test using speed up: since code uses 1000ms timeout, let's test execution
+    const origSetTimeout = global.setTimeout;
+    try {
+      global.setTimeout = ((cb: Function, _ms: number) => origSetTimeout(cb, 10)) as any;
+      const result = await registry.executeTool("book_table", { guests: 2 });
+      assert.strictEqual(result, "pending form submission");
+    } finally {
+      global.setTimeout = origSetTimeout;
+    }
   });
 });

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { WebMCP } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
@@ -11,6 +12,7 @@ import { ToolRegistry } from "../evaluator/toolRegistry.js";
 export interface BrowserPage {
   evaluate(fn: string | Function, ...args: any[]): Promise<any>;
   waitForNavigation(options?: any): Promise<any>;
+  webmcp: WebMCP;
 }
 
 /**
