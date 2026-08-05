@@ -5,11 +5,13 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Always install and build dependencies once at the start of the execution
-echo "📦 Installing dependencies and building project..."
-npm ci
-npm run build
-echo
+# Skip install and build in CI environments where dependencies are pre-installed
+if [ "$CI" != "true" ]; then
+  echo "📦 Installing dependencies and building project..."
+  npm ci
+  npm run build
+  echo
+fi
 
 TARGET="${1}"
 VERBOSE_FLAG=""

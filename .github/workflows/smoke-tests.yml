@@ -21,17 +21,17 @@ jobs:
           - target: doors
             name: Doors
             dir: demos/doors
-            command: npx serve -l 3000
+            command: npx -y serve -l 3000
             url: http://localhost:3000
           - target: bistro
             name: French Bistro
             dir: demos/french-bistro
-            command: npx serve -l 3000
+            command: npx -y serve -l 3000
             url: http://localhost:3000
           - target: pizza
             name: Pizza Maker
             dir: demos/pizza-maker
-            command: npx serve -l 3000
+            command: npx -y serve -l 3000
             url: http://localhost:3000
           - target: sport-shop
             name: Sport Shop Angular
