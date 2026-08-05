@@ -350,6 +350,7 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
 function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
   const { stepIndex, result } = stepEval;
   const expected = result.test.expectedCall?.[0] as FunctionCall | undefined;
+  const isUnexpectedCall = expected === undefined && result.response !== null;
 
   const functionNameOutcome =
     expected?.functionName === result.response?.functionName ? "pass" : "fail";
@@ -385,6 +386,14 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
           ${result.outcome.toUpperCase()}
         </span>
       </div>
+      ${
+        isUnexpectedCall
+          ? `<div class="border-b border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-800">
+              <strong class="font-semibold">Unexpected tool call</strong>
+              <span class="ml-1">No tool call was expected, but <code class="font-mono font-semibold">${escapeHtml(result.response?.functionName)}</code> was executed.</span>
+            </div>`
+          : ""
+      }
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
@@ -398,7 +407,11 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
           <tbody class="divide-y divide-slate-100">
             <tr class="hover:bg-slate-50/30">
               <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
-              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(expected?.functionName || null)}</code></td>
+              <td class="px-4 py-3">${
+                isUnexpectedCall
+                  ? `<span class="text-xs italic text-slate-500">No call expected</span>`
+                  : `<code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(expected?.functionName || null)}</code>`
+              }</td>
               <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(result.response?.functionName || null)}</code></td>
               <td class="px-4 py-3">
                 <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">

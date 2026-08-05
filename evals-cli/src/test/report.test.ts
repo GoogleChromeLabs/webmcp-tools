@@ -98,6 +98,42 @@ describe("Report Grouping & Rendering", () => {
     assert.match(html, /Fallback Prompt Text/);
   });
 
+  it("labels extra executions as unexpected tool calls", () => {
+    const results: TestResult[] = [
+      {
+        test: {
+          name: "Hallucinated tool",
+          messages: [{ role: "user", type: "message", content: "Summarize the page" }],
+          expectedCall: null,
+        },
+        response: { functionName: "get_page_content", args: {} },
+        outcome: "fail",
+      },
+      {
+        test: {
+          name: "Missing tool",
+          messages: [{ role: "user", type: "message", content: "Search the catalog" }],
+          expectedCall: [{ functionName: "search", arguments: {} }],
+        },
+        response: null,
+        outcome: "fail",
+      },
+    ];
+
+    const html = renderReport(mockConfig, {
+      results,
+      testCount: 2,
+      passCount: 0,
+      failCount: 2,
+      errorCount: 0,
+    });
+
+    assert.match(html, /Unexpected tool call/);
+    assert.match(html, /No call expected/);
+    assert.match(html, /get_page_content/);
+    assert.strictEqual(html.match(/Unexpected tool call/g)?.length, 1);
+  });
+
   it("renders chrome channel in HTML configuration section", () => {
     const testResults: TestResults = {
       results: [],
