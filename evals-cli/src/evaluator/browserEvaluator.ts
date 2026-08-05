@@ -53,7 +53,7 @@ export async function executeInBrowserEvals(
             errorCount++;
           }
           if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result });
+            onEvent({ type: "progress", testCaseNumber: testCount, result });
           }
         }
       }

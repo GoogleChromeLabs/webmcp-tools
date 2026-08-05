@@ -64,7 +64,7 @@ export async function executeLocalEvals(
           testResults.push(result);
           passCount++;
           if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result });
+            onEvent({ type: "progress", testCaseNumber: testCount, result });
           }
         } else {
           let stepIndex = 1;
@@ -88,7 +88,7 @@ export async function executeLocalEvals(
             }
 
             if (onEvent) {
-              onEvent({ type: "progress", testNumber: testCount, result: stepResult });
+              onEvent({ type: "progress", testCaseNumber: testCount, result: stepResult });
             }
           }
         }
@@ -110,7 +110,7 @@ export async function executeLocalEvals(
         };
         testResults.push(result);
         if (onEvent) {
-          onEvent({ type: "progress", testNumber: testCount, result });
+          onEvent({ type: "progress", testCaseNumber: testCount, result });
         }
       }
     }

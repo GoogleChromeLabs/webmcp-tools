@@ -187,9 +187,9 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
         } else if (event.type === "progress") {
           resultsList.push(event.result);
           const currentRun = event.result.runIndex || 1;
-          const caseIndex = event.testNumber - (currentRun - 1) * tests.length;
+          const caseIndex = event.testCaseNumber - (currentRun - 1) * tests.length;
           const totalCases = tests.length * (config.runs || 1);
-          const ratio = event.testNumber / totalCases;
+          const ratio = event.testCaseNumber / totalCases;
           const percentage = Math.round(ratio * 100);
           const bar = getProgressBar(ratio);
           const coloredPercentage = chalk.cyan(`${percentage}%`);
