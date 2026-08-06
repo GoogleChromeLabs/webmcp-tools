@@ -115,7 +115,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   }
 }
 
-function getProgressBar(ratio: number, size = 10): string {
+export function getProgressBar(ratio: number, size = 10): string {
   // Normalize ratio to [0, 1] and default NaN to 0 to prevent RangeError
   const safeRatio = isNaN(ratio) ? 0 : Math.max(0, Math.min(1, ratio));
   const filled = Math.floor(safeRatio * size);
@@ -255,9 +255,7 @@ function getFailureDetail(res: any): string {
   return res.outcome === "error" ? "Execution error" : "Failed";
 }
 
-function printConsoleSummary(finalResults: any): void {
-  console.log("\n" + chalk.bold.underline("Evaluation Summary") + "\n");
-
+export function generateConsoleSummaryTable(finalResults: any): Table.Table {
   const table = new Table({
     head: ["Step", "Status", "Expected Function", "Actual Function", "Details"],
     style: {
@@ -302,6 +300,12 @@ function printConsoleSummary(finalResults: any): void {
     }
   }
 
+  return table;
+}
+
+function printConsoleSummary(finalResults: any): void {
+  console.log("\n" + chalk.bold.underline("Evaluation summary") + "\n");
+  const table = generateConsoleSummaryTable(finalResults);
   console.log(table.toString());
 
   const totalSteps = finalResults.results.length;
