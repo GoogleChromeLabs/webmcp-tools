@@ -29,7 +29,7 @@ describe("GeminiBackend", () => {
     const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
     assert.rejects(
       async () => {
-        await backend.executeInBrowserEval({} as any, {} as any, {} as any);
+        await backend.executeInBrowserEval({} as any, {} as any);
       },
       { message: "Method not implemented." },
     );

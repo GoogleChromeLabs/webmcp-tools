@@ -29,7 +29,7 @@ describe("OllamaBackend", () => {
     const backend = new OllamaBackend("http://127.0.0.1:11434", "qwen2.5:14b", "System prompt");
     assert.rejects(
       async () => {
-        await backend.executeInBrowserEval({} as any, {} as any, {} as any);
+        await backend.executeInBrowserEval({} as any, {} as any);
       },
       { message: "Method not implemented." },
     );

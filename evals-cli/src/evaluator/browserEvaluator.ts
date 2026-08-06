@@ -10,7 +10,7 @@ import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
 import { Backend, RunEvent } from "../backends/index.js";
-import { launchBrowser } from "./browser.js";
+import { BrowserToolRegistry, launchBrowser, PUPPETEER_FLAGS } from "./browser.js";
 import { logger } from "../utils/logger.js";
 
 export async function executeInBrowserEvals(
@@ -88,7 +88,16 @@ async function runSingleBrowserTest(
   let page: Page | null = null;
   try {
     page = await setupBrowserPage(browser, config.url);
-    const evalResult = await backend.executeInBrowserEval(test, page, config);
+    const registry = new BrowserToolRegistry(page);
+    const currentTools = registry.syncTools();
+
+    if (currentTools.length === 0) {
+      throw new Error(
+        `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+      );
+    }
+
+    const evalResult = await backend.executeInBrowserEval(test, registry);
 
     if (evalResult.error) {
       throw evalResult.error;

@@ -5,11 +5,10 @@
 
 import chalk from "chalk";
 import type { ChromeReleaseChannel } from "puppeteer-core";
-import { BrowserPage } from "../backends/index.js";
 import { Eval, ExpectedCallNode } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { isFunctionCall, isOrderedGroup, isUnorderedGroup } from "../utils.js";
-import { BrowserToolRegistry, launchBrowser } from "./browser.js";
+import { BrowserPage, BrowserToolRegistry, launchBrowser } from "./browser.js";
 
 export const DEFAULT_SMOKE_TIMEOUT_MS = 30_000;
 

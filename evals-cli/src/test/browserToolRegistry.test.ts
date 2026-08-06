@@ -5,8 +5,7 @@
 
 import * as assert from "node:assert";
 import { describe, it } from "node:test";
-import { BrowserPage } from "../backends/index.js";
-import { BrowserToolRegistry } from "../evaluator/browser.js";
+import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
 
 class MockBrowserPage implements BrowserPage {
   public evaluateResult: unknown = [];
