@@ -25,7 +25,7 @@ export async function executeInBrowserEvals(
   if (onEvent) {
     onEvent({
       type: "start",
-      total: totalSteps,
+      total: tests.length * runs,
       message: `Running evals using ${backend.describe()} (${runs} runs)`,
     });
   }

@@ -74,13 +74,10 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   }
 
   let progressBar: SingleBar | undefined;
-  let passCount = 0;
-  let stepCount = 0;
 
   if (useConsole) {
     progressBar = new SingleBar({
-      format:
-        "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
+      format: "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}",
     });
   }
 
@@ -89,13 +86,9 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     if (useConsole && progressBar) {
       if (event.type === "start") {
         console.log(event.message);
-        progressBar.start(event.total, 0, { accuracy: "0.00" });
+        progressBar.start(event.total, 0);
       } else if (event.type === "progress") {
-        stepCount++;
-        if (event.result.outcome === "pass") passCount++;
-        progressBar.update(stepCount, {
-          accuracy: ((passCount / stepCount) * 100).toFixed(2),
-        });
+        progressBar.update(event.testCaseNumber);
       }
     }
   });
