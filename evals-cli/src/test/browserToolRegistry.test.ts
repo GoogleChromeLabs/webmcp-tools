@@ -126,14 +126,13 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(result, { error: "Execution failed in page context" });
   });
 
-  it("should handle navigation when tool execution output is null", async () => {
+  it("should return Success and avoid navigation wait when tool execution output is null", async () => {
     const page = new MockBrowserPage();
-    page.evaluateResult = { result: '{"type":"JSON-LD"}', crossDocument: true };
     page.webmcp = {
       tools: () => [
         {
-          name: "nav_tool",
-          description: "Navigates page",
+          name: "null_output_tool",
+          description: "Tool returning null output",
           inputSchema: { type: "object" },
           execute: async () => {
             return { status: "Completed", output: null };
@@ -143,16 +142,41 @@ describe("BrowserToolRegistry", () => {
     };
 
     const registry = createRegistry(page);
-    const result = await registry.executeTool("nav_tool", {});
+    const result = await registry.executeTool("null_output_tool", {});
 
-    assert.strictEqual(page.navigationCalls.length, 1);
-    assert.deepStrictEqual(result, { type: "JSON-LD" });
+    assert.strictEqual(page.navigationCalls.length, 0);
+    assert.strictEqual(result, "Success");
+  });
+
+  it("should handle cross-document navigation when execution context is destroyed during tool call", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "nav_form_tool",
+          description: "Tool triggering page navigation",
+          inputSchema: { type: "object" },
+          execute: async () => {
+            throw new Error("Execution context was destroyed");
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeTool("nav_form_tool", {});
+
+    assert.strictEqual(result, "Tool nav_form_tool executed and triggered a page navigation.");
   });
 
   it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
     const listeners: Record<string, Function[]> = {};
     const page = new MockBrowserPage();
     page.webmcp = {
+      on: (event: string, cb: Function) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(cb);
+      },
       once: (event: string, cb: Function) => {
         listeners[event] = listeners[event] || [];
         listeners[event].push(cb);

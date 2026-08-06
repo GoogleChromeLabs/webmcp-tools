@@ -50,7 +50,7 @@ export class BrowserToolRegistry implements ToolRegistry {
     let executionResult: { result?: any; error?: string } = {};
 
     try {
-      const tools = this.page.webmcp.tools() || [];
+      const tools = this.page.webmcp?.tools() || [];
       const tool = tools.find((t) => t.name === name);
       if (!tool) {
         return { success: false, error: `no tool named "${name}" was found` };
@@ -64,21 +64,33 @@ export class BrowserToolRegistry implements ToolRegistry {
           (resolve) => {
             let timer: NodeJS.Timeout | null = null;
 
+            const cleanup = () => {
+              if (timer) {
+                clearTimeout(timer);
+                timer = null;
+              }
+              this.page.webmcp?.off?.("toolinvoked", onToolInvoked);
+            };
+
             const onToolInvoked = (call: WebMCPToolCall) => {
               if (!call.tool || call.tool.name === name) {
+                if (timer) clearTimeout(timer);
                 timer = setTimeout(() => {
+                  cleanup();
                   resolve({ success: true, data: "pending form submission" });
                 }, 1000);
               }
             };
 
-            this.page.webmcp.once("toolinvoked", onToolInvoked);
+            const subscribe = this.page.webmcp?.on
+              ? this.page.webmcp.on.bind(this.page.webmcp)
+              : this.page.webmcp?.once?.bind(this.page.webmcp);
+            subscribe?.("toolinvoked", onToolInvoked);
 
             tool
               .execute(args)
               .then((res: WebMCPToolCallResult) => {
-                if (timer) clearTimeout(timer);
-                this.page.webmcp.off("toolinvoked", onToolInvoked);
+                cleanup();
                 if (res.status === "Completed") {
                   resolve({ success: true, data: res.output ?? "Success" });
                 } else if (res.status === "Error") {
@@ -91,10 +103,20 @@ export class BrowserToolRegistry implements ToolRegistry {
                 }
               })
               .catch((err: unknown) => {
-                if (timer) clearTimeout(timer);
-                this.page.webmcp.off("toolinvoked", onToolInvoked);
+                cleanup();
                 const message = err instanceof Error ? err.message : String(err);
-                resolve({ success: false, error: message });
+                if (
+                  message.includes("Execution context was destroyed") ||
+                  message.includes("Target closed") ||
+                  message.includes("navigating")
+                ) {
+                  resolve({
+                    success: true,
+                    data: `Tool ${name} executed and triggered a page navigation.`,
+                  });
+                } else {
+                  resolve({ success: false, error: message });
+                }
               });
           },
         );
@@ -111,7 +133,7 @@ export class BrowserToolRegistry implements ToolRegistry {
       } else {
         const res = await tool.execute(args);
         if (res.status === "Completed") {
-          executionResult.result = res.output !== undefined ? res.output : "Success";
+          executionResult.result = res.output ?? "Success";
         } else if (res.status === "Error") {
           return {
             success: false,
@@ -120,14 +142,6 @@ export class BrowserToolRegistry implements ToolRegistry {
         } else {
           return { success: false, error: `Tool execution status: ${res.status}` };
         }
-      }
-      // If executionResult.result is null, it is due to a navigation happening.
-      if (executionResult.result == null) {
-        await this.page.waitForNavigation();
-        executionResult = await this.page.evaluate(() => {
-          const result = document.querySelector('script[type="application/ld+json"]')?.textContent;
-          return { result, crossDocument: true };
-        });
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
@@ -140,6 +154,7 @@ export class BrowserToolRegistry implements ToolRegistry {
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
+      } else {
         return { success: false, error: message };
       }
     }
