@@ -4,7 +4,7 @@
  */
 
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { BrowserConsoleError, Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
@@ -90,8 +90,10 @@ async function runSingleBrowserTest(
   runIndex: number,
 ): Promise<TestResult[]> {
   let page: BrowserPage | null = null;
+  let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
     page = await setupBrowserPage(browser, config.url);
+    browserConsoleErrors = collectBrowserConsoleErrors(page);
     const registry = new BrowserToolRegistry(page);
     const currentTools = registry.getCurrentTools();
 
@@ -113,6 +115,7 @@ async function runSingleBrowserTest(
       { text: evalResult.text },
       evalResult.steps || [],
       runIndex,
+      browserConsoleErrors,
     );
   } catch (e: any) {
     logger.warn("Error running browser test:", e);
@@ -123,6 +126,7 @@ async function runSingleBrowserTest(
         outcome: "error",
         runIndex,
         stepIndex: 1,
+        ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       },
     ];
   } finally {
@@ -141,12 +145,40 @@ async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserP
   return page;
 }
 
+export function collectBrowserConsoleErrors(page: BrowserPage): BrowserConsoleError[] {
+  const errors: BrowserConsoleError[] = [];
+
+  page.on("console", (entry) => {
+    if (entry.type() !== "error") return;
+
+    const location = entry.location();
+    const error: BrowserConsoleError = {
+      kind: "console",
+      message: entry.text(),
+    };
+    if (location.url) error.url = location.url;
+    if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
+    if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
+    errors.push(error);
+  });
+
+  page.on("pageerror", (error) => {
+    errors.push({
+      kind: "pageerror",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  });
+
+  return errors;
+}
+
 function buildTestResults(
   test: Eval,
   executedCalls: ToolCall[],
   resultPayload: { text?: string },
   trajectory: any[],
   runIndex: number,
+  browserConsoleErrors: BrowserConsoleError[],
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const trajectories = test.expectedCall
@@ -160,12 +192,14 @@ function buildTestResults(
       response,
       outcome: "pass",
       trajectory,
+      ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       runIndex,
       stepIndex: 1,
     });
   } else {
     let stepIndex = 1;
     for (const traj of trajectories) {
+      const currentStepIndex = stepIndex++;
       let response: any = traj.actual;
       if (!response && executedCalls.length === 0 && resultPayload.text) {
         response = { text: resultPayload.text };
@@ -182,8 +216,11 @@ function buildTestResults(
         response,
         outcome: traj.outcome,
         trajectory,
+        ...(currentStepIndex === 1 && browserConsoleErrors.length > 0
+          ? { browserConsoleErrors }
+          : {}),
         runIndex,
-        stepIndex: stepIndex++,
+        stepIndex: currentStepIndex,
       });
     }
   }
