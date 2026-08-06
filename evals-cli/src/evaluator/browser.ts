@@ -7,16 +7,12 @@
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser, ChromeReleaseChannel } from "puppeteer-core";
-import type { WebMCP, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
+import type { Page as BrowserPage, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { ToolRegistry } from "./toolRegistry.js";
 
-export interface BrowserPage {
-  evaluate(fn: string | Function, ...args: any[]): Promise<any>;
-  waitForNavigation(options?: any): Promise<any>;
-  webmcp: WebMCP;
-}
+export type { Browser, BrowserPage };
 
 export const PUPPETEER_FLAGS = [
   "--enable-features=WebMCP",

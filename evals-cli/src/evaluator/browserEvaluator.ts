@@ -3,14 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Browser, Page } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
 import { Backend, RunEvent } from "../backends/index.js";
-import { BrowserToolRegistry, launchBrowser, PUPPETEER_FLAGS } from "./browser.js";
+import {
+  Browser,
+  BrowserPage,
+  BrowserToolRegistry,
+  launchBrowser,
+  PUPPETEER_FLAGS,
+} from "./browser.js";
 import { logger } from "../utils/logger.js";
 
 export async function executeInBrowserEvals(
@@ -85,7 +90,7 @@ async function runSingleBrowserTest(
   config: WebmcpConfig,
   runIndex: number,
 ): Promise<TestResult[]> {
-  let page: Page | null = null;
+  let page: BrowserPage | null = null;
   try {
     page = await setupBrowserPage(browser, config.url);
     const registry = new BrowserToolRegistry(page);
@@ -128,7 +133,7 @@ async function runSingleBrowserTest(
   }
 }
 
-async function setupBrowserPage(browser: Browser, url: string): Promise<Page> {
+async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserPage> {
   const page = await browser.newPage();
   await page.goto(url, {
     waitUntil: "networkidle2",

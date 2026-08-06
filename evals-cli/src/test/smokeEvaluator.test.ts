@@ -9,10 +9,9 @@ import {
   compileSmokeTests,
   executeSmokeEvals,
   runSmokeTest,
-  SmokeBrowser,
-  SmokePage,
   SmokeToolRegistry,
 } from "../evaluator/smokeEvaluator.js";
+import { type Browser, type BrowserPage } from "../evaluator/browser.js";
 import { Eval } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 
@@ -105,7 +104,7 @@ describe("compileSmokeTests", () => {
 });
 
 class FakeRegistry implements SmokeToolRegistry {
-  calls: Array<{ name: string; args: object }> = [];
+  calls: Array<{ name: string; args: Record<string, unknown> | undefined }> = [];
   syncCount = 0;
 
   constructor(
@@ -121,7 +120,7 @@ class FakeRegistry implements SmokeToolRegistry {
 
   async executeToolChecked(
     name: string,
-    args: object,
+    args?: Record<string, unknown>,
   ): Promise<{ success: true; result: unknown } | { success: false; error: string }> {
     this.calls.push({ name, args });
     if (this.failures[name]) return { success: false, error: this.failures[name] };
@@ -219,7 +218,7 @@ describe("runSmokeTest", () => {
   });
 });
 
-class FakePage implements SmokePage {
+class FakePage {
   closed = false;
   navigatedTo = "";
   webmcp: any = { tools: () => [] };
@@ -239,14 +238,14 @@ class FakePage implements SmokePage {
   }
 }
 
-class FakeBrowser implements SmokeBrowser {
+class FakeBrowser {
   closed = false;
   pages: FakePage[] = [];
 
-  async newPage(): Promise<FakePage> {
+  async newPage(): Promise<BrowserPage> {
     const page = new FakePage();
     this.pages.push(page);
-    return page;
+    return page as unknown as BrowserPage;
   }
 
   async close(): Promise<void> {
@@ -274,7 +273,7 @@ describe("executeSmokeEvals", () => {
       tests,
       { url: "https://example.test", timeoutMs: 100 },
       {
-        launchBrowser: async () => browser,
+        launchBrowser: async () => browser as unknown as Browser,
         createRegistry: (_page, testIndex) =>
           new FakeRegistry(
             [[tool(testIndex === 0 ? "one" : "two")]],
@@ -313,7 +312,7 @@ describe("executeSmokeEvals", () => {
         {
           launchBrowser: async () => {
             launched = true;
-            return new FakeBrowser();
+            return new FakeBrowser() as unknown as Browser;
           },
         },
       ),

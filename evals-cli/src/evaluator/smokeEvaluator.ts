@@ -8,7 +8,7 @@ import type { ChromeReleaseChannel } from "puppeteer-core";
 import { Eval, ExpectedCallNode } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { isFunctionCall, isOrderedGroup, isUnorderedGroup } from "../utils.js";
-import { BrowserPage, BrowserToolRegistry, launchBrowser } from "./browser.js";
+import { BrowserToolRegistry, launchBrowser, type Browser, type BrowserPage } from "./browser.js";
 
 export const DEFAULT_SMOKE_TIMEOUT_MS = 30_000;
 
@@ -21,7 +21,7 @@ export type SmokeConfig = {
 
 export type CompiledSmokeStep = {
   functionName: string;
-  arguments: object;
+  arguments: Record<string, unknown>;
   stepIndex: number;
 };
 
@@ -50,23 +50,13 @@ export interface SmokeToolRegistry {
   syncTools(): Tool[] | Promise<Tool[]>;
   executeToolChecked(
     name: string,
-    args: object,
+    args?: Record<string, unknown>,
   ): Promise<{ success: true; result: unknown } | { success: false; error: string }>;
 }
 
-export interface SmokePage extends BrowserPage {
-  goto(url: string, options?: Record<string, unknown>): Promise<unknown>;
-  close(): Promise<void>;
-}
-
-export interface SmokeBrowser {
-  newPage(): Promise<SmokePage>;
-  close(): Promise<void>;
-}
-
-type SmokeDependencies = {
-  launchBrowser?: () => Promise<SmokeBrowser>;
-  createRegistry?: (page: SmokePage, testIndex: number) => SmokeToolRegistry;
+export type SmokeDependencies = {
+  launchBrowser?: () => Promise<Browser>;
+  createRegistry?: (page: BrowserPage, testIndex: number) => SmokeToolRegistry;
 };
 
 function testName(test: Eval, testIndex: number): string {
@@ -349,11 +339,9 @@ export async function executeSmokeEvals(
   const compiled = compileSmokeTests(tests);
   const timeoutMs = config.timeoutMs || DEFAULT_SMOKE_TIMEOUT_MS;
   const openBrowser =
-    dependencies.launchBrowser ||
-    (async () => (await launchBrowser(config.chromeChannel)) as unknown as SmokeBrowser);
+    dependencies.launchBrowser || (async () => await launchBrowser(config.chromeChannel));
   const createRegistry =
-    dependencies.createRegistry ||
-    ((page: SmokePage) => new BrowserToolRegistry(page) as unknown as SmokeToolRegistry);
+    dependencies.createRegistry || ((page: BrowserPage) => new BrowserToolRegistry(page));
 
   const browser = await openBrowser();
   const results: SmokeStepResult[] = [];

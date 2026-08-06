@@ -7,7 +7,7 @@ import * as assert from "node:assert";
 import { describe, it } from "node:test";
 import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
 
-class MockBrowserPage implements BrowserPage {
+class MockBrowserPage {
   public evaluateResult: unknown = [];
   public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
   public navigationCalls: Array<{ options?: unknown }> = [];
@@ -26,11 +26,15 @@ class MockBrowserPage implements BrowserPage {
   }
 }
 
+function createRegistry(page: MockBrowserPage): BrowserToolRegistry {
+  return new BrowserToolRegistry(page as unknown as BrowserPage);
+}
+
 describe("BrowserToolRegistry", () => {
   it("should initialize and return empty list if page returns no tools", async () => {
     const page = new MockBrowserPage();
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
 
     const synced = registry.syncTools();
@@ -55,7 +59,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeTool("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, { status: "clicked" });
@@ -65,7 +69,7 @@ describe("BrowserToolRegistry", () => {
   it("should return error when tool is not found", async () => {
     const page = new MockBrowserPage();
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeTool("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, { error: 'no tool named "click_button" was found' });
@@ -74,7 +78,7 @@ describe("BrowserToolRegistry", () => {
   it("should expose page execution failures to deterministic callers", async () => {
     const page = new MockBrowserPage();
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, {
@@ -99,7 +103,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
 
     assert.deepStrictEqual(result, { success: true, result: "clicked" });
@@ -120,7 +124,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeTool("failing_tool", {});
 
     assert.deepStrictEqual(result, { error: "Execution failed in page context" });
@@ -142,7 +146,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeTool("nav_tool", {});
 
     assert.strictEqual(page.navigationCalls.length, 1);
@@ -182,7 +186,7 @@ describe("BrowserToolRegistry", () => {
     };
 
     // Override setTimeout in execution context with fast timeout for speed
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
 
     // Fast-forward or test using speed up: since code uses 1000ms timeout, let's test execution
     const origSetTimeout = global.setTimeout;
@@ -211,7 +215,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeToolChecked("failing_mcp", {});
 
     assert.deepStrictEqual(result, { success: false, error: "Out of stock" });
@@ -233,7 +237,7 @@ describe("BrowserToolRegistry", () => {
       ],
     };
 
-    const registry = new BrowserToolRegistry(page);
+    const registry = createRegistry(page);
     const result = await registry.executeTool("bool_tool", {});
 
     assert.strictEqual(result, false);
