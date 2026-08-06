@@ -116,7 +116,9 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
 }
 
 function getProgressBar(ratio: number, size = 10): string {
-  const filled = Math.min(size, Math.floor(ratio * size));
+  // Normalize ratio to [0, 1] and default NaN to 0 to prevent RangeError
+  const safeRatio = isNaN(ratio) ? 0 : Math.max(0, Math.min(1, ratio));
+  const filled = Math.floor(safeRatio * size);
   const empty = size - filled;
   const filledPart = chalk.cyan("━".repeat(filled));
   const emptyPart = chalk.gray.dim("─".repeat(empty));
