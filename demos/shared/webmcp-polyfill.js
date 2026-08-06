@@ -10,6 +10,16 @@
 
   window.__webmcp_registered_tools = window.__webmcp_registered_tools || new Map();
 
+  const openedWindows = new Set();
+  const originalOpen = window.open;
+  window.open = function (...args) {
+    const win = originalOpen.apply(this, args);
+    if (win) {
+      openedWindows.add(win);
+    }
+    return win;
+  };
+
   function getLocalTools(win) {
     const tools = [];
 
@@ -207,6 +217,30 @@
           }
         }
       } catch (e) { }
+
+      for (const win of openedWindows) {
+        if (!win.closed) {
+          allWindows.add(win);
+        } else {
+          openedWindows.delete(win);
+        }
+      }
+
+      if (window.documentPictureInPicture && window.documentPictureInPicture.window) {
+        allWindows.add(window.documentPictureInPicture.window);
+      }
+
+      const windowsToScan = Array.from(allWindows);
+      for (const win of windowsToScan) {
+        try {
+          const iframes = win.document.querySelectorAll('iframe');
+          for (const iframe of iframes) {
+            if (iframe.contentWindow) {
+              allWindows.add(iframe.contentWindow);
+            }
+          }
+        } catch (e) { }
+      }
 
       const allTools = [];
       const remoteToolPromises = [];
