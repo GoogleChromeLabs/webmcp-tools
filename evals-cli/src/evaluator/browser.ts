@@ -50,7 +50,7 @@ export class BrowserToolRegistry implements ToolRegistry {
     let executionResult: { result?: any; error?: string } = {};
 
     try {
-      const tools = this.page.webmcp?.tools() || [];
+      const tools = this.page.webmcp.tools();
       const tool = tools.find((t) => t.name === name);
       if (!tool) {
         return { success: false, error: `no tool named "${name}" was found` };
