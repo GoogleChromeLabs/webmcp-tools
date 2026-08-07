@@ -89,9 +89,9 @@ async function runSingleBrowserTest(
   let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
     page = await browser.newPage();
-    browserConsoleErrors = collectBrowserConsoleErrors(page);
     await setupBrowserPage(page, config.url);
     const evalResult = await backend.executeInBrowserEval(test, page, config);
+    browserConsoleErrors = evalResult.browserConsoleErrors || [];
 
     if (evalResult.error) {
       throw evalResult.error;
@@ -129,33 +129,6 @@ async function setupBrowserPage(page: Page, url: string): Promise<void> {
     waitUntil: "networkidle2",
     timeout: 30000,
   });
-}
-
-export function collectBrowserConsoleErrors(page: Page): BrowserConsoleError[] {
-  const errors: BrowserConsoleError[] = [];
-
-  page.on("console", (entry) => {
-    if (entry.type() !== "error") return;
-
-    const location = entry.location();
-    const error: BrowserConsoleError = {
-      kind: "console",
-      message: entry.text(),
-    };
-    if (location.url) error.url = location.url;
-    if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
-    if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
-    errors.push(error);
-  });
-
-  page.on("pageerror", (error) => {
-    errors.push({
-      kind: "pageerror",
-      message: error instanceof Error ? error.message : String(error),
-    });
-  });
-
-  return errors;
 }
 
 function buildTestResults(

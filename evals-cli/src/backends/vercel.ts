@@ -116,6 +116,7 @@ export class VercelBackend implements Backend {
   ): Promise<BrowserEvalResult> {
     const availableToolsPerStep: Array<Array<Tool>> = [];
     const stepsHistory: TrajectoryStep[] = [];
+    let registry: BrowserToolRegistry | undefined;
 
     const buildErrorTrajectory = () => {
       return stepsHistory.map((step, idx) => ({
@@ -128,8 +129,9 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      const registry = new BrowserToolRegistry(page);
-      let currentTools = registry.syncTools();
+      const activeRegistry = new BrowserToolRegistry(page);
+      registry = activeRegistry;
+      let currentTools = activeRegistry.syncTools();
 
       if (currentTools.length === 0) {
         throw new Error(
@@ -143,7 +145,7 @@ export class VercelBackend implements Backend {
           delete aiToolsWithExecution[key];
         }
         const mapped = mapJsonSchemaToVercelTools(toolsList, (fnName, args) =>
-          registry.executeTool(fnName, args),
+          activeRegistry.executeTool(fnName, args),
         );
         Object.assign(aiToolsWithExecution, mapped);
       };
@@ -183,7 +185,7 @@ export class VercelBackend implements Backend {
           });
         },
         prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = registry.syncTools();
+          currentTools = activeRegistry.syncTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;
@@ -237,12 +239,14 @@ export class VercelBackend implements Backend {
         toolCalls: executedCalls,
         text: resultPayload.text,
         steps,
+        browserConsoleErrors: activeRegistry.getBrowserConsoleErrors(),
       };
     } catch (e: any) {
       this.logger.warn("Error running test in browser:", e);
       return {
         toolCalls: [],
         steps: buildErrorTrajectory(),
+        browserConsoleErrors: registry?.getBrowserConsoleErrors(),
         error: e,
       };
     }
