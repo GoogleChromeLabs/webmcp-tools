@@ -6,11 +6,10 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
-import puppeteer, { Browser } from "puppeteer-core";
+import puppeteer, { Browser, ChromeReleaseChannel } from "puppeteer-core";
 import type { WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
-import { findChromePath } from "../utils.js";
 import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
 
@@ -20,12 +19,15 @@ export const PUPPETEER_FLAGS = [
   "--disable-setuid-sandbox",
 ];
 
-export async function launchBrowser(): Promise<Browser> {
-  const executablePath = await findChromePath();
+export async function launchBrowser(
+  chromeChannel: ChromeReleaseChannel = "chrome-canary",
+): Promise<Browser> {
   return await puppeteer.launch({
-    executablePath,
+    browser: "chrome",
+    channel: chromeChannel,
     headless: true,
-    args: PUPPETEER_FLAGS,
+    // Clone so Puppeteer cannot mutate the global PUPPETEER_FLAGS.
+    args: [...PUPPETEER_FLAGS],
   });
 }
 
@@ -44,14 +46,17 @@ export class BrowserToolRegistry implements ToolRegistry {
     return this.currentTools;
   }
 
-  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
+  async executeToolChecked(
+    name: string,
+    args: Record<string, unknown> = {},
+  ): Promise<{ success: true; result: any } | { success: false; error: string }> {
     let executionResult: { result?: any; error?: string } = {};
 
     try {
       const tools = this.page.webmcp.tools() || [];
       const tool = tools.find((t) => t.name === name);
       if (!tool) {
-        return { error: `no tool named "${name}" was found` };
+        return { success: false, error: `no tool named "${name}" was found` };
       }
 
       const isDeclarativeWithoutAutosubmit =
@@ -101,19 +106,24 @@ export class BrowserToolRegistry implements ToolRegistry {
         if (toolResult && toolResult.success) {
           executionResult.result = toolResult.data;
         } else {
-          return { error: toolResult?.error || `Error executing tool "${name}"` };
+          return {
+            success: false,
+            error: toolResult?.error || `Error executing tool "${name}"`,
+          };
         }
       } else {
         const res = await tool.execute(args);
         if (res.status === "Completed") {
           executionResult.result = res.output !== undefined ? res.output : "Success";
         } else if (res.status === "Error") {
-          return { error: res.errorText || `Error executing tool "${name}"` };
+          return {
+            success: false,
+            error: res.errorText || `Error executing tool "${name}"`,
+          };
         } else {
-          return { error: `Tool execution status: ${res.status}` };
+          return { success: false, error: `Tool execution status: ${res.status}` };
         }
       }
-
       // If executionResult.result is null, it is due to a navigation happening.
       if (executionResult.result == null) {
         await this.page.waitForNavigation();
@@ -133,8 +143,7 @@ export class BrowserToolRegistry implements ToolRegistry {
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
-      } else {
-        executionResult = { error: message };
+        return { success: false, error: message };
       }
     }
 
@@ -147,8 +156,23 @@ export class BrowserToolRegistry implements ToolRegistry {
 
     // Attempt to drill down into structured responses
     if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
-      return r.content[0].text;
+      if (r.isError) {
+        return { success: false, error: r.content[0].text };
+      }
+      return { success: true, result: r.content[0].text };
     }
-    return r || executionResult.error || "Success";
+    if (r?.isError) {
+      return {
+        success: false,
+        error: typeof r.error === "string" ? r.error : JSON.stringify(r),
+      };
+    }
+    return { success: true, result: r };
+  }
+
+  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
+    const outcome = await this.executeToolChecked(name, args);
+    if (!outcome.success) return { error: outcome.error };
+    return outcome.result ?? "Success";
   }
 }

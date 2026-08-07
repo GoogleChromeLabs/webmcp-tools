@@ -6,9 +6,14 @@
  */
 
 import { createRequire } from "node:module";
-import { Command } from "commander";
+import { Command, InvalidArgumentError } from "commander";
 import dotenv from "dotenv";
-import { runLocalCommand, runWebCommand, runAnalyzeCommand } from "../commands/index.js";
+import {
+  runLocalCommand,
+  runWebCommand,
+  runSmokeCommand,
+  runAnalyzeCommand,
+} from "../commands/index.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json");
@@ -16,6 +21,14 @@ const pkg = require("../../package.json");
 dotenv.config({ quiet: true });
 
 const program = new Command();
+
+function positiveInteger(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new InvalidArgumentError("Expected a positive integer.");
+  }
+  return parsed;
+}
 
 program
   .name("webmcp-evals")
@@ -38,6 +51,11 @@ program
     "--open-analysis",
     "Automatically open the analysis markdown report upon completion",
     false,
+  )
+  .option(
+    "--chrome-channel <channel>",
+    "Chrome browser channel (chrome, chrome-beta, chrome-canary, chrome-dev)",
+    "chrome-canary",
   );
 
 // Command: run static file evals
@@ -58,6 +76,16 @@ program
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
   .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runWebCommand);
+
+// Command: run deterministic browser smoke tests without an LLM
+program
+  .command("smoke")
+  .description("Execute concrete expected tool calls against a live WebMCP page")
+  .requiredOption("-u, --url <url>", "Target web page URL")
+  .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+  .option("--timeout <milliseconds>", "Timeout per navigation or tool step", positiveInteger, 30000)
+  .option("-v, --verbose", "Print live step-by-step navigation and tool call logs", false)
+  .action(runSmokeCommand);
 
 // Command: analyze evaluation report using an LLM
 program

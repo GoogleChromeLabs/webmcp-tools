@@ -36,7 +36,7 @@ export async function executeInBrowserEvals(
   let errorCount = 0;
   const testResults: Array<TestResult> = [];
 
-  const browser = await launchBrowser();
+  const browser = await launchBrowser(config.chromeChannel);
   try {
     for (let r = 0; r < runs; r++) {
       for (const test of tests) {

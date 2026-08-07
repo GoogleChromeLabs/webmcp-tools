@@ -12,10 +12,11 @@ import chalk from "chalk";
 import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
+import type { ChromeReleaseChannel } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
-import { executeLocalEvals, executeInBrowserEvals } from "../evaluator/index.js";
+import { executeLocalEvals, executeInBrowserEvals, executeSmokeEvals } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
@@ -34,6 +35,9 @@ export interface CommandOptions {
   analyze?: boolean;
   analyzerModel?: string;
   openAnalysis?: boolean;
+  chromeChannel?: ChromeReleaseChannel;
+  timeout?: number;
+  verbose?: boolean;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -51,6 +55,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     maxSteps: opts.maxSteps,
     outputDir: opts.outputDir,
     reporter: opts.reporter,
+    chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
   };
 
   const toolsSchema: ToolsSchema = JSON.parse(
@@ -146,6 +151,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       maxSteps: opts.maxSteps,
       outputDir: opts.outputDir,
       reporter: opts.reporter,
+      chromeChannel: opts.chromeChannel || "chrome-canary",
     };
 
     const tests: Array<Eval> = JSON.parse(
@@ -223,6 +229,51 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
 }
 
 import { matchesArgument } from "../matcher.js";
+export async function runSmokeCommand(options: CommandOptions, command?: Command): Promise<void> {
+  const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+  const url = opts.url!;
+  const evalsFile = opts.evals!;
+
+  try {
+    const tests: Array<Eval> = JSON.parse(
+      await readFile(resolve(process.cwd(), evalsFile), "utf-8"),
+    );
+    const finalResults = await executeSmokeEvals(tests, {
+      url,
+      timeoutMs: opts.timeout,
+      verbose: opts.verbose,
+      chromeChannel: opts.chromeChannel as ChromeReleaseChannel,
+    });
+
+    console.log("\n" + chalk.bold.underline("Smoke Test Summary") + "\n");
+    const table = new Table({
+      head: ["Case", "Step", "Status", "Tool", "Error"],
+      style: { head: ["cyan"], border: ["grey"] },
+    });
+    for (const result of finalResults.results) {
+      table.push([
+        result.testName,
+        result.stepIndex,
+        result.outcome === "pass" ? chalk.green("PASS") : chalk.red("ERROR"),
+        result.functionName,
+        result.error || "-",
+      ]);
+    }
+    console.log(table.toString());
+
+    const totalSteps = finalResults.totalExpectedSteps || finalResults.results.length;
+    const color = finalResults.errorCount === 0 ? chalk.green : chalk.red;
+    console.log(
+      `\nPassed steps: ${color(`${finalResults.passCount}/${totalSteps}`)} ` +
+        `across ${finalResults.testCount} case(s).\n`,
+    );
+    if (finalResults.errorCount > 0) process.exitCode = 1;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`\n${chalk.red.bold("❌ Error:")} ${message}\n`);
+    process.exitCode = 1;
+  }
+}
 
 function getFailureDetail(res: any): string {
   if (res.outcome === "pass") return "-";

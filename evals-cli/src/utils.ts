@@ -6,36 +6,8 @@
 import { ExpectedCallNode, FunctionCall } from "./types/evals.js";
 import { ToolCall } from "./types/tools.js";
 import { matchesArgument } from "./matcher.js";
-import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
-
-export const CHROME_CANARY_PATHS: string[] = [
-  // Windows
-  path.join(os.homedir(), "AppData", "Local", "Google", "Chrome SxS", "Application", "chrome.exe"),
-  // macOS
-  "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-  // Linux unstable channel
-  "/usr/bin/google-chrome-unstable",
-  "/opt/google/chrome-unstable/google-chrome",
-  "/usr/bin/google-chrome-canary",
-];
-
-export async function findChromePath(): Promise<string> {
-  for (const candidate of CHROME_CANARY_PATHS) {
-    try {
-      await fs.access(candidate);
-      return candidate;
-    } catch {
-      // file does not exist or cannot be accessed, continue to next candidate
-    }
-  }
-  throw new Error(
-    "Chrome Canary not found. Please install Chrome Canary (version 146+).\n" +
-      "Checked paths:\n" +
-      CHROME_CANARY_PATHS.map((p) => `  - ${p}`).join("\n"),
-  );
-}
 
 export function functionCallOutcome(
   expected: FunctionCall | null,
