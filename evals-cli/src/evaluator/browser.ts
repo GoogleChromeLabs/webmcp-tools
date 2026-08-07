@@ -69,7 +69,7 @@ export class BrowserToolRegistry implements ToolRegistry {
                 clearTimeout(timer);
                 timer = null;
               }
-              this.page.webmcp?.off?.("toolinvoked", onToolInvoked);
+              this.page.webmcp.off("toolinvoked", onToolInvoked);
             };
 
             const onToolInvoked = (call: WebMCPToolCall) => {
