@@ -3,14 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Browser, Page } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
 import { Backend, RunEvent } from "../backends/index.js";
-import { launchBrowser } from "./browser.js";
+import {
+  Browser,
+  BrowserPage,
+  BrowserToolRegistry,
+  launchBrowser,
+  PUPPETEER_FLAGS,
+} from "./browser.js";
 import { logger } from "../utils/logger.js";
 
 export async function executeInBrowserEvals(
@@ -85,10 +90,19 @@ async function runSingleBrowserTest(
   config: WebmcpConfig,
   runIndex: number,
 ): Promise<TestResult[]> {
-  let page: Page | null = null;
+  let page: BrowserPage | null = null;
   try {
     page = await setupBrowserPage(browser, config.url);
-    const evalResult = await backend.executeInBrowserEval(test, page, config);
+    const registry = new BrowserToolRegistry(page);
+    const currentTools = registry.getCurrentTools();
+
+    if (currentTools.length === 0) {
+      throw new Error(
+        `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+      );
+    }
+
+    const evalResult = await backend.executeInBrowserEval(test, registry);
 
     if (evalResult.error) {
       throw evalResult.error;
@@ -119,7 +133,7 @@ async function runSingleBrowserTest(
   }
 }
 
-async function setupBrowserPage(browser: Browser, url: string): Promise<Page> {
+async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserPage> {
   const page = await browser.newPage();
   await page.goto(url, {
     waitUntil: "networkidle2",

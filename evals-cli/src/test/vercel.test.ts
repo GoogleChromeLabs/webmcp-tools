@@ -97,18 +97,16 @@ describe("VercelBackend", () => {
 
   describe("executeInBrowserEval multi-turn message handling", () => {
     it("should pass mapped messages array correctly to agentWithExec.generate", async (t) => {
-      // Create a dummy page object that returns some dummy registered tools
-      const dummyPage: any = {
-        webmcp: {
-          tools: () => [
-            {
-              name: "add_topping",
-              description: "Adds a topping",
-              inputSchema: { type: "object" },
-            },
-          ],
-        },
-        evaluate: async () => ({}),
+      // Create a dummy registry object that returns some dummy registered tools
+      const dummyRegistry = {
+        getCurrentTools: () => [
+          {
+            functionName: "add_topping",
+            description: "Adds a topping",
+            parameters: { type: "object" },
+          },
+        ],
+        executeTool: async () => ({}),
       };
 
       // Mock ToolLoopAgent.generate to intercept the payload sent to it
@@ -145,9 +143,7 @@ describe("VercelBackend", () => {
         expectedCall: [],
       };
 
-      await backend.executeInBrowserEval(evalTest, dummyPage, {
-        url: "http://localhost:3000",
-      } as any);
+      await backend.executeInBrowserEval(evalTest, dummyRegistry);
 
       // Validate the payload received by agentWithExec.generate
       assert.ok(capturedPayload, "ToolLoopAgent.generate was not called");
@@ -176,17 +172,15 @@ describe("VercelBackend", () => {
     });
 
     it("should match tool result strictly by toolCallId when the same tool is called multiple times", async (t) => {
-      const dummyPage: any = {
-        webmcp: {
-          tools: () => [
-            {
-              name: "load_next_results",
-              description: "Loads results",
-              inputSchema: { type: "object" },
-            },
-          ],
-        },
-        evaluate: async () => ({}),
+      const dummyRegistry = {
+        getCurrentTools: () => [
+          {
+            functionName: "load_next_results",
+            description: "Loads results",
+            parameters: { type: "object" },
+          },
+        ],
+        executeTool: async () => ({}),
       };
 
       t.mock.method(ai.ToolLoopAgent.prototype, "generate", async () => {
@@ -218,9 +212,7 @@ describe("VercelBackend", () => {
         expectedCall: [],
       };
 
-      const result = await backend.executeInBrowserEval(evalTest, dummyPage, {
-        url: "http://localhost:3000",
-      } as any);
+      const result = await backend.executeInBrowserEval(evalTest, dummyRegistry);
 
       assert.strictEqual(result.toolCalls.length, 2);
       assert.strictEqual(result.toolCalls[0].functionName, "load_next_results");

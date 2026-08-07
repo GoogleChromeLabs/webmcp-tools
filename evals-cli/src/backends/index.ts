@@ -3,17 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { WebMCP } from "puppeteer-core";
-import { WebmcpConfig } from "../types/config.js";
 import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
-export interface BrowserPage {
-  evaluate(fn: string | Function, ...args: any[]): Promise<any>;
-  waitForNavigation(options?: any): Promise<any>;
-  webmcp: WebMCP;
-}
+export type { BrowserPage } from "../evaluator/browser.js";
 
 /**
  * Result of running a single test through the local (non-browser) path.
@@ -39,11 +33,7 @@ export type BrowserEvalResult = {
 export interface Backend {
   executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult>;
 
-  executeInBrowserEval(
-    test: Eval,
-    page: BrowserPage,
-    config: WebmcpConfig,
-  ): Promise<BrowserEvalResult>;
+  executeInBrowserEval(test: Eval, registry: ToolRegistry): Promise<BrowserEvalResult>;
 
   describe(): string;
 }

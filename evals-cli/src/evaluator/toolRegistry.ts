@@ -18,7 +18,7 @@ export class LocalToolRegistry implements ToolRegistry {
   ) {}
 
   getCurrentTools(): Tool[] {
-    return this.tools;
+    return [...this.tools];
   }
 
   async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {

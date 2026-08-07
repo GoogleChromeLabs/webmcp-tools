@@ -7,11 +7,12 @@
 /// <reference path="../../../demos/shared/types/webmcp.d.ts" />
 
 import puppeteer, { Browser, ChromeReleaseChannel } from "puppeteer-core";
-import type { WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
+import type { Page as BrowserPage, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
-import { BrowserPage } from "../backends/index.js";
 import { ToolRegistry } from "./toolRegistry.js";
+
+export type { Browser, BrowserPage };
 
 export const PUPPETEER_FLAGS = [
   "--enable-features=WebMCP",
@@ -36,14 +37,10 @@ export class BrowserToolRegistry implements ToolRegistry {
 
   constructor(private page: BrowserPage) {}
 
-  syncTools(): Tool[] {
-    const rawTools = this.page.webmcp.tools();
-    this.currentTools = mapRawBrowserToolsToConfig(rawTools);
-    return this.currentTools;
-  }
-
   getCurrentTools(): Tool[] {
-    return this.currentTools;
+    const rawTools = this.page.webmcp.tools() || [];
+    this.currentTools = mapRawBrowserToolsToConfig(rawTools);
+    return [...this.currentTools];
   }
 
   async executeToolChecked(

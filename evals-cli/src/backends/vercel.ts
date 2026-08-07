@@ -8,8 +8,7 @@ import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 
-import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "../backends/index.js";
-import { BrowserToolRegistry, PUPPETEER_FLAGS } from "../evaluator/browser.js";
+import { Backend, BrowserEvalResult, LocalEvalResult } from "../backends/index.js";
 import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
@@ -109,11 +108,7 @@ export class VercelBackend implements Backend {
     return { toolCalls, text: aiResult.text };
   }
 
-  async executeInBrowserEval(
-    test: Eval,
-    page: BrowserPage,
-    config: WebmcpConfig,
-  ): Promise<BrowserEvalResult> {
+  async executeInBrowserEval(test: Eval, registry: ToolRegistry): Promise<BrowserEvalResult> {
     const availableToolsPerStep: Array<Array<Tool>> = [];
     const stepsHistory: TrajectoryStep[] = [];
 
@@ -128,14 +123,7 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      const registry = new BrowserToolRegistry(page);
-      let currentTools = registry.syncTools();
-
-      if (currentTools.length === 0) {
-        throw new Error(
-          `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
-        );
-      }
+      let currentTools = await registry.getCurrentTools();
 
       const aiToolsWithExecution: Record<string, any> = {};
       const rebuildTools = (toolsList: Tool[]) => {
@@ -183,7 +171,7 @@ export class VercelBackend implements Backend {
           });
         },
         prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = registry.syncTools();
+          currentTools = await registry.getCurrentTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;
