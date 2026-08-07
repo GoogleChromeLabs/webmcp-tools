@@ -152,4 +152,75 @@ describe("Report Grouping & Rendering", () => {
     const htmlDefault = renderReport(mockConfig, testResults);
     assert.match(htmlDefault, /chrome-canary/);
   });
+
+  it("renders browser console errors once per run and escapes page content", () => {
+    const browserConsoleErrors = [
+      {
+        kind: "console" as const,
+        message: "Failed to render <script>",
+        url: "https://example.test/app.js?next=<unsafe>",
+        lineNumber: 12,
+        columnNumber: 4,
+        toolCalls: [
+          {
+            functionName: "render_<unsafe>",
+            args: { query: "<script>alert(1)</script>" },
+          },
+        ],
+      },
+      {
+        kind: "pageerror" as const,
+        message: "Unhandled state",
+        toolCalls: [
+          {
+            functionName: "submit_order",
+            args: { orderId: 123 },
+          },
+        ],
+      },
+    ];
+    const results: TestResult[] = [
+      {
+        test: {
+          name: "Browser diagnostics",
+          messages: [{ role: "user", type: "message", content: "Complete the flow" }],
+          expectedCall: [{ functionName: "first", arguments: {} }],
+        },
+        response: { functionName: "first", args: {} },
+        outcome: "pass",
+        runIndex: 1,
+        stepIndex: 1,
+        browserConsoleErrors,
+      },
+      {
+        test: {
+          name: "Browser diagnostics",
+          messages: [{ role: "user", type: "message", content: "Complete the flow" }],
+          expectedCall: [{ functionName: "second", arguments: {} }],
+        },
+        response: { functionName: "second", args: {} },
+        outcome: "pass",
+        runIndex: 1,
+        stepIndex: 2,
+        browserConsoleErrors,
+      },
+    ];
+
+    const html = renderReport(mockConfig, {
+      results,
+      testCount: 1,
+      passCount: 2,
+      failCount: 0,
+      errorCount: 0,
+    });
+
+    assert.match(html, /2 browser errors/);
+    assert.match(html, /Browser console errors \(2\)/);
+    assert.match(html, /Failed to render &lt;script&gt;/);
+    assert.match(html, /https:\/\/example\.test\/app\.js\?next=&lt;unsafe&gt;:12:4/);
+    assert.match(html, /During tool <span[^>]*>render_&lt;unsafe&gt;<\/span>/);
+    assert.match(html, /&quot;query&quot;: &quot;&lt;script&gt;alert\(1\)&lt;\/script&gt;&quot;/);
+    assert.match(html, /Uncaught exception/);
+    assert.strictEqual(html.match(/Failed to render/g)?.length, 1);
+  });
 });

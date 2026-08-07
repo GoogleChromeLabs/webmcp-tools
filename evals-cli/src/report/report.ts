@@ -4,7 +4,13 @@
  */
 
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.js";
+import {
+  BrowserConsoleError,
+  FunctionCall,
+  Message,
+  TestResult,
+  TestResults,
+} from "../types/evals.js";
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
@@ -154,6 +160,7 @@ interface TestRun {
   outcome: "pass" | "fail" | "error";
   messages: Message[];
   trajectory?: any[];
+  browserConsoleErrors?: BrowserConsoleError[];
 }
 
 interface TestCase {
@@ -197,8 +204,13 @@ function renderDetails(testResults: Array<TestResult>): string {
         outcome: "pass",
         messages: result.test.messages,
         trajectory: result.trajectory,
+        browserConsoleErrors: result.browserConsoleErrors,
       };
       group.runs.push(run);
+    }
+
+    if (result.browserConsoleErrors?.length) {
+      run.browserConsoleErrors = result.browserConsoleErrors;
     }
 
     run.steps.push({
@@ -237,7 +249,8 @@ function renderDetails(testResults: Array<TestResult>): string {
 
 function renderTestCase(group: TestCase, caseIndex: number, totalCases: number): string {
   const hasFailures = group.failCount > 0 || group.errorCount > 0;
-  const isOpen = hasFailures ? "open" : "";
+  const hasBrowserErrors = group.runs.some((run) => run.browserConsoleErrors?.length);
+  const isOpen = hasFailures || hasBrowserErrors ? "open" : "";
 
   let containerClass = "border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden";
   let headerBgClass = "bg-slate-50 hover:bg-slate-100";
@@ -293,7 +306,8 @@ function renderTestCase(group: TestCase, caseIndex: number, totalCases: number):
 
 function renderRunIteration(run: TestRun, totalRuns: number): string {
   const isPass = run.outcome === "pass";
-  const isOpen = !isPass ? "open" : "";
+  const browserErrorCount = run.browserConsoleErrors?.length || 0;
+  const isOpen = !isPass || browserErrorCount > 0 ? "open" : "";
 
   const totalSteps = run.steps.length;
   const passedSteps = run.steps.filter((s) => s.result.outcome === "pass").length;
@@ -317,9 +331,18 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
             </svg>
             <span class="font-semibold">Run #${run.runIndex}/${totalRuns}</span>
           </div>
-          <span class="px-2.5 py-0.5 rounded text-xs font-semibold border ${badgeClass}">
-            ${runBadgeText}
-          </span>
+          <div class="flex items-center gap-2">
+            ${
+              browserErrorCount > 0
+                ? `<span class="px-2.5 py-0.5 rounded text-xs font-semibold border bg-amber-100 text-amber-800 border-amber-200">
+                    ${browserErrorCount} browser error${browserErrorCount === 1 ? "" : "s"}
+                  </span>`
+                : ""
+            }
+            <span class="px-2.5 py-0.5 rounded text-xs font-semibold border ${badgeClass}">
+              ${runBadgeText}
+            </span>
+          </div>
         </summary>
         
         <div class="p-4 border-t border-slate-100 bg-slate-50/30 space-y-5">
@@ -340,10 +363,58 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
             ${run.steps.map((step) => renderStepDetails(step, run.steps.length)).join("")}
           </div>
 
+          ${renderBrowserConsoleErrors(run.browserConsoleErrors)}
+
           ${renderTrajectory(run.trajectory)}
         </div>
       </details>
     </div>
+  `;
+}
+
+function renderBrowserConsoleErrors(errors?: BrowserConsoleError[]): string {
+  if (!errors?.length) return "";
+
+  return `
+    <details class="group/console bg-white rounded border border-amber-200" open>
+      <summary class="p-3 font-medium text-sm text-amber-900 cursor-pointer bg-amber-50/60 border-b border-amber-200">
+        Browser console errors (${errors.length})
+      </summary>
+      <ul class="divide-y divide-slate-100">
+        ${errors
+          .map((error) => {
+            let location = error.url || "";
+            if (error.lineNumber !== undefined) location += `:${error.lineNumber}`;
+            if (error.columnNumber !== undefined) location += `:${error.columnNumber}`;
+            const hasOverlappingCalls = error.toolCalls.length > 1;
+
+            return `
+              <li class="p-3 space-y-1">
+                <span class="text-[10px] font-semibold uppercase text-amber-700">
+                  ${error.kind === "pageerror" ? "Uncaught exception" : "Console error"}
+                </span>
+                ${error.toolCalls
+                  .map(
+                    (toolCall) => `
+                      <div>
+                        <p class="text-xs text-slate-600">
+                          ${hasOverlappingCalls ? "Possible source" : "During tool"} <span class="font-mono font-semibold text-slate-800">${escapeHtml(toolCall.functionName)}</span>
+                        </p>
+                        <pre class="whitespace-pre-wrap text-xs text-slate-600 font-mono">${escapeHtml(JSON.stringify(toolCall.args, null, 2))}</pre>
+                      </div>`,
+                  )
+                  .join("")}
+                <pre class="whitespace-pre-wrap text-xs text-slate-800 font-mono">${escapeHtml(error.message)}</pre>
+                ${
+                  location
+                    ? `<p class="text-[11px] text-slate-500 font-mono break-all">${escapeHtml(location)}</p>`
+                    : ""
+                }
+              </li>`;
+          })
+          .join("")}
+      </ul>
+    </details>
   `;
 }
 

@@ -68,11 +68,21 @@ export interface TrajectoryStep {
   availableTools?: Tool[];
 }
 
+export type BrowserConsoleError = {
+  kind: "console" | "pageerror";
+  message: string;
+  url?: string;
+  lineNumber?: number;
+  columnNumber?: number;
+  toolCalls: Array<Pick<ToolCall, "functionName" | "args">>;
+};
+
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
   outcome: "pass" | "fail" | "error";
   trajectory?: TrajectoryStep[];
+  browserConsoleErrors?: BrowserConsoleError[];
   runIndex?: number;
   stepIndex?: number;
 };

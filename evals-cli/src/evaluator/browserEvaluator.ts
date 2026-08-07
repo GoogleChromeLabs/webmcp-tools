@@ -5,7 +5,7 @@
 
 import { Browser, Page } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { BrowserConsoleError, Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
@@ -86,9 +86,12 @@ async function runSingleBrowserTest(
   runIndex: number,
 ): Promise<TestResult[]> {
   let page: Page | null = null;
+  let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
-    page = await setupBrowserPage(browser, config.url);
+    page = await browser.newPage();
+    await setupBrowserPage(page, config.url);
     const evalResult = await backend.executeInBrowserEval(test, page, config);
+    browserConsoleErrors = evalResult.browserConsoleErrors || [];
 
     if (evalResult.error) {
       throw evalResult.error;
@@ -100,6 +103,7 @@ async function runSingleBrowserTest(
       { text: evalResult.text },
       evalResult.steps || [],
       runIndex,
+      browserConsoleErrors,
     );
   } catch (e: any) {
     logger.warn("Error running browser test:", e);
@@ -110,6 +114,7 @@ async function runSingleBrowserTest(
         outcome: "error",
         runIndex,
         stepIndex: 1,
+        ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       },
     ];
   } finally {
@@ -119,13 +124,11 @@ async function runSingleBrowserTest(
   }
 }
 
-async function setupBrowserPage(browser: Browser, url: string): Promise<Page> {
-  const page = await browser.newPage();
+async function setupBrowserPage(page: Page, url: string): Promise<void> {
   await page.goto(url, {
     waitUntil: "networkidle2",
     timeout: 30000,
   });
-  return page;
 }
 
 function buildTestResults(
@@ -134,6 +137,7 @@ function buildTestResults(
   resultPayload: { text?: string },
   trajectory: any[],
   runIndex: number,
+  browserConsoleErrors: BrowserConsoleError[],
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const trajectories = test.expectedCall
@@ -147,12 +151,14 @@ function buildTestResults(
       response,
       outcome: "pass",
       trajectory,
+      ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       runIndex,
       stepIndex: 1,
     });
   } else {
     let stepIndex = 1;
     for (const traj of trajectories) {
+      const currentStepIndex = stepIndex++;
       let response: any = traj.actual;
       if (!response && executedCalls.length === 0 && resultPayload.text) {
         response = { text: resultPayload.text };
@@ -169,8 +175,11 @@ function buildTestResults(
         response,
         outcome: traj.outcome,
         trajectory,
+        ...(currentStepIndex === 1 && browserConsoleErrors.length > 0
+          ? { browserConsoleErrors }
+          : {}),
         runIndex,
-        stepIndex: stepIndex++,
+        stepIndex: currentStepIndex,
       });
     }
   }

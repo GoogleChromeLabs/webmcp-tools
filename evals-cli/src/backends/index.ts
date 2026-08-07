@@ -5,7 +5,13 @@
 
 import type { WebMCP } from "puppeteer-core";
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
+import {
+  BrowserConsoleError,
+  Eval,
+  TestResult,
+  TestResults,
+  TrajectoryStep,
+} from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
@@ -33,6 +39,7 @@ export type BrowserEvalResult = {
   toolCalls: ToolCall[];
   text?: string;
   steps?: TrajectoryStep[];
+  browserConsoleErrors?: BrowserConsoleError[];
   error?: any;
 };
 
