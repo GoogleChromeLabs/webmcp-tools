@@ -120,6 +120,33 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(result, { error: "Execution failed in page context" });
   });
 
+  it("should preserve null return values in executeTool and executeToolChecked", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "null_tool",
+          description: "Tool that returns explicit null output",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: null,
+          }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+
+    // 1. Verify executeToolChecked preserves null inside { success: true, result: null }
+    const checkedResult = await registry.executeToolChecked("null_tool", {});
+    assert.deepStrictEqual(checkedResult, { success: true, result: null });
+
+    // 2. Verify executeTool returns null directly (instead of coercing to "Success")
+    const result = await registry.executeTool("null_tool", {});
+    assert.strictEqual(result, null);
+  });
+
   it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
     const listeners: Record<string, Function[]> = {};
     const page = new MockBrowserPage();

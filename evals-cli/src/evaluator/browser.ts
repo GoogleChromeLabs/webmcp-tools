@@ -80,7 +80,10 @@ export class BrowserToolRegistry implements ToolRegistry {
                 if (timer) clearTimeout(timer);
                 this.page.webmcp.off("toolinvoked", onToolInvoked);
                 if (res.status === "Completed") {
-                  resolve({ success: true, data: res.output ?? "Success" });
+                  resolve({
+                    success: true,
+                    data: res.output !== undefined ? res.output : "Success",
+                  });
                 } else if (res.status === "Error") {
                   resolve({
                     success: false,
@@ -152,6 +155,6 @@ export class BrowserToolRegistry implements ToolRegistry {
   async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
     const outcome = await this.executeToolChecked(name, args);
     if (!outcome.success) return { error: outcome.error };
-    return outcome.result ?? "Success";
+    return outcome.result !== undefined ? outcome.result : "Success";
   }
 }
