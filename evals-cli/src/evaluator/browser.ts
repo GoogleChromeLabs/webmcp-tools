@@ -82,10 +82,7 @@ export class BrowserToolRegistry implements ToolRegistry {
               }
             };
 
-            const subscribe = this.page.webmcp?.on
-              ? this.page.webmcp.on.bind(this.page.webmcp)
-              : this.page.webmcp?.once?.bind(this.page.webmcp);
-            subscribe?.("toolinvoked", onToolInvoked);
+            this.page.webmcp.on("toolinvoked", onToolInvoked);
 
             tool
               .execute(args)
