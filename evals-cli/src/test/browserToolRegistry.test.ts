@@ -10,7 +10,6 @@ import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
 class MockBrowserPage {
   public evaluateResult: unknown = [];
   public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
-  public navigationCalls: Array<{ options?: unknown }> = [];
   public webmcp: any = {
     tools: () => [],
   };
@@ -18,11 +17,6 @@ class MockBrowserPage {
   async evaluate(fn: string | Function, ...args: unknown[]): Promise<any> {
     this.evaluateCalls.push({ fn, args });
     return this.evaluateResult;
-  }
-
-  async waitForNavigation(options?: unknown): Promise<any> {
-    this.navigationCalls.push({ options });
-    return {};
   }
 }
 
@@ -126,27 +120,31 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(result, { error: "Execution failed in page context" });
   });
 
-  it("should handle navigation when tool execution output is null", async () => {
+  it("should preserve null return values in executeTool and executeToolChecked", async () => {
     const page = new MockBrowserPage();
-    page.evaluateResult = { result: '{"type":"JSON-LD"}', crossDocument: true };
     page.webmcp = {
       tools: () => [
         {
-          name: "nav_tool",
-          description: "Navigates page",
+          name: "null_tool",
+          description: "Tool that returns explicit null output",
           inputSchema: { type: "object" },
-          execute: async () => {
-            return { status: "Completed", output: null };
-          },
+          execute: async () => ({
+            status: "Completed",
+            output: null,
+          }),
         },
       ],
     };
 
     const registry = createRegistry(page);
-    const result = await registry.executeTool("nav_tool", {});
 
-    assert.strictEqual(page.navigationCalls.length, 1);
-    assert.deepStrictEqual(result, { type: "JSON-LD" });
+    // 1. Verify executeToolChecked preserves null inside { success: true, result: null }
+    const checkedResult = await registry.executeToolChecked("null_tool", {});
+    assert.deepStrictEqual(checkedResult, { success: true, result: null });
+
+    // 2. Verify executeTool returns null directly (instead of coercing to "Success")
+    const result = await registry.executeTool("null_tool", {});
+    assert.strictEqual(result, null);
   });
 
   it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
