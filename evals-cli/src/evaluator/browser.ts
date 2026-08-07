@@ -121,27 +121,9 @@ export class BrowserToolRegistry implements ToolRegistry {
           return { success: false, error: `Tool execution status: ${res.status}` };
         }
       }
-      // If executionResult.result is null, it is due to a navigation happening.
-      if (executionResult.result == null) {
-        await this.page.waitForNavigation();
-        executionResult = await this.page.evaluate(() => {
-          const result = document.querySelector('script[type="application/ld+json"]')?.textContent;
-          return { result, crossDocument: true };
-        });
-      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
-      if (
-        message.includes("Execution context was destroyed") ||
-        message.includes("Target closed") ||
-        message.includes("navigating")
-      ) {
-        await new Promise((r) => setTimeout(r, 500));
-        executionResult = {
-          result: `Tool ${name} executed and triggered a page navigation.`,
-        };
-        return { success: false, error: message };
-      }
+      return { success: false, error: `Tool execution error: ${message}` };
     }
 
     let r = executionResult.result;

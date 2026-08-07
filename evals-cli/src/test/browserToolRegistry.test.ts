@@ -10,7 +10,6 @@ import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
 class MockBrowserPage {
   public evaluateResult: unknown = [];
   public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
-  public navigationCalls: Array<{ options?: unknown }> = [];
   public webmcp: any = {
     tools: () => [],
   };
@@ -18,11 +17,6 @@ class MockBrowserPage {
   async evaluate(fn: string | Function, ...args: unknown[]): Promise<any> {
     this.evaluateCalls.push({ fn, args });
     return this.evaluateResult;
-  }
-
-  async waitForNavigation(options?: unknown): Promise<any> {
-    this.navigationCalls.push({ options });
-    return {};
   }
 }
 
@@ -124,29 +118,6 @@ describe("BrowserToolRegistry", () => {
     const result = await registry.executeTool("failing_tool", {});
 
     assert.deepStrictEqual(result, { error: "Execution failed in page context" });
-  });
-
-  it("should handle navigation when tool execution output is null", async () => {
-    const page = new MockBrowserPage();
-    page.evaluateResult = { result: '{"type":"JSON-LD"}', crossDocument: true };
-    page.webmcp = {
-      tools: () => [
-        {
-          name: "nav_tool",
-          description: "Navigates page",
-          inputSchema: { type: "object" },
-          execute: async () => {
-            return { status: "Completed", output: null };
-          },
-        },
-      ],
-    };
-
-    const registry = createRegistry(page);
-    const result = await registry.executeTool("nav_tool", {});
-
-    assert.strictEqual(page.navigationCalls.length, 1);
-    assert.deepStrictEqual(result, { type: "JSON-LD" });
   });
 
   it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {

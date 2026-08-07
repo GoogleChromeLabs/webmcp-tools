@@ -231,8 +231,6 @@ class FakePage {
     return [];
   }
 
-  async waitForNavigation(): Promise<void> {}
-
   async close(): Promise<void> {
     this.closed = true;
   }
