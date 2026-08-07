@@ -74,6 +74,7 @@ export type BrowserConsoleError = {
   url?: string;
   lineNumber?: number;
   columnNumber?: number;
+  toolCalls: Array<Pick<ToolCall, "functionName" | "args">>;
 };
 
 export type TestResult = {

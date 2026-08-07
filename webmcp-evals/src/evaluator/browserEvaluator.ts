@@ -90,11 +90,11 @@ async function runSingleBrowserTest(
   runIndex: number,
 ): Promise<TestResult[]> {
   let page: BrowserPage | null = null;
+  let registry: BrowserToolRegistry | undefined;
   let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
     page = await setupBrowserPage(browser, config.url);
-    browserConsoleErrors = collectBrowserConsoleErrors(page);
-    const registry = new BrowserToolRegistry(page);
+    registry = new BrowserToolRegistry(page);
     const currentTools = registry.getCurrentTools();
 
     if (currentTools.length === 0) {
@@ -104,6 +104,7 @@ async function runSingleBrowserTest(
     }
 
     const evalResult = await backend.executeInBrowserEval(test, registry);
+    browserConsoleErrors = evalResult.browserConsoleErrors || [];
 
     if (evalResult.error) {
       throw evalResult.error;
@@ -118,6 +119,7 @@ async function runSingleBrowserTest(
       browserConsoleErrors,
     );
   } catch (e: any) {
+    browserConsoleErrors = registry?.getBrowserConsoleErrors() || browserConsoleErrors;
     logger.warn("Error running browser test:", e);
     return [
       {
@@ -143,33 +145,6 @@ async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserP
     timeout: 30000,
   });
   return page;
-}
-
-export function collectBrowserConsoleErrors(page: BrowserPage): BrowserConsoleError[] {
-  const errors: BrowserConsoleError[] = [];
-
-  page.on("console", (entry) => {
-    if (entry.type() !== "error") return;
-
-    const location = entry.location();
-    const error: BrowserConsoleError = {
-      kind: "console",
-      message: entry.text(),
-    };
-    if (location.url) error.url = location.url;
-    if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
-    if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
-    errors.push(error);
-  });
-
-  page.on("pageerror", (error) => {
-    errors.push({
-      kind: "pageerror",
-      message: error instanceof Error ? error.message : String(error),
-    });
-  });
-
-  return errors;
 }
 
 function buildTestResults(

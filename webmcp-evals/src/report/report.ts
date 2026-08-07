@@ -386,12 +386,24 @@ function renderBrowserConsoleErrors(errors?: BrowserConsoleError[]): string {
             let location = error.url || "";
             if (error.lineNumber !== undefined) location += `:${error.lineNumber}`;
             if (error.columnNumber !== undefined) location += `:${error.columnNumber}`;
+            const hasOverlappingCalls = error.toolCalls.length > 1;
 
             return `
               <li class="p-3 space-y-1">
                 <span class="text-[10px] font-semibold uppercase text-amber-700">
                   ${error.kind === "pageerror" ? "Uncaught exception" : "Console error"}
                 </span>
+                ${error.toolCalls
+                  .map(
+                    (toolCall) => `
+                      <div>
+                        <p class="text-xs text-slate-600">
+                          ${hasOverlappingCalls ? "Possible source" : "During tool"} <span class="font-mono font-semibold text-slate-800">${escapeHtml(toolCall.functionName)}</span>
+                        </p>
+                        <pre class="whitespace-pre-wrap text-xs text-slate-600 font-mono">${escapeHtml(JSON.stringify(toolCall.args, null, 2))}</pre>
+                      </div>`,
+                  )
+                  .join("")}
                 <pre class="whitespace-pre-wrap text-xs text-slate-800 font-mono">${escapeHtml(error.message)}</pre>
                 ${
                   location
