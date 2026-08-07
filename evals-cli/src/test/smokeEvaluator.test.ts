@@ -112,7 +112,7 @@ class FakeRegistry implements SmokeToolRegistry {
     private readonly failures: Record<string, string> = {},
   ) {}
 
-  async syncTools(): Promise<Tool[]> {
+  async getCurrentTools(): Promise<Tool[]> {
     const tools = this.toolsBySync[Math.min(this.syncCount, this.toolsBySync.length - 1)] || [];
     this.syncCount++;
     return tools;
@@ -184,7 +184,7 @@ describe("runSmokeTest", () => {
 
   it("reports explicit failures returned by a tool object or string prefix", async () => {
     const registry: SmokeToolRegistry = {
-      syncTools: async () => [tool("first")],
+      getCurrentTools: async () => [tool("first")],
       executeToolChecked: async () => ({
         success: true,
         result: "Error: item is out of stock",
@@ -203,7 +203,7 @@ describe("runSmokeTest", () => {
 
   it("times out a stuck tool call", async () => {
     const registry: SmokeToolRegistry = {
-      syncTools: async () => [tool("first")],
+      getCurrentTools: async () => [tool("first")],
       executeToolChecked: async () => await new Promise(() => {}),
     };
 

@@ -123,9 +123,7 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      let currentTools = registry.syncTools
-        ? await registry.syncTools()
-        : registry.getCurrentTools();
+      let currentTools = await registry.getCurrentTools();
 
       const aiToolsWithExecution: Record<string, any> = {};
       const rebuildTools = (toolsList: Tool[]) => {
@@ -173,9 +171,7 @@ export class VercelBackend implements Backend {
           });
         },
         prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = registry.syncTools
-            ? await registry.syncTools()
-            : registry.getCurrentTools();
+          currentTools = await registry.getCurrentTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;

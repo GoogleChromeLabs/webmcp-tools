@@ -94,7 +94,7 @@ async function runSingleBrowserTest(
   try {
     page = await setupBrowserPage(browser, config.url);
     const registry = new BrowserToolRegistry(page);
-    const currentTools = registry.syncTools();
+    const currentTools = registry.getCurrentTools();
 
     if (currentTools.length === 0) {
       throw new Error(

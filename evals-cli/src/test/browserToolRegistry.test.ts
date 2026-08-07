@@ -36,10 +36,6 @@ describe("BrowserToolRegistry", () => {
 
     const registry = createRegistry(page);
     assert.deepStrictEqual(registry.getCurrentTools(), []);
-
-    const synced = registry.syncTools();
-    assert.deepStrictEqual(synced, []);
-    assert.deepStrictEqual(registry.getCurrentTools(), []);
   });
 
   it("should execute tool via page.webmcp and return output on Completed status", async () => {

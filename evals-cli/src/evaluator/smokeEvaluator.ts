@@ -47,7 +47,7 @@ export type SmokeResults = {
 };
 
 export interface SmokeToolRegistry {
-  syncTools(): Tool[] | Promise<Tool[]>;
+  getCurrentTools(): Tool[] | Promise<Tool[]>;
   executeToolChecked(
     name: string,
     args?: Record<string, unknown>,
@@ -272,7 +272,7 @@ export async function runSmokeTest(
         );
       }
       let tools = await withTimeout(
-        Promise.resolve(registry.syncTools()),
+        Promise.resolve(registry.getCurrentTools()),
         timeoutMs,
         `tool discovery for "${step.functionName}"`,
       );
@@ -281,7 +281,7 @@ export async function runSmokeTest(
         const pollCapMs = Math.min(timeoutMs, 5000);
         while (Date.now() - pollStart < pollCapMs) {
           await new Promise((resolve) => setTimeout(resolve, 100));
-          tools = await registry.syncTools();
+          tools = await registry.getCurrentTools();
           if (tools.some((candidate) => candidate.functionName === step.functionName)) {
             break;
           }

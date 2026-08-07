@@ -106,13 +106,6 @@ describe("VercelBackend", () => {
             parameters: { type: "object" },
           },
         ],
-        syncTools: () => [
-          {
-            functionName: "add_topping",
-            description: "Adds a topping",
-            parameters: { type: "object" },
-          },
-        ],
         executeTool: async () => ({}),
       };
 
@@ -181,13 +174,6 @@ describe("VercelBackend", () => {
     it("should match tool result strictly by toolCallId when the same tool is called multiple times", async (t) => {
       const dummyRegistry = {
         getCurrentTools: () => [
-          {
-            functionName: "load_next_results",
-            description: "Loads results",
-            parameters: { type: "object" },
-          },
-        ],
-        syncTools: () => [
           {
             functionName: "load_next_results",
             description: "Loads results",
