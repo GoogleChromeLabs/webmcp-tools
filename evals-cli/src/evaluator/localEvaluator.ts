@@ -21,10 +21,6 @@ export async function executeLocalEvals(
   onEvent?: (event: RunEvent) => void,
 ): Promise<TestResults> {
   const runs = config.runs || 1;
-  const testsBaseTotal = tests.reduce((sum, test) => {
-    return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
-  }, 0);
-  const totalSteps = testsBaseTotal * runs;
 
   let testCount = 0;
   let passCount = 0;

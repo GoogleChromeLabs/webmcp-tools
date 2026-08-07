@@ -20,7 +20,6 @@ export async function executeInBrowserEvals(
   onEvent?: (event: RunEvent) => void,
 ): Promise<TestResults> {
   const runs = config.runs || 1;
-  const totalSteps = calculateTotalSteps(tests, runs);
 
   if (onEvent) {
     onEvent({
