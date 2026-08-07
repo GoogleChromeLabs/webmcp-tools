@@ -5,7 +5,7 @@
 
 import * as assert from "node:assert";
 import { describe, it } from "node:test";
-import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
+import { BrowserPage, BrowserToolRegistry, isNavigationError } from "../evaluator/browser.js";
 
 class MockBrowserPage {
   public evaluateResult: unknown = [];
@@ -261,5 +261,20 @@ describe("BrowserToolRegistry", () => {
     const result = await registry.executeTool("bool_tool", {});
 
     assert.strictEqual(result, false);
+  });
+});
+
+describe("isNavigationError", () => {
+  it("should return true for known navigation error strings and Error objects", () => {
+    assert.strictEqual(isNavigationError(new Error("Execution context was destroyed")), true);
+    assert.strictEqual(isNavigationError(new Error("Target closed")), true);
+    assert.strictEqual(isNavigationError("Error: Frame is navigating away"), true);
+  });
+
+  it("should return false for unrelated errors or objects", () => {
+    assert.strictEqual(isNavigationError(new Error("Syntax error")), false);
+    assert.strictEqual(isNavigationError(null), false);
+    assert.strictEqual(isNavigationError(undefined), false);
+    assert.strictEqual(isNavigationError(42), false);
   });
 });

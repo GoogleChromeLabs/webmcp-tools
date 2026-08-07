@@ -32,6 +32,15 @@ export async function launchBrowser(
   });
 }
 
+export function isNavigationError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes("Execution context was destroyed") ||
+    message.includes("Target closed") ||
+    message.includes("navigating")
+  );
+}
+
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
 
@@ -101,17 +110,13 @@ export class BrowserToolRegistry implements ToolRegistry {
               })
               .catch((err: unknown) => {
                 cleanup();
-                const message = err instanceof Error ? err.message : String(err);
-                if (
-                  message.includes("Execution context was destroyed") ||
-                  message.includes("Target closed") ||
-                  message.includes("navigating")
-                ) {
+                if (isNavigationError(err)) {
                   resolve({
                     success: true,
                     data: `Tool ${name} executed and triggered a page navigation.`,
                   });
                 } else {
+                  const message = err instanceof Error ? err.message : String(err);
                   resolve({ success: false, error: message });
                 }
               });
@@ -141,17 +146,13 @@ export class BrowserToolRegistry implements ToolRegistry {
         }
       }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (
-        message.includes("Execution context was destroyed") ||
-        message.includes("Target closed") ||
-        message.includes("navigating")
-      ) {
+      if (isNavigationError(e)) {
         await new Promise((r) => setTimeout(r, 500));
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
       } else {
+        const message = e instanceof Error ? e.message : String(e);
         return { success: false, error: message };
       }
     }
