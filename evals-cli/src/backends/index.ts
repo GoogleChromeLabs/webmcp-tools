@@ -40,7 +40,7 @@ export interface Backend {
 
 export type RunEvent =
   | { type: "start"; total: number; message: string }
-  | { type: "progress"; testNumber: number; result: TestResult }
+  | { type: "progress"; testCaseNumber: number; result: TestResult }
   | { type: "completed"; results: TestResults; reportFile?: string }
   | { type: "error"; message: string };
 

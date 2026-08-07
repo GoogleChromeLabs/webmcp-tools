@@ -121,7 +121,6 @@ export class BrowserToolRegistry implements ToolRegistry {
           return { success: false, error: `Tool execution status: ${res.status}` };
         }
       }
-
       // If executionResult.result is null, it is due to a navigation happening.
       if (executionResult.result == null) {
         await this.page.waitForNavigation();
@@ -141,7 +140,6 @@ export class BrowserToolRegistry implements ToolRegistry {
         executionResult = {
           result: `Tool ${name} executed and triggered a page navigation.`,
         };
-      } else {
         return { success: false, error: message };
       }
     }

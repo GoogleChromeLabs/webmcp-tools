@@ -25,12 +25,11 @@ export async function executeInBrowserEvals(
   onEvent?: (event: RunEvent) => void,
 ): Promise<TestResults> {
   const runs = config.runs || 1;
-  const totalSteps = calculateTotalSteps(tests, runs);
 
   if (onEvent) {
     onEvent({
       type: "start",
-      total: totalSteps,
+      total: tests.length * runs,
       message: `Running evals using ${backend.describe()} (${runs} runs)`,
     });
   }
@@ -58,7 +57,7 @@ export async function executeInBrowserEvals(
             errorCount++;
           }
           if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result });
+            onEvent({ type: "progress", testCaseNumber: testCount, result });
           }
         }
       }
