@@ -249,7 +249,7 @@
       return filteredTools;
     }
 
-    async executeTool(tool, args) {
+    async executeTool(tool, args, options) {
       const win = tool.window || window;
 
       if (tool._isRemote) {
@@ -277,7 +277,7 @@
       }
 
       if (win !== window && win.document && win.document.modelContext && win.document.modelContext.executeTool) {
-        return win.document.modelContext.executeTool(tool, args);
+        return win.document.modelContext.executeTool(tool, args, options);
       }
 
       let parsedArgs = args;
@@ -330,7 +330,7 @@
       activatedEvent.toolName = tool.name;
       win.dispatchEvent(activatedEvent);
 
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         let resolved = false;
         let observer;
 
@@ -345,6 +345,27 @@
             observer.disconnect();
           }
         };
+
+        if (options?.signal) {
+          if (options.signal.aborted) {
+            cleanup();
+            reject(options.signal.reason || new DOMException('Aborted', 'AbortError'));
+            return;
+          }
+          options.signal.addEventListener(
+            'abort',
+            () => {
+              if (resolved) return;
+              resolved = true;
+              cleanup();
+              const cancelEvent = new Event('toolcancel');
+              cancelEvent.toolName = tool.name;
+              win.dispatchEvent(cancelEvent);
+              reject(options.signal.reason || new DOMException('Aborted', 'AbortError'));
+            },
+            { once: true },
+          );
+        }
 
         const onReset = () => {
           resolved = true;
