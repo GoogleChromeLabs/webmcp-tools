@@ -171,7 +171,6 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     const resultsList: any[] = [];
 
     if (useConsole) {
-      console.log();
       spinner = ora({ discardStdin: false });
     }
 
@@ -179,7 +178,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     const finalResults = await executeInBrowserEvals(tests, backend, config, (event) => {
       if (useConsole && spinner) {
         if (event.type === "start") {
-          console.log("Running evals...");
+          console.log("\nRunning evals...");
           const bar = getProgressBar(0);
           const coloredPercentage = chalk.cyan("0%");
           spinner.start(
