@@ -206,14 +206,14 @@ async function openOrNavigatePip() {
     adoptedIframe.style.width = "100vw";
     adoptedIframe.style.height = "100vh";
     adoptedIframe.style.border = "none";
-    adoptedIframe.src = url;
     adoptedIframe.allow = `tools ${new URL(url).origin}`;
+    adoptedIframe.src = url;
     pipWindow.document.body.append(adoptedIframe);
 
     pipWindow.addEventListener("pagehide", () => {
       try {
         const returnedIframe = window.document.adoptNode(iframe);
-        returnedIframe.src = "null";
+        returnedIframe.src = "about:blank";
         returnedIframe.classList.add("hidden");
         document.getElementById("browser-container").append(returnedIframe);
       } catch (e) {}

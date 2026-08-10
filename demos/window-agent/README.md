@@ -4,7 +4,7 @@
 
 🪞 Mirror: https://chrome.dev/web-ai-demos/webmcp/window-agent/
 
-The **WebMCP Window Agent** is a "meta-demo" that demonstrates how to get tools from a separate window—either a standard popup window (`window.open`) or a Document Picture-in-Picture window (`window.documentPictureInPicture.requestWindow`) with an adopted iframe (`window.document.adoptNode(iframe)`)—and execute them in a chat session powered by Gemini. It allows users to control any WebMCP-enabled website by typing natural language commands.
+The **WebMCP Window Agent** is a demo that demonstrates how to get tools from a separate window—either a standard popup window (`window.open`) or a Document Picture-in-Picture window (`window.documentPictureInPicture.requestWindow`) with an adopted iframe (`window.document.adoptNode(iframe)`)—and execute them in a chat session powered by Gemini. It allows users to control any WebMCP-enabled website by typing natural language commands.
 
 It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
 
