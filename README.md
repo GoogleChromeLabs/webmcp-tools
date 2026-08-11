@@ -27,7 +27,6 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**Luxe Leather (Declarative)**](demos/leather-bag/): A premium e-commerce site for hand-crafted leather bags built with Angular and WebMCP. This demo showcases how an AI agent can interact with a web application to search products, check policies, and manage a shopping cart using declarative tools.
 - [**WebMCP Smart Home (Imperative)**](demos/smart-home/): A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
 - [**WebMCP Page Agent (Imperative)**](demos/page-agent/): A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
-- [**Wordup**](https://github.com/GoogleChromeLabs/web-ai-demos/tree/main/wordup) ([live](https://snugug.github.io/demos/wordup/)): A casual word guessing game using the Prompt API to generate words and can be driven entirely through WebMCP.
 
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 
