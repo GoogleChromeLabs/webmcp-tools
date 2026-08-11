@@ -100,8 +100,9 @@ async function handleUserSubmit(text, port, requestId) {
     const getConfig = async () => {
       const systemInstruction = [
         'You are an assistant for "Le Petit Bistro" restaurant.',
-        'Help the user make a reservation using the available tools.',
-        'CRITICAL RULE: Do not try to use other tools than the available ones.',
+        "Help the user make a reservation using the available tools.",
+        "CRITICAL RULE: Do not try to use other tools than the available ones.",
+        `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
       ];
       const tools = await requestTools(port);
       const functionDeclarations = tools.map((tool) => ({
