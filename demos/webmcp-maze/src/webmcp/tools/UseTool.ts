@@ -19,9 +19,9 @@ const VALID_DIRECTIONS = new Set(Object.values(Direction));
  * Uses the held item on a blocker in the specified direction.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for using items on blockers.
+ * @returns A {@link WebMCP.ModelContextTool} for using items on blockers.
  */
-export function createUseTool(game: Game): ModelContextTool {
+export function createUseTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "use",
     description:

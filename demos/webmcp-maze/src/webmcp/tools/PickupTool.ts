@@ -11,9 +11,9 @@ import { collectibleDisplayName } from "../../types/index.ts";
  * Picks up a collectible from the player's current cell if inventory is empty.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for picking up items.
+ * @returns A {@link WebMCP.ModelContextTool} for picking up items.
  */
-export function createPickupTool(game: Game): ModelContextTool {
+export function createPickupTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "pickup",
     description:
