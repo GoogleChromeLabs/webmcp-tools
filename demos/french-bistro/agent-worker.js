@@ -108,9 +108,10 @@ async function handleUserSubmit(text, port, requestId) {
       const functionDeclarations = tools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        parametersJsonSchema: tool.inputSchema
-          ? JSON.parse(tool.inputSchema)
-          : { type: 'object', properties: {} },
+        parametersJsonSchema:
+          typeof tool.inputSchema === 'string'
+            ? JSON.parse(tool.inputSchema)
+            : tool.inputSchema || { type: 'object', properties: {} },
       }));
       return { systemInstruction, tools: [{ functionDeclarations }] };
     };

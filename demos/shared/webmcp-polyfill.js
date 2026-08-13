@@ -70,7 +70,7 @@
       tools.push({
         name,
         description,
-        inputSchema: JSON.stringify(inputSchema),
+        inputSchema,
         window: win,
         origin: win.origin,
         _form: form,
@@ -149,10 +149,10 @@
         throw new DOMException(`Tool "${name}" is already registered`, 'InvalidStateError');
       }
 
-      let stringifiedInputSchema = '';
-      if (tool.inputSchema) {
+      const inputSchema = tool.inputSchema;
+      if (inputSchema) {
         try {
-          stringifiedInputSchema = JSON.stringify(tool.inputSchema);
+          JSON.stringify(inputSchema);
         } catch (e) {
           throw new TypeError('Failed to stringify inputSchema');
         }
@@ -168,16 +168,16 @@
         });
       }
 
-      // Store a normalized tool copy with a stringified inputSchema
+      // Store a normalized tool copy
       const normalizedTool = {
         name,
         description,
-        inputSchema: stringifiedInputSchema,
+        inputSchema,
         window: window,
         origin: window.origin,
         annotations: tool.annotations,
         _execute: tool.execute,
-      }
+      };
 
       window.__webmcp_registered_tools.set(name, normalizedTool);
       this.dispatchEvent(new Event('toolchange'));
