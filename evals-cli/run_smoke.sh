@@ -66,6 +66,24 @@ run_single_smoke() {
         -e examples/french-bistro/evals.json \
         $VERBOSE_FLAG \
         $CHROME_CHANNEL_FLAG
+      echo "🇫🇷 Running French Bistro Smoke Test with toolautosubmit..."
+      node dist/bin/webmcp-evals.js smoke \
+        -u "$(get_target_url "french-bistro/" "https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit")" \
+        -e examples/french-bistro/evals-toolautosubmit.json \
+        $VERBOSE_FLAG \
+        $CHROME_CHANNEL_FLAG
+      echo "🇫🇷 Running French Bistro Smoke Test with toolautosubmit and crossdocument..."
+      node dist/bin/webmcp-evals.js smoke \
+        -u "$(get_target_url "french-bistro/" "https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit&crossdocument")" \
+        -e examples/french-bistro/evals-toolautosubmit-crossdocument.json \
+        $VERBOSE_FLAG \
+        $CHROME_CHANNEL_FLAG
+      echo "🇫🇷 Running French Bistro Smoke Test with toolautosubmit, crossdocument, and imperative..."
+      node dist/bin/webmcp-evals.js smoke \
+        -u "$(get_target_url "french-bistro/" "https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit&crossdocument&imperative")" \
+        -e examples/french-bistro/evals-toolautosubmit-crossdocument-imperative.json \
+        $VERBOSE_FLAG \
+        $CHROME_CHANNEL_FLAG
       ;;
     "pizza")
       # 3. Pizza Maker Demo

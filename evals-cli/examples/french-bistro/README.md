@@ -2,12 +2,38 @@ This directory contains evaluation test cases for the [WebMCP french-bistro!](..
 
 Note that `schema.json` is not included here because these evaluations are designed to be run against the [live demo](https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/) directly in the evals-cli UI, which discovers the tool schemas dynamically from the page.
 
-### Testing cross-document variations
+### Test files
 
-The demo supports a cross-document submission mode when loading the URL with the `?crossdocument&toolautosubmit` query parameter. You can run the tests against this version of the demo, and all the test cases and assertions should evaluate to true in the exact same manner.
+The demo supports multiple execution and submission variations (declarative vs. imperative, manual review vs. autosubmit, same-document modal vs. cross-document navigation). Dedicated evaluation files are provided for each mode:
 
-Example command:
+#### 1. Default (manual review)
+
+Tests the default mode where the tool fills the form and waits for manual user review (`"pending form submission"`).
 
 ```bash
-npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals.json --debug
+npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/" --evals=examples/french-bistro/evals.json --debug
+```
+
+#### 2. In-page modal with autosubmit (`?toolautosubmit`)
+
+Tests automatic submission where the confirmation modal is displayed on the same page.
+
+```bash
+npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit.json --debug
+```
+
+#### 3. Declarative cross-document with autosubmit (`?crossdocument&toolautosubmit`)
+
+Tests cross-document submission where navigating to `result.html` produces structured Schema.org JSON-LD output.
+
+```bash
+npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument.json --debug
+```
+
+#### 4. Imperative cross-document with autosubmit (`?crossdocument&toolautosubmit&imperative`)
+
+Tests imperative tool execution (`document.modelContext.registerTool`) with cross-document navigation.
+
+```bash
+npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit&imperative" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument-imperative.json --debug
 ```

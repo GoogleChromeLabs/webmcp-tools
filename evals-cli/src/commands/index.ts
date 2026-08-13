@@ -244,7 +244,7 @@ export async function runSmokeCommand(options: CommandOptions, command?: Command
       chromeChannel: opts.chromeChannel as ChromeReleaseChannel,
     });
 
-    console.log("\n" + chalk.bold.underline("Smoke Test Summary") + "\n");
+    console.log("\n" + chalk.bold.underline("Smoke Test Summary") + ` for ${url}` + "\n");
     const table = new Table({
       head: ["Case", "Step", "Status", "Tool", "Error"],
       style: { head: ["cyan"], border: ["grey"] },
