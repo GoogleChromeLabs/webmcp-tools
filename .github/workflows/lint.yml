@@ -24,13 +24,13 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npm install
 
       - name: Run Lint
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npm run lint
 
       - name: Run Format Check
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npx oxfmt --check
