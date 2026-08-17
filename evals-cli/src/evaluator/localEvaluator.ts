@@ -21,10 +21,6 @@ export async function executeLocalEvals(
   onEvent?: (event: RunEvent) => void,
 ): Promise<TestResults> {
   const runs = config.runs || 1;
-  const testsBaseTotal = tests.reduce((sum, test) => {
-    return sum + (test.expectedCall ? countExpectedCalls(test.expectedCall) : 1);
-  }, 0);
-  const totalSteps = testsBaseTotal * runs;
 
   let testCount = 0;
   let passCount = 0;
@@ -35,7 +31,7 @@ export async function executeLocalEvals(
   if (onEvent) {
     onEvent({
       type: "start",
-      total: totalSteps,
+      total: tests.length * runs,
       message: `Running evals using ${backend.describe()} (${runs} runs)`,
     });
   }
@@ -64,7 +60,7 @@ export async function executeLocalEvals(
           testResults.push(result);
           passCount++;
           if (onEvent) {
-            onEvent({ type: "progress", testNumber: testCount, result });
+            onEvent({ type: "progress", testCaseNumber: testCount, result });
           }
         } else {
           let stepIndex = 1;
@@ -88,7 +84,7 @@ export async function executeLocalEvals(
             }
 
             if (onEvent) {
-              onEvent({ type: "progress", testNumber: testCount, result: stepResult });
+              onEvent({ type: "progress", testCaseNumber: testCount, result: stepResult });
             }
           }
         }
@@ -110,7 +106,7 @@ export async function executeLocalEvals(
         };
         testResults.push(result);
         if (onEvent) {
-          onEvent({ type: "progress", testNumber: testCount, result });
+          onEvent({ type: "progress", testCaseNumber: testCount, result });
         }
       }
     }

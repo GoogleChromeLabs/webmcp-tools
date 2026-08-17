@@ -28,7 +28,13 @@
             "$contains": "anniversary"
           }
         },
-        "result": "pending form submission"
+        "result": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Message",
+            "text": "Hello Bob Smith,\nWe look forward to welcoming you on:\n\n2026-08-08 at 18:30\nParty of 2 • Terrace"
+          }
+        ]
       }
     ]
   },
@@ -54,7 +60,13 @@
           "guests": "6",
           "seating": "Private Booth"
         },
-        "result": "pending form submission"
+        "result": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Message",
+            "text": "Hello Alice Wong,\nWe look forward to welcoming you on:\n\n2026-08-07 at 20:00\nParty of 6 • Private Booth"
+          }
+        ]
       }
     ]
   }

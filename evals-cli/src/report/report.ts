@@ -138,6 +138,7 @@ function renderConfiguration(config: Config): string {
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.evalsFile}</code></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${config.backend}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${config.model}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${config.chromeChannel || "chrome-canary"}</span></li>
 </ul>`;
 }
 
@@ -348,18 +349,25 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
 
 function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
   const { stepIndex, result } = stepEval;
+  const expected = result.test.expectedCall?.[0] as FunctionCall | undefined;
+  const isUnexpectedCall = expected === undefined && result.response !== null;
 
   const functionNameOutcome =
-    (result.test.expectedCall?.[0] as FunctionCall)?.functionName === result.response?.functionName
+    expected?.functionName === result.response?.functionName ? "pass" : "fail";
+
+  const argsOutcome =
+    expected?.arguments == null || matchesArgument(expected?.arguments, result.response?.args)
       ? "pass"
       : "fail";
 
-  const argsOutcome = matchesArgument(
-    (result.test.expectedCall?.[0] as FunctionCall)?.arguments,
-    result.response?.args,
-  )
-    ? "pass"
-    : "fail";
+  const hasExpectedResult = expected?.result !== undefined;
+  const hasActualResult = result.response?.result !== undefined;
+  const hasResultRow = hasExpectedResult || hasActualResult;
+
+  const resultOutcome =
+    expected?.result === undefined || matchesArgument(expected?.result, result.response?.result)
+      ? "pass"
+      : "fail";
 
   const statusColor =
     result.outcome === "pass"
@@ -378,6 +386,14 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
           ${result.outcome.toUpperCase()}
         </span>
       </div>
+      ${
+        isUnexpectedCall
+          ? `<div class="border-b border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-800">
+              <strong class="font-semibold">Unexpected tool call</strong>
+              <span class="ml-1">No tool call was expected, but <code class="font-mono font-semibold">${escapeHtml(result.response?.functionName)}</code> was executed.</span>
+            </div>`
+          : ""
+      }
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-slate-600">
           <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 font-medium">
@@ -391,7 +407,11 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
           <tbody class="divide-y divide-slate-100">
             <tr class="hover:bg-slate-50/30">
               <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap">Function Name</td>
-              <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml((result.test.expectedCall?.[0] as FunctionCall)?.functionName || null)}</code></td>
+              <td class="px-4 py-3">${
+                isUnexpectedCall
+                  ? `<span class="text-xs italic text-slate-500">No call expected</span>`
+                  : `<code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(expected?.functionName || null)}</code>`
+              }</td>
               <td class="px-4 py-3"><code class="px-1.5 py-0.5 bg-slate-100 text-slate-800 rounded font-mono text-xs">${escapeHtml(result.response?.functionName || null)}</code></td>
               <td class="px-4 py-3">
                 <span class="${functionNameOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs">
@@ -403,7 +423,7 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
               <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Arguments</td>
               <td class="px-4 py-3">
                 <div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
-                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys((result.test.expectedCall?.[0] as FunctionCall)?.arguments) || null, null, 2))}</pre>
+                  <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(JSON.stringify(sortObjectKeys(expected?.arguments) || null, null, 2))}</pre>
                 </div>
               </td>
               <td class="px-4 py-3">
@@ -417,6 +437,45 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
                 </span>
               </td>
             </tr>
+            ${
+              hasResultRow
+                ? `
+            <tr class="hover:bg-slate-50/30">
+              <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap align-top">Result</td>
+              <td class="px-4 py-3">
+                ${
+                  hasExpectedResult
+                    ? `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(
+                          typeof expected?.result === "object"
+                            ? JSON.stringify(sortObjectKeys(expected.result), null, 2)
+                            : String(expected?.result ?? null),
+                        )}</pre>
+                      </div>`
+                    : `<span class="text-xs text-slate-400 italic">Unconstrained</span>`
+                }
+              </td>
+              <td class="px-4 py-3">
+                ${
+                  hasActualResult
+                    ? `<div class="bg-slate-800 rounded-md p-3 overflow-x-auto max-w-md">
+                        <pre class="text-xs text-slate-200 font-mono m-0 leading-relaxed">${escapeHtml(
+                          typeof result.response?.result === "object"
+                            ? JSON.stringify(sortObjectKeys(result.response.result), null, 2)
+                            : String(result.response?.result ?? null),
+                        )}</pre>
+                      </div>`
+                    : `<span class="text-xs text-slate-400 italic">None</span>`
+                }
+              </td>
+              <td class="px-4 py-3 align-top">
+                <span class="${resultOutcome === "pass" ? "text-emerald-600" : "text-rose-600"} font-bold text-xs mt-2 inline-block">
+                  ${resultOutcome.toUpperCase()}
+                </span>
+              </td>
+            </tr>`
+                : ""
+            }
           </tbody>
         </table>
       </div>
@@ -600,5 +659,6 @@ function renderWebmcpConfiguration(config: WebmcpConfig): string {
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.evalsFile}</code></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${config.backend}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${config.model}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${config.chromeChannel || "chrome-canary"}</span></li>
 </ul>`;
 }

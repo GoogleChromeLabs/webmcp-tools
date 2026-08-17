@@ -7,10 +7,8 @@ import { generateText, stepCountIs, ToolLoopAgent } from "ai";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { findChromePath } from "../utils.js";
 
-import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "../backends/index.js";
-import { BrowserToolRegistry, PUPPETEER_FLAGS } from "../evaluator/browser.js";
+import { Backend, BrowserEvalResult, LocalEvalResult } from "../backends/index.js";
 import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
@@ -87,9 +85,21 @@ export class VercelBackend implements Backend {
     for (const step of aiResult.steps ?? []) {
       for (const call of (step.toolCalls ?? []) as any[]) {
         if (validToolNames.has(call.toolName)) {
+          const matchingResult: any = (step.toolResults ?? []).find((r: any) =>
+            call.toolCallId ? r.toolCallId === call.toolCallId : r.toolName === call.toolName,
+          );
+          if (!matchingResult && call.toolCallId) {
+            this.logger.debug(
+              `[DEBUG] Could not find matching tool result for call ID "${call.toolCallId}" (${call.toolName})`,
+            );
+          }
+          const result = matchingResult
+            ? (matchingResult.result ?? matchingResult.output)
+            : undefined;
           toolCalls.push({
             functionName: call.toolName,
             args: call.input || call.args || call.arguments || {},
+            result,
           });
         }
       }
@@ -98,11 +108,7 @@ export class VercelBackend implements Backend {
     return { toolCalls, text: aiResult.text };
   }
 
-  async executeInBrowserEval(
-    test: Eval,
-    page: BrowserPage,
-    config: WebmcpConfig,
-  ): Promise<BrowserEvalResult> {
+  async executeInBrowserEval(test: Eval, registry: ToolRegistry): Promise<BrowserEvalResult> {
     const availableToolsPerStep: Array<Array<Tool>> = [];
     const stepsHistory: TrajectoryStep[] = [];
 
@@ -117,15 +123,7 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      const registry = new BrowserToolRegistry(page);
-      let currentTools = await registry.syncTools();
-
-      if (currentTools.length === 0) {
-        const executablePath = await findChromePath();
-        throw new Error(
-          `WebMCP Tools are not available on ${config.url} (0 tools registered on page). Debug info: [URL="${config.url}", Executable="${executablePath}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
-        );
-      }
+      let currentTools = await registry.getCurrentTools();
 
       const aiToolsWithExecution: Record<string, any> = {};
       const rebuildTools = (toolsList: Tool[]) => {
@@ -173,7 +171,7 @@ export class VercelBackend implements Backend {
           });
         },
         prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = await registry.syncTools();
+          currentTools = await registry.getCurrentTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
           return _opts;
@@ -185,13 +183,27 @@ export class VercelBackend implements Backend {
 
       // Gather executed tool calls across all steps
       const executedCalls: ToolCall[] = [];
-      if (resultPayload.steps && resultPayload.steps.length > 0) {
-        for (const step of resultPayload.steps) {
+      const stepsToIterate =
+        resultPayload.steps && resultPayload.steps.length > 0 ? resultPayload.steps : stepsHistory;
+      if (stepsToIterate && stepsToIterate.length > 0) {
+        for (const step of stepsToIterate) {
           if (step.toolCalls && step.toolCalls.length > 0) {
             for (const call of step.toolCalls) {
+              const matchingResult: any = (step.toolResults ?? []).find((r: any) =>
+                call.toolCallId ? r.toolCallId === call.toolCallId : r.toolName === call.toolName,
+              );
+              if (!matchingResult && call.toolCallId) {
+                this.logger.debug(
+                  `[DEBUG] Could not find matching tool result for call ID "${call.toolCallId}" (${call.toolName})`,
+                );
+              }
+              const result = matchingResult
+                ? (matchingResult.result ?? matchingResult.output)
+                : undefined;
               executedCalls.push({
                 functionName: call.toolName,
                 args: (call as any).input || (call as any).args || (call as any).arguments || {},
+                result,
               });
             }
           }

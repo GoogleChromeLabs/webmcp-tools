@@ -4,10 +4,9 @@
  */
 
 import { Ollama, Message as OllamaMessage, Tool as OllamaTool } from "ollama";
-import { WebmcpConfig } from "../types/config.js";
 import { Eval, Message } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
-import { Backend, BrowserEvalResult, BrowserPage, LocalEvalResult } from "./index.js";
+import { Backend, BrowserEvalResult, LocalEvalResult } from "./index.js";
 import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
 export class OllamaBackend implements Backend {
@@ -25,11 +24,7 @@ export class OllamaBackend implements Backend {
     return this.execute(test.messages, registry.getCurrentTools());
   }
 
-  async executeInBrowserEval(
-    _test: Eval,
-    _page: BrowserPage,
-    _config: WebmcpConfig,
-  ): Promise<BrowserEvalResult> {
+  async executeInBrowserEval(_test: Eval, _registry: ToolRegistry): Promise<BrowserEvalResult> {
     throw new Error("Method not implemented.");
   }
 

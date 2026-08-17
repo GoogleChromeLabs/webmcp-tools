@@ -8,7 +8,7 @@ import { MockResolver } from "./mockResolver.js";
 
 export interface ToolRegistry {
   getCurrentTools(): Tool[];
-  executeTool(name: string, args: any): Promise<any>;
+  executeTool(name: string, args?: Record<string, unknown>): Promise<any>;
 }
 
 export class LocalToolRegistry implements ToolRegistry {
@@ -18,10 +18,10 @@ export class LocalToolRegistry implements ToolRegistry {
   ) {}
 
   getCurrentTools(): Tool[] {
-    return this.tools;
+    return [...this.tools];
   }
 
-  async executeTool(name: string, args: any): Promise<any> {
+  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
     return this.resolver.resolve(name, args);
   }
 }

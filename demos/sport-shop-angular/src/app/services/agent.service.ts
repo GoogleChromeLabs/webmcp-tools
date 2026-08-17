@@ -89,7 +89,7 @@ export class AgentService {
     this.messagesSubject.next([welcomeMsg]);
   }
 
-  private async getTools(): Promise<ModelContextRegisteredTool[]> {
+  private async getTools(): Promise<WebMCP.RegisteredTool[]> {
     if (!document.modelContext) {
       return [];
     }
@@ -180,7 +180,7 @@ export class AgentService {
               const tool = tools.find((t) => t.name === name);
               if (!tool) throw new Error(`Tool ${name} not found`);
 
-              const rawResult = await modelContext.executeTool(
+              const rawResult = await (modelContext as any).executeTool(
                 tool,
                 JSON.stringify(args)
               );

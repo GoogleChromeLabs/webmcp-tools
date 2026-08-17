@@ -12,9 +12,9 @@ import { Direction } from "../../types/index.ts";
  * the player's current position, and whether they are at the exit.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for inspecting surroundings.
+ * @returns A {@link WebMCP.ModelContextTool} for inspecting surroundings.
  */
-export function createLookTool(game: Game): ModelContextTool {
+export function createLookTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "look",
     description:

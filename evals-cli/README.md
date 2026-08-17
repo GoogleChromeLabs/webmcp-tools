@@ -7,10 +7,11 @@ A TypeScript evaluation framework and CLI for testing the tool-calling capabilit
 
 ## Features
 
-- **CLI Interface**: Built with `commander` providing `local` and `browser` commands.
+- **CLI Interface**: Built with `commander` providing `local`, `browser`, and `smoke` commands.
 - **Execution Modes**:
   - **`local`**: Runs evaluations against static JSON tool schema definition files.
   - **`browser`**: Runs live evaluations against WebMCP tools exposed on web pages via Puppeteer.
+  - **`smoke`**: Executes concrete expected tool calls against a live page without an LLM or API key.
 - **Model Backends**: Supports `@google/genai` (`gemini`), Ollama (`ollama`), and Vercel AI SDK (`vercel`).
 - **Reporters**: Supports `console`, `json`, and `html` output to the `.evals` directory.
 - **Constraint-Based Matching**: Matches expected tool calls using regex patterns, numerical ranges, type checks, and orderings (`ordered` and `unordered`).
@@ -70,16 +71,17 @@ src/
 
 Shared across commands:
 
-| Option             | Shorthand | Default            | Description                                  |
-| ------------------ | --------- | ------------------ | -------------------------------------------- |
-| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`) |
-| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                             |
-| `--runs`           | `-r`      | `1`                | Number of runs per test case                 |
-| `--max-steps`      | —         | —                  | Maximum agent step count                     |
-| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`) |
-| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                 |
-| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis         |
-| `--open-analysis`  | —         | `false`            | Automatically open the analysis report       |
+| Option             | Shorthand | Default            | Description                                                             |
+| ------------------ | --------- | ------------------ | ----------------------------------------------------------------------- |
+| `--backend`        | `-b`      | `vercel`           | Model backend (`vercel`, `gemini`, `ollama`)                            |
+| `--model`          | `-m`      | `gemini-3.5-flash` | Model identifier                                                        |
+| `--runs`           | `-r`      | `1`                | Number of runs per test case                                            |
+| `--max-steps`      | —         | —                  | Maximum agent step count                                                |
+| `--reporter`       | —         | `console html`     | Reporters to use (`console`, `json`, `html`)                            |
+| `--output-dir`     | `-o`      | `.evals`           | Output directory for reports                                            |
+| `--analyzer-model` | —         | `gemini-3.5-flash` | Model identifier for report analysis                                    |
+| `--open-analysis`  | —         | `false`            | Automatically open the analysis report                                  |
+| `--chrome-channel` | —         | `chrome-canary`    | Chrome channel (`chrome`, `chrome-beta`, `chrome-canary`, `chrome-dev`) |
 
 ---
 
@@ -119,6 +121,29 @@ npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/eva
 | `-e, --evals <path>` | Yes      | —       | Path to evals test suite JSON file                  |
 | `--open`             | No       | `false` | Opens the HTML report in browser upon completion    |
 | `--analyze`          | No       | `false` | Automatically run LLM report analysis on completion |
+
+---
+
+### Command: `smoke`
+
+Executes the required calls from `expectedCall` directly against a live WebMCP page. This mode
+does not use an LLM or require an API key, making it suitable for deterministic CI smoke tests.
+
+```bash
+npx webmcp-evals smoke -u http://localhost:3000 -e examples/pizza-maker/evals.json -v
+```
+
+The target server must already be running. Each eval case starts with a fresh page, and calls in
+that case execute in their authored order. Optional calls are skipped. Matcher constraints
+(such as `$pattern`, `$contains`, `$type`, `$lte`) in `expectedCall` definitions are automatically
+resolved to concrete sample arguments so standard evaluation suites can be reused directly.
+
+| Option                     | Required | Default | Description                                           |
+| -------------------------- | -------- | ------- | ----------------------------------------------------- |
+| `-u, --url <url>`          | Yes      | —       | Target web page URL                                   |
+| `-e, --evals <path>`       | Yes      | —       | Path to evals test suite JSON file                    |
+| `--timeout <milliseconds>` | No       | `30000` | Timeout per navigation or tool step                   |
+| `-v, --verbose`            | No       | `false` | Print live step-by-step navigation and tool call logs |
 
 ---
 
@@ -193,6 +218,20 @@ To run only the report analyzer unit tests:
 
 ```bash
 node --test dist/test/analyzer.test.js
+```
+
+### Batch Script Execution
+
+You can run evaluations or deterministic smoke tests across all deployed WebMCP demo targets:
+
+```bash
+# Run smoke tests for a single target or all demo sites
+./run_smoke.sh hotel-chain -v
+./run_smoke.sh all -v
+
+# Run LLM-based evaluations
+./run_evals.sh hotel-chain
+./run_evals.sh all
 ```
 
 ## License

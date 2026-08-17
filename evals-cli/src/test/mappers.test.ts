@@ -12,6 +12,7 @@ import {
   sanitizeSchema,
 } from "../evaluator/mappers.js";
 import { Tool } from "../types/tools.js";
+import { WebMCPTool } from "puppeteer-core";
 
 describe("mappers", () => {
   describe("sanitizeSchema", () => {
@@ -166,22 +167,26 @@ describe("mappers", () => {
   });
 
   describe("mapRawBrowserToolsToConfig", () => {
-    it("should map raw browser tools with parsed JSON schemas", () => {
+    it("should map raw browser tools", () => {
       const rawTools = [
         {
           name: "search_gear",
           description: "Search for gear",
-          inputSchema: JSON.stringify({ type: "object", properties: { item: { type: "string" } } }),
+          inputSchema: { type: "object", properties: { item: { type: "string" } } },
         },
         {
           name: "get_cart",
           description: "Get current cart",
           inputSchema: { type: "object" },
         },
-      ];
-      const fallbackTools: Tool[] = [];
+        {
+          name: "add_to_cart",
+          description: "Add to cart",
+          inputSchema: undefined,
+        },
+      ] as WebMCPTool[];
 
-      const result = mapRawBrowserToolsToConfig(rawTools, fallbackTools);
+      const result = mapRawBrowserToolsToConfig(rawTools);
 
       assert.deepStrictEqual(result, [
         {
@@ -194,32 +199,9 @@ describe("mappers", () => {
           description: "Get current cart",
           parameters: { type: "object" },
         },
-      ]);
-    });
-
-    it("should fallback when rawTools is empty or missing", () => {
-      const fallbackTools: Tool[] = [
-        { functionName: "default_tool", description: "Default", parameters: {} },
-      ];
-
-      assert.deepStrictEqual(mapRawBrowserToolsToConfig([], fallbackTools), fallbackTools);
-      assert.deepStrictEqual(mapRawBrowserToolsToConfig(null as any, fallbackTools), fallbackTools);
-    });
-
-    it("should handle invalid JSON inputSchema gracefully", () => {
-      const rawTools = [
         {
-          name: "faulty_tool",
-          description: "Faulty schema",
-          inputSchema: "invalid-json{",
-        },
-      ];
-      const result = mapRawBrowserToolsToConfig(rawTools, []);
-
-      assert.deepStrictEqual(result, [
-        {
-          functionName: "faulty_tool",
-          description: "Faulty schema",
+          functionName: "add_to_cart",
+          description: "Add to cart",
           parameters: {},
         },
       ]);

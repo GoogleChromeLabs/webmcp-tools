@@ -12,10 +12,11 @@ import chalk from "chalk";
 import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
+import type { ChromeReleaseChannel } from "puppeteer-core";
 import { Config, WebmcpConfig } from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
-import { executeLocalEvals, executeInBrowserEvals } from "../evaluator/index.js";
+import { executeLocalEvals, executeInBrowserEvals, executeSmokeEvals } from "../evaluator/index.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
@@ -34,6 +35,9 @@ export interface CommandOptions {
   analyze?: boolean;
   analyzerModel?: string;
   openAnalysis?: boolean;
+  chromeChannel?: ChromeReleaseChannel;
+  timeout?: number;
+  verbose?: boolean;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -51,6 +55,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     maxSteps: opts.maxSteps,
     outputDir: opts.outputDir,
     reporter: opts.reporter,
+    chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
   };
 
   const toolsSchema: ToolsSchema = JSON.parse(
@@ -74,13 +79,10 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   }
 
   let progressBar: SingleBar | undefined;
-  let passCount = 0;
-  let stepCount = 0;
 
   if (useConsole) {
     progressBar = new SingleBar({
-      format:
-        "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total} | accuracy: {accuracy}%",
+      format: "progress [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}",
     });
   }
 
@@ -89,13 +91,9 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     if (useConsole && progressBar) {
       if (event.type === "start") {
         console.log(event.message);
-        progressBar.start(event.total, 0, { accuracy: "0.00" });
+        progressBar.start(event.total, 0);
       } else if (event.type === "progress") {
-        stepCount++;
-        if (event.result.outcome === "pass") passCount++;
-        progressBar.update(stepCount, {
-          accuracy: ((passCount / stepCount) * 100).toFixed(2),
-        });
+        progressBar.update(event.testCaseNumber);
       }
     }
   });
@@ -122,6 +120,16 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   }
 }
 
+export function getProgressBar(ratio: number, size = 10): string {
+  // Normalize ratio to [0, 1] and default NaN to 0 to prevent RangeError
+  const safeRatio = isNaN(ratio) ? 0 : Math.max(0, Math.min(1, ratio));
+  const filled = Math.floor(safeRatio * size);
+  const empty = size - filled;
+  const filledPart = chalk.cyan("━".repeat(filled));
+  const emptyPart = chalk.gray.dim("─".repeat(empty));
+  return `${filledPart}${emptyPart}`;
+}
+
 export async function runWebCommand(options: CommandOptions, command?: Command): Promise<void> {
   const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
 
@@ -143,6 +151,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       maxSteps: opts.maxSteps,
       outputDir: opts.outputDir,
       reporter: opts.reporter,
+      chromeChannel: opts.chromeChannel || "chrome-canary",
     };
 
     const tests: Array<Eval> = JSON.parse(
@@ -169,20 +178,30 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     const finalResults = await executeInBrowserEvals(tests, backend, config, (event) => {
       if (useConsole && spinner) {
         if (event.type === "start") {
-          spinner.start(`Running evals (${event.total} steps)...`);
+          console.log("\nRunning evals...");
+          const bar = getProgressBar(0);
+          const coloredPercentage = chalk.cyan("0%");
+          spinner.start(
+            `${bar} ${coloredPercentage}  [Run 1/${config.runs || 1}] Test Case 1/${tests.length}`,
+          );
         } else if (event.type === "progress") {
           resultsList.push(event.result);
-          const passRate = (
-            (resultsList.filter((r) => r.outcome === "pass").length / resultsList.length) *
-            100
-          ).toFixed(2);
-          spinner.text = `Running... pass rate: ${passRate}% (${resultsList.length} steps)`;
+          const currentRun = event.result.runIndex || 1;
+          const caseIndex = event.testCaseNumber - (currentRun - 1) * tests.length;
+          const totalCases = tests.length * (config.runs || 1);
+          const ratio = event.testCaseNumber / totalCases;
+          const percentage = Math.round(ratio * 100);
+          const bar = getProgressBar(ratio);
+          const coloredPercentage = chalk.cyan(`${percentage}%`);
+          spinner.text = `${bar} ${coloredPercentage}  [Run ${currentRun}/${config.runs || 1}] Test Case ${caseIndex}/${tests.length}`;
         }
       }
     });
 
     if (useConsole && spinner) {
-      spinner.stop();
+      const finalBar = getProgressBar(1);
+      const coloredPercentage = chalk.cyan("100%");
+      spinner.succeed(`Evals completed! ${finalBar} ${coloredPercentage}`);
       printConsoleSummary(finalResults);
     }
 
@@ -208,28 +227,135 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
   }
 }
 
-function printConsoleSummary(finalResults: any): void {
-  console.log("\n" + chalk.bold.underline("Evaluation Summary") + "\n");
+import { matchesArgument } from "../matcher.js";
+export async function runSmokeCommand(options: CommandOptions, command?: Command): Promise<void> {
+  const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+  const url = opts.url!;
+  const evalsFile = opts.evals!;
 
+  try {
+    const tests: Array<Eval> = JSON.parse(
+      await readFile(resolve(process.cwd(), evalsFile), "utf-8"),
+    );
+    const finalResults = await executeSmokeEvals(tests, {
+      url,
+      timeoutMs: opts.timeout,
+      verbose: opts.verbose,
+      chromeChannel: opts.chromeChannel as ChromeReleaseChannel,
+    });
+
+    console.log("\n" + chalk.bold.underline("Smoke Test Summary") + "\n");
+    const table = new Table({
+      head: ["Case", "Step", "Status", "Tool", "Error"],
+      style: { head: ["cyan"], border: ["grey"] },
+    });
+    for (const result of finalResults.results) {
+      table.push([
+        result.testName,
+        result.stepIndex,
+        result.outcome === "pass" ? chalk.green("PASS") : chalk.red("ERROR"),
+        result.functionName,
+        result.error || "-",
+      ]);
+    }
+    console.log(table.toString());
+
+    const totalSteps = finalResults.totalExpectedSteps || finalResults.results.length;
+    const color = finalResults.errorCount === 0 ? chalk.green : chalk.red;
+    console.log(
+      `\nPassed steps: ${color(`${finalResults.passCount}/${totalSteps}`)} ` +
+        `across ${finalResults.testCount} case(s).\n`,
+    );
+    if (finalResults.errorCount > 0) process.exitCode = 1;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`\n${chalk.red.bold("❌ Error:")} ${message}\n`);
+    process.exitCode = 1;
+  }
+}
+
+function getFailureDetail(res: any): string {
+  if (res.outcome === "pass") return "-";
+  if (!res.response) return "No tool called";
+
+  const expected = res.test.expectedCall?.[0] as FunctionCall | undefined;
+  if (!expected) return "Unexpected tool call";
+
+  if (expected.functionName !== res.response.functionName) {
+    return `Function mismatch (expected "${expected.functionName}", got "${res.response.functionName}")`;
+  }
+
+  if (expected.arguments != null && !matchesArgument(expected.arguments, res.response.args)) {
+    return "Arguments mismatch";
+  }
+
+  if (expected.result !== undefined && !matchesArgument(expected.result, res.response.result)) {
+    const expStr =
+      typeof expected.result === "object"
+        ? JSON.stringify(expected.result)
+        : String(expected.result);
+    const actStr =
+      typeof res.response.result === "object"
+        ? JSON.stringify(res.response.result)
+        : String(res.response.result ?? null);
+    const truncatedAct = actStr.length > 40 ? actStr.slice(0, 37) + "..." : actStr;
+    return `Result mismatch: expected "${expStr}", got "${truncatedAct}"`;
+  }
+
+  return res.outcome === "error" ? "Execution error" : "Failed";
+}
+
+export function generateConsoleSummaryTable(finalResults: any): Table.Table {
   const table = new Table({
-    head: ["Step", "Status", "Expected Function", "Actual Function"],
+    head: ["Step", "Status", "Expected Function", "Actual Function", "Details"],
     style: {
-      head: ["cyan"],
+      head: ["whiteBright"],
       border: ["grey"],
     },
   });
 
-  for (let i = 0; i < finalResults.results.length; i++) {
-    const res = finalResults.results[i];
-    const passed = res.outcome === "pass";
-    table.push([
-      i + 1,
-      passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
-      (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
-      res.response?.functionName || "-",
-    ]);
+  // Group by testName, then by runIndex
+  const groupedResults = new Map<string, Map<number, any[]>>();
+  for (const res of finalResults.results) {
+    const run = res.runIndex || 1;
+    const name = res.test.name || "Unnamed Test";
+    if (!groupedResults.has(name)) {
+      groupedResults.set(name, new Map<number, any[]>());
+    }
+    const testMap = groupedResults.get(name)!;
+    if (!testMap.has(run)) {
+      testMap.set(run, []);
+    }
+    testMap.get(run)!.push(res);
   }
 
+  for (const [testName, runs] of groupedResults.entries()) {
+    // Add overarching row for Test Case
+    table.push([{ colSpan: 4, content: chalk.bold.blue(`Test Case: ${testName}`) }]);
+
+    for (const [runIndex, steps] of runs.entries()) {
+      // Add a grouping header row for the Run
+      table.push([{ colSpan: 4, content: chalk.bold.magenta(` • [Run ${runIndex}]`) }]);
+
+      for (const res of steps) {
+        const passed = res.outcome === "pass";
+        table.push([
+          res.stepIndex,
+          passed ? chalk.green("PASS") : chalk.red(res.outcome.toUpperCase()),
+          (res.test.expectedCall?.[0] as FunctionCall)?.functionName || "-",
+          res.response?.functionName || "-",
+          getFailureDetail(res),
+        ]);
+      }
+    }
+  }
+
+  return table;
+}
+
+function printConsoleSummary(finalResults: any): void {
+  console.log("\n" + chalk.bold.underline("Evaluation summary") + "\n");
+  const table = generateConsoleSummaryTable(finalResults);
   console.log(table.toString());
 
   const totalSteps = finalResults.results.length;
@@ -241,7 +367,9 @@ function printConsoleSummary(finalResults: any): void {
       : finalResults.passCount === 0
         ? chalk.red
         : chalk.yellow;
-  console.log(`\nPass count: ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`);
+  console.log(
+    `\nPass count (steps): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
+  );
 }
 
 async function outputReports(

@@ -7,17 +7,9 @@ import * as assert from "node:assert";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { cleanOldReports, findChromePath } from "../utils.js";
+import { cleanOldReports } from "../utils.js";
 
 describe("utils path & fs helpers", () => {
-  describe("findChromePath", () => {
-    it("should successfully find an accessible Chrome Canary binary path", async () => {
-      const pathResult = await findChromePath();
-      assert.strictEqual(typeof pathResult, "string");
-      assert.ok(pathResult.length > 0);
-    });
-  });
-
   describe("cleanOldReports", () => {
     it("should remove report-*.html files in current directory", async () => {
       const dummyReportPath = path.join(process.cwd(), `report-test-${Date.now()}.html`);

@@ -19,6 +19,11 @@
         }
       },
       {
+        "functionName": "get_store_promos_and_rules",
+        "arguments": {},
+        "optional": true
+      },
+      {
         "functionName": "get_current_search_results",
         "arguments": {},
         "optional": true
@@ -41,6 +46,11 @@
           "category": "BASEBALL",
           "size": "child"
         }
+      },
+      {
+        "functionName": "search_product",
+        "arguments": {},
+        "optional": true
       },
       {
         "functionName": "get_current_search_results",

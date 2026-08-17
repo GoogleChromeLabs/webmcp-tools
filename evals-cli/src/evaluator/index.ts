@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { listToolsFromPage } from "./browser.js";
 import { executeInBrowserEvals } from "./browserEvaluator.js";
 import { executeLocalEvals } from "./localEvaluator.js";
+import { executeSmokeEvals } from "./smokeEvaluator.js";
 
-export { executeInBrowserEvals, executeLocalEvals, listToolsFromPage };
+export { executeInBrowserEvals, executeLocalEvals, executeSmokeEvals };
