@@ -11,7 +11,7 @@ The demo supports multiple execution and submission variations (declarative vs. 
 Tests the default mode where the tool fills the form and waits for manual user review (`"pending form submission"`).
 
 ```bash
-npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/" --evals=examples/french-bistro/evals.json --debug
+npm run build && node dist/bin/webmcp-evals.js browser--url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/" --evals=examples/french-bistro/evals.json --debug
 ```
 
 #### 2. In-page modal with autosubmit (`?toolautosubmit`)
@@ -19,7 +19,7 @@ npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.g
 Tests automatic submission where the confirmation modal is displayed on the same page.
 
 ```bash
-npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit.json --debug
+npm run build && node dist/bin/webmcp-evals.js browser--url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit.json --debug
 ```
 
 #### 3. Declarative cross-document with autosubmit (`?crossdocument&toolautosubmit`)
@@ -27,7 +27,7 @@ npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.g
 Tests cross-document submission where navigating to `result.html` produces structured Schema.org JSON-LD output.
 
 ```bash
-npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument.json --debug
+npm run build && node dist/bin/webmcp-evals.js browser--url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument.json --debug
 ```
 
 #### 4. Imperative cross-document with autosubmit (`?crossdocument&toolautosubmit&imperative`)
@@ -35,5 +35,5 @@ npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.g
 Tests imperative tool execution (`document.modelContext.registerTool`) with cross-document navigation.
 
 ```bash
-npm run build && node dist/bin/webmcp-evals.js --url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit&imperative" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument-imperative.json --debug
+npm run build && node dist/bin/webmcp-evals.js browser--url="https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/?crossdocument&toolautosubmit&imperative" --evals=examples/french-bistro/evals-toolautosubmit-crossdocument-imperative.json --debug
 ```

@@ -114,7 +114,7 @@ form.addEventListener('submit', function (e) {
 
   validateForm();
 
-  if (isImperative) {
+  if (isImperative && e.agentInvoked) {
     return;
   }
 
