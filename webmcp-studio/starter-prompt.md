@@ -50,7 +50,7 @@ Generate HTML snippets for **existing forms found on the page**, annotated with 
 
 #### **File 3: webmcp-evals.js**
 
-For each WebMCP tool create testing evaluations that the developers can execute using the [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md). Create between 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
+For each WebMCP tool create testing evaluations that the developers can execute using [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md). Create between 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
 
 ~~~js
 module.exports = [

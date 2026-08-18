@@ -14,7 +14,7 @@ const agentApiKeyInput = document.getElementById('agent-api-key-input');
 const agentSaveKeyBtn = document.getElementById('agent-save-key-btn');
 const agentLogoutBtn = document.getElementById('agent-logout');
 
-let ai, chat, worker;
+let ai, chat, worker, abortController;
 
 async function getTools() {
   if (!window.document.modelContext) {
@@ -32,15 +32,14 @@ async function getConfig() {
   ];
 
   const tools = await getTools();
-  const functionDeclarations = tools.map((tool) => {
-    return {
-      name: tool.name,
-      description: tool.description,
-      parametersJsonSchema: tool.inputSchema
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parametersJsonSchema:
+      typeof tool.inputSchema === 'string'
         ? JSON.parse(tool.inputSchema)
-        : { type: 'object', properties: {} },
-    };
-  });
+        : tool.inputSchema || { type: 'object', properties: {} },
+  }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
@@ -117,10 +116,22 @@ function initSharedWorker(apiKey) {
           const tools = await getTools();
           const tool = tools.find((t) => t.name === payload.tool.name);
           if (!tool) throw new Error(`Tool ${payload.tool.name} not found`);
-          const result = await document.modelContext.executeTool(tool, payload.args);
-          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: result, id });
+
+          abortController = new AbortController();
+          agentSendBtn.textContent = 'Abort';
+          agentSendBtn.disabled = false;
+
+          const result = await document.modelContext.executeTool(tool, payload.args, {
+            signal: abortController.signal,
+          });
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { result }, id });
         } catch (error) {
-          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message }, id });
+          const aborted = abortController?.signal.aborted;
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message, aborted }, id });
+        } finally {
+          abortController = null;
+          agentSendBtn.textContent = 'Send';
+          agentSendBtn.disabled = true;
         }
         break;
 
@@ -188,7 +199,13 @@ agentLogoutBtn.addEventListener('click', () => {
   agentChatContainer.classList.add('hidden');
 });
 
-agentSendBtn.addEventListener('click', handleUserSubmit);
+agentSendBtn.addEventListener('click', () => {
+  if (abortController) {
+    abortController.abort();
+    return;
+  }
+  handleUserSubmit();
+});
 agentUserInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter' && !agentUserInput.disabled) handleUserSubmit();
 });
@@ -234,14 +251,32 @@ async function handleUserSubmit() {
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
 
-            const result = await document.modelContext.executeTool(tool, JSON.stringify(args));
+            abortController = new AbortController();
+            agentSendBtn.textContent = 'Abort';
+            agentSendBtn.disabled = false;
+
+            const result = await document.modelContext.executeTool(tool, JSON.stringify(args), {
+              signal: abortController.signal,
+            });
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
+            if (abortController?.signal.aborted) {
+              appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
+              finalResponseGiven = true;
+              break;
+            }
             appendMessage('System', `Error: ${error.message}`, 'system');
             toolResponses.push({
               functionResponse: { name, response: { error: error.message } },
             });
+          } finally {
+            abortController = null;
+            agentSendBtn.textContent = 'Send';
+            agentSendBtn.disabled = true;
           }
+        }
+        if (finalResponseGiven) {
+          break;
         }
         const sendMessageParams = { message: toolResponses, config: await getConfig() };
         currentResult = await chat.sendMessage(sendMessageParams);

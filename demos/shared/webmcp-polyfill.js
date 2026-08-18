@@ -70,7 +70,7 @@
       tools.push({
         name,
         description,
-        inputSchema: JSON.stringify(inputSchema),
+        inputSchema,
         window: win,
         origin: win.origin,
         _form: form,
@@ -149,10 +149,10 @@
         throw new DOMException(`Tool "${name}" is already registered`, 'InvalidStateError');
       }
 
-      let stringifiedInputSchema = '';
-      if (tool.inputSchema) {
+      const inputSchema = tool.inputSchema;
+      if (inputSchema) {
         try {
-          stringifiedInputSchema = JSON.stringify(tool.inputSchema);
+          JSON.stringify(inputSchema);
         } catch (e) {
           throw new TypeError('Failed to stringify inputSchema');
         }
@@ -168,16 +168,16 @@
         });
       }
 
-      // Store a normalized tool copy with a stringified inputSchema
+      // Store a normalized tool copy
       const normalizedTool = {
         name,
         description,
-        inputSchema: stringifiedInputSchema,
+        inputSchema,
         window: window,
         origin: window.origin,
         annotations: tool.annotations,
         _execute: tool.execute,
-      }
+      };
 
       window.__webmcp_registered_tools.set(name, normalizedTool);
       this.dispatchEvent(new Event('toolchange'));
@@ -249,7 +249,7 @@
       return filteredTools;
     }
 
-    async executeTool(tool, args) {
+    async executeTool(tool, args, options) {
       const win = tool.window || window;
 
       if (tool._isRemote) {
@@ -277,7 +277,7 @@
       }
 
       if (win !== window && win.document && win.document.modelContext && win.document.modelContext.executeTool) {
-        return win.document.modelContext.executeTool(tool, args);
+        return win.document.modelContext.executeTool(tool, args, options);
       }
 
       let parsedArgs = args;
@@ -330,7 +330,7 @@
       activatedEvent.toolName = tool.name;
       win.dispatchEvent(activatedEvent);
 
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         let resolved = false;
         let observer;
 
@@ -345,6 +345,27 @@
             observer.disconnect();
           }
         };
+
+        if (options?.signal) {
+          if (options.signal.aborted) {
+            cleanup();
+            reject(options.signal.reason || new DOMException('Aborted', 'AbortError'));
+            return;
+          }
+          options.signal.addEventListener(
+            'abort',
+            () => {
+              if (resolved) return;
+              resolved = true;
+              cleanup();
+              const cancelEvent = new Event('toolcancel');
+              cancelEvent.toolName = tool.name;
+              win.dispatchEvent(cancelEvent);
+              reject(options.signal.reason || new DOMException('Aborted', 'AbortError'));
+            },
+            { once: true },
+          );
+        }
 
         const onReset = () => {
           resolved = true;
