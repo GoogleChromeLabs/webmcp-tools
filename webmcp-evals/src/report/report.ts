@@ -4,7 +4,7 @@
  */
 
 import { Config, WebmcpConfig } from "../types/config.js";
-import { Message, TestResult, TestResults, FunctionCall } from "../types/evals.js";
+import { BrowserLogEntry, Message, TestResult, TestResults, FunctionCall } from "../types/evals.js";
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
@@ -340,6 +340,7 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
             ${run.steps.map((step) => renderStepDetails(step, run.steps.length)).join("")}
           </div>
 
+          ${renderBrowserLogs(run.steps[0]?.result.browserLogs)}
           ${renderTrajectory(run.trajectory)}
         </div>
       </details>
@@ -480,6 +481,44 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
         </table>
       </div>
     </div>
+  `;
+}
+
+function renderBrowserLogs(logs?: BrowserLogEntry[]): string {
+  if (!logs || logs.length === 0) return "";
+
+  const errorCount = logs.filter((log) => log.type === "error" || log.type === "pageerror").length;
+  const hasErrors = errorCount > 0;
+
+  const badgeClass = hasErrors
+    ? "bg-rose-100 text-rose-800 border-rose-200"
+    : "bg-amber-100 text-amber-800 border-amber-200";
+
+  return `
+    <details class="group/logs bg-white rounded border ${hasErrors ? "border-rose-200" : "border-amber-200"} mt-6">
+      <summary class="p-3 font-medium text-sm text-slate-700 cursor-pointer hover:bg-slate-50 border-b border-transparent group-open/logs:border-slate-200 flex items-center justify-between">
+        <span>Browser Console Logs</span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${badgeClass}">
+          ${logs.length} message${logs.length !== 1 ? "s" : ""} (${errorCount} error${errorCount !== 1 ? "s" : ""})
+        </span>
+      </summary>
+      <div class="p-4 space-y-2">
+        ${logs
+          .map((log) => {
+            const isError = log.type === "error" || log.type === "pageerror";
+            return `
+              <div class="flex items-start space-x-2">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold border shrink-0 mt-0.5 ${
+                  isError
+                    ? "bg-rose-100 text-rose-800 border-rose-200"
+                    : "bg-amber-100 text-amber-800 border-amber-200"
+                } uppercase">${escapeHtml(log.type)}</span>
+                <pre class="whitespace-pre-wrap text-xs ${isError ? "text-rose-700" : "text-amber-700"} bg-slate-50 p-3 rounded-md border border-slate-200 font-mono m-0 flex-1">${escapeHtml(log.text)}</pre>
+              </div>`;
+          })
+          .join("")}
+      </div>
+    </details>
   `;
 }
 

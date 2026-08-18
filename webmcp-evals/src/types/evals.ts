@@ -68,6 +68,13 @@ export interface TrajectoryStep {
   availableTools?: Tool[];
 }
 
+export type BrowserLogEntry = {
+  // Console message type: "log" | "debug" | "info" | "error" | "warning" | ...
+  // or "pageerror" for uncaught JavaScript exceptions.
+  type: string;
+  text: string;
+};
+
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
@@ -75,6 +82,9 @@ export type TestResult = {
   trajectory?: TrajectoryStep[];
   runIndex?: number;
   stepIndex?: number;
+  // Browser console messages and uncaught page errors collected while the
+  // test page was open (browser evals only).
+  browserLogs?: BrowserLogEntry[];
 };
 
 export type TestResults = {

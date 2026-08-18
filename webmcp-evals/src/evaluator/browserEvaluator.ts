@@ -4,7 +4,7 @@
  */
 
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { BrowserLogEntry, Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
@@ -90,8 +90,14 @@ async function runSingleBrowserTest(
   runIndex: number,
 ): Promise<TestResult[]> {
   let page: BrowserPage | null = null;
+  const browserLogs: BrowserLogEntry[] = [];
   try {
-    page = await setupBrowserPage(browser, config.url);
+    page = await browser.newPage();
+    collectBrowserLogs(page, browserLogs);
+    await page.goto(config.url, {
+      waitUntil: "networkidle2",
+      timeout: 30000,
+    });
     const registry = new BrowserToolRegistry(page);
     const currentTools = registry.getCurrentTools();
 
@@ -113,6 +119,7 @@ async function runSingleBrowserTest(
       { text: evalResult.text },
       evalResult.steps || [],
       runIndex,
+      browserLogs,
     );
   } catch (e: any) {
     logger.warn("Error running browser test:", e);
@@ -123,6 +130,7 @@ async function runSingleBrowserTest(
         outcome: "error",
         runIndex,
         stepIndex: 1,
+        browserLogs,
       },
     ];
   } finally {
@@ -132,13 +140,18 @@ async function runSingleBrowserTest(
   }
 }
 
-async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserPage> {
-  const page = await browser.newPage();
-  await page.goto(url, {
-    waitUntil: "networkidle2",
-    timeout: 30000,
+function collectBrowserLogs(page: BrowserPage, logs: BrowserLogEntry[]): void {
+  page.on("console", (message) => {
+    const type = message.type();
+    if (type === "error" || type === "warn" || type === "assert") {
+      logs.push({ type, text: message.text() });
+    }
   });
-  return page;
+
+  page.on("pageerror", (error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    logs.push({ type: "pageerror", text: message });
+  });
 }
 
 function buildTestResults(
@@ -147,6 +160,7 @@ function buildTestResults(
   resultPayload: { text?: string },
   trajectory: any[],
   runIndex: number,
+  browserLogs: BrowserLogEntry[],
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const trajectories = test.expectedCall
@@ -162,6 +176,7 @@ function buildTestResults(
       trajectory,
       runIndex,
       stepIndex: 1,
+      browserLogs,
     });
   } else {
     let stepIndex = 1;
@@ -184,6 +199,7 @@ function buildTestResults(
         trajectory,
         runIndex,
         stepIndex: stepIndex++,
+        browserLogs,
       });
     }
   }

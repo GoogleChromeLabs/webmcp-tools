@@ -152,4 +152,64 @@ describe("Report Grouping & Rendering", () => {
     const htmlDefault = renderReport(mockConfig, testResults);
     assert.match(htmlDefault, /chrome-canary/);
   });
+
+  it("renders browser console logs per run with error counts", () => {
+    const results: TestResult[] = [
+      {
+        test: {
+          name: "Console errors",
+          messages: [{ role: "user", type: "message", content: "Load the page" }],
+          expectedCall: [{ functionName: "load", arguments: {} }],
+        },
+        response: { functionName: "load", args: {} },
+        outcome: "pass",
+        browserLogs: [
+          { type: "warning", text: "deprecated API usage" },
+          { type: "error", text: "TypeError: x is not a function" },
+          { type: "pageerror", text: "Uncaught ReferenceError: foo is not defined" },
+        ],
+      },
+    ];
+
+    const html = renderReport(mockConfig, {
+      results,
+      testCount: 1,
+      passCount: 1,
+      failCount: 0,
+      errorCount: 0,
+    });
+
+    assert.match(html, /Browser Console Logs/);
+    assert.match(html, /3 messages \(2 errors\)/);
+    assert.match(html, /deprecated API usage/);
+    assert.match(html, /TypeError: x is not a function/);
+    assert.match(html, /Uncaught ReferenceError: foo is not defined/);
+    assert.match(html, />warning</);
+    assert.match(html, />error</);
+    assert.match(html, />pageerror</);
+  });
+
+  it("omits the browser console logs section when no logs were captured", () => {
+    const results: TestResult[] = [
+      {
+        test: {
+          name: "Clean page",
+          messages: [{ role: "user", type: "message", content: "Load the page" }],
+          expectedCall: [{ functionName: "load", arguments: {} }],
+        },
+        response: { functionName: "load", args: {} },
+        outcome: "pass",
+      },
+    ];
+
+    const html = renderReport(mockConfig, {
+      results,
+      testCount: 1,
+      passCount: 1,
+      failCount: 0,
+      errorCount: 0,
+    });
+
+    assert.doesNotMatch(html, /Browser Console Logs/);
+  });
 });
