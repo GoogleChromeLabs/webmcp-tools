@@ -119,7 +119,18 @@ export function registerExecuteBatchTool(options) {
         if (!targetTool) {
           throw new Error(`Tool ${toolName} not found`);
         }
-        return await document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
+        let result;
+        try {
+          result = await document.modelContext.executeTool(targetTool, args || {});
+        } catch (e) {
+          // TODO: Remove this when executeTool doesn't accept JSON stringified inputArgs anymore in Chrome Stable.
+          if (e.message.startsWith('Failed to parse input')) {
+            result = await document.modelContext.executeTool(targetTool, JSON.stringify(args || {}));
+          } else {
+            throw e;
+          }
+        }
+        return result;
       };
       
       const outputs = await executeDeclarativeBatch(steps, executeToolFn);
