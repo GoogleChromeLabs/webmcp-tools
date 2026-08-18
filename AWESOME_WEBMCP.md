@@ -41,6 +41,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - [Article](https://medium.com/data-science-collective/moving-beyond-screen-scraping-creating-an-agent-native-web-app-with-webmcp-4818552e1e11) | [Code](https://github.com/hugozanini/air-bird-booking-web-mcp)
 - [AI Audit](https://audit.wordlift.io/) - Audit any website's readiness for the agentic web. Exposes a `run-audit` tool via `document.modelContext` that lets an AI agent programmatically trigger a full AI readiness analysis (score 0–100) covering site files, SEO, structured data, content, and more.
   - **Example Prompt:** "Run an AI readiness audit on https://example.com"
+- [State of Web Vitals](https://www.corewebvitals.io/state-of-cwv/explorer) - Cross-site Core Web Vitals and technique metrics (LCP, INP, CLS, CMS/CDN/framework rankings) exposed as WebMCP tools (`get_metrics`, `get_histogram`, `list_options`). Same data as the public explorer; free, no auth. Also available as remote Streamable HTTP MCP at `https://www.corewebvitals.io/api/state-of-cwv/mcp`.
+  - **Example Prompt:** "Which CMS has the best LCP pass rate? Group State of Web Vitals metrics by CMS with min_sites 100."
 - [Blackjack Agents](https://webmcp-blackjack.heejae.dev/) - Blackjack game with multiple AI agents (player, opponent, dealer) all using WebMCP tools. Each agent autonomously observes its hand, decides to hit or stand, and repeats until done — driven by tool descriptions alone.
   - [Code](https://github.com/happyhj/webmcp-blackjack)
   - **Example Prompt:** "Play my turn"
