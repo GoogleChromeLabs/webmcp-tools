@@ -134,7 +134,7 @@ async function handleUserSubmit(text, port, requestId) {
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
             
-            const { result, error, aborted } = await requestToolExecution(port, tool, JSON.stringify(args));
+            const { result, error, aborted } = await requestToolExecution(port, tool, args);
             if (aborted) {
               appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
               finalResponseGiven = true;

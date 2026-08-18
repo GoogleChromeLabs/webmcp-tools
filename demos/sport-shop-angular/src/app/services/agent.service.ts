@@ -180,10 +180,20 @@ export class AgentService {
               const tool = tools.find((t) => t.name === name);
               if (!tool) throw new Error(`Tool ${name} not found`);
 
-              const rawResult = await (modelContext as any).executeTool(
-                tool,
-                JSON.stringify(args)
-              );
+              let rawResult: any;
+              try {
+                rawResult = await (modelContext as any).executeTool(tool, args);
+              } catch (e: any) {
+                // TODO: Remove this when executeTool doesn't accept JSON stringified inputArgs anymore in Chrome Stable.
+                if (e.message.startsWith('Failed to parse input')) {
+                  rawResult = await (modelContext as any).executeTool(
+                    tool,
+                    JSON.stringify(args)
+                  );
+                } else {
+                  throw e;
+                }
+              }
               toolResponses.push({
                 functionResponse: { name, response: { result: rawResult } }
               });
