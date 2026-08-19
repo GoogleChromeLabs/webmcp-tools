@@ -61,7 +61,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Someone is at the door. Show me."
 - [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
   - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
-- [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
+- [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/) - A Gemini-powered demo that lets you control any WebMCP-enabled website using simple natural language commands.
+  - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
+- [WebMCP Window Agent](https://googlechromelabs.github.io/webmcp-tools/demos/window-agent/) - A Gemini-powered demo that lets you control any WebMCP-enabled website loaded in a separate window (Popup or Document Picture-in-Picture) using simple natural language commands.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
