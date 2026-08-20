@@ -72,11 +72,12 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 
 ## Libraries & Tools
 
-- [Latch](https://github.com/r0bertini/latch) - A one-line `<script>` that detects a page's existing search, cart, and form handlers and registers them as WebMCP tools, with feature detection and no framework dependency. MIT licensed; running live at [latch.tools](https://latch.tools).
-- [use-webmcp-tool](https://www.npmjs.com/package/use-webmcp-tool) - React hook for registering WebMCP tools (`document.modelContext`) with lifecycle-managed registration.
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
-- [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
+- [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) *(by Google)* - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
+- [use-webmcp-tool](https://www.npmjs.com/package/use-webmcp-tool) *(by Google)* - React hook for registering WebMCP tools (`document.modelContext`) with lifecycle-managed registration.
+- [Latch](https://github.com/r0bertini/latch) - A one-line `<script>` that detects a page's existing search, cart, and form handlers and registers them as WebMCP tools, with feature detection and no framework dependency. MIT licensed; running live at [latch.tools](https://latch.tools).
 - [webmcpify](https://github.com/TueJon/webmcpify) - An agent skill that integrates WebMCP into an existing web app end to end: it inventories the app, proposes a tool manifest for approval, integrates the tools, then verifies each one in a real browser and heals failures.
+- [@web-ai-sdk/webmcp](https://github.com/obetomuniz/web-ai-sdk/tree/main/packages/webmcp) - Zero-dependency, framework-agnostic TypeScript adapter for registering WebMCP tools, with lifecycle-safe cleanup, async registration support, duplicate-name handling, feature detection, and an optional React hook.
 
 ## Contributing
 
