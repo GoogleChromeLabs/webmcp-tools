@@ -65,7 +65,10 @@ async function getConfig() {
       .map((tool) => ({
         name: tool.name,
         description: tool.description,
-        parametersJsonSchema: JSON.parse(tool.inputSchema),
+        parametersJsonSchema:
+          typeof tool.inputSchema === 'string'
+            ? JSON.parse(tool.inputSchema)
+            : tool.inputSchema || { type: 'object', properties: {} },
       }));
 
     return { systemInstruction, tools: [{ functionDeclarations }] };
@@ -80,9 +83,10 @@ async function getConfig() {
   const functionDeclarations = tools.map((tool) => ({
     name: tool.name,
     description: tool.description,
-    parametersJsonSchema: tool.inputSchema
-      ? JSON.parse(tool.inputSchema)
-      : { type: 'object', properties: {} },
+    parametersJsonSchema:
+      typeof tool.inputSchema === 'string'
+        ? JSON.parse(tool.inputSchema)
+        : tool.inputSchema || { type: 'object', properties: {} },
   }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };

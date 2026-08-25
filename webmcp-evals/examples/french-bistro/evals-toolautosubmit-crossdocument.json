@@ -28,9 +28,15 @@
             "$contains": "anniversary"
           }
         },
-        "result": {
-          "$pattern": "Hello Bob Smith, We look forward to welcoming you on: .*at 18:30 Party of 2 People • Terrace \\(Outdoor\\)"
-        }
+        "result": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Message",
+            "text": {
+              "$pattern": "Hello Bob Smith,\\nWe look forward to welcoming you on:\\n\\n.* at 18:30\\nParty of 2 • Terrace"
+            }
+          }
+        ]
       }
     ]
   },
@@ -56,9 +62,15 @@
           "guests": "6",
           "seating": "Private Booth"
         },
-        "result": {
-          "$pattern": "Hello Alice Wong, We look forward to welcoming you on: .*at 20:00 Party of 6 People or more • Private Booth"
-        }
+        "result": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Message",
+            "text": {
+              "$pattern": "Hello Alice Wong,\\nWe look forward to welcoming you on:\\n\\n.* at 20:00\\nParty of 6 • Private Booth"
+            }
+          }
+        ]
       }
     ]
   }

@@ -206,6 +206,7 @@ button.submit-btn:hover {
 }
 
 /* --- THE BUTTON STYLES --- */
+.pseudo-tool-submit-active,
 *:tool-submit-active {
   /* Base Button Overrides */
   color: var(--black) !important;
@@ -230,6 +231,7 @@ button.submit-btn:hover {
 
 /* --- THE "REVIEW THIS" BADGE --- */
 /* This creates a text bubble appearing above the button */
+.pseudo-tool-submit-active::after,
 *:tool-submit-active::after {
   content: '⚠ Please Review & Confirm';
 
@@ -259,6 +261,7 @@ button.submit-btn:hover {
 }
 
 /* --- THE BADGE ARROW (Triangle) --- */
+.pseudo-tool-submit-active::before,
 *:tool-submit-active::before {
   content: '';
   position: absolute;

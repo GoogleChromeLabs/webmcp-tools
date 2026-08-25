@@ -109,21 +109,14 @@ export class AgentService {
     ].join(' ');
 
     const tools = await this.getTools();
-    const functionDeclarations = tools.map((tool) => {
-      let parametersJsonSchema: any = { type: 'object', properties: {} };
-      if (tool.inputSchema) {
-        try {
-          parametersJsonSchema = JSON.parse(tool.inputSchema);
-        } catch (e) {
-          console.error('Error parsing tool inputSchema:', e);
-        }
-      }
-      return {
-        name: tool.name,
-        description: tool.description || '',
-        parametersJsonSchema
-      };
-    });
+    const functionDeclarations = tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description || '',
+      parametersJsonSchema:
+        typeof tool.inputSchema === 'string'
+          ? JSON.parse(tool.inputSchema)
+          : tool.inputSchema || { type: 'object', properties: {} },
+    }));
 
     return { systemInstruction, tools: [{ functionDeclarations }] };
   }

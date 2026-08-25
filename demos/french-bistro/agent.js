@@ -32,15 +32,14 @@ async function getConfig() {
   ];
 
   const tools = await getTools();
-  const functionDeclarations = tools.map((tool) => {
-    return {
-      name: tool.name,
-      description: tool.description,
-      parametersJsonSchema: tool.inputSchema
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parametersJsonSchema:
+      typeof tool.inputSchema === 'string'
         ? JSON.parse(tool.inputSchema)
-        : { type: 'object', properties: {} },
-    };
-  });
+        : tool.inputSchema || { type: 'object', properties: {} },
+  }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
