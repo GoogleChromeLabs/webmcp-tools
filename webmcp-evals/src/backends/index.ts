@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
+import {
+  BrowserConsoleError,
+  Eval,
+  TestResult,
+  TestResults,
+  TrajectoryStep,
+} from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
@@ -27,6 +33,7 @@ export type BrowserEvalResult = {
   toolCalls: ToolCall[];
   text?: string;
   steps?: TrajectoryStep[];
+  browserConsoleErrors?: BrowserConsoleError[];
   error?: any;
 };
 
