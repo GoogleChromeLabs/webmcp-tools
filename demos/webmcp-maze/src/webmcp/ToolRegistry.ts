@@ -34,7 +34,7 @@ export class ToolRegistry {
    * Live map of currently registered tools, keyed by tool name.
    * Referenced by `window.gameTools.executeTool` at call time.
    */
-  private toolMap: Map<string, ModelContextTool> = new Map();
+  private toolMap: Map<string, WebMCP.ModelContextTool> = new Map();
   
   private toolController: AbortController | null = null;
 
@@ -98,7 +98,7 @@ export class ToolRegistry {
    * Keeps `toolMap` in sync so `window.gameTools.executeTool` stays current.
    * @param tools - The tools to register.
    */
-  private provideTools(tools: ModelContextTool[]): void {
+  private provideTools(tools: WebMCP.ModelContextTool[]): void {
     if (this.supported) {
       this.toolController?.abort();
       this.toolController = new AbortController();
@@ -130,7 +130,7 @@ export class ToolRegistry {
               `Available: ${[...toolMap.keys()].join(", ")}`,
           );
         }
-        return tool.execute(args, {} as ModelContextClient);
+        return tool.execute(args);
       },
     };
   }

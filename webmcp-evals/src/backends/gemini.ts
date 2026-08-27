@@ -1,0 +1,110 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { Content, FunctionDeclaration, GoogleGenAI } from "@google/genai";
+import { Eval, Message } from "../types/evals.js";
+import { Tool, ToolCall } from "../types/tools.js";
+import { Backend, BrowserEvalResult, LocalEvalResult } from "./index.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
+
+export class GeminiBackend implements Backend {
+  private googleGenAI: GoogleGenAI;
+
+  constructor(
+    apiKey: string,
+    private model: string,
+    private systemPrompt: string,
+  ) {
+    this.googleGenAI = new GoogleGenAI({ apiKey });
+  }
+
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
+    return this.execute(test.messages, registry.getCurrentTools());
+  }
+
+  async executeInBrowserEval(_test: Eval, _registry: ToolRegistry): Promise<BrowserEvalResult> {
+    throw new Error("Method not implemented.");
+  }
+
+  describe(): string {
+    return `Gemini Backend using model: ${this.model}`;
+  }
+
+  async execute(messages: Message[], toolsList: Array<Tool>): Promise<LocalEvalResult> {
+    const functionDeclarations: Array<FunctionDeclaration> = toolsList.map((t) => {
+      return {
+        name: t.functionName,
+        description: t.description,
+        parametersJsonSchema: t.parameters,
+      };
+    });
+
+    const contents: Array<Content> = messages.map((m) => {
+      switch (m.type) {
+        case "message":
+          return {
+            role: m.role,
+            parts: [{ text: m.content }],
+          };
+
+        case "functioncall":
+          return {
+            role: "model",
+            parts: [
+              {
+                functionCall: {
+                  name: m.name,
+                  args: m.arguments as Record<string, unknown>,
+                },
+              },
+            ],
+          };
+
+        case "functionresponse":
+          return {
+            role: "user",
+            parts: [
+              {
+                functionResponse: {
+                  name: m.name,
+                  response: m.response as Record<string, unknown>,
+                },
+              },
+            ],
+          };
+      }
+    });
+
+    const request = {
+      model: this.model,
+      contents: contents,
+      config: {
+        systemInstruction: this.systemPrompt,
+        tools: [{ functionDeclarations: functionDeclarations }],
+      },
+    };
+
+    const response = await this.googleGenAI.models.generateContent(request);
+
+    const toolCalls: Array<ToolCall> = (response.functionCalls || [])
+      .filter((f) => f.name && f.args)
+      .map((f) => {
+        return {
+          args: f.args as Record<string, unknown>,
+          functionName: f.name!,
+        };
+      });
+
+    const textParts = response.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text)
+      .filter((t): t is string => Boolean(t))
+      .join("");
+
+    return {
+      toolCalls,
+      text: textParts || undefined,
+    };
+  }
+}

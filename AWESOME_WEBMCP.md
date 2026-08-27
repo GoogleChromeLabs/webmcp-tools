@@ -67,6 +67,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
 - [Stacktree](https://stacktr.ee/) - Private hosting for the HTML that AI agents generate. Registers `stacktree_publish_html` via `document.modelContext`, so a browser agent can hand over a complete HTML document and get back a live, shareable URL with no account or sign-in. Anonymous sites are unlisted and the response includes a claim URL to keep the page permanently in a free account.
   - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
+- [**Wordup**](https://github.com/GoogleChromeLabs/web-ai-demos/tree/main/wordup) ([live](https://snugug.github.io/demos/wordup/)): A casual word guessing game using the Prompt API to generate words and can be driven entirely through WebMCP.
+  - **Example Prompt:** "Start a new game."
 
 ## Libraries & Tools
 
@@ -76,6 +78,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [Latch](https://github.com/r0bertini/latch) - A one-line `<script>` that detects a page's existing search, cart, and form handlers and registers them as WebMCP tools, with feature detection and no framework dependency. MIT licensed; running live at [latch.tools](https://latch.tools).
 - [webmcpify](https://github.com/TueJon/webmcpify) - An agent skill that integrates WebMCP into an existing web app end to end: it inventories the app, proposes a tool manifest for approval, integrates the tools, then verifies each one in a real browser and heals failures.
 - [@web-ai-sdk/webmcp](https://github.com/obetomuniz/web-ai-sdk/tree/main/packages/webmcp) - Zero-dependency, framework-agnostic TypeScript adapter for registering WebMCP tools, with lifecycle-safe cleanup, async registration support, duplicate-name handling, feature detection, and an optional React hook.
+- [MCP Webcomic Site Server](https://github.com/nearestnabors/mcp-webcomic-site-server) - A template and tutorial for making a webcomic archive visible to AI agents across three surfaces: a static 11ty website, an MCP server, and WebMCP browser tools. Registers tools like `get_current_page`, `get_transcript`, `prev_page`/`next_page`, and `search_comics` via `navigator.modelContext.registerTool()`.
 
 ## Contributing
 
