@@ -77,7 +77,8 @@ export default function SearchResults() {
           description: h.description
         }))
       };
-    }
+    },
+    annotations: { readOnlyHint: true }
   });
 
   const displayLocation = useMemo(() => {
