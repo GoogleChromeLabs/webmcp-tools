@@ -25,6 +25,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Find two tickets for a horror movie in Montpelier tonight"
 - [Order Tracking](https://googlechromelabs.github.io/webmcp-tools/demos/order-tracking/) - A simulated e-commerce order tracking and returns system allowing an AI agent to query order history and initiate returns via declarative tools.
   - **Example Prompt:** "Where is my order from last week? If it’s delivered, I need to start a return."
+- [Open for Agents Storefront](https://demo.openforagents.com/) - A live WordPress and WooCommerce demonstration of owner-reviewed product-discovery tools, alongside an optional site Assistant that uses reviewed capabilities. [WordPress.org plugin](https://wordpress.org/plugins/open-for-agents-ai-toolkit-with-mcp/) | [Project explanation](https://www.openforagents.com/why-agent-ready)
+  - **Example Prompt:** "Find an in-stock mug."
 - [L'Atelier Hotel Chain](https://googlechromelabs.github.io/webmcp-tools/demos/hotel-chain/) - A high-fidelity hotel booking application designed to showcase the power of WebMCP. This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
   - **Example Prompt:** "Find a hotel in Paris with a Spa."
 - [WebMCP Sports](https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular/) - A modern e-commerce storefront for high-performance sports equipment, built with Angular and Vanilla CSS.
