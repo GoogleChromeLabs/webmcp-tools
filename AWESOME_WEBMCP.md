@@ -78,6 +78,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 - [webmcpify](https://github.com/TueJon/webmcpify) - An agent skill that integrates WebMCP into an existing web app end to end: it inventories the app, proposes a tool manifest for approval, integrates the tools, then verifies each one in a real browser and heals failures.
 - [MCP Webcomic Site Server](https://github.com/nearestnabors/mcp-webcomic-site-server) - A template and tutorial for making a webcomic archive visible to AI agents across three surfaces: a static 11ty website, an MCP server, and WebMCP browser tools. Registers tools like `get_current_page`, `get_transcript`, `prev_page`/`next_page`, and `search_comics` via `navigator.modelContext.registerTool()`.
+- [WebMCP Kit](https://github.com/nekuda-ai/webmcp-kit) - A plugin for coding agents with an interactive visual Explorer that maps a site's user journeys to proposed WebMCP tools for review and approval, then implements and verifies them in a real browser.
+- [WindTunnel](https://github.com/nekuda-ai/WindTunnel) - An open-source benchmark comparing WebMCP with other browser-agent interfaces across task success, execution time, token usage, and cost.
 
 ## Contributing
 
