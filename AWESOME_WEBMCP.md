@@ -76,6 +76,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 
 - [Latch](https://github.com/r0bertini/latch) - A one-line `<script>` that detects a page's existing search, cart, and form handlers and registers them as WebMCP tools, with feature detection and no framework dependency. MIT licensed; running live at [latch.tools](https://latch.tools).
 - [use-webmcp-tool](https://www.npmjs.com/package/use-webmcp-tool) - React hook for registering WebMCP tools (`document.modelContext`) with lifecycle-managed registration.
+- [simple-webmcp](https://github.com/emingure/simple-webmcp) - Turns existing JS/TS functions into WebMCP tools with `webmcp(fn)`, keeping them callable while supporting schema patching, React lifecycle helpers, execution hooks for approvals and analytics, and an in-memory development polyfill for testing.
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
 - [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 - [webmcpify](https://github.com/TueJon/webmcpify) - An agent skill that integrates WebMCP into an existing web app end to end: it inventories the app, proposes a tool manifest for approval, integrates the tools, then verifies each one in a real browser and heals failures.
