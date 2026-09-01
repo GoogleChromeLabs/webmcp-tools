@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebMCP AbortSignal Explorer — Chrome 153 Dual-Engine Benchmark</title>
+  
+  <!-- WebMCP Polyfill Fallback (for non-Chrome 153 browsers) -->
+  <script src="../shared/webmcp-polyfill.js"></script>
+  
+  <!-- Tailwind CSS Engine -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+
+  <style>
+    /* Tabular numbers to prevent layout shift during 60 FPS timer ticks */
+    .tabular-timer {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-variant-numeric: tabular-nums lining-nums;
+      letter-spacing: -0.03em;
+    }
+
+    /* CRT Vector Scanline texture */
+    .hud-scanlines {
+      background-image: linear-gradient(rgba(18, 16, 38, 0) 50%, rgba(0, 0, 0, 0.45) 50%);
+      background-size: 100% 3px;
+    }
+
+    /* Thread Waveform Pulsing */
+    @keyframes neonPulse {
+      0%, 100% { opacity: 0.4; height: 4px; }
+      50% { opacity: 1; height: 16px; }
+    }
+    .neon-wave-1 { animation: neonPulse 0.4s ease-in-out infinite; }
+    .neon-wave-2 { animation: neonPulse 0.6s ease-in-out infinite 0.15s; }
+    .neon-wave-3 { animation: neonPulse 0.35s ease-in-out infinite 0.05s; }
+    .neon-wave-4 { animation: neonPulse 0.5s ease-in-out infinite 0.2s; }
+
+    /* Focus Visible WCAG 2.4.13 AAA Compliance */
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid #00f0ff !important;
+      outline-offset: 2px !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .animate-ping, .animate-pulse, .animate-bounce, .neon-wave-1, .neon-wave-2, .neon-wave-3, .neon-wave-4 {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#040407] text-[#f8fafc] antialiased min-h-screen p-4 md:p-6 font-sans selection:bg-[#00ff9d]/30 selection:text-white">
+
+  <!-- Isolated Hidden A11y Announcer for Screen Readers (WCAG 2.2 AAA speech isolation) -->
+  <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- TOP CYBER HUD HEADER -->
+    <header class="rounded-2xl border border-cyan-500/30 bg-[#0c0d18]/85 backdrop-blur-xl p-4 md:p-5 shadow-[0_0_25px_rgba(6,182,212,0.15)] flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-xl shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+          ⚡
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white font-mono">WEBMCP::DUAL_BENCH</h1>
+            <span class="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-mono font-semibold">Chrome 153</span>
+            <span id="runtime-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">Native API</span>
+          </div>
+          <p class="text-xs text-zinc-400 font-mono">Direct Comparison: Chrome 153 AbortSignal vs Legacy Un-abortable Loop</p>
+        </div>
+      </div>
+
+      <!-- MASTER SYNCHRONIZED ACTION GROUP -->
+      <div class="flex flex-wrap items-center gap-2 bg-[#070810] p-1.5 rounded-xl border border-cyan-500/30 shadow-inner">
+        <button id="btn-master-start" onclick="splitStartBoth()" class="px-4 py-2 rounded-xl bg-[#00ff9d]/20 hover:bg-[#00ff9d]/30 text-[#00ff9d] border border-[#00ff9d] font-mono font-bold text-xs uppercase shadow-[0_0_15px_rgba(0,255,157,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5" aria-label="Start both execution engines simultaneously">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Engage Dual
+        </button>
+        <button id="btn-master-abort" onclick="splitAbortBoth()" class="px-4 py-2 rounded-xl bg-[#ff007f]/20 hover:bg-[#ff007f]/30 text-[#ff66b2] border border-[#ff007f] font-mono font-bold text-xs uppercase shadow-[0_0_15px_rgba(255,0,127,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-1.5" aria-label="Trigger abort on both execution contexts">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          Abort Dual
+        </button>
+        <button id="btn-master-reset" onclick="splitResetBoth()" class="px-3 py-2 rounded-xl border border-zinc-700 bg-[#12151f] hover:bg-zinc-800 text-xs text-zinc-300 font-mono font-medium transition-colors" title="Reset Both Engines">
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <!-- DUAL COLUMN COMPARISON GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- ============================================== -->
+      <!-- COLUMN 1: CHROME 153 COOPERATIVE ABORT ENGINE -->
+      <!-- ============================================== -->
+      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#00ff9d]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,255,157,0.22)] flex flex-col justify-between space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-a">
+        <div>
+          <!-- Engine Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-[#00ff9d]/20">
+            <div class="flex items-center gap-2.5">
+              <span class="relative flex h-3 w-3">
+                <span id="ping-engine-a" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff9d] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00ff9d] shadow-[0_0_8px_rgba(0,255,157,0.8)]"></span>
+              </span>
+              <h2 id="title-engine-a" class="font-bold text-sm text-white font-mono tracking-wider">CORE A: CHROME 153+</h2>
+            </div>
+            <a href="?abortSignal=true" class="px-2.5 py-0.5 rounded-full bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 text-[11px] font-mono hover:bg-[#00ff9d]/20 transition-colors">
+              ?abortSignal=true
+            </a>
+          </div>
+
+          <!-- Architecture Badge -->
+          <div class="my-3 p-2.5 rounded-xl bg-[#070810] border border-[#00ff9d]/25 text-xs text-[#00ff9d] font-mono space-y-0.5">
+            <div><span class="text-zinc-500">// Execution:</span> <code>execute(params, { signal })</code></div>
+            <div><span class="text-zinc-500">// Caller Context:</span> <code>{ signal: execCtrl.signal }</code></div>
+          </div>
+
+          <!-- Digital Readout Display Bay -->
+          <div class="py-6 bg-[#070810] rounded-xl border border-[#00ff9d]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(0,255,157,0.12)] hud-scanlines relative">
+            <div class="text-[10px] uppercase tracking-widest text-[#00ff9d] font-mono mb-1">
+              CHRONO VECTOR A
+            </div>
+            <div role="timer" id="engine-a-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
+              <span id="split-a-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-a-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-a-ms" class="text-[#00ff9d] drop-shadow-[0_0_12px_rgba(0,255,157,0.7)]">00</span>
+            </div>
+
+            <!-- Thread Status Pill -->
+            <div class="mt-3">
+              <span id="split-a-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
+                IDLE (0% CPU)
+              </span>
+            </div>
+          </div>
+
+          <!-- Behavioral Checklist -->
+          <div class="text-xs text-zinc-300 space-y-1.5 mt-3 font-mono">
+            <div class="flex items-center gap-1.5 text-[#00ff9d]">
+              <span>✓</span> <span>Instant freeze when AbortController signals</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[#00ff9d]">
+              <span>✓</span> <span>Promise resolves cleanly with { status: "paused" }</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[#00ff9d]">
+              <span>✓</span> <span>Releases browser execution thread immediately</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Independent Controls -->
+        <div class="flex gap-2 pt-4 border-t border-[#00ff9d]/20">
+          <button id="btn-start-a" onclick="splitStartA()" class="flex-1 py-2 rounded-xl bg-[#00ff9d]/20 hover:bg-[#00ff9d]/30 text-[#00ff9d] border border-[#00ff9d]/50 font-mono font-bold text-xs shadow transition-all active:scale-[0.98]">
+            Start Core A
+          </button>
+          <button id="btn-abort-a" onclick="splitAbortA()" class="flex-1 py-2 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-mono font-bold text-xs transition-all active:scale-[0.98]">
+            Pause / Abort A
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- COLUMN 2: LEGACY UN-ABORTABLE ENGINE          -->
+      <!-- ============================================== -->
+      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#ff007f]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(255,0,127,0.22)] flex flex-col justify-between space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-b">
+        <div>
+          <!-- Engine Header -->
+          <div class="flex items-center justify-between pb-3 border-b border-[#ff007f]/20">
+            <div class="flex items-center gap-2.5">
+              <span class="relative flex h-3 w-3">
+                <span id="ping-engine-b" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff007f] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#ff007f] shadow-[0_0_8px_rgba(255,0,127,0.8)]"></span>
+              </span>
+              <h2 id="title-engine-b" class="font-bold text-sm text-white font-mono tracking-wider">CORE B: LEGACY UNBOUNDED</h2>
+            </div>
+            <a href="?abortSignal=false" class="px-2.5 py-0.5 rounded-full bg-[#ff007f]/10 text-[#ff66b2] border border-[#ff007f]/30 text-[11px] font-mono hover:bg-[#ff007f]/20 transition-colors">
+              ?abortSignal=false
+            </a>
+          </div>
+
+          <!-- Architecture Badge -->
+          <div class="my-3 p-2.5 rounded-xl bg-[#070810] border border-[#ff007f]/25 text-xs text-[#ff66b2] font-mono space-y-0.5">
+            <div><span class="text-zinc-500">// Execution:</span> <code>execute(params)</code> <span class="text-rose-400">[No Signal]</span></div>
+            <div><span class="text-zinc-500">// Caller Context:</span> <code>{}</code> (Empty Options)</div>
+          </div>
+
+          <!-- Digital Readout Display Bay -->
+          <div class="py-6 bg-[#070810] rounded-xl border border-[#ff007f]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(255,0,127,0.12)] hud-scanlines relative">
+            <div class="text-[10px] uppercase tracking-widest text-[#ff66b2] font-mono mb-1">
+              CHRONO VECTOR B
+            </div>
+            <div role="timer" id="engine-b-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
+              <span id="split-b-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-b-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-b-ms" class="text-[#ff007f] drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">00</span>
+            </div>
+
+            <!-- Thread Status Pill -->
+            <div class="mt-3">
+              <span id="split-b-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
+                IDLE (0% CPU)
+              </span>
+            </div>
+          </div>
+
+          <!-- Hazards Checklist -->
+          <div class="text-xs text-zinc-300 space-y-1.5 mt-3 font-mono">
+            <div class="flex items-center gap-1.5 text-rose-400">
+              <span>✕</span> <span>Clicking Pause has NO effect on running thread</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-rose-400">
+              <span>✕</span> <span>Consumes CPU event loop until 60s timeout</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-rose-400">
+              <span>✕</span> <span>Host controller abort() is completely ignored</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Independent Controls -->
+        <div class="flex gap-2 pt-4 border-t border-[#ff007f]/20">
+          <button id="btn-start-b" onclick="splitStartB()" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-mono font-bold text-xs shadow transition-all active:scale-[0.98]">
+            Start Core B
+          </button>
+          <button id="btn-abort-b" onclick="splitAbortB()" class="flex-1 py-2 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-mono font-bold text-xs transition-all active:scale-[0.98]" title="Clicking will not halt the loop">
+            Pause B (Ineffective)
+          </button>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- AGENT TOOL ACTUATION DECK (Interactive WebMCP Toolkit)                    -->
+    <!-- ========================================================================= -->
+    <section class="rounded-2xl border border-cyan-500/30 bg-[#0c0d18]/85 backdrop-blur-xl p-5 shadow-[0_0_25px_rgba(6,182,212,0.15)] space-y-3" aria-labelledby="agent-deck-title">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-cyan-500/20 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-cyan-400 font-mono text-base font-bold" id="agent-deck-title">🤖 WEBMCP AGENT TOOLKIT</span>
+          <span class="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-mono">2 Registered Tools</span>
+        </div>
+        <span class="text-xs text-zinc-400 font-mono">Simulate AI Agent invoking WebMCP tools programmatically</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+        
+        <!-- Tool 1: start_timer -->
+        <div class="p-3.5 rounded-xl bg-[#070810] border border-cyan-500/25 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-white flex items-center gap-1.5">
+              <code class="text-cyan-400">start_timer(targetEngine)</code>
+            </span>
+            <span class="text-[10px] font-mono text-zinc-500">CONSUMES THREAD</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 font-mono leading-relaxed">
+            Spins up background execution loop at ~60 FPS until safety cap or abort.
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button onclick="agentCallStart('A')" class="flex-1 py-1.5 px-2.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-[#00ff9d] border border-emerald-500/40 text-[11px] font-mono font-bold transition-all flex items-center justify-center gap-1">
+              <span>▶ Run on Core A</span>
+            </button>
+            <button onclick="agentCallStart('B')" class="flex-1 py-1.5 px-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 text-[11px] font-mono font-bold transition-all flex items-center justify-center gap-1">
+              <span>▶ Run on Core B</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tool 2: pause_timer -->
+        <div class="p-3.5 rounded-xl bg-[#070810] border border-amber-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-white flex items-center gap-1.5">
+              <code class="text-amber-400">pause_timer(targetEngine, reason)</code>
+            </span>
+            <span class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">NEW TOOL</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 font-mono leading-relaxed">
+            Cooperatively halts execution via AbortSignal in Chrome 153 mode.
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button onclick="agentCallPause('A')" class="flex-1 py-1.5 px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 text-[11px] font-mono font-bold transition-all flex items-center justify-center gap-1">
+              <span>⏸ Pause Core A</span>
+            </button>
+            <button onclick="agentCallPause('B')" class="flex-1 py-1.5 px-2.5 rounded-lg bg-[#ff007f]/20 hover:bg-[#ff007f]/30 text-[#ff66b2] border border-[#ff007f]/40 text-[11px] font-mono font-bold transition-all flex items-center justify-center gap-1" title="Demonstrates un-abortable behavior on legacy engine">
+              <span>⏸ Pause Core B</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- LIVE CYBER HUD EVENT TERMINAL LOG -->
+    <div class="rounded-2xl border border-cyan-500/30 bg-[#0c0d18]/85 backdrop-blur-xl overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+      <div class="flex items-center justify-between px-4 py-2.5 bg-[#070810] border-b border-cyan-500/20 text-xs font-mono">
+        <span class="font-bold text-white flex items-center gap-2">
+          <span class="text-cyan-400">●</span>
+          LIVE_EVENT_TELEMETRY (document.modelContext)
+        </span>
+        <button onclick="clearHudLog()" class="text-[11px] text-zinc-400 hover:text-white transition-colors">
+          CLEAR_LOG
+        </button>
+      </div>
+      <div id="hud-log-stream" class="p-3 bg-[#05060a] text-[#e2e8f0] text-xs font-mono space-y-1.5 h-48 overflow-y-auto" role="log" aria-live="polite">
+        <div class="flex gap-2">
+          <span class="text-zinc-500">[INIT]</span>
+          <span class="text-cyan-400 font-bold">[SYS]</span>
+          <span>WebMCP Cyberpunk Dual-Bench initialized. Ready for actuation.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPARISON MATRIX SUMMARY CARD -->
+    <div class="rounded-2xl border border-cyan-500/30 bg-[#0c0d18]/85 backdrop-blur-xl p-4 text-xs overflow-x-auto shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+      <table class="w-full text-left font-mono">
+        <thead>
+          <tr class="border-b border-zinc-800 text-zinc-400">
+            <th class="pb-2 font-sans font-semibold">Architectural Dimension</th>
+            <th class="pb-2 text-[#00ff9d]">Chrome 153 Mode (?abortSignal=true)</th>
+            <th class="pb-2 text-[#ff66b2]">Legacy Mode (?abortSignal=false)</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
+          <tr>
+            <td class="py-2.5 font-sans font-medium text-white">Tool: pause_timer()</td>
+            <td class="py-2.5 text-[#00ff9d] font-semibold">Dispatches signal -> loop immediately halted & thread freed</td>
+            <td class="py-2.5 text-rose-400">Dispatches signal -> ignored by tool loop, thread remains locked</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-sans font-medium text-white">Human Pause Actuation</td>
+            <td class="py-2.5 text-[#00ff9d]">Immediate freeze at exact millisecond</td>
+            <td class="py-2.5 text-rose-400">Ignored; loop continues running unchecked</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-sans font-medium text-white">Thread / CPU Utilization</td>
+            <td class="py-2.5 text-[#00ff9d]">0% CPU immediately upon abort</td>
+            <td class="py-2.5 text-rose-400">100% rAF tick consumption until safety timeout</td>
+          </tr>
+          <tr>
+            <td class="py-2.5 font-sans font-medium text-white">Promise Lifecycle</td>
+            <td class="py-2.5 text-[#00ff9d]">Resolves cleanly with { status: "paused" }</td>
+            <td class="py-2.5 text-rose-400">Unsettled / trapped in-flight</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- REAL WEBMCP TOOL REGISTRATION & CLIENT ENGINE                             -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. Resolve ModelContext (Native Chrome 150+ or Polyfill)
+    const modelContext = document.modelContext || navigator.modelContext || document.modelContextTesting;
+
+    // Detect environment
+    if (!document.modelContext && !navigator.modelContext) {
+      document.getElementById('runtime-badge').textContent = "Polyfill Active";
+      document.getElementById('runtime-badge').className = "px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-mono";
+    }
+
+    // 2. A11y Speech Isolation Helper (WCAG 2.2 AAA compliant)
+    const announcerEl = document.getElementById('a11y-announcer');
+    function announce(msg, priority = 'polite') {
+      if (!announcerEl) return;
+      announcerEl.setAttribute('aria-live', priority);
+      announcerEl.textContent = '';
+      setTimeout(() => { announcerEl.textContent = msg; }, 50);
+    }
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      const millis = Math.floor((ms % 1000) / 10);
+      return {
+        m: String(minutes).padStart(2, '0'),
+        s: String(seconds).padStart(2, '0'),
+        ms: String(millis).padStart(2, '0'),
+        str: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(2, '0')}`
+      };
+    }
+
+    function hudLog(tag, msg) {
+      const stream = document.getElementById('hud-log-stream');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = "flex gap-2";
+      const tagColor = tag === 'SYS' ? 'text-cyan-400' : 
+                       tag === 'EXEC' ? 'text-[#00ff9d]' : 
+                       tag === 'ABORT' ? 'text-amber-400' : 
+                       tag === 'WARN' ? 'text-rose-400' : 
+                       tag === 'AGENT' ? 'text-purple-400' : 'text-blue-400';
+      div.innerHTML = `<span class="text-zinc-500">[${time}]</span><span class="${tagColor} font-bold">[${tag}]</span><span>${msg}</span>`;
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function clearHudLog() {
+      document.getElementById('hud-log-stream').innerHTML = '';
+    }
+
+    // Handles for registered tools
+    let regStartTool = null;
+    let regPauseTool = null;
+
+    // Core A State (With AbortSignal)
+    let splitAElapsed = 0, splitARunning = false, splitARaf = null, splitAStartTime = 0;
+    let ctrlA = null;
+
+    // Core B State (Legacy Baseline: No AbortSignal)
+    let splitBElapsed = 0, splitBRunning = false, splitBRaf = null, splitBStartTime = 0;
+    let ctrlB = null;
+
+    function splitUpdateA() {
+      const t = formatTime(splitAElapsed);
+      document.getElementById('split-a-m').textContent = t.m;
+      document.getElementById('split-a-s').textContent = t.s;
+      document.getElementById('split-a-ms').textContent = t.ms;
+    }
+
+    function splitUpdateB() {
+      const t = formatTime(splitBElapsed);
+      document.getElementById('split-b-m').textContent = t.m;
+      document.getElementById('split-b-s').textContent = t.s;
+      document.getElementById('split-b-ms').textContent = t.ms;
+    }
+
+    // =========================================================================
+    // REGISTER REAL WEBMCP TOOLS: `start_timer` AND `pause_timer`
+    // =========================================================================
+    if (modelContext && modelContext.registerTool) {
+      try {
+        // Tool 1: start_timer
+        regStartTool = modelContext.registerTool({
+          name: 'start_timer',
+          description: 'Starts an active stopwatch timer execution thread that ticks continuously until completed or aborted.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              targetEngine: { type: 'string', enum: ['A', 'B'], description: 'Engine core to run: "A" (Chrome 153 with AbortSignal) or "B" (Legacy un-abortable)' },
+              maxDurationSeconds: { type: 'number', default: 60 }
+            }
+          },
+          execute: async (params, clientContext = {}) => {
+            const engine = (params.targetEngine || 'A').toUpperCase();
+            const signal = clientContext.signal;
+            hudLog('EXEC', `Tool "start_timer" invoked for Core ${engine}. Signal connected: ${Boolean(signal)}`);
+            if (engine === 'A') {
+              return executeCoreA(signal);
+            } else {
+              return executeCoreB(); // Ignores signal!
+            }
+          }
+        });
+        hudLog('SYS', 'Tool "start_timer" registered with document.modelContext');
+
+        // Tool 2: pause_timer
+        regPauseTool = modelContext.registerTool({
+          name: 'pause_timer',
+          description: 'Pauses an active stopwatch timer execution. In Chrome 153 mode, this cooperatively halts the background thread and preserves elapsed time.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              targetEngine: {
+                type: 'string',
+                enum: ['A', 'B'],
+                description: 'Engine core to pause: "A" (Chrome 153 with AbortSignal) or "B" (Legacy un-abortable)',
+                default: 'A'
+              },
+              reason: {
+                type: 'string',
+                description: 'Optional human or agent reason for pausing'
+              }
+            }
+          },
+          execute: async (params = {}, clientContext = {}) => {
+            const engine = (params.targetEngine || 'A').toUpperCase();
+            const reason = params.reason || 'Agent invoked pause_timer';
+            hudLog('EXEC', `Tool "pause_timer" called for Core ${engine}. Reason: "${reason}"`);
+
+            if (engine === 'A') {
+              if (!splitARunning) {
+                return { success: false, engine: 'A', status: 'idle', message: 'Core A is not currently running.' };
+              }
+              splitAbortA();
+              return {
+                success: true,
+                engine: 'A',
+                status: 'paused',
+                elapsedSeconds: (splitAElapsed / 1000).toFixed(2),
+                message: 'Core A execution thread successfully halted via AbortSignal.'
+              };
+            } else {
+              if (!splitBRunning) {
+                return { success: false, engine: 'B', status: 'idle', message: 'Core B is not currently running.' };
+              }
+              splitAbortB();
+              return {
+                success: false,
+                engine: 'B',
+                status: 'running',
+                elapsedSeconds: (splitBElapsed / 1000).toFixed(2),
+                message: 'Notice: Core B was registered without AbortSignal. Abort was requested but ignored by execution loop.'
+              };
+            }
+          }
+        });
+        hudLog('SYS', 'Tool "pause_timer" registered with document.modelContext');
+
+      } catch (err) {
+        hudLog('WARN', `Tool registration notice: ${err.message}`);
+      }
+    }
+
+    // =========================================================================
+    // CORE ENGINES IMPLEMENTATION
+    // =========================================================================
+
+    function executeCoreA(signal) {
+      return new Promise((resolve) => {
+        splitARunning = true;
+        splitAStartTime = performance.now() - splitAElapsed;
+
+        document.getElementById('ping-engine-a').classList.remove('hidden');
+        const pill = document.getElementById('split-a-pill');
+        pill.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00ff9d]/20 border border-[#00ff9d]/50 text-[#00ff9d] text-xs font-mono font-bold shadow-[0_0_15px_rgba(0,255,157,0.3)]";
+        pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#00ff9d] animate-ping"></span><span>RUNNING [THREAD_LOCKED ~60 FPS]</span>';
+
+        function cleanupAndResolve(reason) {
+          splitARunning = false;
+          cancelAnimationFrame(splitARaf);
+          document.getElementById('ping-engine-a').classList.add('hidden');
+          pill.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-xs font-mono font-bold";
+          pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>PAUSED (Thread Released 0% CPU)</span>';
+          hudLog('SIGNAL', `Core A intercepted 'abort'. Execution halted at ${formatTime(splitAElapsed).str}. Thread released.`);
+          announce(`Core A paused at ${formatTime(splitAElapsed).str}. Thread released.`);
+          resolve({ status: 'paused', elapsedSeconds: (splitAElapsed / 1000).toFixed(2), reason });
+        }
+
+        if (signal) {
+          if (signal.aborted) {
+            cleanupAndResolve('Pre-aborted');
+            return;
+          }
+          signal.addEventListener('abort', () => {
+            cleanupAndResolve('AbortSignal triggered');
+          }, { once: true });
+        }
+
+        function tickA() {
+          if (!splitARunning) return;
+          splitAElapsed = performance.now() - splitAStartTime;
+          splitUpdateA();
+          if (splitAElapsed >= 60000) {
+            cleanupAndResolve('MaxDuration reached');
+            return;
+          }
+          splitARaf = requestAnimationFrame(tickA);
+        }
+        splitARaf = requestAnimationFrame(tickA);
+      });
+    }
+
+    function splitStartA() {
+      if (splitARunning) return;
+      ctrlA = new AbortController();
+      hudLog('EXEC', 'Starting Core A with active AbortController');
+      announce("Core A started.");
+      executeCoreA(ctrlA.signal);
+    }
+
+    function splitAbortA() {
+      if (!splitARunning) return;
+      hudLog('ABORT', 'Calling AbortController.abort() on Core A');
+      if (ctrlA) {
+        ctrlA.abort();
+      }
+    }
+
+    function executeCoreB() {
+      return new Promise((resolve) => {
+        splitBRunning = true;
+        splitBStartTime = performance.now() - splitBElapsed;
+
+        document.getElementById('ping-engine-b').classList.remove('hidden');
+        const pill = document.getElementById('split-b-pill');
+        pill.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 text-xs font-mono font-bold";
+        pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span><span>RUNNING [UN-ABORTABLE ~60 FPS]</span>';
+
+        function tickB() {
+          if (!splitBRunning) return;
+          splitBElapsed = performance.now() - splitBStartTime;
+          splitUpdateB();
+          if (splitBElapsed >= 60000) {
+            splitBRunning = false;
+            cancelAnimationFrame(splitBRaf);
+            document.getElementById('ping-engine-b').classList.add('hidden');
+            pill.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold";
+            pill.textContent = "COMPLETED (60s Safety Cap)";
+            resolve({ status: 'completed' });
+            return;
+          }
+          splitBRaf = requestAnimationFrame(tickB);
+        }
+        splitBRaf = requestAnimationFrame(tickB);
+      });
+    }
+
+    function splitStartB() {
+      if (splitBRunning) return;
+      ctrlB = new AbortController();
+      hudLog('EXEC', 'Starting Core B with empty options (Legacy baseline: no signal passed)');
+      announce("Core B started.");
+      executeCoreB();
+    }
+
+    function splitAbortB() {
+      if (!splitBRunning) return;
+      hudLog('ABORT', 'Host AbortController.abort() called for Core B...');
+      if (ctrlB) ctrlB.abort();
+      
+      // Core B tool was registered without signal, so it ignores the abort!
+      hudLog('WARN', 'FAULT: Core B has NO signal listener attached! Async execution continues burning loop.');
+      const pill = document.getElementById('split-b-pill');
+      pill.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ff007f]/25 border border-[#ff007f] text-[#ff66b2] text-xs font-mono font-bold animate-pulse shadow-[0_0_20px_rgba(255,0,127,0.5)]";
+      pill.innerHTML = '<span class="w-2 h-2 rounded-full bg-[#ff007f] animate-ping"></span><span>RUNAWAY (ABORT IGNORED // THREAD BUSY)</span>';
+      announce("Warning: Core B has no signal attached. Execution continues running uncontrolled!");
+    }
+
+    // =========================================================================
+    // AGENT TOOL INVOCATION SIMULATOR (Programmatic executeTool Calls)
+    // =========================================================================
+    async function agentCallStart(engine) {
+      hudLog('AGENT', `🤖 AI Agent invoking executeTool('start_timer', { targetEngine: "${engine}" })`);
+      announce(`AI agent starting Core ${engine}`);
+      
+      if (modelContext && modelContext.executeTool) {
+        try {
+          const toolRef = regStartTool || { name: 'start_timer' };
+          const opts = engine === 'A' ? { signal: (ctrlA = new AbortController()).signal } : {};
+          // Non-blocking invocation for agent demo
+          modelContext.executeTool(toolRef, JSON.stringify({ targetEngine: engine }), opts)
+            .then(res => {
+              hudLog('AGENT', `🤖 Core ${engine} 'start_timer' promise resolved: ${JSON.stringify(res)}`);
+            })
+            .catch(err => {
+              hudLog('WARN', `🤖 'start_timer' caught error: ${err.message}`);
+            });
+        } catch (e) {
+          hudLog('WARN', `executeTool invocation error: ${e.message}`);
+        }
+      } else {
+        if (engine === 'A') splitStartA(); else splitStartB();
+      }
+    }
+
+    async function agentCallPause(engine) {
+      hudLog('AGENT', `🤖 AI Agent invoking executeTool('pause_timer', { targetEngine: "${engine}" })`);
+      announce(`AI agent pausing Core ${engine}`);
+      
+      if (modelContext && modelContext.executeTool) {
+        try {
+          const toolRef = regPauseTool || { name: 'pause_timer' };
+          const res = await modelContext.executeTool(toolRef, JSON.stringify({ 
+            targetEngine: engine, 
+            reason: 'Agent autonomous pause instruction' 
+          }));
+          hudLog('AGENT', `🤖 'pause_timer' result payload: ${JSON.stringify(res)}`);
+        } catch (e) {
+          hudLog('WARN', `pause_timer execution error: ${e.message}`);
+        }
+      } else {
+        if (engine === 'A') splitAbortA(); else splitAbortB();
+      }
+    }
+
+    // Synchronized Dual Actuation
+    function splitStartBoth() {
+      splitStartA();
+      splitStartB();
+      announce("Both engines engaged concurrently.");
+    }
+
+    function splitAbortBoth() {
+      splitAbortA();
+      splitAbortB();
+      announce("Abort dispatched to both engines. Core A halted. Core B continues running runaway.");
+    }
+
+    function splitResetBoth() {
+      if (ctrlA) ctrlA.abort();
+      if (ctrlB) ctrlB.abort();
+      splitARunning = false;
+      splitBRunning = false;
+      cancelAnimationFrame(splitARaf);
+      cancelAnimationFrame(splitBRaf);
+      splitAElapsed = 0;
+      splitBElapsed = 0;
+      splitUpdateA();
+      splitUpdateB();
+
+      document.getElementById('ping-engine-a').classList.add('hidden');
+      document.getElementById('ping-engine-b').classList.add('hidden');
+
+      const pillA = document.getElementById('split-a-pill');
+      pillA.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold";
+      pillA.textContent = "IDLE (0% CPU)";
+
+      const pillB = document.getElementById('split-b-pill');
+      pillB.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold";
+      pillB.textContent = "IDLE (0% CPU)";
+
+      hudLog('SYS', 'Both engines reset to zero.');
+      announce("Both engines reset to zero.");
+    }
+
+    // Keyboard Shortcuts (WCAG 2.1.4 compliant)
+    window.addEventListener('keydown', (e) => {
+      const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+      if (isInput) return;
+
+      if (e.code === 'Space') {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') return;
+        e.preventDefault();
+        if (splitARunning || splitBRunning) splitAbortBoth(); else splitStartBoth();
+      }
+      if (e.key === 'r' || e.key === 'R') {
+        splitResetBoth();
+      }
+    });
+
+    // Check URL search parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('abortSignal') === 'false') {
+      hudLog('SYS', 'Loaded with ?abortSignal=false query param.');
+    } else {
+      hudLog('SYS', 'Loaded with ?abortSignal=true (Chrome 153 standard).');
+    }
+
+    // Initial render
+    splitUpdateA();
+    splitUpdateB();
+  </script>
+</body>
+</html>
