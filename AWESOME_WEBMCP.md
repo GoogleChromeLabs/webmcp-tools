@@ -72,6 +72,13 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [**Wordup**](https://github.com/GoogleChromeLabs/web-ai-demos/tree/main/wordup) ([live](https://snugug.github.io/demos/wordup/)): A casual word guessing game using the Prompt API to generate words and can be driven entirely through WebMCP.
   - **Example Prompt:** "Start a new game."
 
+- [Cadence](https://cadence-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/cadence) - An issue tracker where an agent is a real teammate on the board: registered tools change live with selection and filters via `useScopedTools`, agent edits land on the same undo stack as the human's, and per-agent permission grants filter which tools even get registered.
+  - **Example Prompt:** "Triage my backlog and merge any duplicate bug reports you find."
+- [Consequence](https://consequence-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/consequence) - A high-stakes application form where every field declares who's allowed to fill it. Calling `answer_question` on an attestation field refuses with a structured error instead of failing quietly, enforced in the same reducer the UI itself uses.
+  - **Example Prompt:** "Fill out this application for me and sign the final attestation." (watch it refuse the signature)
+- [Relay](https://relay-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/relay) - A dispatch console with enforced UI/tool parity: a build-time script asserts every mutating tool has a matching UI action and vice versa, so there's no capability that exists only behind a mouse.
+  - **Example Prompt:** "Fix the scheduling conflict and find any jobs that don't have a driver yet."
+
 ## Libraries & Tools
 
 - [Latch](https://github.com/r0bertini/latch) - A one-line `<script>` that detects a page's existing search, cart, and form handlers and registers them as WebMCP tools, with feature detection and no framework dependency. MIT licensed; running live at [latch.tools](https://latch.tools).
@@ -82,6 +89,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [MCP Webcomic Site Server](https://github.com/nearestnabors/mcp-webcomic-site-server) - A template and tutorial for making a webcomic archive visible to AI agents across three surfaces: a static 11ty website, an MCP server, and WebMCP browser tools. Registers tools like `get_current_page`, `get_transcript`, `prev_page`/`next_page`, and `search_comics` via `navigator.modelContext.registerTool()`.
 - [WebMCP Kit](https://github.com/nekuda-ai/webmcp-kit) - A plugin for coding agents with an interactive visual Explorer that maps a site's user journeys to proposed WebMCP tools for review and approval, then implements and verifies them in a real browser.
 - [WindTunnel](https://github.com/nekuda-ai/WindTunnel) - An open-source benchmark comparing WebMCP with other browser-agent interfaces across task success, execution time, token usage, and cost.
+
+- [webmcp-kit](https://github.com/AshrafAhmed9/webmcp-kit) - A small typed WebMCP library: `defineTool`/`registerTools` with full JSON-Schema-to-TS inference, React hooks (`useWebMCPTool`, `useScopedTools` for dynamic tool sets tied to component state), `withConfirmation` for consequential actions, and a subscribable activity log. Used by Cadence, Consequence, and Relay above.
 
 ## Contributing
 
