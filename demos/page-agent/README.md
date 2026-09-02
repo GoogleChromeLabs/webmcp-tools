@@ -4,7 +4,7 @@
 
 🪞 Mirror: https://chrome.dev/web-ai-demos/webmcp/page-agent/
 
-The **WebMCP Page Agent** is a "meta-demo" that demonstrates how to get tools from an iframe (cross-origin or not) and execute them in a chat session powered by Gemini. It allows users to control any WebMCP-enabled website by typing natural language commands.
+The **WebMCP Page Agent** is a demo that demonstrates how to get tools from an iframe (cross-origin or not) and execute them in a chat session powered by Gemini. It allows users to control any WebMCP-enabled website by typing natural language commands.
 
 It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
 
