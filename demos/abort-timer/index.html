@@ -98,134 +98,88 @@
       <!-- ============================================== -->
       <!-- COLUMN 1: CHROME 153 COOPERATIVE ABORT ENGINE -->
       <!-- ============================================== -->
-      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#00ff9d]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,255,157,0.22)] flex flex-col justify-between space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-a">
-        <div>
-          <!-- Engine Header -->
-          <div class="flex items-center justify-between pb-3 border-b border-[#00ff9d]/20">
-            <div class="flex items-center gap-2.5">
-              <span class="relative flex h-3 w-3">
-                <span id="ping-engine-a" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff9d] opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00ff9d] shadow-[0_0_8px_rgba(0,255,157,0.8)]"></span>
-              </span>
-              <h2 id="title-engine-a" class="font-bold text-sm text-white font-mono tracking-wider">CORE A: CHROME 153+</h2>
-            </div>
-            <a href="?abortSignal=true" class="px-2.5 py-0.5 rounded-full bg-[#00ff9d]/10 text-[#00ff9d] border border-[#00ff9d]/30 text-[11px] font-mono hover:bg-[#00ff9d]/20 transition-colors">
-              ?abortSignal=true
-            </a>
+      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#00ff9d]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,255,157,0.22)] space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-a">
+        <!-- Engine Header -->
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#00ff9d]/20">
+          <span class="relative flex h-3 w-3">
+            <span id="ping-engine-a" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff9d] opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00ff9d] shadow-[0_0_8px_rgba(0,255,157,0.8)]"></span>
+          </span>
+          <h2 id="title-engine-a" class="font-bold text-sm text-white font-mono tracking-wider">CORE A: CHROME 153+</h2>
+        </div>
+
+        <!-- Digital Readout Display Bay -->
+        <div class="py-6 bg-[#070810] rounded-xl border border-[#00ff9d]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(0,255,157,0.12)] hud-scanlines relative">
+          <div class="text-[10px] uppercase tracking-widest text-[#00ff9d] font-mono mb-1">
+            CHRONO VECTOR A
+          </div>
+          <div role="timer" id="engine-a-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
+            <span id="split-a-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-a-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-a-ms" class="text-[#00ff9d] drop-shadow-[0_0_12px_rgba(0,255,157,0.7)]">00</span>
           </div>
 
-          <!-- Architecture Badge -->
-          <div class="my-3 p-2.5 rounded-xl bg-[#070810] border border-[#00ff9d]/25 text-xs text-[#00ff9d] font-mono space-y-0.5">
-            <div><span class="text-zinc-500">// Execution:</span> <code>execute(params, { signal })</code></div>
-            <div><span class="text-zinc-500">// Caller Context:</span> <code>{ signal: execCtrl.signal }</code></div>
-          </div>
-
-          <!-- Digital Readout Display Bay -->
-          <div class="py-6 bg-[#070810] rounded-xl border border-[#00ff9d]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(0,255,157,0.12)] hud-scanlines relative">
-            <div class="text-[10px] uppercase tracking-widest text-[#00ff9d] font-mono mb-1">
-              CHRONO VECTOR A
-            </div>
-            <div role="timer" id="engine-a-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
-              <span id="split-a-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-a-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-a-ms" class="text-[#00ff9d] drop-shadow-[0_0_12px_rgba(0,255,157,0.7)]">00</span>
-            </div>
-
-            <!-- Thread Status Pill -->
-            <div class="mt-3">
-              <span id="split-a-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
-                IDLE (0% CPU)
-              </span>
-            </div>
-          </div>
-
-          <!-- Behavioral Checklist -->
-          <div class="text-xs text-zinc-300 space-y-1.5 mt-3 font-mono">
-            <div class="flex items-center gap-1.5 text-[#00ff9d]">
-              <span>✓</span> <span>Instant freeze when AbortController signals</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[#00ff9d]">
-              <span>✓</span> <span>Promise resolves cleanly with { status: "paused" }</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[#00ff9d]">
-              <span>✓</span> <span>Releases browser execution thread immediately</span>
-            </div>
+          <!-- Thread Status Pill -->
+          <div class="mt-3">
+            <span id="split-a-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
+              IDLE (0% CPU)
+            </span>
           </div>
         </div>
 
-        <!-- Independent Controls -->
-        <div class="flex gap-2 pt-4 border-t border-[#00ff9d]/20">
-          <button id="btn-start-a" onclick="splitStartA()" class="flex-1 py-2 rounded-xl bg-[#00ff9d]/20 hover:bg-[#00ff9d]/30 text-[#00ff9d] border border-[#00ff9d]/50 font-mono font-bold text-xs shadow transition-all active:scale-[0.98]">
-            Start Core A
-          </button>
-          <button id="btn-abort-a" onclick="splitAbortA()" class="flex-1 py-2 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-mono font-bold text-xs transition-all active:scale-[0.98]">
-            Pause / Abort A
-          </button>
+        <!-- Behavioral Checklist -->
+        <div class="text-xs text-zinc-300 space-y-1.5 font-mono">
+          <div class="flex items-center gap-1.5 text-[#00ff9d]">
+            <span>✓</span> <span>Instant freeze when AbortController signals</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[#00ff9d]">
+            <span>✓</span> <span>Promise resolves cleanly with { status: "paused" }</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[#00ff9d]">
+            <span>✓</span> <span>Releases browser execution thread immediately</span>
+          </div>
         </div>
       </section>
 
       <!-- ============================================== -->
       <!-- COLUMN 2: LEGACY UN-ABORTABLE ENGINE          -->
       <!-- ============================================== -->
-      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#ff007f]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(255,0,127,0.22)] flex flex-col justify-between space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-b">
-        <div>
-          <!-- Engine Header -->
-          <div class="flex items-center justify-between pb-3 border-b border-[#ff007f]/20">
-            <div class="flex items-center gap-2.5">
-              <span class="relative flex h-3 w-3">
-                <span id="ping-engine-b" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff007f] opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#ff007f] shadow-[0_0_8px_rgba(255,0,127,0.8)]"></span>
-              </span>
-              <h2 id="title-engine-b" class="font-bold text-sm text-white font-mono tracking-wider">CORE B: LEGACY UNBOUNDED</h2>
-            </div>
-            <a href="?abortSignal=false" class="px-2.5 py-0.5 rounded-full bg-[#ff007f]/10 text-[#ff66b2] border border-[#ff007f]/30 text-[11px] font-mono hover:bg-[#ff007f]/20 transition-colors">
-              ?abortSignal=false
-            </a>
+      <section class="backdrop-blur-xl bg-[#0c0d18]/85 border border-[#ff007f]/50 rounded-2xl p-6 shadow-[0_0_30px_rgba(255,0,127,0.22)] space-y-4 transition-all duration-300 relative overflow-hidden" aria-labelledby="title-engine-b">
+        <!-- Engine Header -->
+        <div class="flex items-center gap-2.5 pb-3 border-b border-[#ff007f]/20">
+          <span class="relative flex h-3 w-3">
+            <span id="ping-engine-b" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff007f] opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-[#ff007f] shadow-[0_0_8px_rgba(255,0,127,0.8)]"></span>
+          </span>
+          <h2 id="title-engine-b" class="font-bold text-sm text-white font-mono tracking-wider">CORE B: LEGACY UNBOUNDED</h2>
+        </div>
+
+        <!-- Digital Readout Display Bay -->
+        <div class="py-6 bg-[#070810] rounded-xl border border-[#ff007f]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(255,0,127,0.12)] hud-scanlines relative">
+          <div class="text-[10px] uppercase tracking-widest text-[#ff66b2] font-mono mb-1">
+            CHRONO VECTOR B
+          </div>
+          <div role="timer" id="engine-b-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
+            <span id="split-b-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-b-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-b-ms" class="text-[#ff007f] drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">00</span>
           </div>
 
-          <!-- Architecture Badge -->
-          <div class="my-3 p-2.5 rounded-xl bg-[#070810] border border-[#ff007f]/25 text-xs text-[#ff66b2] font-mono space-y-0.5">
-            <div><span class="text-zinc-500">// Execution:</span> <code>execute(params)</code> <span class="text-rose-400">[No Signal]</span></div>
-            <div><span class="text-zinc-500">// Caller Context:</span> <code>{}</code> (Empty Options)</div>
-          </div>
-
-          <!-- Digital Readout Display Bay -->
-          <div class="py-6 bg-[#070810] rounded-xl border border-[#ff007f]/40 flex flex-col items-center justify-center shadow-[inset_0_0_20px_rgba(255,0,127,0.12)] hud-scanlines relative">
-            <div class="text-[10px] uppercase tracking-widest text-[#ff66b2] font-mono mb-1">
-              CHRONO VECTOR B
-            </div>
-            <div role="timer" id="engine-b-timer" aria-live="off" class="font-mono font-bold tracking-tight text-5xl md:text-6xl text-white select-none tabular-timer my-1">
-              <span id="split-b-m">00</span><span class="text-zinc-600 opacity-40 mx-0.5">:</span><span id="split-b-s">00</span><span class="text-zinc-600 opacity-40 mx-0.5">.</span><span id="split-b-ms" class="text-[#ff007f] drop-shadow-[0_0_12px_rgba(255,0,127,0.7)]">00</span>
-            </div>
-
-            <!-- Thread Status Pill -->
-            <div class="mt-3">
-              <span id="split-b-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
-                IDLE (0% CPU)
-              </span>
-            </div>
-          </div>
-
-          <!-- Hazards Checklist -->
-          <div class="text-xs text-zinc-300 space-y-1.5 mt-3 font-mono">
-            <div class="flex items-center gap-1.5 text-rose-400">
-              <span>✕</span> <span>Clicking Pause has NO effect on running thread</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-rose-400">
-              <span>✕</span> <span>Consumes CPU event loop until 60s timeout</span>
-            </div>
-            <div class="flex items-center gap-1.5 text-rose-400">
-              <span>✕</span> <span>Host controller abort() is completely ignored</span>
-            </div>
+          <!-- Thread Status Pill -->
+          <div class="mt-3">
+            <span id="split-b-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-800/90 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold">
+              IDLE (0% CPU)
+            </span>
           </div>
         </div>
 
-        <!-- Independent Controls -->
-        <div class="flex gap-2 pt-4 border-t border-[#ff007f]/20">
-          <button id="btn-start-b" onclick="splitStartB()" class="flex-1 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-mono font-bold text-xs shadow transition-all active:scale-[0.98]">
-            Start Core B
-          </button>
-          <button id="btn-abort-b" onclick="splitAbortB()" class="flex-1 py-2 rounded-xl border border-rose-500/40 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-mono font-bold text-xs transition-all active:scale-[0.98]" title="Clicking will not halt the loop">
-            Pause B (Ineffective)
-          </button>
+        <!-- Hazards Checklist -->
+        <div class="text-xs text-zinc-300 space-y-1.5 font-mono">
+          <div class="flex items-center gap-1.5 text-rose-400">
+            <span>✕</span> <span>Clicking Pause has NO effect on running thread</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-rose-400">
+            <span>✕</span> <span>Consumes CPU event loop until 60s timeout</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-rose-400">
+            <span>✕</span> <span>Host controller abort() is completely ignored</span>
+          </div>
         </div>
       </section>
 
@@ -251,7 +205,6 @@
             <span class="text-xs font-mono font-bold text-white flex items-center gap-1.5">
               <code class="text-cyan-400">start_timer(targetEngine)</code>
             </span>
-            <span class="text-[10px] font-mono text-zinc-500">CONSUMES THREAD</span>
           </div>
           <p class="text-[11px] text-zinc-400 font-mono leading-relaxed">
             Spins up background execution loop at ~60 FPS until safety cap or abort.
@@ -272,7 +225,6 @@
             <span class="text-xs font-mono font-bold text-white flex items-center gap-1.5">
               <code class="text-amber-400">pause_timer(targetEngine, reason)</code>
             </span>
-            <span class="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">NEW TOOL</span>
           </div>
           <p class="text-[11px] text-zinc-400 font-mono leading-relaxed">
             Cooperatively halts execution via AbortSignal in Chrome 153 mode.
@@ -308,41 +260,6 @@
           <span>WebMCP Cyberpunk Dual-Bench initialized. Ready for actuation.</span>
         </div>
       </div>
-    </div>
-
-    <!-- COMPARISON MATRIX SUMMARY CARD -->
-    <div class="rounded-2xl border border-cyan-500/30 bg-[#0c0d18]/85 backdrop-blur-xl p-4 text-xs overflow-x-auto shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-      <table class="w-full text-left font-mono">
-        <thead>
-          <tr class="border-b border-zinc-800 text-zinc-400">
-            <th class="pb-2 font-sans font-semibold">Architectural Dimension</th>
-            <th class="pb-2 text-[#00ff9d]">Chrome 153 Mode (?abortSignal=true)</th>
-            <th class="pb-2 text-[#ff66b2]">Legacy Mode (?abortSignal=false)</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-zinc-800/60 text-zinc-300">
-          <tr>
-            <td class="py-2.5 font-sans font-medium text-white">Tool: pause_timer()</td>
-            <td class="py-2.5 text-[#00ff9d] font-semibold">Dispatches signal -> loop immediately halted & thread freed</td>
-            <td class="py-2.5 text-rose-400">Dispatches signal -> ignored by tool loop, thread remains locked</td>
-          </tr>
-          <tr>
-            <td class="py-2.5 font-sans font-medium text-white">Human Pause Actuation</td>
-            <td class="py-2.5 text-[#00ff9d]">Immediate freeze at exact millisecond</td>
-            <td class="py-2.5 text-rose-400">Ignored; loop continues running unchecked</td>
-          </tr>
-          <tr>
-            <td class="py-2.5 font-sans font-medium text-white">Thread / CPU Utilization</td>
-            <td class="py-2.5 text-[#00ff9d]">0% CPU immediately upon abort</td>
-            <td class="py-2.5 text-rose-400">100% rAF tick consumption until safety timeout</td>
-          </tr>
-          <tr>
-            <td class="py-2.5 font-sans font-medium text-white">Promise Lifecycle</td>
-            <td class="py-2.5 text-[#00ff9d]">Resolves cleanly with { status: "paused" }</td>
-            <td class="py-2.5 text-rose-400">Unsettled / trapped in-flight</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
 
   </div>
@@ -477,7 +394,7 @@
           },
           execute: async (params = {}, clientContext = {}) => {
             const engine = (params.targetEngine || 'A').toUpperCase();
-            const reason = params.reason || 'Agent invoked pause_timer';
+            const reason = params.reason || 'Timer stopped without reason.';
             hudLog('EXEC', `Tool "pause_timer" called for Core ${engine}. Reason: "${reason}"`);
 
             if (engine === 'A') {
