@@ -1,6 +1,8 @@
-# WebMCP AbortSignal Timer Demo (Chrome 153+)
+# WebMCP AbortSignal Demo
 
-Reference implementation demonstrating the **Chrome 153** enhancements to the [Web Model Context Protocol (WebMCP)](https://github.com/webmachinelearning/webmcp/tree/main) API, specifically focusing on **`AbortSignal`**.
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/abort-timer/
+
+Reference implementation demonstrating the **Chrome 153** enhancements to the [Web Model Context Protocol (WebMCP)](https://github.com/webmachinelearning/webmcp) API, specifically focusing on **`AbortSignal`**.
 
 ---
 
@@ -8,21 +10,22 @@ Reference implementation demonstrating the **Chrome 153** enhancements to the [W
 
 In earlier versions of the WebMCP API, once an agent or developer dispatched a long-running asynchronous tool via `document.modelContext.executeTool()`, the host had no mechanism to interrupt or pause that in-flight execution. If the user navigated away, changed intent, or clicked "Pause", the underlying JavaScript execution loop continued running in the background, consuming CPU resources and battery until it hit a hard timeout.
 
-**Chrome 153 introduces two distinct dimensions of `AbortSignal` support:**
+**View also:**
+* [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController)
+* [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
 
-1. **Tool Registration Lifecycle:**
-   ```javascript
-   const regController = new AbortController();
-   document.modelContext.registerTool(toolDefinition, { signal: regController.signal });
-   ```
-   Calling `regController.abort()` unregisters the tool from the page's tool catalog, **without terminating or breaking in-flight tool executions**.
+**Chrome 153: gracefully handle execution cancellation initiated by the user or an agent:**
 
-2. **Tool Execution Cancellation:**
-   ```javascript
-   const execController = new AbortController();
-   const promise = document.modelContext.executeTool(tool, args, { signal: execController.signal });
-   ```
-   Passing `{ signal }` in `executeTool` provides that signal directly to the tool's `execute(params, clientContext)` callback. Calling `execController.abort()` immediately signals the running loop, freeing the event loop and settling the promise cleanly.
+```javascript
+const controller = new AbortController();
+const promise = document.modelContext.executeTool(tool, args, { signal: controller.signal });
+```
+
+Tool invocations can be cancelled mid-execution by passing an `AbortSignal`. Calling `controller.abort()` immediately notifies the running tool, freeing the browser thread and settling the promise cleanly.
+
+**Unregistering a tool does not cancel in-flight executions**
+
+With the changes introduced, you can manage tool lifecycles without fears of side-effects such as unexpected cancellation of in-flight tool executions
 
 ---
 
@@ -33,22 +36,15 @@ This demo registers **two complementary WebMCP tools** on `document.modelContext
 ### Tool 1: `start_timer`
 Starts an active execution thread that ticks continuously at 60 FPS until safety timeout (60s) or cooperative cancellation.
 * **Schema Parameters:**
-  * `targetEngine`: `"A"` (Chrome 153 cooperative engine) or `"B"` (Legacy un-abortable engine).
+  * `targetEngine`: `"A"` (graceful pause with AbortSignal) or `"B"` (doesn't respond to AbortSignal).
   * `maxDurationSeconds`: Maximum duration before auto-stopping (default: 60).
-* **Return Payload on Pause:**
-  ```json
-  {
-    "status": "paused",
-    "elapsedSeconds": "8.45",
-    "reason": "AbortSignal triggered"
-  }
-  ```
+* **Return**: The tool returns a promise that resolves when the timer is stopped or when the max duration is reached.
 
-### Tool 2: `pause_timer` (New!)
-Allows an AI agent or host script to cooperatively pause an active stopwatch timer execution.
+### Tool 2: `pause_timer`
+Receives an `AbortSignal` used to stop the timer when available.
 * **Schema Parameters:**
   * `targetEngine`: `"A"` or `"B"` (default: `"A"`).
-  * `reason`: Optional human or agent explanation for pausing (e.g., `"User requested break"`).
+  * `reason`: Optional explanation for pausing (e.g., `"User requested break"`).
 * **Return Payload (Engine A - Chrome 153):**
   ```json
   {
@@ -77,9 +73,9 @@ Allows an AI agent or host script to cooperatively pause an active stopwatch tim
 Built in the **Cyberpunk Neon Circuit** visual style:
 
 * **CORE A (Chrome 153 with `AbortSignal`):**
-  * Invoked with `{ signal: execController.signal }`.
+  * Invoked with `{ signal: controller.signal }`.
   * The tool's `execute()` callback listens for `signal.addEventListener('abort', ...)`.
-  * When either a human clicks **Pause Core A** or an AI agent calls **`pause_timer({ targetEngine: 'A' })`**, `execController.abort()` triggers the event.
+  * When either a human clicks **Pause Core A** or an AI agent calls **`pause_timer({ targetEngine: 'A' })`**, `controller.abort()` triggers the event.
   * The tool cancels `requestAnimationFrame`, halts the loop at that exact millisecond, releases the browser thread, and resolves the promise cleanly.
 * **CORE B (Legacy Baseline without Signal):**
   * Invoked with empty options `{}` (omitting signal).
