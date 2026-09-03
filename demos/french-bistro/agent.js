@@ -155,6 +155,9 @@ agentToggle.addEventListener('click', () => {
     window.frameElement.style.width = isOpen ? '414px' : '100px';
     window.frameElement.style.height = isOpen ? '634px' : '100px';
   }
+  if (window.persistentWidgetOpener) {
+    window.persistentWidgetOpener.postMessage({ type: 'AGENT_VISIBILITY_CHANGE', isOpen }, '*');
+  }
   const win = window.frameElement ? window.parent : window;
   const url = new URL(win.location);
   if (isOpen) {
@@ -316,3 +319,10 @@ if (!window.document.modelContext) {
 if (params.has('agentopened')) {
   agentToggle.click();
 }
+
+window.addEventListener('openerchange', () => {
+  if (window.persistentWidgetOpener) {
+    const isOpen = !agentChat.classList.contains('hidden');
+    window.persistentWidgetOpener.postMessage({ type: 'AGENT_VISIBILITY_CHANGE', isOpen }, '*');
+  }
+});
