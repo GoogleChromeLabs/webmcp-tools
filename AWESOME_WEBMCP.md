@@ -89,8 +89,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [MCP Webcomic Site Server](https://github.com/nearestnabors/mcp-webcomic-site-server) - A template and tutorial for making a webcomic archive visible to AI agents across three surfaces: a static 11ty website, an MCP server, and WebMCP browser tools. Registers tools like `get_current_page`, `get_transcript`, `prev_page`/`next_page`, and `search_comics` via `navigator.modelContext.registerTool()`.
 - [WebMCP Kit](https://github.com/nekuda-ai/webmcp-kit) - A plugin for coding agents with an interactive visual Explorer that maps a site's user journeys to proposed WebMCP tools for review and approval, then implements and verifies them in a real browser.
 - [WindTunnel](https://github.com/nekuda-ai/WindTunnel) - An open-source benchmark comparing WebMCP with other browser-agent interfaces across task success, execution time, token usage, and cost.
-
-- [webmcp-kit](https://github.com/AshrafAhmed9/webmcp-kit) - A small typed WebMCP library: `defineTool`/`registerTools` with full JSON-Schema-to-TS inference, React hooks (`useWebMCPTool`, `useScopedTools` for dynamic tool sets tied to component state), `withConfirmation` for consequential actions, and a subscribable activity log. Used by Cadence, Consequence, and Relay above.
+- [webmcp-kit](https://www.npmjs.com/package/@ashraf009/webmcp-kit) ([code](https://github.com/AshrafAhmed9/webmcp-kit)) - A small typed WebMCP library: `defineTool`/`registerTools` with full JSON-Schema-to-TS inference, React hooks (`useWebMCPTool`, `useScopedTools` for dynamic tool sets tied to component state), `withConfirmation` for consequential actions, and a subscribable activity log. Used by Cadence, Consequence, and Relay above.
 
 ## Contributing
 
