@@ -14,9 +14,9 @@ const VALID_DIRECTIONS = new Set(Object.values(Direction));
  * Moves the player one cell in a cardinal direction if the path is clear.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for player movement.
+ * @returns A {@link WebMCP.ModelContextTool} for player movement.
  */
-export function createMoveTool(game: Game): ModelContextTool {
+export function createMoveTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "move",
     description:

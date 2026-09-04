@@ -1,6 +1,6 @@
 # WebMCP Sports | E-Commerce & On-Site AI Assistant Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular/
 
 An e-commerce storefront for sports equipment, built with Angular and WebMCP. This project demonstrates how an integrated **On-Site AI Assistant** and browser-level AI agents interact with an e-commerce site to search catalog items, check promotions and store policies, manage a shopping cart, and complete checkouts.
 

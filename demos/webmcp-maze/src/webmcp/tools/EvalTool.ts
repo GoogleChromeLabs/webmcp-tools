@@ -92,7 +92,7 @@ const EVAL_TIMEOUT_MS = 300_000;
  *
  * The worker is terminated automatically on completion, error, or timeout.
  */
-export function createEvalTool(): ModelContextTool {
+export function createEvalTool(): WebMCP.ModelContextTool {
   return {
     name: "eval_code",
     description:

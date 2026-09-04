@@ -1,0 +1,91 @@
+name: Smoke Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Smoke Test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: doors
+            name: Doors
+            dir: demos/doors
+            command: npx -y serve -l 3000
+            url: http://localhost:3000
+          - target: bistro
+            name: French Bistro
+            dir: demos/french-bistro
+            command: npx -y serve -l 3000
+            url: http://localhost:3000
+          - target: pizza
+            name: Pizza Maker
+            dir: demos/pizza-maker
+            command: npx -y serve -l 3000
+            url: http://localhost:3000
+          - target: sport-shop
+            name: Sport Shop Angular
+            dir: demos/sport-shop-angular
+            command: npm start -- --port 3000
+            url: http://localhost:3000
+          - target: hotel-chain
+            name: Hotel Chain
+            dir: demos/hotel-chain
+            command: npm run dev -- --port 3000
+            url: http://localhost:3000
+          - target: smart-home
+            name: Smart Home
+            dir: demos/smart-home
+            command: npm run dev -- --port 3000
+            url: http://localhost:3000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: lts/*
+          cache: "npm"
+          cache-dependency-path: |
+            webmcp-evals/package-lock.json
+            ${{ matrix.dir }}/package-lock.json
+
+      - name: Install webmcp-evals dependencies
+        working-directory: webmcp-evals
+        run: npm ci
+
+      - name: Build webmcp-evals
+        working-directory: webmcp-evals
+        run: npm run build
+
+      - name: Install demo dependencies
+        if: hashFiles(format('{0}/package.json', matrix.dir)) != ''
+        working-directory: ${{ matrix.dir }}
+        run: npm ci
+
+      - name: Start dev server
+        working-directory: ${{ matrix.dir }}
+        run: |
+          ${{ matrix.command }} &
+          timeout 60s bash -c 'until curl -s ${{ matrix.url }} > /dev/null; do sleep 1; done'
+
+      - name: Run Smoke Test
+        working-directory: webmcp-evals
+        env:
+          URL: ${{ matrix.url }}
+          CHROME_CHANNEL: chrome
+        run: ./run_smoke.sh ${{ matrix.target }} -v
