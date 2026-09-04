@@ -6,9 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebMCP AbortSignal Explorer — Chrome 153 Dual-Engine Benchmark</title>
 
-  <!-- WebMCP Polyfill Fallback (for non-Chrome 153 browsers) -->
-  <script src="../shared/webmcp-polyfill.js"></script>
-
   <style>
     @layer reset, theme, layout, components, states;
 
@@ -996,14 +993,30 @@
   <!-- ========================================================================= -->
   <script>
     // -------------------------------------------------------------------------
-    // 1. ENVIRONMENT & RESOLUTION (Hybrid fallback matching document scope)
+    // 1. ENVIRONMENT & RESOLUTION (Dynamic Polyfill Loader - Document Scope)
     // -------------------------------------------------------------------------
-    const modelContext = document.modelContext || navigator.modelContext || document.modelContextTesting;
+    let modelContext = null;
 
-    if (!document.modelContext && !navigator.modelContext) {
+    async function ensureWebMCP() {
+      if (window.document.modelContext) {
+        return window.document.modelContext;
+      }
+
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '../shared/webmcp-polyfill.js';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Failed to load WebMCP polyfill'));
+        document.head.appendChild(script);
+      });
+
       const badge = document.getElementById('runtime-badge');
-      badge.textContent = "Polyfill Active";
-      badge.className = "badge badge-blue";
+      if (badge) {
+        badge.textContent = 'Polyfill Active';
+        badge.className = 'badge badge-blue';
+      }
+
+      return window.document.modelContext;
     }
 
     // -------------------------------------------------------------------------
@@ -1134,7 +1147,8 @@
     let toolStartRef = null;
     let toolPauseRef = null;
 
-    if (modelContext?.registerTool) {
+    function registerWebMCPTools() {
+      if (!modelContext?.registerTool) return;
       try {
         // Tool 1: start_timer
         toolStartRef = modelContext.registerTool({
@@ -1243,6 +1257,9 @@
     //    All triggers (Master toolbar & Agent Simulator) route through executeTool
     // -------------------------------------------------------------------------
     async function resolveTool(name) {
+      if (!modelContext) {
+        modelContext = await ensureWebMCP();
+      }
       if (modelContext?.getTools) {
         try {
           const tools = await modelContext.getTools();
@@ -1375,9 +1392,14 @@
       }
     });
 
-    // Initial render
+    // Initial render & WebMCP initialization
     renderTime('A', 0);
     renderTime('B', 0);
+
+    (async () => {
+      modelContext = await ensureWebMCP();
+      registerWebMCPTools();
+    })();
   </script>
 </body>
 

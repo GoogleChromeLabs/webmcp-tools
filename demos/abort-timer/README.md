@@ -97,8 +97,8 @@ You can control and test individual behaviors directly via URL query parameters:
 ## 5. WebMCP Tool Implementation Contract
 
 ```javascript
-// 1. Resolve modelContext with hybrid fallback
-const modelContext = document.modelContext || navigator.modelContext || document.modelContextTesting;
+// 1. Resolve modelContext on document
+const modelContext = document.modelContext;
 
 // 2. Register start_timer
 modelContext.registerTool({
