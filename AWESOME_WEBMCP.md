@@ -104,6 +104,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Fill out this application for me and sign the final attestation." (watch it refuse the signature)
 - [Relay](https://relay-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/relay) - A dispatch console with enforced UI/tool parity: a build-time script asserts every mutating tool has a matching UI action and vice versa, so there's no capability that exists only behind a mouse.
   - **Example Prompt:** "Fix the scheduling conflict and find any jobs that don't have a driver yet."
+- [Respira for WordPress](https://chatgpt-respira.instawp.site) - A real WordPress site you edit by asking. The agent reads the page you are both looking at, writes your change to a copy of it, and waits for you to approve that copy before anything reaches the live page. Works with whatever page builder the site was already built in. [Source](https://github.com/respira-press/webmcp-for-wordpress) | [How it works](https://www.respira.press)
+  - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
 
 ## Libraries & Tools
 
