@@ -26,6 +26,6 @@
   },
   "include": [
     "src",
-    "../shared/types"
+    "../shared/types/webmcp-declarative.d.ts"
   ]
 }

@@ -11,9 +11,9 @@ import { collectibleDisplayName } from "../../types/index.ts";
  * Drops the currently held item at the player's current cell.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for dropping items.
+ * @returns A {@link WebMCP.ModelContextTool} for dropping items.
  */
-export function createDropTool(game: Game): ModelContextTool {
+export function createDropTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "drop",
     description:

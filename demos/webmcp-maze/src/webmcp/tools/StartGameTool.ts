@@ -12,9 +12,9 @@ import { GameplayState } from "../../game/states/GameplayState.ts";
  * generating a fresh maze.
  *
  * @param game - The game orchestrator instance.
- * @returns A {@link ModelContextTool} for starting a new game.
+ * @returns A {@link WebMCP.ModelContextTool} for starting a new game.
  */
-export function createStartGameTool(game: Game): ModelContextTool {
+export function createStartGameTool(game: Game): WebMCP.ModelContextTool {
   return {
     name: "start_game",
     description:

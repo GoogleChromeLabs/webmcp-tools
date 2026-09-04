@@ -3,35 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, declareExperimentalWebMcpTool, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CartService } from './cart.service';
 import { ProductService } from './product.service';
 import { UiService } from './ui.service';
-
 import { findMatchingProduct } from '../utils/product-matcher';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebmcpService {
-  constructor(
-    private router: Router,
-    private productService: ProductService,
-    private cartService: CartService,
-    private uiService: UiService
-  ) {
+  private router = inject(Router);
+  private productService = inject(ProductService);
+  private uiService = inject(UiService);
+
+  constructor() {
     this.registerTools();
   }
 
   private registerTools() {
-    if (!document.modelContext) {
-      console.warn('modelContext is not defined. WebMCP tools will not be registered.');
-      return;
-    }
-
-    // 1. View Product Tool
-    document.modelContext.registerTool({
+    declareExperimentalWebMcpTool({
       name: "view_product",
       description: "Navigates to the product detail page for a given product. You can provide its exact productId, or productName.",
       inputSchema: {
@@ -58,8 +49,7 @@ export class WebmcpService {
       }
     });
 
-    // 2. Get Product Info Tool
-    document.modelContext.registerTool({
+    declareExperimentalWebMcpTool({
       name: "get_product_info",
       description: "Returns detailed information about a product. You can provide its exact productId, or productName.",
       inputSchema: {
@@ -84,18 +74,17 @@ export class WebmcpService {
       }
     });
 
-    // 3. Open Cart Tool
-    document.modelContext.registerTool({
+    declareExperimentalWebMcpTool({
       name: "open_cart",
       description: "Opens the shopping cart modal to review items and proceed to checkout.",
+      inputSchema: { type: "object", properties: {} },
       execute: () => {
         this.uiService.openCart();
         return { success: true, message: "Cart opened." };
       }
     });
 
-    // 4. Search Product Tool
-    document.modelContext.registerTool({
+    declareExperimentalWebMcpTool({
       name: "search_product",
       description: "Search for products based on the query.",
       inputSchema: {
@@ -125,14 +114,26 @@ export class WebmcpService {
         if (params && params.size && params.size !== 'ALL') searchParams.size = params.size;
 
         this.router.navigate(['/search'], { queryParams: searchParams });
-        return { success: true, message: `Navigating to search results for ${JSON.stringify(searchParams)}` };
+        const results = this.productService.searchProducts(
+          searchParams.q,
+          searchParams.category,
+          undefined,
+          undefined,
+          searchParams.size
+        );
+        return {
+          success: true,
+          message: `Navigating to search results for ${JSON.stringify(searchParams)}`,
+          count: results.length,
+          products: results
+        };
       }
     });
 
-    // 5. Get Store Promos and Rules Tool
-    document.modelContext.registerTool({
+    declareExperimentalWebMcpTool({
       name: "get_store_promos_and_rules",
       description: "Returns active promotional campaigns, eligibility requirements, and general store rules (e.g., local pickup categories).",
+      inputSchema: { type: "object", properties: {} },
       execute: () => {
         return {
           success: true,
