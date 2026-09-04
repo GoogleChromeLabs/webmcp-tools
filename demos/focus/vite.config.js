@@ -13,6 +13,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
+        companion: resolve(__dirname, "companion.html"),
       },
     },
   },
