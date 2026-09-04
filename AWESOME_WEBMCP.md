@@ -63,10 +63,20 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Find a handmade leather bag, check if they have a 30-day return policy, and if yes, add the brown one to my cart"
 - [WebMCP Smart Home](https://googlechromelabs.github.io/webmcp-tools/demos/smart-home/) - A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
   - **Example Prompt:** "Someone is at the door. Show me."
-- [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
-  - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
 - [WebMCP Page Agent](https://googlechromelabs.github.io/webmcp-tools/demos/page-agent/) - A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
   - **Example Prompt:** "Make me a large BBQ pizza with sauce, pineapple and extra bacon."
+- [webmcp.cool](https://webmcp.cool/) - A live, curated directory of WebMCP-enabled websites with a JSON API for agent-side discovery. Also registers its own WebMCP tools so agents can interact with the registry directly.
+  - **Example Prompt:** "List my site `https://example.com` in the WebMCP directory."
+- [WebMCP Registry](https://webmcp-registry.dev) - A self-serve public directory of domains 
+  that expose WebMCP tools. Submit your domain directly, verify ownership with a DNS TXT 
+  record, and get listed immediately — no approval required. Searchable by keyword or 
+  category via a public API. Built on [@webmcp-registry/kit](https://www.npmjs.com/package/@webmcp-registry/kit), 
+  an open source SDK for defining tools with Zod schemas, registering them from React 
+  components, and syncing contracts to the registry automatically from CI with one command. 
+  The registry registers its own tools via the kit so agents can search it, look up domain 
+  contracts, and discover what any URL exposes before visiting it.
+  - **Example Prompt:** "Search the WebMCP Registry for domains with a checkout tool" or 
+    "What tools does webmcp-registry.dev expose?"
 - [JSON-stat WebMCP Explorer](https://jsonstat.com/webmcp/) - A JSON-stat viewer that lets you fetch a dataset from an official statistical office (like Eurostat), view and filter its data as a list or a cross-tabulation and download them as CSV using a web interface or natural language.
   - **Example Prompt:** "Load dataset https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/lfsi_emp_a?lang=en&lastTimePeriod=3&indic_em=ACT&age=Y15-64&unit=THS_PER and select the data for Germany and Ireland and the last period available. Display a cross-tabulation with sex as rows and countries as columns and download a CSV file with this info."
 - [Stacktree](https://stacktr.ee/) - Private hosting for the HTML that AI agents generate. Registers `stacktree_publish_html` via `document.modelContext`, so a browser agent can hand over a complete HTML document and get back a live, shareable URL with no account or sign-in. Anonymous sites are unlisted and the response includes a claim URL to keep the page permanently in a free account.
