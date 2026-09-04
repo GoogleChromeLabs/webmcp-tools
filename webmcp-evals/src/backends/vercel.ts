@@ -106,7 +106,14 @@ export class VercelBackend implements Backend {
       }
     }
 
-    return { toolCalls, text: aiResult.text };
+    const steps: TrajectoryStep[] = (aiResult.steps ?? []).map((step) => ({
+      text: step.text,
+      reasoningText: step.reasoningText,
+      toolCalls: step.toolCalls,
+      toolResults: step.toolResults,
+    }));
+
+    return { toolCalls, text: aiResult.text, steps };
   }
 
   async executeInBrowserEval(test: Eval, registry: ToolRegistry): Promise<BrowserEvalResult> {
