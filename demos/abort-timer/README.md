@@ -192,7 +192,15 @@ This demo uses standard CSS features recommended by Google Chrome's [Modern Web 
 
 ---
 
-## 8. Running Locally
+## 8. Project Structure
+
+* **`index.html`**: Semantic HTML structure for the dual-engine comparison grid and telemetry HUD.
+* **`style.css`**: Modern stylesheet using CSS cascade layers (`@layer`) and design tokens.
+* **`app.js`**: WebMCP tool registrations, `AbortSignal` cooperative cancellation loop, and UI wiring.
+
+---
+
+## 9. Running Locally
 
 Serve the demo using any local HTTP static server:
 
@@ -205,3 +213,4 @@ Open in your browser:
 * Dual Bench: `http://localhost:8080/index.html`
 * AbortSignal Enabled: `http://localhost:8080/index.html?abortSignal=true`
 * Legacy Mode: `http://localhost:8080/index.html?abortSignal=false`
+
