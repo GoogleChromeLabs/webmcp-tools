@@ -1,10 +1,5 @@
 import type { Flight } from "./data/flights";
 
-const registeredTools: Record<string, AbortController | null> = {
-  searchTools: null,
-  resultsTools: null,
-};
-
 function dispatchAndWait(
     eventName: string,
     detail: Record<string, unknown> = {},
@@ -306,42 +301,3 @@ export const searchFlightsTool = {
     readOnlyHint: false,
   },
 };
-
-export function registerFlightSearchTools() {
-  const modelContext = document.modelContext || navigator.modelContext;
-  if (modelContext) {
-    if (!registeredTools.searchTools) {
-      registeredTools.searchTools = new AbortController();
-      modelContext.registerTool(searchFlightsTool, { signal: registeredTools.searchTools.signal });
-    }
-  }
-}
-
-export function unregisterFlightSearchTools() {
-  if (registeredTools.searchTools) {
-    registeredTools.searchTools.abort();
-    registeredTools.searchTools = null;
-  }
-}
-
-export function registerFlightResultsTools() {
-  const modelContext = document.modelContext || navigator.modelContext;
-
-  if (modelContext) {
-    if (!registeredTools.resultsTools) {
-      registeredTools.resultsTools = new AbortController();
-      const options = { signal: registeredTools.resultsTools.signal };
-      modelContext.registerTool(listFlightsTool, options);
-      modelContext.registerTool(setFiltersTool, options);
-      modelContext.registerTool(resetFiltersTool, options);
-      modelContext.registerTool(searchFlightsTool, options);
-    }
-  }
-}
-
-export function unregisterFlightResultsTools() {
-  if (registeredTools.resultsTools) {
-    registeredTools.resultsTools.abort();
-    registeredTools.resultsTools = null;
-  }
-}

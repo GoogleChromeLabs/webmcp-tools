@@ -1,15 +1,12 @@
-import { describe, beforeEach, it, expect } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ProductComponent } from './product';
-import { ProductService, Product } from '../../services/product';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { inputBinding, signal } from '@angular/core';
 import { provideExperimentalWebMcpForms } from '@angular/forms/signals';
-import { Component } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
-
+import { Product, ProductService } from '../../services/product';
+import { ProductComponent } from './product';
 
 const mockProduct: Product = {
   id: '1',
@@ -25,62 +22,52 @@ const mockProduct: Product = {
   rating: 4.8,
   reviewsCount: 12,
   isNewArrival: false,
-  isFeatured: true
+  isFeatured: true,
 };
-
-@Component({
-  imports: [ProductComponent],
-  template: `<app-product [id]="productId"></app-product>`
-})
-class TestHostComponent {
-  productId = 'luxe-tote';
-}
 
 describe('ProductComponent', () => {
   let component: ProductComponent;
-  let hostFixture: ComponentFixture<TestHostComponent>;
+  let fixture: ComponentFixture<ProductComponent>;
   let productSubject: Subject<Product | undefined>;
 
   beforeEach(async () => {
     productSubject = new Subject<Product | undefined>();
     const mockProductService = {
-      getProductBySlug: (slug: string) => productSubject.asObservable()
+      getProductBySlug: (slug: string) => productSubject.asObservable(),
     };
 
-    await TestBed.configureTestingModule({
-      imports: [ProductComponent, TestHostComponent],
+    TestBed.configureTestingModule({
       providers: [
         { provide: ProductService, useValue: mockProductService },
-        provideHttpClient(),
         provideRouter([]),
         provideExperimentalWebMcpForms(),
       ],
-    }).compileComponents();
+    });
 
-    hostFixture = TestBed.createComponent(TestHostComponent);
-    hostFixture.detectChanges();
-    const productEl = hostFixture.debugElement.query(By.directive(ProductComponent));
-    component = productEl.componentInstance;
+    fixture = TestBed.createComponent(ProductComponent, {
+      bindings: [inputBinding('id', signal('luxe-tote'))],
+    });
+    component = fixture.componentInstance;
   });
 
   it('should create', async () => {
     productSubject.next(mockProduct);
-    hostFixture.detectChanges();
-    await hostFixture.whenStable();
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it('should disable form when loading and enable it when resolved', async () => {
     // 1. Initial state (resource is loading)
+    fixture.detectChanges();
     expect(component.productResource.isLoading()).toBe(true);
     expect(component.cartForm().disabled()).toBe(true);
 
     // 2. Emit the product to finish loading
     productSubject.next(mockProduct);
-    hostFixture.detectChanges();
-    await hostFixture.whenStable();
+    await fixture.whenStable();
 
     // 3. Loaded state
+    expect(component.productResource.status()).toBe('resolved');
     expect(component.productResource.isLoading()).toBe(false);
     expect(component.cartForm().disabled()).toBe(false);
   });

@@ -1,17 +1,15 @@
-import { describe, beforeEach, it, expect } from 'vitest';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { App } from './app';
 import { provideRouter } from '@angular/router';
+import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        provideRouter([]),
-      ],
-    }).compileComponents();
+      providers: [provideRouter([])],
+    });
   });
 
   it('should create the app', () => {

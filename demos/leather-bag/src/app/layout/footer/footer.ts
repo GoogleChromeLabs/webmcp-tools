@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-footer',
@@ -7,14 +7,14 @@ import { Component } from '@angular/core';
   styleUrl: './footer.css',
 })
 export class Footer {
-  isReturnModalOpen = false;
+  isReturnModalOpen = signal(false);
 
   openReturnModal(event: Event) {
     event.preventDefault();
-    this.isReturnModalOpen = true;
+    this.isReturnModalOpen.set(true);
   }
 
   closeReturnModal() {
-    this.isReturnModalOpen = false;
+    this.isReturnModalOpen.set(false);
   }
 }

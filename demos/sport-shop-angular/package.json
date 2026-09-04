@@ -11,26 +11,29 @@
   "private": true,
   "packageManager": "npm@10.9.3",
   "dependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/compiler": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@angular/forms": "^21.2.0",
-    "@angular/platform-browser": "^21.2.0",
-    "@angular/router": "^21.2.0",
+    "@angular/common": "^22.0.5",
+    "@angular/compiler": "^22.0.5",
+    "@angular/core": "^22.0.5",
+    "@angular/forms": "^22.0.5",
+    "@angular/platform-browser": "^22.0.5",
+    "@angular/router": "^22.0.5",
+    "@google/genai": "^2.10.0",
     "@tailwindcss/postcss": "^4.2.1",
+    "marked": "^18.0.7",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.2",
-    "@angular/cli": "^21.2.2",
-    "@angular/compiler-cli": "^21.2.0",
-    "autoprefixer": "^10.4.27",
+    "@angular/build": "^22.0.5",
+    "@angular/cli": "^22.1.6",
+    "@angular/compiler-cli": "^22.0.5",
+    "autoprefixer": "^10.5.4",
     "jsdom": "^28.0.0",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.25",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.2.1",
-    "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
+    "typescript": "~6.0.2",
+    "vitest": "^4.0.8",
+    "webmcp-types": "^0.1.3"
   }
 }

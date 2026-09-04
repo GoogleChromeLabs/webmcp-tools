@@ -33,8 +33,8 @@ Create a folder with the site origin under the "demos" folder and generate the f
 
 Generate valid JavaScript code to register the identified tools using the imperative API.
 
-* **Reference:** Use the syntax and patterns demonstrated in the [official examples](https://github.com/webmachinelearning/webmcp/blob/main/docs/proposal.md).
-* Use window.navigator.modelContext.registerTool({...}).
+* **Reference:** Use the syntax and patterns demonstrated in the [official examples](https://github.com/webmachinelearning/webmcp/blob/main/README.md).
+* Use document.modelContext.registerTool({...}).
 * Include the name, description, inputSchema, and the execute function.
 * **Crucial:** Inside the `execute` function, write the code to parse the `input` object and execute the actions on the website using the DOM. Add comments to help developers understand how to connect to existing page functions or DOM interactions to perform the desired action.
 
@@ -50,7 +50,7 @@ Generate HTML snippets for **existing forms found on the page**, annotated with 
 
 #### **File 3: webmcp-evals.js**
 
-For each WebMCP tool create testing evaluations that the developers can execute using the [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md). Create between 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
+For each WebMCP tool create testing evaluations that the developers can execute using [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md). Create between 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
 
 ~~~js
 module.exports = [

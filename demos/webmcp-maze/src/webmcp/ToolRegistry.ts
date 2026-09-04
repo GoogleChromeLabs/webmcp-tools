@@ -34,7 +34,7 @@ export class ToolRegistry {
    * Live map of currently registered tools, keyed by tool name.
    * Referenced by `window.gameTools.executeTool` at call time.
    */
-  private toolMap: Map<string, ModelContextTool> = new Map();
+  private toolMap: Map<string, WebMCP.ModelContextTool> = new Map();
   
   private toolController: AbortController | null = null;
 
@@ -43,8 +43,7 @@ export class ToolRegistry {
    */
   constructor(game: Game) {
     this.game = game;
-    this.supported =
-      !!document.modelContext || !!navigator.modelContext;
+    this.supported = !!document.modelContext;
 
     if (!this.supported) {
       console.warn(
@@ -99,13 +98,12 @@ export class ToolRegistry {
    * Keeps `toolMap` in sync so `window.gameTools.executeTool` stays current.
    * @param tools - The tools to register.
    */
-  private provideTools(tools: ModelContextTool[]): void {
+  private provideTools(tools: WebMCP.ModelContextTool[]): void {
     if (this.supported) {
-      const ctx = document.modelContext || navigator.modelContext!;
       this.toolController?.abort();
       this.toolController = new AbortController();
       for (const tool of tools) {
-        ctx.registerTool(tool, { signal: this.toolController.signal });
+        document.modelContext!.registerTool(tool, { signal: this.toolController.signal });
       }
     }
     this.toolMap.clear();
@@ -132,7 +130,7 @@ export class ToolRegistry {
               `Available: ${[...toolMap.keys()].join(", ")}`,
           );
         }
-        return tool.execute(args, {} as ModelContextClient);
+        return tool.execute(args);
       },
     };
   }

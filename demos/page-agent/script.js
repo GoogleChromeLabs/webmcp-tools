@@ -15,8 +15,37 @@ const saveKeyBtn = document.getElementById('save-key-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const urlInput = document.getElementById('url-input');
 const iframe = document.getElementById('iframe');
+const codeModeCheckbox = document.getElementById('code-mode-checkbox');
 
 let ai, chat;
+let codeModeAbortController = null;
+
+async function logExposedTools() {
+  const tools = await getTools();
+  appendMessage(
+    'System',
+    `🌐 ${tools.length} tools are exposed by ${iframe.src}`,
+    'tool-indicator',
+  );
+}
+
+codeModeCheckbox.addEventListener('change', async () => {
+  chat = null;
+
+  codeModeAbortController?.abort();
+  if (codeModeCheckbox.checked) {
+    codeModeAbortController = new AbortController();
+    const { registerExecuteBatchTool } = await import('../shared/webmcp-batch.js');
+    await registerExecuteBatchTool({ signal: codeModeAbortController.signal });
+  }
+
+  appendMessage(
+    'System',
+    `🔄 Switched to ${codeModeCheckbox.checked ? 'Code Mode' : 'Normal Mode'}. Chat restarted.`,
+    'tool-indicator',
+  );
+  await logExposedTools();
+});
 
 async function getTools() {
   const iframeOrigin = new URL(iframe.src).origin;
@@ -25,21 +54,40 @@ async function getTools() {
 }
 
 async function getConfig() {
+  const tools = await getTools();
+  
+  if (codeModeCheckbox.checked) {
+    const { getSystemInstruction } = await import('../shared/webmcp-batch.js');
+    const systemInstruction = getSystemInstruction(tools);
+
+    const functionDeclarations = tools
+      .filter((tool) => tool.name === 'execute_batch')
+      .map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        parametersJsonSchema:
+          typeof tool.inputSchema === 'string'
+            ? JSON.parse(tool.inputSchema)
+            : tool.inputSchema || { type: 'object', properties: {} },
+      }));
+
+    return { systemInstruction, tools: [{ functionDeclarations }] };
+  }
+
+  // Normal Mode
   const systemInstruction = [
     'You are an assistant embedded in a web page.',
     'CRITICAL RULE: Do not try to use other tools than the available ones.',
   ];
 
-  const tools = await getTools();
-  const functionDeclarations = tools.map((tool) => {
-    return {
-      name: tool.name,
-      description: tool.description,
-      parametersJsonSchema: tool.inputSchema
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parametersJsonSchema:
+      typeof tool.inputSchema === 'string'
         ? JSON.parse(tool.inputSchema)
-        : { type: 'object', properties: {} },
-    };
-  });
+        : tool.inputSchema || { type: 'object', properties: {} },
+  }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
@@ -83,14 +131,7 @@ function loadUrl() {
 
 loadUrl();
 
-iframe.addEventListener('load', async () => {
-  const tools = await getTools();
-  appendMessage(
-    'System',
-    `🌐 ${tools.length} tools are exposed by ${iframe.src}`,
-    'tool-indicator',
-  );
-});
+iframe.addEventListener('load', logExposedTools);
 
 logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('gemini_api_key');
@@ -119,8 +160,22 @@ async function handleUserSubmit() {
 
     chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
 
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+    let networkCallsCount = 0;
+    const startTime = performance.now();
+
+    const addUsage = (result) => {
+      networkCallsCount++;
+      if (result && result.usageMetadata) {
+        totalInputTokens += result.usageMetadata.promptTokenCount || 0;
+        totalOutputTokens += result.usageMetadata.candidatesTokenCount || 0;
+      }
+    };
+
     const sendMessageParams = { message: text, config: await getConfig() };
     let currentResult = await chat.sendMessage(sendMessageParams);
+    addUsage(currentResult);
     let finalResponseGiven = false;
 
     while (!finalResponseGiven) {
@@ -139,6 +194,25 @@ async function handleUserSubmit() {
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
             const result = await document.modelContext.executeTool(tool, inputArgs);
+
+            if (codeModeCheckbox.checked && name === 'execute_batch' && result && Array.isArray(result.outputs)) {
+              for (const out of result.outputs) {
+                if (out.success) {
+                  appendMessage(
+                    'Console',
+                    `⚙️ Step [${out.id || 'anonymous'}]: called <strong>${out.tool}</strong> with args: <code>${JSON.stringify(out.args)}</code><br>↳ Result: <code>${typeof out.result === 'object' ? JSON.stringify(out.result) : String(out.result)}</code>`,
+                    'console-log'
+                  );
+                } else {
+                  appendMessage(
+                    'Console',
+                    `❌ Step [${out.id || 'anonymous'}]: call to <strong>${out.tool}</strong> failed.<br>↳ Error: <span style="color:red">${out.error}</span>`,
+                    'console-log'
+                  );
+                }
+              }
+            }
+
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
             appendMessage('System', `Error: ${error.message}`, 'error');
@@ -149,8 +223,16 @@ async function handleUserSubmit() {
         }
         const sendMessageParams = { message: toolResponses, config: await getConfig() };
         currentResult = await chat.sendMessage(sendMessageParams);
+        addUsage(currentResult);
       }
     }
+
+    const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+    appendMessage(
+      'System',
+      `📊 Turn metrics:<br>↳ Input (Billed): <strong>${totalInputTokens.toLocaleString()}</strong> tokens<br>↳ Output (Billed): <strong>${totalOutputTokens.toLocaleString()}</strong> tokens<br>↳ Total: <strong>${(totalInputTokens + totalOutputTokens).toLocaleString()}</strong> tokens<br>↳ Roundtrips: <strong>${networkCallsCount}</strong><br>↳ Time elapsed: <strong>${duration}s</strong>`,
+      'token-indicator'
+    );
 
     userInput.disabled = false;
     sendBtn.disabled = false;

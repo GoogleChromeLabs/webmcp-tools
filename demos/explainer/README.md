@@ -1,7 +1,7 @@
 # WebMCP Demo
 
 A mini-site that's a WebMCP explainer!
-[Visit the live site](https://googlechromelabs.github.io/webmcp-tools/demos/explainer/).
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/explainer/
 
 This shows a side-by-side demo of how AI agents interact with a web page today (site scraping)
 and a future where the page declares structured tools with **WebMCP**. It shows:

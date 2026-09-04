@@ -6,7 +6,7 @@ A maze escape game where the player navigates entirely by prompting an AI agent 
 
 ## How It Works
 
-The game exposes tools to the browser's built-in AI agent through `navigator.modelContext`. The agent can:
+The game exposes tools to the browser's built-in AI agent through `document.modelContext`. The agent can:
 
 - **start_game** — begin a new maze
 - **look** — inspect the player's surroundings (walls, open paths, exit location)
@@ -30,7 +30,7 @@ The player starts in a randomly generated maze and must reach the exit by instru
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) installed
-- A WebMCP-capable browser (one that exposes `navigator.modelContext`)
+- A WebMCP-capable browser (one that exposes `document.modelContext`)
 
 ### Install and Run
 

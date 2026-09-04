@@ -184,11 +184,6 @@ button.submit-btn:hover {
 
 /* --- ACTIVE CLASSES --- */
 
-/* Class to apply to the .booking-container */
-*:tool-form-active {
-  outline: none; /* Removes default blue browser focus rings */
-}
-
 /* --- 1. The Shimmer Animation (Light reflection moving across) --- */
 @keyframes gold-shimmer {
   0% {
@@ -211,6 +206,7 @@ button.submit-btn:hover {
 }
 
 /* --- THE BUTTON STYLES --- */
+.pseudo-tool-submit-active,
 *:tool-submit-active {
   /* Base Button Overrides */
   color: var(--black) !important;
@@ -235,6 +231,7 @@ button.submit-btn:hover {
 
 /* --- THE "REVIEW THIS" BADGE --- */
 /* This creates a text bubble appearing above the button */
+.pseudo-tool-submit-active::after,
 *:tool-submit-active::after {
   content: '⚠ Please Review & Confirm';
 
@@ -264,6 +261,7 @@ button.submit-btn:hover {
 }
 
 /* --- THE BADGE ARROW (Triangle) --- */
+.pseudo-tool-submit-active::before,
 *:tool-submit-active::before {
   content: '';
   position: absolute;

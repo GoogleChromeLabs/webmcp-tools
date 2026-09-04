@@ -40,7 +40,7 @@ Modify the existing HTML (or JSX/TSX/Template) files to add WebMCP annotations t
 
 Modify the relevant frontend logic files (e.g., `main.js`, `app.ts`, or specific component files) to register imperative tools.
 
-*   Use `window.navigator.modelContext.registerTool({...})`.
+*   Use `document.modelContext.registerTool({...})`.
 *   Include the `name`, `description`, `inputSchema`, and the `execute` function.
 *   **Crucial:** Wire the `execute` function directly to the site's existing business logic or DOM manipulation functions. Do not mock the implementation call the actual existing functions (e.g., `await existingAddToCartFunc(args.productId)`).
 
@@ -50,7 +50,7 @@ After modifying the source code, generate the following supplementary files:
 
 #### **File 1: webmcp-evals.js**
 
-Create testing evaluations in the project's test directory so developers can verify the tools using the [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md). Create 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
+Create testing evaluations in the project's test directory so developers can verify the tools using [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md). Create 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
 
 ~~~js
 module.exports = [

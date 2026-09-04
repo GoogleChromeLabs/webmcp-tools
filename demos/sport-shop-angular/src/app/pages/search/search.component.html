@@ -3,9 +3,9 @@
  SPDX-License-Identifier: Apache-2.0
 -->
 
-<main class="max-w-[1440px] mx-auto px-8 py-12 flex flex-col lg:flex-row gap-12">
+<main class="max-w-[1440px] mx-auto px-8 py-12">
     <!-- Search Results Area -->
-    <section class="flex-1">
+    <section class="w-full">
         <div class="mb-12">
             <div
                 class="flex items-center gap-3 text-primary font-bold tracking-widest text-[11px] uppercase mb-4 font-headline">
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Products Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             @for (p of filteredProducts; track p.id) {
                 <app-product-card [product]="p"></app-product-card>
             }
@@ -49,9 +49,4 @@
             </div>
         }
     </section>
-
-    <!-- Sidebar: AI Assistant -->
-    <aside class="w-96 hidden xl:block sticky top-32 h-[calc(100vh-10rem)]">
-        <app-ai-sidebar [message]="aiMessage" [query]="query"></app-ai-sidebar>
-    </aside>
 </main>

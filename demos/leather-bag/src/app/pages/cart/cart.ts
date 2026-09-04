@@ -1,40 +1,32 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CartService, CartItem } from '../../services/cart';
 import { CurrencyPipe } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CartItem, CartService } from '../../services/cart';
 
 @Component({
   selector: 'app-cart',
-  standalone: true,
   imports: [CurrencyPipe, RouterLink],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
-export class CartComponent implements OnInit {
-  cartService = inject(CartService);
-  private cdr = inject(ChangeDetectorRef);
-  
-  items: CartItem[] = [];
-  subtotal = 0;
-  shipping = 0;
-  total = 0;
+export class CartComponent {
+  private readonly cartService = inject(CartService);
 
-  ngOnInit() {
-    this.items = this.cartService.getCartItems();
-    this.calculateTotals();
-  }
+  protected readonly items = this.cartService.items;
+  protected readonly subtotal = computed(() =>
+    this.items().reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+  );
+
+  protected readonly shipping = computed(() => (this.subtotal() > 500 ? 0 : 50));
+  protected readonly total = computed(() => this.subtotal() + this.shipping());
 
   incrementQuantity(item: CartItem) {
     this.cartService.addToCart(item.product, item.color, 1);
-    this.calculateTotals();
-    this.cdr.detectChanges();
   }
 
   decrementQuantity(item: CartItem) {
     if (item.quantity > 1) {
       this.cartService.removeFromCart(item.product.id, item.color);
-      this.calculateTotals();
-      this.cdr.detectChanges();
     }
   }
 
@@ -44,18 +36,9 @@ export class CartComponent implements OnInit {
     for (let i = 0; i < qty; i++) {
       this.cartService.removeFromCart(item.product.id, item.color);
     }
-    this.calculateTotals();
-    this.cdr.detectChanges();
-  }
-
-  calculateTotals() {
-    this.subtotal = this.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-    this.shipping = this.subtotal > 500 ? 0 : 50;
-    this.total = this.subtotal + this.shipping;
   }
 
   checkout() {
     this.cartService.clearCart('Thank you for shopping with us!');
-    this.calculateTotals();
   }
 }

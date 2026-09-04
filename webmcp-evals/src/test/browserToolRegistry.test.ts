@@ -1,0 +1,239 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import * as assert from "node:assert";
+import { describe, it } from "node:test";
+import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
+
+class MockBrowserPage {
+  public evaluateResult: unknown = [];
+  public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
+  public webmcp: any = {
+    tools: () => [],
+  };
+
+  async evaluate(fn: string | Function, ...args: unknown[]): Promise<any> {
+    this.evaluateCalls.push({ fn, args });
+    return this.evaluateResult;
+  }
+}
+
+function createRegistry(page: MockBrowserPage): BrowserToolRegistry {
+  return new BrowserToolRegistry(page as unknown as BrowserPage);
+}
+
+describe("BrowserToolRegistry", () => {
+  it("should initialize and return empty list if page returns no tools", async () => {
+    const page = new MockBrowserPage();
+
+    const registry = createRegistry(page);
+    assert.deepStrictEqual(registry.getCurrentTools(), []);
+  });
+
+  it("should execute tool via page.webmcp and return output on Completed status", async () => {
+    let executedInput: unknown = null;
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "click_button",
+          description: "Click a button",
+          inputSchema: { type: "object" },
+          execute: async (input: unknown) => {
+            executedInput = input;
+            return { status: "Completed", output: { status: "clicked" } };
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeTool("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, { status: "clicked" });
+    assert.deepStrictEqual(executedInput, { id: "btn-1" });
+  });
+
+  it("should return error when tool is not found", async () => {
+    const page = new MockBrowserPage();
+
+    const registry = createRegistry(page);
+    const result = await registry.executeTool("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, { error: 'no tool named "click_button" was found' });
+  });
+
+  it("should expose page execution failures to deterministic callers", async () => {
+    const page = new MockBrowserPage();
+
+    const registry = createRegistry(page);
+    const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, {
+      success: false,
+      error: 'no tool named "click_button" was found',
+    });
+  });
+
+  it("should expose successful structured content to deterministic callers", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "click_button",
+          description: "Click a button",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: { content: [{ type: "text", text: "clicked" }] },
+          }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeToolChecked("click_button", { id: "btn-1" });
+
+    assert.deepStrictEqual(result, { success: true, result: "clicked" });
+  });
+
+  it("should return error when tool execution fails with Error status", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "failing_tool",
+          description: "Fails always",
+          inputSchema: { type: "object" },
+          execute: async () => {
+            return { status: "Error", errorText: "Execution failed in page context" };
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeTool("failing_tool", {});
+
+    assert.deepStrictEqual(result, { error: "Execution failed in page context" });
+  });
+
+  it("should preserve null return values in executeTool and executeToolChecked", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "null_tool",
+          description: "Tool that returns explicit null output",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: null,
+          }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+
+    // 1. Verify executeToolChecked preserves null inside { success: true, result: null }
+    const checkedResult = await registry.executeToolChecked("null_tool", {});
+    assert.deepStrictEqual(checkedResult, { success: true, result: null });
+
+    // 2. Verify executeTool returns null directly (instead of coercing to "Success")
+    const result = await registry.executeTool("null_tool", {});
+    assert.strictEqual(result, null);
+  });
+
+  it("should handle declarative tool without autosubmit, listen for toolinvoked, and resolve pending form submission on timeout", async () => {
+    const listeners: Record<string, Function[]> = {};
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      once: (event: string, cb: Function) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(cb);
+      },
+      off: (event: string, cb: Function) => {
+        if (listeners[event]) {
+          listeners[event] = listeners[event].filter((l) => l !== cb);
+        }
+      },
+      tools: () => [
+        {
+          name: "book_table",
+          description: "Form-based tool without autosubmit",
+          formElement: Promise.resolve({} as any),
+          annotations: { autosubmit: false },
+          execute: async () => {
+            // Trigger toolinvoked listener like Puppeteer CDP event would
+            const invokedCb = listeners["toolinvoked"]?.[0];
+            if (invokedCb) {
+              invokedCb({ tool: { name: "book_table" } });
+            }
+            // Promise that doesn't resolve immediately (simulating form wait)
+            return new Promise(() => {});
+          },
+        },
+      ],
+    };
+
+    // Override setTimeout in execution context with fast timeout for speed
+    const registry = createRegistry(page);
+
+    // Fast-forward or test using speed up: since code uses 1000ms timeout, let's test execution
+    const origSetTimeout = global.setTimeout;
+    try {
+      global.setTimeout = ((cb: Function, _ms: number) => origSetTimeout(cb, 10)) as any;
+      const result = await registry.executeTool("book_table", { guests: 2 });
+      assert.strictEqual(result, "pending form submission");
+    } finally {
+      global.setTimeout = origSetTimeout;
+    }
+  });
+
+  it("should propagate isError flag on structured MCP response as failure", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "failing_mcp",
+          description: "Fails with isError",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: { content: [{ type: "text", text: "Out of stock" }], isError: true },
+          }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeToolChecked("failing_mcp", {});
+
+    assert.deepStrictEqual(result, { success: false, error: "Out of stock" });
+  });
+
+  it("should preserve falsy returns like false or 0 in executeTool", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "bool_tool",
+          description: "Returns false",
+          inputSchema: { type: "object" },
+          execute: async () => ({
+            status: "Completed",
+            output: false,
+          }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeTool("bool_tool", {});
+
+    assert.strictEqual(result, false);
+  });
+});

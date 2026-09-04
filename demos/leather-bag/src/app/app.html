@@ -5,10 +5,10 @@
 <app-footer></app-footer>
 
 <!-- Global Cart Confirmation Toast -->
-@if (showToast) {
+@if (showToast()) {
   <div class="toast editorial-shadow">
     <span class="material-symbols-outlined toast-icon">check_circle</span>
-    <span class="toast-message font-body">{{toastMessage}}</span>
+    <span class="toast-message font-body">{{ toastMessage() }}</span>
     <button class="toast-close" (click)="closeToast()">
       <span class="material-symbols-outlined text-lg">close</span>
     </button>

@@ -46,8 +46,7 @@
             document.querySelector('form button').removeAttribute('disabled');
         }
 
-        const modelContext = document.modelContext || navigator.modelContext;
-        modelContext.registerTool({
+        document.modelContext.registerTool({
             name: 'castLight',
             description: 'Cast light',
             execute: async () => {

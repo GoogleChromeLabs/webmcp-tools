@@ -2,7 +2,7 @@
 
 🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/analytics-dashboard/
 
-A React + Vite demo of **WebMCP** — a browser API (`navigator.modelContext`) that lets AI agents call semantic tools registered by the frontend, enabling bidirectional control of a web app without DOM scraping.
+A React + Vite demo of **WebMCP** — a browser API (`document.modelContext`) that lets AI agents call semantic tools registered by the frontend, enabling bidirectional control of a web app without DOM scraping.
 
 ## Getting started
 
@@ -15,7 +15,7 @@ Requires Chrome Canary 140+ or a WebMCP-capable browser (HTTPS or localhost).
 
 ## How it works
 
-The dashboard registers JavaScript functions as agent-callable tools via `navigator.modelContext.registerTool()`. Both the human (via UI controls) and an AI agent (via tools) can control the same state simultaneously and stay in sync.
+The dashboard registers JavaScript functions as agent-callable tools via `document.modelContext.registerTool()`. Both the human (via UI controls) and an AI agent (via tools) can control the same state simultaneously and stay in sync.
 
 ### Registered tools
 

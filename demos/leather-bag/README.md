@@ -1,6 +1,6 @@
 # LUXE LEATHER | WebMCP E-commerce Demo
 
-🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag
+🚀 Live Demo: https://googlechromelabs.github.io/webmcp-tools/demos/leather-bag/
 
 A premium, modern e-commerce storefront for hand-crafted leather products, built with Angular and WebMCP (Web Model Context Protocol). This project demonstrates how an AI agent can interact with an e-commerce site to search products, check policies, and manage a shopping cart using both **declarative** and **imperative** tool definitions.
 
@@ -11,9 +11,9 @@ A premium, modern e-commerce storefront for hand-crafted leather products, built
     - `check_return_policy` (Imperative): Access site-wide return and guarantee policy.
     - `search_store` (Imperative): Search the Luxe Leather store catalog for products matching a query.
     - `view_product` (Imperative): Navigate to the detailed product page for a specific leather item by its slug.
-  - **Product Page Specific Tools (Available on `/product/:id` route)**:
+  - **Product Page Specific Tools (Available on `#/product/:id` route)**:
     - `add_to_cart` (Declarative via Signal Form): Add items to the shopping cart with chosen variations (color and quantity).
-  - **Search Page Specific Tools (Available on `/search` route)**:
+  - **Search Page Specific Tools (Available on `#/search` route)**:
     - `filter_results` (Imperative): Filter search results on the page by colors, finishes, and maximum price.
     - `get_search_results` (Imperative): Return the list of products matching current search query and filters.
     - `add_search_result_to_cart` (Imperative): Add a product from search results to the cart by name/keywords or index.

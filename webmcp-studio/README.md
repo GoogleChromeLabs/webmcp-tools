@@ -37,7 +37,7 @@ browser agents.
     implementation options.
 *   **Test Case Generation:** Automatically creates a webmcp-evals.js file with
     test cases to verify the tools using the
-    [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md).
+    [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md).
 
 ## **🛠️ Tech stack**
 
@@ -94,7 +94,7 @@ and use the standard config from above.
     2.  webmcp-forms.html (Declarative implementation)
     3.  webmcp-evals.js (Example tests for evaluating each of the WebMCP tools
         using
-        [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md))
+        [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md))
     4.  webmcp-recommendations.md (a report with additional recommendations for
         your WebMCP implementations)
 5.  **Test your WebMCP tools using Chrome DevTools:** \
@@ -115,10 +115,10 @@ and use the standard config from above.
     execution or use the Gemini API and experiment with the natural language
     prompts.
 7.  Sample evaluation tests should be available in `webmcp-evals.js`; you can
-    assess your tools automatically by running the
-    [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md).
+    assess your tools automatically by running
+    [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md).
     Follow the
-    [runevals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md#runevals--file-based-tool-schemas)
+    [documentation](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md#command-local)
     section.
 8.  **Refine:** Refine your implementations using the example prompts given in
     [refining-prompts.md](refining-prompts.md).
@@ -180,7 +180,7 @@ platform.
     *   webmcp-forms.html (Declarative implementation)
     *   webmcp-evals.js (Example tests for evaluating each of the WebMCP tools
         using
-        [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md))
+        [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md))
     *   webmcp-recommendations.md (a report with additional recommendations for
         your WebMCP implementations)
 5.  **Test your WebMCP tools using Chrome DevTools:** \
@@ -198,10 +198,10 @@ platform.
     execution or use the Gemini API and experiment with the natural language
     prompts.
 7.  Sample evaluation tests should be available in `webmcp-evals.js`; you can
-    assess your tools automatically by running the
-    [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md).
+    assess your tools automatically by running
+    [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md).
     Follow the
-    [runevals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md#runevals--file-based-tool-schemas)
+    [documentation](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md#command-local)
     section.
 8.  **Refine:** Refine your implementations using the example prompts given in
     [refining-prompts.md](refining-prompts.md).

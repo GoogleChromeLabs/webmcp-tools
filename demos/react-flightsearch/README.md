@@ -9,7 +9,7 @@ A React-based flight search application designed to demonstrate **WebMCP** integ
 - **Flight Search**: Search for flights by origin, destination, dates, and passengers.
 - **Interactive Results**: View flight results with detailed pricing and duration information.
 - **Advanced Filtering**: Filter results by price range, airlines, stops, and departure/arrival times.
-- **WebMCP Integration**: Built-in support for `navigator.modelContext` to register tools for AI agents.
+- **WebMCP Integration**: Built-in support for `document.modelContext` to register tools for AI agents.
 
 ## 🛠️ Technology Stack
 
@@ -21,7 +21,7 @@ A React-based flight search application designed to demonstrate **WebMCP** integ
 
 ## 🤖 Agent / WebMCP Integration
 
-This application is instrumented to work with an AI agent (e.g., via a browser extension or specialized browser). It detects the presence of `navigator.modelContext` and registers the following tools:
+This application is instrumented to work with an AI agent (e.g., via a browser extension or specialized browser). It detects the presence of `document.modelContext` and registers the following tools:
 
 1.  **`searchFlights`**: Initiates a flight search with structured parameters (origin, destination, date, etc.).
 2.  **`listFlights`**: Retrieves the currently displayed list of flights (programmatic access to data).

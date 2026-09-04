@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenAI } from 'https://esm.sh/@google/genai';
-
 const agentToggle = document.getElementById('agent-toggle');
 const agentChat = document.getElementById('agent-chat');
 const agentChatWindow = document.getElementById('agent-chat-window');
@@ -16,7 +14,7 @@ const agentApiKeyInput = document.getElementById('agent-api-key-input');
 const agentSaveKeyBtn = document.getElementById('agent-save-key-btn');
 const agentLogoutBtn = document.getElementById('agent-logout');
 
-let ai, chat;
+let ai, chat, worker, abortController;
 
 async function getTools() {
   if (!window.document.modelContext) {
@@ -28,49 +26,161 @@ async function getTools() {
 async function getConfig() {
   const systemInstruction = [
     'You are an assistant for "Le Petit Bistro" restaurant.',
-    'Help the user make a reservation using the available tools.',
-    'CRITICAL RULE: Do not try to use other tools than the available ones.',
+    "Help the user make a reservation using the available tools.",
+    "CRITICAL RULE: Do not try to use other tools than the available ones.",
+    `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
   ];
 
   const tools = await getTools();
-  const functionDeclarations = tools.map((tool) => {
-    return {
-      name: tool.name,
-      description: tool.description,
-      parametersJsonSchema: tool.inputSchema
+  const functionDeclarations = tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    parametersJsonSchema:
+      typeof tool.inputSchema === 'string'
         ? JSON.parse(tool.inputSchema)
-        : { type: 'object', properties: {} },
-    };
-  });
+        : tool.inputSchema || { type: 'object', properties: {} },
+  }));
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }
 
 const storedKey = localStorage.getItem('gemini_api_key');
-if (storedKey) {
-  initChat(storedKey);
+
+const params = new URLSearchParams(window.location.search);
+if (params.has('sharedworker')) {
+  initSharedWorker(storedKey);
 } else {
-  agentSetup.classList.remove('hidden');
-  agentChatContainer.classList.add('hidden');
+  if (storedKey) {
+    initChat(storedKey);
+  } else {
+    agentSetup.classList.remove('hidden');
+    agentChatContainer.classList.add('hidden');
+  }
+}
+
+function initSharedWorker(apiKey) {
+  worker = new SharedWorker('agent-worker.js', { type: 'module', extendedLifetime: true });
+  worker.port.onmessage = async (event) => {
+    const { type, payload, id } = event.data;
+
+    switch (type) {
+      case 'STATUS_RESPONSE':
+        if (payload.initialized) {
+          agentSetup.classList.add('hidden');
+          agentChatContainer.classList.remove('hidden');
+          agentChatWindow.innerHTML = '';
+          payload.messages.forEach((m) => appendMessage(m.sender, m.text, m.className));
+        } else if (apiKey) {
+          worker.port.postMessage({ type: 'INIT', payload: { apiKey } });
+        } else {
+          agentSetup.classList.remove('hidden');
+          agentChatContainer.classList.add('hidden');
+        }
+        break;
+
+      case 'INITIALIZED':
+        agentSetup.classList.add('hidden');
+        agentChatContainer.classList.remove('hidden');
+        if (agentChatWindow.innerHTML === '') {
+          appendMessage(
+            'System',
+            'Welcome to Le Petit Bistro! How can I help you today?',
+            'system',
+          );
+        }
+        break;
+
+      case 'APPEND_MESSAGE':
+        appendMessage(payload.sender, payload.text, payload.className);
+        break;
+
+      case 'LOGGED_OUT':
+        agentChatWindow.innerHTML = '';
+        agentSetup.classList.remove('hidden');
+        agentChatContainer.classList.add('hidden');
+        break;
+
+      case 'GET_TOOLS':
+        const tools = await getTools();
+        // FIXME: tool.window needs to be removed because it's not serializable.
+        const serializableTools = tools.map(({ name, description, inputSchema }) => ({
+          name,
+          description,
+          inputSchema,
+        }));
+        worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: serializableTools, id });
+        break;
+
+      case 'EXECUTE_TOOL':
+        try {
+          const tools = await getTools();
+          const tool = tools.find((t) => t.name === payload.tool.name);
+          if (!tool) throw new Error(`Tool ${payload.tool.name} not found`);
+
+          abortController = new AbortController();
+          agentSendBtn.textContent = 'Abort';
+          agentSendBtn.disabled = false;
+
+          const result = await document.modelContext.executeTool(tool, payload.args, {
+            signal: abortController.signal,
+          });
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { result }, id });
+        } catch (error) {
+          const aborted = abortController?.signal.aborted;
+          worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { error: error.message, aborted }, id });
+        } finally {
+          abortController = null;
+          agentSendBtn.textContent = 'Send';
+          agentSendBtn.disabled = true;
+        }
+        break;
+
+      case 'SUBMIT_FINISHED':
+        agentUserInput.disabled = false;
+        agentSendBtn.disabled = false;
+        agentUserInput.focus();
+        break;
+    }
+  };
+  worker.port.start();
+  worker.port.postMessage({ type: 'GET_STATUS' });
+  window.addEventListener('pagehide', () => {
+    worker.port.postMessage({ type: 'CLOSE_CONNECTION' });
+  });
 }
 
 agentToggle.addEventListener('click', () => {
-  agentChat.classList.toggle('hidden');
-  if (!agentChat.classList.contains('hidden')) {
-    agentUserInput.focus();
+  const isOpen = !agentChat.classList.toggle('hidden');
+  if (window.frameElement) {
+    window.frameElement.style.width = isOpen ? '414px' : '100px';
+    window.frameElement.style.height = isOpen ? '634px' : '100px';
   }
+  const win = window.frameElement ? window.parent : window;
+  const url = new URL(win.location);
+  if (isOpen) {
+    agentUserInput.focus();
+    agentChatWindow.scrollTop = agentChatWindow.scrollHeight;
+    url.searchParams.set('agentopened', '');
+  } else {
+    url.searchParams.delete('agentopened');
+  }
+  win.history.replaceState({}, '', url.toString().replace(/=(?=&|$)/g, ''));
 });
 
 agentSaveKeyBtn.addEventListener('click', () => {
   const key = agentApiKeyInput.value.trim();
-  if (key) {
-    localStorage.setItem('gemini_api_key', key);
-    initChat(key);
+  if (!key) return;
+  localStorage.setItem('gemini_api_key', key);
+  if (worker) {
+    worker.port.postMessage({ type: 'INIT', payload: { apiKey: key } });
+    return;
   }
+  initChat(key);
 });
 
-function initChat(apiKey) {
-  ai = new GoogleGenAI({ apiKey: apiKey });
+async function initChat(apiKey) {
+  const { GoogleGenAI } = await import("https://esm.sh/@google/genai");
+  ai = new GoogleGenAI({ apiKey });
   agentSetup.classList.add('hidden');
   agentChatContainer.classList.remove('hidden');
   appendMessage('System', 'Welcome to Le Petit Bistro! How can I help you today?', 'system');
@@ -78,6 +188,10 @@ function initChat(apiKey) {
 
 agentLogoutBtn.addEventListener('click', () => {
   localStorage.removeItem('gemini_api_key');
+  if (worker) {
+    worker.port.postMessage({ type: 'LOGOUT' });
+    return;
+  }
   ai = null;
   chat = null;
   agentChatWindow.innerHTML = '';
@@ -85,27 +199,39 @@ agentLogoutBtn.addEventListener('click', () => {
   agentChatContainer.classList.add('hidden');
 });
 
-agentSendBtn.addEventListener('click', handleUserSubmit);
+agentSendBtn.addEventListener('click', () => {
+  if (abortController) {
+    abortController.abort();
+    return;
+  }
+  handleUserSubmit();
+});
 agentUserInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter' && !agentUserInput.disabled) handleUserSubmit();
 });
 
 async function handleUserSubmit() {
-  try {
-    const text = agentUserInput.value.trim();
-    if (!text || !ai) return;
+  const text = agentUserInput.value.trim();
+  if (!text) return;
 
-    agentUserInput.value = '';
-    agentUserInput.disabled = true;
-    agentSendBtn.disabled = true;
+  agentUserInput.value = '';
+  agentUserInput.disabled = true;
+  agentSendBtn.disabled = true;
+
+  if (worker) {
+    worker.port.postMessage({ type: 'SEND_MESSAGE', payload: { text } });
+    return;
+  }
+
+  try {
+    if (!ai) return;
 
     appendMessage('You', text, 'user');
 
-    chat ??= ai.chats.create({ model: 'gemini-3.5-flash' });
+    chat ??= ai.chats.create({ model: 'gemini-3.1-flash-lite' });
 
     const config = await getConfig();
     const sendMessageParams = { message: text, config };
-    console.log(sendMessageParams);
     let currentResult = await chat.sendMessage(sendMessageParams);
     let finalResponseGiven = false;
 
@@ -124,15 +250,33 @@ async function handleUserSubmit() {
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
-            
-            const result = await document.modelContext.executeTool(tool, JSON.stringify(args));
+
+            abortController = new AbortController();
+            agentSendBtn.textContent = 'Abort';
+            agentSendBtn.disabled = false;
+
+            const result = await document.modelContext.executeTool(tool, JSON.stringify(args), {
+              signal: abortController.signal,
+            });
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
+            if (abortController?.signal.aborted) {
+              appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
+              finalResponseGiven = true;
+              break;
+            }
             appendMessage('System', `Error: ${error.message}`, 'system');
             toolResponses.push({
               functionResponse: { name, response: { error: error.message } },
             });
+          } finally {
+            abortController = null;
+            agentSendBtn.textContent = 'Send';
+            agentSendBtn.disabled = true;
           }
+        }
+        if (finalResponseGiven) {
+          break;
         }
         const sendMessageParams = { message: toolResponses, config: await getConfig() };
         currentResult = await chat.sendMessage(sendMessageParams);
@@ -161,6 +305,14 @@ function appendMessage(sender, text, className) {
 // Check if WebMCP is supported
 if (!window.document.modelContext) {
   setTimeout(() => {
-    appendMessage('System', '⚠️ WebMCP API not detected. Make sure you are using a compatible browser with the experiment enabled.', 'system');
+    appendMessage(
+      'System',
+      '⚠️ WebMCP API not detected. Make sure you are using a compatible browser with the experiment enabled.',
+      'system',
+    );
   }, 1000);
+}
+
+if (params.has('agentopened')) {
+  agentToggle.click();
 }

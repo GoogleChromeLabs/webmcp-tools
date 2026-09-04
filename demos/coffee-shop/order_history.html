@@ -238,10 +238,9 @@
     alert('Classic Dark Roast added to your ritual!');
     });
 
-    const modelContext = document.modelContext || navigator.modelContext;
-    if (modelContext) {
+    if (document.modelContext) {
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
         name: "search_catalog",
         description: "Navigates to a specific product page.",
         inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
@@ -260,7 +259,7 @@
         }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
         name: "get_order_history",
         description: "Retrieves past orders for reordering.",
         inputSchema: { type: "object", properties: {} },
@@ -276,7 +275,7 @@
         }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
         name: "reorder_product",
         description: "Adds a past order item to the cart and updates the UI badge.",
         inputSchema: { type: "object", properties: { item_id: { type: "string" } }, required: ["item_id"] },
@@ -292,7 +291,7 @@
         }
     });
 
-    modelContext.registerTool({
+    document.modelContext.registerTool({
         name: "get_machine_specifications",
         description: "Provides dimensions and water tank capacity for the Alchemist machine.",
         inputSchema: { type: "object", properties: {} },
