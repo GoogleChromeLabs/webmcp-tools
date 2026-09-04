@@ -121,9 +121,21 @@ function initSharedWorker(apiKey) {
           agentSendBtn.textContent = 'Abort';
           agentSendBtn.disabled = false;
 
-          const result = await document.modelContext.executeTool(tool, payload.args, {
-            signal: abortController.signal,
-          });
+          let result;
+          try {
+            result = await document.modelContext.executeTool(tool, payload.args, {
+              signal: abortController.signal,
+            });
+          } catch (e) {
+            // TODO: Remove this when executeTool doesn't accept JSON stringified inputArgs anymore in Chrome Stable.
+            if (e.message.startsWith('Failed to parse input')) {
+              result = await document.modelContext.executeTool(tool, JSON.stringify(payload.args), {
+                signal: abortController.signal,
+              });
+            } else {
+              throw e;
+            }
+          }
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { result }, id });
         } catch (error) {
           const aborted = abortController?.signal.aborted;
@@ -255,9 +267,21 @@ async function handleUserSubmit() {
             agentSendBtn.textContent = 'Abort';
             agentSendBtn.disabled = false;
 
-            const result = await document.modelContext.executeTool(tool, JSON.stringify(args), {
-              signal: abortController.signal,
-            });
+            let result;
+            try {
+              result = await document.modelContext.executeTool(tool, args, {
+                signal: abortController.signal,
+              });
+            } catch (e) {
+              // TODO: Remove this when executeTool doesn't accept JSON stringified inputArgs anymore in Chrome Stable.
+              if (e.message.startsWith('Failed to parse input')) {
+                result = await document.modelContext.executeTool(tool, JSON.stringify(args), {
+                  signal: abortController.signal,
+                });
+              } else {
+                throw e;
+              }
+            }
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
             if (abortController?.signal.aborted) {
