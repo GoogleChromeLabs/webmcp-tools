@@ -71,7 +71,6 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Build a simple one-page site for a coffee shop called Crema and publish it so I can share the link."
 - [**Wordup**](https://github.com/GoogleChromeLabs/web-ai-demos/tree/main/wordup) ([live](https://snugug.github.io/demos/wordup/)): A casual word guessing game using the Prompt API to generate words and can be driven entirely through WebMCP.
   - **Example Prompt:** "Start a new game."
-
 - [Cadence](https://cadence-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/cadence) - An issue tracker where an agent is a real teammate on the board: registered tools change live with selection and filters via `useScopedTools`, agent edits land on the same undo stack as the human's, and per-agent permission grants filter which tools even get registered.
   - **Example Prompt:** "Triage my backlog and merge any duplicate bug reports you find."
 - [Consequence](https://consequence-webmcp.ashrafahmed1232.workers.dev/) | [Code](https://github.com/AshrafAhmed9/consequence) - A high-stakes application form where every field declares who's allowed to fill it. Calling `answer_question` on an attestation field refuses with a structured error instead of failing quietly, enforced in the same reducer the UI itself uses.
