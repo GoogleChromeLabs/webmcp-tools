@@ -50,7 +50,7 @@ After modifying the source code, generate the following supplementary files:
 
 #### **File 1: webmcp-evals.js**
 
-Create testing evaluations in the project's test directory so developers can verify the tools using the [WebMCP evals-cli](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/evals-cli/README.md). Create 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
+Create testing evaluations in the project's test directory so developers can verify the tools using [WebMCP Evals](https://github.com/GoogleChromeLabs/webmcp-tools/blob/main/webmcp-evals/README.md). Create 3 to 5 natural language user prompts and their expected tool calls. Export an array of objects matching this structure:
 
 ~~~js
 module.exports = [

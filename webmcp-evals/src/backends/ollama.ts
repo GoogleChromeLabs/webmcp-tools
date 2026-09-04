@@ -1,0 +1,106 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { Ollama, Message as OllamaMessage, Tool as OllamaTool } from "ollama";
+import { Eval, Message } from "../types/evals.js";
+import { Tool, ToolCall } from "../types/tools.js";
+import { Backend, BrowserEvalResult, LocalEvalResult } from "./index.js";
+import { ToolRegistry } from "../evaluator/toolRegistry.js";
+
+export class OllamaBackend implements Backend {
+  private ollama: Ollama;
+
+  constructor(
+    host: string,
+    private model: string,
+    private systemPrompt: string,
+  ) {
+    this.ollama = new Ollama({ host });
+  }
+
+  async executeLocalEvals(test: Eval, registry: ToolRegistry): Promise<LocalEvalResult> {
+    return this.execute(test.messages, registry.getCurrentTools());
+  }
+
+  async executeInBrowserEval(_test: Eval, _registry: ToolRegistry): Promise<BrowserEvalResult> {
+    throw new Error("Method not implemented.");
+  }
+
+  describe(): string {
+    return `Ollama Backend using model: ${this.model}`;
+  }
+
+  async execute(messages: Message[], toolsList: Array<Tool>): Promise<LocalEvalResult> {
+    let ollamaTools: Array<OllamaTool> = toolsList.map((t) => {
+      return {
+        function: {
+          description: t.description,
+          name: t.functionName,
+          parameters: t.parameters,
+          type: "object",
+        },
+        type: "function",
+      };
+    });
+
+    let userMessages: Array<OllamaMessage> = messages.map((m) => {
+      switch (m.type) {
+        case "message":
+          return {
+            content: m.content,
+            role: m.role,
+          };
+
+        case "functioncall":
+          return {
+            role: "model",
+            // Technically, `content` is not required by the Ollama REST API, but required
+            // by the library type system.
+            content: "",
+            tool_calls: [
+              {
+                function: {
+                  name: m.name,
+                  arguments: m.arguments,
+                },
+              },
+            ],
+          };
+
+        case "functionresponse":
+          return {
+            role: "tool",
+            tool_name: m.name,
+            content: String(m.response),
+          };
+      }
+    });
+
+    let systemMessage: OllamaMessage = {
+      content: this.systemPrompt,
+      role: "system",
+    };
+
+    let requestMessages = [systemMessage, ...userMessages];
+    const response = await this.ollama.chat({
+      model: this.model,
+      tools: ollamaTools,
+      messages: requestMessages,
+      stream: false,
+    });
+
+    const toolCalls: Array<ToolCall> = (response.message.tool_calls || []).map((t) => {
+      return {
+        args: t.function.arguments as Record<string, unknown>,
+        functionName: t.function.name,
+      };
+    });
+
+    return {
+      toolCalls,
+      text: response.message.content || undefined,
+    };
+  }
+}

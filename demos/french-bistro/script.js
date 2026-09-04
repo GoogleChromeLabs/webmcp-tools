@@ -4,12 +4,14 @@
  */
 
 const form = document.getElementById('reservationForm');
+const submitBtn = document.getElementById("submitBtn");
 const dialog = document.getElementById('bookingDialog');
 const closeBtn = document.getElementById('closeDialogBtn');
 const modalDetails = document.getElementById('modalDetails');
 const params = new URLSearchParams(window.location.search);
 const isCrossDocument = params.has("crossdocument");
 const toolAutoSubmit = params.has("toolautosubmit");
+const isImperative = params.has("imperative");
 
 if (isCrossDocument) {
   form.setAttribute("action", "./result.html");
@@ -25,6 +27,57 @@ params.forEach((value, key) => {
 
 if (toolAutoSubmit) {
   form.setAttribute("toolautosubmit", "true");
+}
+
+if (isImperative) {
+  const [tool] = await document.modelContext.getTools();
+
+  form.removeAttribute("toolname");
+  form.removeAttribute("tooldescription");
+  document.querySelectorAll("[toolparamdescription]").forEach((element) => {
+    element.removeAttribute("toolparamdescription");
+  });
+
+  document.modelContext.registerTool({
+    name: tool.name,
+    description: tool.description,
+    inputSchema: JSON.parse(tool.inputSchema),
+    execute: async (args = {}) => {
+      for (const [key, value] of Object.entries(args)) {
+        form.elements[key].value = value;
+      }
+      validateForm();
+
+      if (formValidationErrors.length) {
+        return formValidationErrors;
+      }
+
+      if (!toolAutoSubmit) {
+        submitBtn.classList.add("pseudo-tool-submit-active");
+        submitBtn.focus();
+        await new Promise((r) =>
+          form.addEventListener("submit", r, { once: true }),
+        );
+        submitBtn.classList.remove("pseudo-tool-submit-active");
+      }
+
+      if (new URLSearchParams(window.location.search).has("agentopened")) {
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "agentopened";
+        form.appendChild(hiddenInput);
+      }
+
+      if (isCrossDocument) {
+        form.submit();
+        return "Form submitted.";
+      }
+
+      showModal();
+
+      return modalDetails.textContent;
+    },
+  });
 }
 
 // Remove form attributes to test WebMCP audit failures
@@ -60,6 +113,10 @@ form.addEventListener('submit', function (e) {
   e.preventDefault();
 
   validateForm();
+
+  if (isImperative && e.agentInvoked) {
+    return;
+  }
 
   if (formValidationErrors.length) {
     if (e.agentInvoked) {
