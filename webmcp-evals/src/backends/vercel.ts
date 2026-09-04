@@ -9,6 +9,7 @@ import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 
 import { Backend, BrowserEvalResult, LocalEvalResult } from "../backends/index.js";
+import { BrowserToolRegistry } from "../evaluator/browser.js";
 import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
@@ -105,12 +106,21 @@ export class VercelBackend implements Backend {
       }
     }
 
-    return { toolCalls, text: aiResult.text };
+    const steps: TrajectoryStep[] = (aiResult.steps ?? []).map((step) => ({
+      text: step.text,
+      reasoningText: step.reasoningText,
+      toolCalls: step.toolCalls,
+      toolResults: step.toolResults,
+    }));
+
+    return { toolCalls, text: aiResult.text, steps };
   }
 
   async executeInBrowserEval(test: Eval, registry: ToolRegistry): Promise<BrowserEvalResult> {
     const availableToolsPerStep: Array<Array<Tool>> = [];
     const stepsHistory: TrajectoryStep[] = [];
+    const getBrowserConsoleErrors = () =>
+      registry instanceof BrowserToolRegistry ? registry.getBrowserConsoleErrors() : undefined;
 
     const buildErrorTrajectory = () => {
       return stepsHistory.map((step, idx) => ({
@@ -225,12 +235,14 @@ export class VercelBackend implements Backend {
         toolCalls: executedCalls,
         text: resultPayload.text,
         steps,
+        browserConsoleErrors: getBrowserConsoleErrors(),
       };
     } catch (e: any) {
       this.logger.warn("Error running test in browser:", e);
       return {
         toolCalls: [],
         steps: buildErrorTrajectory(),
+        browserConsoleErrors: getBrowserConsoleErrors(),
         error: e,
       };
     }

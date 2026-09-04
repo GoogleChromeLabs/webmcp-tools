@@ -4,7 +4,7 @@
  */
 
 import { WebmcpConfig } from "../types/config.js";
-import { Eval, TestResult, TestResults } from "../types/evals.js";
+import { BrowserConsoleError, Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
@@ -90,9 +90,11 @@ async function runSingleBrowserTest(
   runIndex: number,
 ): Promise<TestResult[]> {
   let page: BrowserPage | null = null;
+  let registry: BrowserToolRegistry | undefined;
+  let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
     page = await setupBrowserPage(browser, config.url);
-    const registry = new BrowserToolRegistry(page);
+    registry = new BrowserToolRegistry(page);
     const currentTools = registry.getCurrentTools();
 
     if (currentTools.length === 0) {
@@ -102,6 +104,7 @@ async function runSingleBrowserTest(
     }
 
     const evalResult = await backend.executeInBrowserEval(test, registry);
+    browserConsoleErrors = evalResult.browserConsoleErrors || [];
 
     if (evalResult.error) {
       throw evalResult.error;
@@ -113,8 +116,10 @@ async function runSingleBrowserTest(
       { text: evalResult.text },
       evalResult.steps || [],
       runIndex,
+      browserConsoleErrors,
     );
   } catch (e: any) {
+    browserConsoleErrors = registry?.getBrowserConsoleErrors() || browserConsoleErrors;
     logger.warn("Error running browser test:", e);
     return [
       {
@@ -123,6 +128,7 @@ async function runSingleBrowserTest(
         outcome: "error",
         runIndex,
         stepIndex: 1,
+        ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       },
     ];
   } finally {
@@ -147,6 +153,7 @@ function buildTestResults(
   resultPayload: { text?: string },
   trajectory: any[],
   runIndex: number,
+  browserConsoleErrors: BrowserConsoleError[],
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const trajectories = test.expectedCall
@@ -160,12 +167,14 @@ function buildTestResults(
       response,
       outcome: "pass",
       trajectory,
+      ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       runIndex,
       stepIndex: 1,
     });
   } else {
     let stepIndex = 1;
     for (const traj of trajectories) {
+      const currentStepIndex = stepIndex++;
       let response: any = traj.actual;
       if (!response && executedCalls.length === 0 && resultPayload.text) {
         response = { text: resultPayload.text };
@@ -182,8 +191,11 @@ function buildTestResults(
         response,
         outcome: traj.outcome,
         trajectory,
+        ...(currentStepIndex === 1 && browserConsoleErrors.length > 0
+          ? { browserConsoleErrors }
+          : {}),
         runIndex,
-        stepIndex: stepIndex++,
+        stepIndex: currentStepIndex,
       });
     }
   }

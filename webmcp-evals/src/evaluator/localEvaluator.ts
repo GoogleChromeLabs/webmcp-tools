@@ -54,6 +54,7 @@ export async function executeLocalEvals(
             test,
             response: null,
             outcome: "pass",
+            trajectory: response.steps,
             runIndex: r + 1,
             stepIndex: 1,
           };
@@ -73,6 +74,7 @@ export async function executeLocalEvals(
               },
               response: traj.actual,
               outcome: traj.outcome,
+              trajectory: response.steps,
               runIndex: r + 1,
               stepIndex: stepIndex++,
             };
