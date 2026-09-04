@@ -12,7 +12,9 @@
 
     /* Output */
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+
+    "types": ["node", "webmcp-types"]
   },
   "include": ["src/**/*"]
 }

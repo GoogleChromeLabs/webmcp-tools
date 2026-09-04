@@ -25,18 +25,18 @@ jobs:
         with:
           node-version: 24
           cache: "npm"
-          cache-dependency-path: "evals-cli/package-lock.json"
+          cache-dependency-path: "webmcp-evals/package-lock.json"
 
       - name: Install dependencies
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npm ci
 
       - name: Build distribution
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npm run build
 
       - name: Dry run (verify build & CLI help command)
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: |
           node dist/bin/webmcp-evals.js --help
           npm publish --dry-run
@@ -49,7 +49,7 @@ jobs:
           registry-url: "https://wombat-dressing-room.appspot.com/"
 
       - name: Publish to npm (Wombat)
-        working-directory: ./evals-cli
+        working-directory: ./webmcp-evals
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../demos/shared/types/webmcp.d.ts" />
-
-import puppeteer, { Browser, ChromeReleaseChannel } from "puppeteer-core";
+import puppeteer, { Browser, ChromeReleaseChannel, ConsoleMessage } from "puppeteer-core";
 import type { Page as BrowserPage, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
+import { BrowserConsoleError } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
 import { ToolRegistry } from "./toolRegistry.js";
@@ -34,6 +32,9 @@ export async function launchBrowser(
 
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
+  private browserConsoleErrors: BrowserConsoleError[] = [];
+  private activeToolCalls = new Map<symbol, BrowserConsoleError["toolCalls"][number]>();
+  private stopObservingBrowserConsole: (() => void) | undefined;
 
   constructor(private page: BrowserPage) {}
 
@@ -43,7 +44,78 @@ export class BrowserToolRegistry implements ToolRegistry {
     return [...this.currentTools];
   }
 
+  getBrowserConsoleErrors(): BrowserConsoleError[] {
+    return [...this.browserConsoleErrors];
+  }
+
   async executeToolChecked(
+    name: string,
+    args: Record<string, unknown> = {},
+  ): Promise<{ success: true; result: any } | { success: false; error: string }> {
+    const stopCollecting = this.startCollectingBrowserConsoleErrors(name, args);
+    try {
+      return await this.executeToolWithoutConsoleCapture(name, args);
+    } finally {
+      stopCollecting();
+    }
+  }
+
+  private startCollectingBrowserConsoleErrors(
+    name: string,
+    args: Record<string, unknown>,
+  ): () => void {
+    const callId = Symbol(name);
+    this.activeToolCalls.set(callId, { functionName: name, args });
+    if (this.activeToolCalls.size === 1) {
+      this.stopObservingBrowserConsole = this.observeBrowserConsoleErrors();
+    }
+    let stopped = false;
+    return () => {
+      if (stopped) return;
+      stopped = true;
+      this.activeToolCalls.delete(callId);
+      if (this.activeToolCalls.size === 0) {
+        this.stopObservingBrowserConsole?.();
+        this.stopObservingBrowserConsole = undefined;
+      }
+    };
+  }
+
+  private observeBrowserConsoleErrors(): (() => void) | undefined {
+    const eventPage = this.page as BrowserPage & {
+      on(event: string, listener: (...eventArgs: any[]) => void): unknown;
+      off(event: string, listener: (...eventArgs: any[]) => void): unknown;
+    };
+    if (typeof eventPage.on !== "function" || typeof eventPage.off !== "function") return undefined;
+    const onConsole = (entry: ConsoleMessage) => {
+      if (entry.type() !== "error") return;
+      const location = entry.location();
+      const error: BrowserConsoleError = {
+        kind: "console",
+        message: entry.text(),
+        toolCalls: [...this.activeToolCalls.values()],
+      };
+      if (location.url) error.url = location.url;
+      if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
+      if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
+      this.browserConsoleErrors.push(error);
+    };
+    const onPageError = (error: Error) => {
+      this.browserConsoleErrors.push({
+        kind: "pageerror",
+        message: error instanceof Error ? error.message : String(error),
+        toolCalls: [...this.activeToolCalls.values()],
+      });
+    };
+    eventPage.on("console", onConsole);
+    eventPage.on("pageerror", onPageError);
+    return () => {
+      eventPage.off("console", onConsole);
+      eventPage.off("pageerror", onPageError);
+    };
+  }
+
+  private async executeToolWithoutConsoleCapture(
     name: string,
     args: Record<string, unknown> = {},
   ): Promise<{ success: true; result: any } | { success: false; error: string }> {

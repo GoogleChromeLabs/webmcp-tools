@@ -15,7 +15,7 @@ self.onconnect = (e) => {
   ports.push(port);
 
   port.onmessage = async (event) => {
-    const { type, payload, id } = event.data;
+    const { type, payload, aborted, id } = event.data;
 
     switch (type) {
       case 'CLOSE_CONNECTION':
@@ -48,7 +48,7 @@ self.onconnect = (e) => {
       case 'TOOL_RESPONSE':
         // This will be handled inside the handleUserSubmit loop via a promise resolver
         if (toolRequestResolvers.has(id)) {
-          toolRequestResolvers.get(id)(payload);
+          toolRequestResolvers.get(id)(payload, aborted);
           toolRequestResolvers.delete(id);
         }
         break;
@@ -100,16 +100,18 @@ async function handleUserSubmit(text, port, requestId) {
     const getConfig = async () => {
       const systemInstruction = [
         'You are an assistant for "Le Petit Bistro" restaurant.',
-        'Help the user make a reservation using the available tools.',
-        'CRITICAL RULE: Do not try to use other tools than the available ones.',
+        "Help the user make a reservation using the available tools.",
+        "CRITICAL RULE: Do not try to use other tools than the available ones.",
+        `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
       ];
       const tools = await requestTools(port);
       const functionDeclarations = tools.map((tool) => ({
         name: tool.name,
         description: tool.description,
-        parametersJsonSchema: tool.inputSchema
-          ? JSON.parse(tool.inputSchema)
-          : { type: 'object', properties: {} },
+        parametersJsonSchema:
+          typeof tool.inputSchema === 'string'
+            ? JSON.parse(tool.inputSchema)
+            : tool.inputSchema || { type: 'object', properties: {} },
       }));
       return { systemInstruction, tools: [{ functionDeclarations }] };
     };
@@ -133,7 +135,13 @@ async function handleUserSubmit(text, port, requestId) {
             const tool = tools.find((t) => t.name == name);
             if (!tool) throw new Error(`Tool ${name} not found`);
             
-            const result = await requestToolExecution(port, tool, JSON.stringify(args));
+            const { result, error, aborted } = await requestToolExecution(port, tool, JSON.stringify(args));
+            if (aborted) {
+              appendMessage('System', `⚙️ Aborted tool: ${name}`, 'system');
+              finalResponseGiven = true;
+              break;
+            }
+            if (error) throw new Error(`${error}`);
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
             appendMessage('System', `Error: ${error.message}`, 'system');
@@ -141,6 +149,9 @@ async function handleUserSubmit(text, port, requestId) {
               functionResponse: { name, response: { error: error.message } },
             });
           }
+        }
+        if (finalResponseGiven) {
+          break;
         }
         config = await getConfig();
         currentResult = await chat.sendMessage({ message: toolResponses, config });

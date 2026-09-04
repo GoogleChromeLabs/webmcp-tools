@@ -61,15 +61,15 @@ jobs:
           node-version: lts/*
           cache: "npm"
           cache-dependency-path: |
-            evals-cli/package-lock.json
+            webmcp-evals/package-lock.json
             ${{ matrix.dir }}/package-lock.json
 
-      - name: Install evals-cli dependencies
-        working-directory: evals-cli
+      - name: Install webmcp-evals dependencies
+        working-directory: webmcp-evals
         run: npm ci
 
-      - name: Build evals-cli
-        working-directory: evals-cli
+      - name: Build webmcp-evals
+        working-directory: webmcp-evals
         run: npm run build
 
       - name: Install demo dependencies
@@ -84,7 +84,7 @@ jobs:
           timeout 60s bash -c 'until curl -s ${{ matrix.url }} > /dev/null; do sleep 1; done'
 
       - name: Run Smoke Test
-        working-directory: evals-cli
+        working-directory: webmcp-evals
         env:
           URL: ${{ matrix.url }}
           CHROME_CHANNEL: chrome

@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directories:
-      - "/evals-cli"
+      - "/webmcp-evals"
       - "/demos/*"
     schedule:
       interval: "weekly"

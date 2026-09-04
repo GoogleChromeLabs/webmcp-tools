@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Eval, TestResult, TestResults, TrajectoryStep } from "../types/evals.js";
+import {
+  BrowserConsoleError,
+  Eval,
+  TestResult,
+  TestResults,
+  TrajectoryStep,
+} from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { ToolRegistry } from "../evaluator/toolRegistry.js";
 
@@ -17,16 +23,22 @@ export type { BrowserPage } from "../evaluator/browser.js";
  * empty array means the model responded with text and no tool calls.
  *
  * `text` is the model's final natural-language response, if any.
+ *
+ * `steps` is the per-step trajectory — the model's own text, reasoning, tool
+ * calls and tool results for each agent-loop step. Optional so a backend that
+ * cannot expose it still satisfies the interface.
  */
 export type LocalEvalResult = {
   toolCalls: ToolCall[];
   text?: string;
+  steps?: TrajectoryStep[];
 };
 
 export type BrowserEvalResult = {
   toolCalls: ToolCall[];
   text?: string;
   steps?: TrajectoryStep[];
+  browserConsoleErrors?: BrowserConsoleError[];
   error?: any;
 };
 
