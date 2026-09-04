@@ -170,7 +170,7 @@ High-frequency stopwatches ticking at 60 FPS typically flood screen reader speec
    * Visually hidden element with `role="status"`, `aria-live="polite"`, and `aria-atomic="true"`.
    * Only significant state boundaries (Started, Paused at X seconds, Reset, Mode switched) trigger polite verbal announcements.
 3. **Tabular Typography:**
-   * All digits use `[font-variant-numeric:tabular-nums_lining-nums]` with fixed character widths (`w-[1.1ch]`) to prevent horizontal layout shift during ticks.
+   * All digits use `font-variant-numeric: tabular-nums lining-nums;` on monospace type to prevent horizontal layout shift during 60 FPS ticks.
 4. **Keyboard Ergonomics:**
    * `Space`: Engage Dual / Abort Dual
    * `R`: Reset both engines
@@ -178,7 +178,21 @@ High-frequency stopwatches ticking at 60 FPS typically flood screen reader speec
 
 ---
 
-## 7. Running Locally
+## 7. Modern Web Architecture
+
+This demo uses standard CSS features recommended by Google Chrome's [Modern Web Guidance](https://github.com/GoogleChrome/modern-web-guidance-src):
+
+* **[CSS Cascade Layers (`@layer`)](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer):** Organizes reset, theme, layout, components, and state styles into predictable priority levels.
+* **[Design Tokens and `color-scheme`](https://developer.mozilla.org/en-US/docs/Web/CSS/color-scheme):** Defines theme variables on `:root` and enables browser-level dark mode styling for scrollbars.
+* **[`color-mix()` in OKLab](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color-mix):** Creates translucent button tints and background glows directly in CSS.
+* **[Intrinsic Sizing with CSS Grid](https://web.dev/learn/css/grid):** Builds a responsive side-by-side engine layout using `repeat(auto-fit, minmax(...))` without media queries.
+* **[CSS Logical Properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values):** Sets layout dimensions with `inline-size` and `padding-block` instead of physical widths and heights.
+* **Declarative DOM State Mapping (`[data-state]`):** Drives card and badge styles through HTML `data-state` attributes rather than toggling classes in JavaScript.
+* **[Accessible Motion and `prefers-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion):** Animates pulse indicators with `opacity` and automatically disables motion when requested by user preferences.
+
+---
+
+## 8. Running Locally
 
 Serve the demo using any local HTTP static server:
 

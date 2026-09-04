@@ -9,9 +9,7 @@
   <style>
     @layer reset, theme, layout, components, states;
 
-    /* ========================================================================= */
-    /* 1. DESIGN TOKENS & THEMING (Modern Web Guidance)                          */
-    /* ========================================================================= */
+    /* Theming */
     @layer theme {
       :root {
         color-scheme: dark;
@@ -39,9 +37,7 @@
       }
     }
 
-    /* ========================================================================= */
-    /* 2. RESET & BASE (Zero Global Reset Rule)                                  */
-    /* ========================================================================= */
+    /* Reset */
     @layer reset {
       *, *::before, *::after {
         box-sizing: border-box;
@@ -78,9 +74,7 @@
       }
     }
 
-    /* ========================================================================= */
-    /* 3. LAYOUT CONTAINERS (Flexbox 1D & Grid 2D Intrinsic Sizing)              */
-    /* ========================================================================= */
+    /* Layout */
     @layer layout {
       .app-shell {
         max-inline-size: 72rem;
@@ -116,9 +110,7 @@
       }
     }
 
-    /* ========================================================================= */
-    /* 4. COMPONENTS                                                             */
-    /* ========================================================================= */
+    /* Components */
     @layer components {
       /* HUD Header */
       .hud-header {
@@ -677,9 +669,7 @@
       .log-tag-signal { color: var(--mint); }
     }
 
-    /* ========================================================================= */
-    /* 5. DECLARATIVE DATA-STATE RULES (View-Source Purist Pattern)              */
-    /* ========================================================================= */
+    /* Declarative States */
     @layer states {
       /* Declarative State Pill Visibility */
       [data-state="idle"] .badge-idle {
@@ -728,7 +718,7 @@
         border-color: #3f3f46;
       }
 
-      /* Focus Visible (WCAG 2.4.13 AAA Compliance) */
+      /* Focus Visible */
       button:focus-visible,
       a:focus-visible {
         outline: 2px solid var(--cyan) !important;
@@ -776,7 +766,7 @@
         </div>
       </div>
 
-      <!-- MASTER SYNCHRONIZED ACTION GROUP (Calls WebMCP executeTool) -->
+      <!-- MASTER SYNCHRONIZED ACTION GROUP -->
       <div class="toolbar">
         <button id="btn-master-start" onclick="masterStartBoth()" class="btn btn-mint" aria-label="Start both execution engines via WebMCP">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
@@ -795,9 +785,7 @@
     <!-- DUAL COLUMN COMPARISON GRID -->
     <div class="dual-grid">
 
-      <!-- ============================================== -->
-      <!-- CORE A: CHROME 153 COOPERATIVE ABORT ENGINE   -->
-      <!-- ============================================== -->
+      <!-- CORE A -->
       <section id="core-a" class="engine-card" data-state="idle" aria-labelledby="title-engine-a">
         <!-- Engine Header -->
         <div class="engine-header">
@@ -833,7 +821,7 @@
           </div>
         </div>
 
-        <!-- Visual Promise Lifecycle Inspector (DevRel Educator Feature) -->
+        <!-- Visual Promise Lifecycle Inspector -->
         <div class="inspector-box">
           <span class="inspector-label">start_timer() Promise:</span>
           <code id="promise-state-a" class="inspector-code">&lt;UNINVOKED&gt;</code>
@@ -853,9 +841,7 @@
         </div>
       </section>
 
-      <!-- ============================================== -->
-      <!-- CORE B: LEGACY UN-ABORTABLE ENGINE            -->
-      <!-- ============================================== -->
+      <!-- CORE B -->
       <section id="core-b" class="engine-card" data-state="idle" aria-labelledby="title-engine-b">
         <!-- Engine Header -->
         <div class="engine-header">
@@ -891,7 +877,7 @@
           </div>
         </div>
 
-        <!-- Visual Promise Lifecycle Inspector (DevRel Educator Feature) -->
+        <!-- Visual Promise Lifecycle Inspector -->
         <div class="inspector-box">
           <span class="inspector-label">start_timer() Promise:</span>
           <code id="promise-state-b" class="inspector-code">&lt;UNINVOKED&gt;</code>
@@ -913,9 +899,7 @@
 
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- AGENT TOOL ACTUATION DECK (Interactive WebMCP Toolkit)                    -->
-    <!-- ========================================================================= -->
+    <!-- AGENT TOOL ACTUATION DECK -->
     <section class="toolkit-section" aria-labelledby="agent-deck-title">
       <div class="toolkit-header">
         <div class="flex-row">
@@ -988,15 +972,13 @@
 
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- JAVASCRIPT: CLEAN ARCHITECTURE WITH ZERO-DOM PURE WEBMCP ENGINE           -->
-  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT -->
   <script>
-    // -------------------------------------------------------------------------
-    // 1. ENVIRONMENT & RESOLUTION (Dynamic Polyfill Loader - Document Scope)
-    // -------------------------------------------------------------------------
     let modelContext = null;
 
+    /**
+     * Ensure WebMCP is available, if not native, inject polyfill.
+     */
     async function ensureWebMCP() {
       if (window.document.modelContext) {
         return window.document.modelContext;
@@ -1019,10 +1001,9 @@
       return window.document.modelContext;
     }
 
-    // -------------------------------------------------------------------------
-    // 2. PURE REUSABLE TIMER ENGINE (The "Copy-Paste" Scaffolder Pattern)
-    //    Zero DOM dependencies — exactly what a developer copies into a project!
-    // -------------------------------------------------------------------------
+    /**
+     * Pure reusable timer engine
+     */
     function startTimerExecution({ signal, onTick, maxDurationSeconds = 60, initialElapsed = 0, bindCancel, bindAbort }) {
       return new Promise((resolve) => {
         let elapsed = initialElapsed;
@@ -1080,9 +1061,7 @@
       });
     }
 
-    // -------------------------------------------------------------------------
-    // 3. UI STATE MANAGERS & DECLARATIVE DOM UPDATERS (View-Source Purist Pattern)
-    // -------------------------------------------------------------------------
+    // UI STATE MANAGERS
     const stateA = { elapsed: 0, status: 'idle', ctrl: null, cancel: null, abort: null, runId: 0 };
     const stateB = { elapsed: 0, status: 'idle', ctrl: null, cancel: null, abort: null, runId: 0 };
 
@@ -1141,9 +1120,7 @@
       document.getElementById('hud-log-stream').innerHTML = '';
     }
 
-    // -------------------------------------------------------------------------
-    // 4. WEBMCP TOOL REGISTRATIONS (Registered on document.modelContext)
-    // -------------------------------------------------------------------------
+    // WEBMCP TOOL REGISTRATIONS
     let toolStartRef = null;
     let toolPauseRef = null;
 
@@ -1252,10 +1229,8 @@
       }
     }
 
-    // -------------------------------------------------------------------------
-    // 5. UNIFIED ACTUATION PATHWAY (DevRel Educator Pattern)
+    // 5. UNIFIED ACTUATION PATHWAY
     //    All triggers (Master toolbar & Agent Simulator) route through executeTool
-    // -------------------------------------------------------------------------
     async function resolveTool(name) {
       if (!modelContext) {
         modelContext = await ensureWebMCP();
