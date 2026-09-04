@@ -94,15 +94,23 @@ function App() {
     if (isBlocked) return;
     // Plan order = genuine topological sort of the bottleneck + its dependents.
     const chain = computePlanOrder(tasks, bottleneckTaskId);
-    useFocusStore.getState().proposePlan({
-      id: "proposal-1",
-      primaryTaskId: bottleneckTaskId,
-      orderedTaskIds: chain,
-      rationale: ["auto — bottleneck"],
-      confidence: 0.85,
-      requiresApproval: false,
-      durationMinutes: task.estimatedMinutes || 25,
-    });
+    useFocusStore.getState().proposePlan(
+      {
+        id: "proposal-1",
+        primaryTaskId: bottleneckTaskId,
+        orderedTaskIds: chain,
+        rationale: ["FOCUS recommendation — structural bottleneck (override or replace any time)"],
+        confidence: 0.85,
+        requiresApproval: false,
+        durationMinutes: task.estimatedMinutes || 25,
+      },
+      "human",
+      {
+        // Distinguish this built-in preview from an agent proposal in the
+        // activity trace — the agent is still the intended driver.
+        logText: `FOCUS recommendation ready — start with "${bottleneckTaskId}" (agent can override via propose_focus_block)`,
+      }
+    );
   }, [bottleneckTaskId, currentProposal, tasks, isFocusing]);
 
   return (

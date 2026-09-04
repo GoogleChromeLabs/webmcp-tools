@@ -87,13 +87,28 @@ export function computeBottleneck(tasks) {
       (downstreamMap[depId] = downstreamMap[depId] || []).push(t.id);
     });
   });
+  // Transitive downstream closure: for each candidate, count every active task
+  // reachable through the dependency chain — direct AND indirect dependents.
+  // A task that unlocks a long chain is a bigger bottleneck than the count of
+  // its immediate children alone suggests.
+  const transitiveDownstream = (startId) => {
+    const seen = new Set();
+    const queue = [...(downstreamMap[startId] || [])];
+    while (queue.length) {
+      const cur = queue.shift();
+      if (seen.has(cur)) continue;
+      seen.add(cur);
+      queue.push(...(downstreamMap[cur] || []));
+    }
+    return seen.size;
+  };
   const now = Date.now();
   let best = null;
   let bestScore = -1;
   let fallback = null;
   let fallbackScore = -1;
   activeTasks.forEach((t) => {
-    const downstream = (downstreamMap[t.id] || []).length;
+    const downstream = transitiveDownstream(t.id);
     const urgency = t.dueAt ? (new Date(t.dueAt).getTime() - now) / 3600000 : 168;
     const priorityScore =
       t.priority === "critical" ? 5 : t.priority === "high" ? 3 : t.priority === "medium" ? 1 : 0;
@@ -181,7 +196,9 @@ const useFocusStore = create((set, get) => ({
   clearActivityLog: () => set({ activityLog: [] }),
 
   // Reset Demo — deterministic restore to the seeded scenario. Rebuilds from the
-  // SAME module-level TASKS snapshot so every reset is byte-identical.
+  // SAME module-level TASKS snapshot so every reset is byte-identical. The
+  // activity log is cleared first, then exactly one reset entry is appended so
+  // post-reset state matches the docs.
   resetDemo: (actor = "human") => {
     const fresh = JSON.parse(JSON.stringify(TASKS));
     const overloadLevel = computeOverload(fresh, DEMO_CONTEXT.availableMinutes).level;
@@ -193,6 +210,7 @@ const useFocusStore = create((set, get) => ({
       currentProposal: null,
       activeFocusBlock: null,
       bottleneckTaskId: null,
+      activityLog: [],
       stateVersion: s.stateVersion + 1,
     }));
     get().logActivity(actor, "Reset demo data to the seeded scenario");
@@ -274,7 +292,9 @@ const useFocusStore = create((set, get) => ({
   },
 
   // --- Plan proposal / override / restructure ---
-  proposePlan: (proposal, actor = "human") => {
+  // opts.logText overrides the activity entry text so the app's auto-preview
+  // can label itself a "FOCUS recommendation" — distinct from agent proposals.
+  proposePlan: (proposal, actor = "human", opts = {}) => {
     const primaryTaskId = proposal.primaryTaskId;
     const orderedTaskIds = computePlanOrder(get().tasks, primaryTaskId);
     const capacity = computeCapacity(get().tasks, orderedTaskIds, get().availableMinutes);
@@ -286,7 +306,11 @@ const useFocusStore = create((set, get) => ({
       capacity,
     };
     set((s) => ({ currentProposal: normalized, stateVersion: s.stateVersion + 1 }));
-    get().logActivity(actor, `Proposed focus block starting with "${primaryTaskId}"`, { taskId: primaryTaskId });
+    get().logActivity(
+      actor,
+      opts.logText ?? `Proposed focus block starting with "${primaryTaskId}"`,
+      { taskId: primaryTaskId }
+    );
     return normalized;
   },
 
@@ -462,7 +486,9 @@ const useFocusStore = create((set, get) => ({
       : [];
 
     return {
-      status: "completed",
+      // Mirror the outcome verbatim: "completed", "partially_completed", or
+      // "abandoned" — never a hardcoded "completed".
+      status: result,
       completedTaskId: block.taskId,
       completedTaskTitle: completedTask?.title || null,
       result,

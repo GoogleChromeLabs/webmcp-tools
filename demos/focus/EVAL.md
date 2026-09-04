@@ -8,8 +8,8 @@ Run `npm test` (Node's built-in `node --test`). Two files, 25 assertions:
 
 | File | What it locks |
 |------|---------------|
-| `tests/dependencyEngine.test.mjs` | Kahn topological sort (prereqs precede dependents; branching + multiple parents), Tarjan cycle detection, deterministic tie-breaking, disconnected-task safety. |
-| `tests/focusStore.test.mjs` | Seeded 13-task/120m/high scenario; read-computation purity (no `stateVersion` bump); every mutation bumps exactly once; sequential delta accumulation; `proposePlan` produces a valid topo order; `completeFocusBlock` advances to the next unblocked task (`management-ch7` → `quiz-prep`); blocked task rejects with `TASK_BLOCKED`; `resetDemo` is deterministic; bottleneck resolves to `management-ch7`. |
+| `tests/dependencyEngine.test.mjs` | Kahn topological sort (prereqs precede dependents; branching + multiple parents), real Tarjan SCC cycle detection (tasks that merely depend on a cycle are not cycle members; disjoint cycles reported separately), deterministic tie-breaking, disconnected-task safety. |
+| `tests/focusStore.test.mjs` | Seeded 13-task/120m/high scenario; read-computation purity (no `stateVersion` bump); every mutation bumps exactly once; sequential delta accumulation; `proposePlan` produces a valid topo order; `completeFocusBlock` advances to the next unblocked task (`management-ch7` → `quiz-prep`); blocked task rejects with `TASK_BLOCKED`; `resetDemo` is deterministic and clears the activity log to exactly one reset entry; bottleneck resolves to `management-ch7` via the **transitive** downstream closure (locked by a synthetic graph where immediate-children counting would pick the wrong task); `completeFocusBlock` `status` mirrors `result` (`"abandoned"` leaves the task in backlog; `"partially_completed"` completes it). |
 
 ## Authority contract (applies to every row)
 
@@ -70,7 +70,7 @@ Legend: **Prompt** = natural-language input to the agent model. **Sequence** = t
 
 **Sequence:** `get_workload_state` → `identify_bottleneck`.
 
-**State assertion:** `bottleneckTaskId === "management-ch7"`, *not* `email-teacher` (which is due soon and only 10m). Bottleneck is structural (most downstream work), deadline only breaks ties.
+**State assertion:** `bottleneckTaskId === "management-ch7"`, *not* `email-teacher` (which is due soon and only 10m). Bottleneck is structural — counted over the transitive downstream closure (4 tasks), not immediate children — deadline only breaks ties.
 
 ### R6 — Overload falls when time budget rises
 
@@ -110,7 +110,7 @@ Legend: **Prompt** = natural-language input to the agent model. **Sequence** = t
 
 **Sequence:** `reset_demo`.
 
-**State assertion:** `reset_demo` returns `{status:"reset", taskCount:13, availableMinutes:120, overloadLevel:"high"}`. `tasks` byte-identical to the seeded snapshot (same anchor → same timestamps). `currentProposal:null`, `activeFocusBlock:null`. **UI:** ActivityRail shows a `HUMAN`/`AGENT` reset entry; Reset Demo button reflects the restored state.
+**State assertion:** `reset_demo` returns `{status:"reset", taskCount:13, availableMinutes:120, overloadLevel:"high"}`. `tasks` byte-identical to the seeded snapshot (same anchor → same timestamps). `currentProposal:null`, `activeFocusBlock:null`. The activity log is **cleared and then holds exactly one reset entry** — deterministic across repeated resets. **UI:** ActivityRail shows a single `HUMAN`/`AGENT` reset entry; Reset Demo button reflects the restored state.
 
 ## Matrix summary
 

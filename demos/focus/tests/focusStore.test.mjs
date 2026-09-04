@@ -134,3 +134,61 @@ test("bottleneck is management-ch7 (most downstream + near deadline)", () => {
   const bottleneck = computeBottleneck(useFocusStore.getState().tasks);
   assert.equal(bottleneck, "management-ch7");
 });
+
+test("bottleneck uses transitive downstream closure, not immediate children", () => {
+  // x unlocks a 3-deep chain (y -> z1 -> z2); w unlocks one task (w1) and has
+  // a far-nearer deadline. Immediate-children counting scores x and w equally
+  // (1 each) and the deadline tie-break picks w. Transitive closure counts
+  // x's full chain (3) so x must win.
+  const now = Date.now();
+  const hours = (h) => new Date(now + h * 3600000).toISOString();
+  const tasks = [
+    { id: "x", dependencies: [], dueAt: hours(100) },
+    { id: "y", dependencies: ["x"] },
+    { id: "z1", dependencies: ["y"] },
+    { id: "z2", dependencies: ["z1"] },
+    { id: "w", dependencies: [], dueAt: hours(1) },
+    { id: "w1", dependencies: ["w"] },
+  ];
+  assert.equal(computeBottleneck(tasks), "x");
+});
+
+test("resetDemo clears the activity log, then logs exactly one reset entry", () => {
+  const st = useFocusStore.getState();
+  st.addTask({ title: "noise" }, "test");
+  st.logActivity("agent", "agent read the workload state");
+  st.logActivity("human", "human overrode the plan");
+  assert.ok(useFocusStore.getState().activityLog.length >= 3, "log should have entries before reset");
+
+  reset();
+  const s = useFocusStore.getState();
+  assert.equal(s.activityLog.length, 1, "reset leaves exactly one entry");
+  assert.equal(s.activityLog[0].actor, "human");
+  assert.equal(s.activityLog[0].text, "Reset demo data to the seeded scenario");
+
+  // Deterministic across repeated resets: same shape every time.
+  const first = JSON.stringify(s.activityLog.map((e) => [e.actor, e.text]));
+  reset();
+  const s2 = useFocusStore.getState();
+  assert.equal(s2.activityLog.length, 1);
+  assert.equal(JSON.stringify(s2.activityLog.map((e) => [e.actor, e.text])), first);
+});
+
+test("completeFocusBlock mirrors the abandoned result — status contract", () => {
+  const st = useFocusStore.getState();
+  st.startFocusBlock("management-ch7", 25, "test");
+  const outcome = st.completeFocusBlock("abandoned", "test");
+  assert.equal(outcome.status, "abandoned", "status must mirror result, not hardcode completed");
+  assert.equal(outcome.result, "abandoned");
+  const task = useFocusStore.getState().tasks.find((t) => t.id === "management-ch7");
+  assert.equal(task.status, "backlog", "abandoned task must NOT be marked completed");
+});
+
+test("completeFocusBlock partially_completed marks the task complete with matching status", () => {
+  const st = useFocusStore.getState();
+  st.startFocusBlock("management-ch7", 25, "test");
+  const outcome = st.completeFocusBlock("partially_completed", "test");
+  assert.equal(outcome.status, "partially_completed");
+  const task = useFocusStore.getState().tasks.find((t) => t.id === "management-ch7");
+  assert.equal(task.status, "completed");
+});

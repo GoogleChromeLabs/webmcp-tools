@@ -119,6 +119,8 @@ test('single node', () => {
 });
 
 // Additional test: node whose dependency is in a cycle
+// Under real Tarjan SCC, c merely DEPENDS on the cycle (a <-> b) — it is not
+// itself a cycle member, so it must NOT appear in cycles.
 test('node depending on cycle member', () => {
   const tasks = [
     { id: 'a', dependencies: ['b'] },
@@ -128,9 +130,25 @@ test('node depending on cycle member', () => {
   const result = topologicalSort(tasks);
   assert.strictEqual(result.order.length, 0);
   assert.strictEqual(result.cycles.length, 1);
-  assert.ok(result.cycles[0].includes('a'));
-  assert.ok(result.cycles[0].includes('b'));
-  assert.ok(result.cycles[0].includes('c'));
+  assert.deepStrictEqual(result.cycles[0], ['a', 'b']);
+  assert.ok(!result.cycles[0].includes('c'), 'c depends on the cycle but is not in it');
+});
+
+// Additional test: two disjoint cycles are detected as separate SCCs
+test('two disjoint cycles are separate SCCs', () => {
+  const tasks = [
+    { id: 'a', dependencies: ['b'] },
+    { id: 'b', dependencies: ['a'] },
+    { id: 'c', dependencies: ['d'] },
+    { id: 'd', dependencies: ['c'] },
+    { id: 'e', dependencies: ['a'] }, // depends on cycle 1, not a member
+  ];
+  const result = topologicalSort(tasks);
+  assert.strictEqual(result.order.length, 0);
+  assert.strictEqual(result.cycles.length, 2);
+  assert.deepStrictEqual(result.cycles[0], ['a', 'b']);
+  assert.deepStrictEqual(result.cycles[1], ['c', 'd']);
+  assert.ok(!result.cycles[0].includes('e'));
 });
 
 // Additional test: longer cycle

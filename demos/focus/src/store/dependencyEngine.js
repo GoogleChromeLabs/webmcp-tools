@@ -139,43 +139,82 @@ export function topologicalSort(tasks) {
     }
   }
 
-  // Find strongly connected components (cycles) using Tarjan's algorithm
-  // But we only care about nodes that weren't processed
-  // Build subgraph of unprocessed nodes
+  // Find strongly connected components among the unprocessed nodes using a
+  // real (iterative) Tarjan's algorithm. A cycle is any SCC with more than one
+  // node, or a single node with a self-loop. Nodes that merely depend on a
+  // cycle (Kahn already excluded them) are NOT cycle members.
   const unprocessedSet = new Set(unprocessedNodes);
 
-  // For simple cycle detection, find nodes with remaining in-degree > 0
-  // These are nodes participating in cycles
-  const cycleGroups = [];
-  const visitedForCycle = new Set();
+  const indexOf = new Map();
+  const lowlink = new Map();
+  const onStack = new Set();
+  const sccStack = [];
+  let nextIndex = 0;
+  const sccs = [];
 
   for (const startNode of unprocessedNodes) {
-    if (visitedForCycle.has(startNode)) continue;
+    if (indexOf.has(startNode)) continue;
 
-    // DFS to find all nodes in this cycle component
-    const cycleGroup = [];
-    const stack = [startNode];
+    // Iterative Tarjan: an explicit frame stack replaces recursion. Each frame
+    // tracks the node and how far it has advanced through its dependents.
+    indexOf.set(startNode, nextIndex);
+    lowlink.set(startNode, nextIndex);
+    nextIndex += 1;
+    sccStack.push(startNode);
+    onStack.add(startNode);
+    const callStack = [{ node: startNode, dependents: edges.get(startNode) || [], i: 0 }];
 
-    while (stack.length > 0) {
-      const node = stack.pop();
-      if (visitedForCycle.has(node)) continue;
-      visitedForCycle.add(node);
-      cycleGroup.push(node);
+    while (callStack.length > 0) {
+      const frame = callStack[callStack.length - 1];
 
-      // Add unprocessed neighbors
-      const neighbors = edges.get(node) || [];
-      for (const neighbor of neighbors) {
-        if (unprocessedSet.has(neighbor) && !visitedForCycle.has(neighbor)) {
-          stack.push(neighbor);
+      if (frame.i < frame.dependents.length) {
+        const w = frame.dependents[frame.i];
+        frame.i += 1;
+
+        if (!unprocessedSet.has(w)) continue;
+
+        if (!indexOf.has(w)) {
+          // Tree edge — descend into w.
+          indexOf.set(w, nextIndex);
+          lowlink.set(w, nextIndex);
+          nextIndex += 1;
+          sccStack.push(w);
+          onStack.add(w);
+          callStack.push({ node: w, dependents: edges.get(w) || [], i: 0 });
+        } else if (onStack.has(w)) {
+          // Back/cross edge to a node still on the SCC stack.
+          lowlink.set(frame.node, Math.min(lowlink.get(frame.node), indexOf.get(w)));
+        }
+        // Edge to a visited node NOT on the stack points into a completed
+        // SCC — it cannot form a cycle, so it is ignored.
+      } else {
+        // All dependents of frame.node examined — pop the frame.
+        callStack.pop();
+        if (callStack.length > 0) {
+          const parent = callStack[callStack.length - 1].node;
+          lowlink.set(parent, Math.min(lowlink.get(parent), lowlink.get(frame.node)));
+        }
+        if (lowlink.get(frame.node) === indexOf.get(frame.node)) {
+          // frame.node is the root of an SCC — pop it off the SCC stack.
+          const scc = [];
+          for (;;) {
+            const w = sccStack.pop();
+            onStack.delete(w);
+            scc.push(w);
+            if (w === frame.node) break;
+          }
+          sccs.push(scc);
         }
       }
     }
-
-    if (cycleGroup.length > 0) {
-      cycleGroup.sort(); // Deterministic ordering within cycle group
-      cycleGroups.push(cycleGroup);
-    }
   }
+
+  const cycleGroups = sccs
+    .filter(
+      (scc) =>
+        scc.length > 1 || (edges.get(scc[0]) || []).includes(scc[0])
+    )
+    .map((scc) => [...scc].sort()); // Deterministic ordering within cycle group
 
   // Sort cycle groups deterministically (by first element)
   cycleGroups.sort((a, b) => {

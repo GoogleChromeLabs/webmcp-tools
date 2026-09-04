@@ -10,7 +10,7 @@ FOCUS is a WebMCP-native executive-function command center for moments of cognit
 
 Cognitive overload is fundamentally a *state* problem. The user's tasks, deadlines, dependencies, and available time exist as a structured graph inside the application. A chatbot sitting beside a to-do list can't inspect this graph — it has no access to the dependency relationships, the bottleneck analysis, or the proposal state. WebMCP is the only bridge that gives the agent typed, structured access to this live application state.
 
-Every tool FOCUS exposes is an *intent-level action* — not a UI primitive. The agent doesn't click buttons or fill forms. It calls `identify_bottleneck()` and receives the exact task that blocks the most downstream work. It calls `override_plan()` and the application recomputes the entire dependency chain.
+Every tool FOCUS exposes is an *intent-level action* — not a UI primitive. The agent doesn't click buttons or fill forms. It calls `identify_bottleneck()` and receives the exact task that blocks the most downstream work, computed over the **transitive** closure of the dependency graph (direct and indirect dependents, not just immediate children). It calls `override_plan()` and the application recomputes the entire dependency chain.
 
 ## How it creates a better experience
 
@@ -30,7 +30,7 @@ Now an agent and human can negotiate a plan together in a tight loop:
 4. Human overrides through `override_plan` — the agent recomputes dependencies via `restructure_plan`
 5. Human physically approves in the UI — the agent then confirms via `start_focus_block`
 6. Agent records the outcome through `complete_focus_block`
-7. Any time, either side runs `reset_demo` to restore the seeded scenario deterministically
+7. Any time, either side runs `reset_demo` to restore the seeded scenario deterministically — the activity log is cleared, then exactly one reset entry is appended
 
 ## Tool Surface & Data Schema
 
@@ -56,7 +56,7 @@ FOCUS registers **13 WebMCP tools** in two operation classes. Every read tool is
 | `restructure_plan` | `{ status: "restructured", previousOrder[], newOrder[], stateVersion }` | `{ expectedStateVersion? }` |
 | `defer_task` | `{ status: "deferred", taskId, stateVersion }` | `{ taskId: string, expectedStateVersion? }` |
 | `start_focus_block` | `{ status: "active", taskId, durationMinutes, startedAt, stateVersion }` or an error (below) | `{ taskId?, durationMinutes?, expectedStateVersion? }` |
-| `complete_focus_block` | `{ status: "completed", completedTaskId, completedTaskTitle, result, elapsedMinutes, nextTask?, allDone, overloadLevel, activeCount, totalMinutes, stateVersion }` | `{ result: "completed"|"partially_completed"|"abandoned", expectedStateVersion? }` |
+| `complete_focus_block` | `{ status: result, completedTaskId, completedTaskTitle, result, elapsedMinutes, nextTask?, allDone, overloadLevel, activeCount, totalMinutes, stateVersion }` — `status` mirrors `result` verbatim: `"completed"`, `"partially_completed"`, or `"abandoned"` | `{ result: "completed"|"partially_completed"|"abandoned", expectedStateVersion? }` |
 | `reset_demo` | `{ status: "reset", taskCount, availableMinutes, overloadLevel, stateVersion }` | `{}` |
 
 ### Error Response Schema
@@ -75,7 +75,7 @@ Error codes: `STALE_STATE` (state version mismatch), `TASK_NOT_FOUND` (unknown t
 
 ## The plan is a real topological sort
 
-The plan emitted by `propose_focus_block` is not a heuristic sequence. `computePlanOrder(taskId)` takes the primary task plus its **transitive dependents** (backlog only) and runs them through Kahn's algorithm in `dependencyEngine.js` — so prerequisites always precede dependents, branching and multiple parents are handled, and disconnected tasks are correctly left out of scope. Cycle detection is explicit (Tarjan's algorithm for the elected cycle set), and tie-breaking is deterministic (due date → priority → id). This is what makes `override_plan` + `restructure_plan` meaningful: the graph genuinely reorders rather than reshuffling a flat list.
+The plan emitted by `propose_focus_block` is not a heuristic sequence. `computePlanOrder(taskId)` takes the primary task plus its **transitive dependents** (backlog only) and runs them through Kahn's algorithm in `dependencyEngine.js` — so prerequisites always precede dependents, branching and multiple parents are handled, and disconnected tasks are correctly left out of scope. Cycle detection is explicit — a real (iterative) Tarjan SCC pass finds strongly connected components, where a cycle is any SCC with more than one node or a single self-looped node; tasks that merely *depend on* a cycle are not reported as cycle members. Tie-breaking is deterministic (due date → priority → id). This is what makes `override_plan` + `restructure_plan` meaningful: the graph genuinely reorders rather than reshuffling a flat list.
 
 ## How WebMCP is implemented
 
@@ -96,7 +96,7 @@ The agent **analyzes and proposes**; the human **overrides, approves, and execut
 
 ### The judge-visible activity trace
 
-Every mutation logs into `activityLog` with an explicit `actor` — `agent` or `human` — shown reverse-chronologically in the **ActivityRail**. This is a product-quality, judge-visible record of the collaboration, not a developer console.
+Every mutation logs into `activityLog` with an explicit `actor` — `agent` or `human` — shown reverse-chronologically in the **ActivityRail**. This is a product-quality, judge-visible record of the collaboration, not a developer console. The app's built-in pre-load preview (which fills the START HERE card before any agent connects) is labeled a **FOCUS recommendation** in the trace — explicitly distinct from an **agent proposal** via `propose_focus_block`. The agent remains the intended driver; the built-in preview exists so the UI demonstrates the full negotiation loop with or without one.
 
 ## State Schema
 
@@ -130,7 +130,7 @@ interface ActivityEntry {
 
 ## Seeded demo scenario
 
-Deterministic and **never stale**: 13 tasks, ~375m of work against 120m available (deliberately overloaded). Deadlines are *relative* to a single load-time anchor (`demoTasks.js`'s `buildDemoTasks(now)`) — "due soon", "later today", "tonight", "tomorrow", "in 2–3 days", "no deadline" — so the scenario reads identically no matter when it is opened. The dependency graph has multiple chains and one obvious bottleneck: `management-ch7`, which unlocks both `quiz-prep` and `pack-backpack`. **Reset Demo restores this exact state byte-for-byte** (same anchor, so identical timestamps).
+Deterministic and **never stale**: 13 tasks, ~375m of work against 120m available (deliberately overloaded). Deadlines are *relative* to a single load-time anchor (`demoTasks.js`'s `buildDemoTasks(now)`) — "due soon", "later today", "tonight", "tomorrow", "in 2–3 days", "no deadline" — so the scenario reads identically no matter when it is opened. The dependency graph has multiple chains and one obvious bottleneck: `management-ch7`, which transitively unlocks four downstream tasks (`quiz-prep`, `complete-quiz`, `pack-backpack`, `math-assignment`). **Reset Demo restores this exact state byte-for-byte** (same anchor, so identical timestamps).
 
 ## Architecture
 

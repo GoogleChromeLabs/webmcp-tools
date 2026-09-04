@@ -42,7 +42,7 @@
 **Visual:** Back to the FOCUS UI. The dependency graph animates — one node highlights blue, pulsing. All other nodes dim. The START HERE card appears.
 
 **Voiceover:**
-> "The app transforms. The agent identified that 'Finish Management Chapter 7' blocks five downstream tasks including today's quiz. The bottleneck node pulses blue. Everything else fades. The START HERE intervention says: 'Start here. 25 minutes. Blocks 5 tasks.'"
+> "The app transforms. The agent identified that 'Finish Management Chapter 7' transitively blocks four downstream tasks including today's quiz. The bottleneck node pulses blue. Everything else fades. The START HERE card shows the FOCUS recommendation: 'Start here. 25 minutes. Blocks 4 tasks.'"
 
 **Zoom in on START HERE card**
 
