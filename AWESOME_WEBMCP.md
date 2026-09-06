@@ -106,6 +106,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Fix the scheduling conflict and find any jobs that don't have a driver yet."
 - [Respira for WordPress](https://chatgpt-respira.instawp.site) - A real WordPress site you edit by asking. The agent reads the page you are both looking at, writes your change to a copy of it, and waits for you to approve that copy before anything reaches the live page. Works with whatever page builder the site was already built in. [Source](https://github.com/respira-press/webmcp-for-wordpress) | [How it works](https://www.respira.press)
   - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
+- [GunsNation](https://gunsnation.com) - A firearms price-comparison catalog where every page registers five WebMCP tools on `document.modelContext`: `search_firearms` and `get_firearm` for read-only catalog search and lookup, and `add_to_compare`, `remove_from_compare`, and `list_compare` to drive the site's compare tray.
+  - **Example Prompt:** "Find a 9mm handgun under $500 and add it to my comparison."
 
 ## Libraries & Tools
 
