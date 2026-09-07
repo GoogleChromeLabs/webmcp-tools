@@ -130,7 +130,7 @@ export class ToolRegistry {
               `Available: ${[...toolMap.keys()].join(", ")}`,
           );
         }
-        return tool.execute(args);
+        return tool.execute(args, {} as WebMCP.ToolExecuteCallbackOptions);
       },
     };
   }
