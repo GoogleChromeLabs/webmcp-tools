@@ -12,7 +12,7 @@
  * - `connect-src 'self'` in the page CSP prevents arbitrary outbound requests.
  * - `gameTools.executeTool` is a controlled bridge — the worker can only invoke
  *   tools currently registered in the main thread's `toolMap`.
- * - The worker is terminated on completion or after {@link EVAL_TIMEOUT_MS}.
+ * - The worker is terminated on completion, abort, or after {@link EVAL_TIMEOUT_MS}.
  *
  * Message protocol (main ↔ worker):
  * - Main → Worker: `{ type: 'run', code: string }`
@@ -76,6 +76,16 @@ self.onmessage = async (e) => {
 const EVAL_TIMEOUT_MS = 300_000;
 
 /**
+ * Extracts a descriptive error message from an AbortSignal, falling back to a default.
+ */
+function getAbortErrorMessage(signal: AbortSignal): string {
+  return (
+    signal.reason?.message ??
+    (typeof signal.reason === "string" ? signal.reason : "Execution aborted")
+  );
+}
+
+/**
  * Creates the `eval_code` MCP tool.
  *
  * Allows the AI agent to submit JavaScript code that is executed in a
@@ -90,7 +100,7 @@ const EVAL_TIMEOUT_MS = 300_000;
  * The return value of the last expression (or an explicit `return`) is
  * serialised as JSON and sent back to the agent.
  *
- * The worker is terminated automatically on completion, error, or timeout.
+ * The worker is terminated automatically on completion, error, timeout, or abort.
  */
 export function createEvalTool(): WebMCP.ModelContextTool {
   return {
@@ -126,12 +136,20 @@ export function createEvalTool(): WebMCP.ModelContextTool {
       },
       required: ["code"],
     },
-    execute(input: Record<string, unknown>): Promise<object> {
+    execute(input, options): Promise<object> {
       const code = input.code as string;
+      const signal = options?.signal;
 
       console.group("[eval_code] LLM submitted code");
       console.log(code);
       console.groupEnd();
+
+      if (signal?.aborted) {
+        return Promise.resolve({
+          success: false,
+          error: getAbortErrorMessage(signal),
+        });
+      }
 
       return new Promise<object>((resolve) => {
         const blob = new Blob([EVAL_WORKER_SCRIPT], {
@@ -146,11 +164,22 @@ export function createEvalTool(): WebMCP.ModelContextTool {
         const finish = (response: object): void => {
           if (settled) return;
           settled = true;
+          signal?.removeEventListener("abort", onAbort);
           clearTimeout(timeoutId);
           worker.terminate();
           URL.revokeObjectURL(workerUrl);
           resolve(response);
         };
+
+        const onAbort = (): void => {
+          console.error("[eval_code] execution aborted");
+          finish({
+            success: false,
+            error: getAbortErrorMessage(signal!),
+          });
+        };
+
+        signal?.addEventListener("abort", onAbort, { once: true });
 
         const timeoutId = setTimeout(() => {
           console.error(`[eval_code] timed out after ${EVAL_TIMEOUT_MS}ms`);
@@ -190,12 +219,14 @@ export function createEvalTool(): WebMCP.ModelContextTool {
                 name,
                 args ?? {},
               );
+              if (settled) return;
               worker.postMessage({
                 type: "toolResult",
                 id,
                 result: toolResult,
               });
             } catch (err) {
+              if (settled) return;
               const errMsg = err instanceof Error ? err.message : String(err);
               worker.postMessage({ type: "toolResult", id, error: errMsg });
             }
