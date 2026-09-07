@@ -122,6 +122,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [WebMCP Kit](https://github.com/nekuda-ai/webmcp-kit) - A plugin for coding agents with an interactive visual Explorer that maps a site's user journeys to proposed WebMCP tools for review and approval, then implements and verifies them in a real browser.
 - [WindTunnel](https://github.com/nekuda-ai/WindTunnel) - An open-source benchmark comparing WebMCP with other browser-agent interfaces across task success, execution time, token usage, and cost.
 - [webmcp-kit](https://www.npmjs.com/package/@ashraf009/webmcp-kit) ([code](https://github.com/AshrafAhmed9/webmcp-kit)) - A small typed WebMCP library: `defineTool`/`registerTools` with full JSON-Schema-to-TS inference, React hooks (`useWebMCPTool`, `useScopedTools` for dynamic tool sets tied to component state), `withConfirmation` for consequential actions, and a subscribable activity log. Used by Cadence, Consequence, and Relay above.
+- [DeepDeck](https://github.com/jo32/DeepDeck) - MIT-licensed macOS desktop client based on DeepSeek Harness that discovers and calls website-provided WebMCP tools. Its Builder lets an agent explore a site, generate and verify tools, and save versioned source per site for reuse in the DeepDeck browser.
 
 ## Contributing
 
