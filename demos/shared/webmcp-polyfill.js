@@ -218,7 +218,7 @@
           let isSameOrigin = false;
           try {
             isSameOrigin = !!win.document;
-          } catch (e) {}
+          } catch (e) { }
 
           if (isSameOrigin) {
             allTools.push(...getLocalTools(win));
@@ -249,7 +249,7 @@
       return filteredTools;
     }
 
-    async executeTool(tool, args, options) {
+    async executeTool(tool, args, options = {}) {
       const win = tool.window || window;
 
       if (tool._isRemote) {
@@ -290,7 +290,7 @@
       // 1. Check if it's an imperative tool registered here
       if (win.__webmcp_registered_tools && win.__webmcp_registered_tools.has(tool.name)) {
         const registeredTool = win.__webmcp_registered_tools.get(tool.name);
-        return registeredTool._execute(parsedArgs);
+        return registeredTool._execute(parsedArgs, { signal: options.signal });
       }
 
       // 2. Check if it's a declarative tool

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebMCP AbortSignal Explorer — Chrome 153 Dual-Engine Benchmark</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Isolated Hidden A11y Announcer for Screen Readers (WCAG 2.2 AAA speech isolation) -->
+  <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="app-shell">
+
+    <!-- TOP CYBER HUD HEADER -->
+    <header class="hud-header">
+      <div class="hud-title-group">
+        <div class="hud-icon">
+          ⚡
+        </div>
+        <div>
+          <div class="flex-row">
+            <h1 class="hud-title">WEBMCP::DUAL_BENCH</h1>
+            <span class="badge badge-cyan">Chrome 153</span>
+            <span id="runtime-badge" class="badge badge-mint">Native API</span>
+          </div>
+          <p class="hud-subtitle">Direct Comparison: Chrome 153 AbortSignal vs Legacy Un-abortable Loop</p>
+        </div>
+      </div>
+
+      <!-- MASTER SYNCHRONIZED ACTION GROUP -->
+      <div class="toolbar">
+        <button id="btn-master-start" onclick="masterStartBoth()" class="btn btn-mint" aria-label="Start both execution engines via WebMCP">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+          Engage Dual
+        </button>
+        <button id="btn-master-abort" onclick="masterAbortBoth()" class="btn btn-magenta" aria-label="Trigger pause_timer via WebMCP">
+          <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+          Abort Dual
+        </button>
+        <button id="btn-master-reset" onclick="masterResetBoth()" class="btn btn-subtle" title="Reset Both Engines">
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <!-- DUAL COLUMN COMPARISON GRID -->
+    <div class="dual-grid">
+
+      <!-- CORE A -->
+      <section id="core-a" class="engine-card" data-state="idle" aria-labelledby="title-engine-a">
+        <!-- Engine Header -->
+        <div class="engine-header">
+          <span class="status-dot"></span>
+          <h2 id="title-engine-a">CORE A: CHROME 153+ (with AbortSignal)</h2>
+        </div>
+
+        <!-- Digital Readout Display Bay -->
+        <div class="readout-bay">
+          <div class="readout-label">
+            CHRONO VECTOR A
+          </div>
+          <div role="timer" aria-live="off" class="readout-timer">
+            <span id="timer-a-sec">00:00</span>.<span id="timer-a-ms" class="ms-mint">00</span>
+          </div>
+
+          <!-- Declarative Status Pill (Auto-styled via CSS [data-state]) -->
+          <div class="badge-group">
+            <span class="state-badge badge-idle">
+              IDLE (0% CPU)
+            </span>
+            <span class="state-badge badge-running">
+              <span class="badge-dot badge-dot-pulse"></span>
+              <span>RUNNING [THREAD_LOCKED ~60 FPS]</span>
+            </span>
+            <span class="state-badge badge-paused">
+              <span class="badge-dot"></span>
+              <span>PAUSED (Thread Released 0% CPU)</span>
+            </span>
+            <span class="state-badge badge-completed">
+              COMPLETED (60s Limit)
+            </span>
+          </div>
+        </div>
+
+        <!-- Visual Promise Lifecycle Inspector -->
+        <div class="inspector-box">
+          <span class="inspector-label">start_timer() Promise:</span>
+          <code id="promise-state-a" class="inspector-code">&lt;UNINVOKED&gt;</code>
+        </div>
+
+        <!-- Behavioral Checklist -->
+        <div class="checklist">
+          <div class="check-item check-success">
+            <span>✓</span> <span>Instant freeze when AbortController signals</span>
+          </div>
+          <div class="check-item check-success">
+            <span>✓</span> <span>Promise resolves cleanly with { status: "paused" }</span>
+          </div>
+          <div class="check-item check-success">
+            <span>✓</span> <span>Releases browser execution thread immediately</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CORE B -->
+      <section id="core-b" class="engine-card" data-state="idle" aria-labelledby="title-engine-b">
+        <!-- Engine Header -->
+        <div class="engine-header">
+          <span class="status-dot"></span>
+          <h2 id="title-engine-b">CORE B: LEGACY (No AbortSignal)</h2>
+        </div>
+
+        <!-- Digital Readout Display Bay -->
+        <div class="readout-bay">
+          <div class="readout-label">
+            CHRONO VECTOR B
+          </div>
+          <div role="timer" aria-live="off" class="readout-timer">
+            <span id="timer-b-sec">00:00</span>.<span id="timer-b-ms" class="ms-magenta">00</span>
+          </div>
+
+          <!-- Declarative Status Pill (Auto-styled via CSS [data-state]) -->
+          <div class="badge-group">
+            <span class="state-badge badge-idle">
+              IDLE (0% CPU)
+            </span>
+            <span class="state-badge badge-running">
+              <span class="badge-dot badge-dot-pulse"></span>
+              <span>RUNNING [UN-ABORTABLE ~60 FPS]</span>
+            </span>
+            <span class="state-badge badge-runaway">
+              <span class="badge-dot badge-dot-pulse"></span>
+              <span>RUNAWAY (ABORT IGNORED // THREAD BUSY)</span>
+            </span>
+            <span class="state-badge badge-completed">
+              COMPLETED (60s Limit)
+            </span>
+          </div>
+        </div>
+
+        <!-- Visual Promise Lifecycle Inspector -->
+        <div class="inspector-box">
+          <span class="inspector-label">start_timer() Promise:</span>
+          <code id="promise-state-b" class="inspector-code">&lt;UNINVOKED&gt;</code>
+        </div>
+
+        <!-- Hazards Checklist -->
+        <div class="checklist">
+          <div class="check-item check-hazard">
+            <span>✕</span> <span>Clicking Pause has NO effect on running thread</span>
+          </div>
+          <div class="check-item check-hazard">
+            <span>✕</span> <span>Consumes CPU event loop until 60s timeout</span>
+          </div>
+          <div class="check-item check-hazard">
+            <span>✕</span> <span>Host controller abort() is completely ignored</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- AGENT TOOL ACTUATION DECK -->
+    <section class="toolkit-section" aria-labelledby="agent-deck-title">
+      <div class="toolkit-header">
+        <div class="flex-row">
+          <span class="toolkit-title" id="agent-deck-title">🤖 WEBMCP AGENT TOOLKIT</span>
+          <span class="badge badge-cyan">2 Registered Tools</span>
+        </div>
+        <span class="toolkit-desc">Simulate AI Agent invoking WebMCP tools via document.modelContext.executeTool()</span>
+      </div>
+
+      <div class="agent-grid">
+
+        <!-- Tool 1: start_timer -->
+        <div class="tool-card tool-card-cyan">
+          <div class="tool-card-header">
+            <code>start_timer({ targetEngine })</code>
+          </div>
+          <p class="tool-card-desc">
+            Spins up background execution thread loop at ~60 FPS until safety cap or abort.
+          </p>
+          <div class="tool-card-actions">
+            <button onclick="invokeStartTool('A')" class="btn btn-sm btn-mint">
+              <span>▶ Run on Core A</span>
+            </button>
+            <button onclick="invokeStartTool('B')" class="btn btn-sm btn-subtle">
+              <span>▶ Run on Core B</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tool 2: pause_timer -->
+        <div class="tool-card tool-card-amber">
+          <div class="tool-card-header">
+            <code>pause_timer({ targetEngine })</code>
+          </div>
+          <p class="tool-card-desc">
+            Cooperatively halts execution via AbortSignal in Chrome 153 mode.
+          </p>
+          <div class="tool-card-actions">
+            <button onclick="invokePauseTool('A')" class="btn btn-sm btn-amber">
+              <span>⏸ Pause Core A</span>
+            </button>
+            <button onclick="invokePauseTool('B')" class="btn btn-sm btn-magenta" title="Demonstrates un-abortable behavior on legacy engine">
+              <span>⏸ Pause Core B</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- LIVE CYBER HUD EVENT TERMINAL LOG -->
+    <div class="log-section">
+      <div class="log-header">
+        <span class="log-title">
+          <span class="log-title-dot">●</span>
+          LIVE_EVENT_TELEMETRY (document.modelContext)
+        </span>
+        <button onclick="clearHudLog()" class="log-clear-btn">
+          CLEAR_LOG
+        </button>
+      </div>
+      <div id="hud-log-stream" class="log-stream" role="log" aria-live="polite">
+        <div class="log-entry">
+          <span class="log-time">[INIT]</span>
+          <span class="log-tag log-tag-sys">[SYS]</span>
+          <span>WebMCP Cyberpunk Dual-Bench initialized. Ready for actuation.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script src="app.js"></script>
+</body>
+
+</html>
