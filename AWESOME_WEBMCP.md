@@ -107,8 +107,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [Respira for WordPress](https://chatgpt-respira.instawp.site) - A real WordPress site you edit by asking. The agent reads the page you are both looking at, writes your change to a copy of it, and waits for you to approve that copy before anything reaches the live page. Works with whatever page builder the site was already built in. [Source](https://github.com/respira-press/webmcp-for-wordpress) | [How it works](https://www.respira.press)
   - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
 
-* [Proxy Compare](https://www.proxy-compare.com/tools/cost-calculator/) - A live comparison site exposing proxy, scraping API, and CAPTCHA price calculators through `document.modelContext`. Tool calls open the relevant calculator, update visible inputs and results, and return price estimates with dates, billing assumptions, and provider links.
-  * Example Prompt: "Compare prices for 100 GB of residential proxies, then estimate the cost of one million standard scraping API pages."
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
 
 ## Libraries & Tools
 
