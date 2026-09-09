@@ -12,6 +12,16 @@ import { createUseTool } from "./tools/UseTool.ts";
 import { createStartGameTool } from "./tools/StartGameTool.ts";
 import { createEvalTool } from "./tools/EvalTool.ts";
 
+type GameTool = ReturnType<
+  | typeof createMoveTool
+  | typeof createLookTool
+  | typeof createPickupTool
+  | typeof createDropTool
+  | typeof createUseTool
+  | typeof createStartGameTool
+  | typeof createEvalTool
+>;
+
 /**
  * Manages the lifecycle of WebMCP tools registered with `document.modelContext`.
  *
@@ -69,7 +79,7 @@ export class ToolRegistry {
    * Also registers `eval_code` when the `?eval_tool` URL parameter is present.
    */
   registerGameplayTools(): void {
-    const tools = [
+    const tools: GameTool[] = [
       createMoveTool(this.game),
       createLookTool(this.game),
       createPickupTool(this.game),
@@ -98,16 +108,20 @@ export class ToolRegistry {
    * Keeps `toolMap` in sync so `window.gameTools.executeTool` stays current.
    * @param tools - The tools to register.
    */
-  private provideTools(tools: WebMCP.ModelContextTool[]): void {
+  private provideTools(tools: GameTool[]): void {
+    // The registry is a dynamic dispatch boundary: callers supply untyped JSON.
+    // Keep the schema-inferred callback types inside each factory and retain
+    // their runtime guards for calls through window.gameTools.
+    const executableTools = tools as WebMCP.ModelContextTool[];
     if (this.supported) {
       this.toolController?.abort();
       this.toolController = new AbortController();
-      for (const tool of tools) {
+      for (const tool of executableTools) {
         document.modelContext!.registerTool(tool, { signal: this.toolController.signal });
       }
     }
     this.toolMap.clear();
-    for (const tool of tools) {
+    for (const tool of executableTools) {
       this.toolMap.set(tool.name, tool);
     }
   }
