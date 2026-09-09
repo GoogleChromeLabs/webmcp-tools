@@ -290,7 +290,7 @@
       // 1. Check if it's an imperative tool registered here
       if (win.__webmcp_registered_tools && win.__webmcp_registered_tools.has(tool.name)) {
         const registeredTool = win.__webmcp_registered_tools.get(tool.name);
-        return registeredTool._execute(parsedArgs);
+        return registeredTool._execute(parsedArgs, options);
       }
 
       // 2. Check if it's a declarative tool
