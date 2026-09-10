@@ -106,6 +106,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Fix the scheduling conflict and find any jobs that don't have a driver yet."
 - [Respira for WordPress](https://chatgpt-respira.instawp.site) - A real WordPress site you edit by asking. The agent reads the page you are both looking at, writes your change to a copy of it, and waits for you to approve that copy before anything reaches the live page. Works with whatever page builder the site was already built in. [Source](https://github.com/respira-press/webmcp-for-wordpress) | [How it works](https://www.respira.press)
   - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
+- [HVAC Intake Eval Workbench](https://firstmoverprojects.github.io/hvac-intake-eval-workbench/?utm_source=chromelabs_awesome_webmcp&utm_medium=referral&utm_campaign=traffic_engine&utm_content=pages) | [Code](https://github.com/firstmoverprojects/hvac-intake-eval-workbench) - Static MIT-licensed WebMCP workbench where a human and an in-browser agent grade fictional HVAC/plumbing intake tickets on the same five deterministic checks (no backend, no uploads).
+  - **Example Prompt:** "List unscored emergency cases, open the first one, propose labels, and score them."
 
 ## Libraries & Tools
 
