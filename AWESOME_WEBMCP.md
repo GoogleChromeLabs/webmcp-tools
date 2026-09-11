@@ -109,6 +109,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [Timeline Studio](https://video-editor.ai-creator.top/) | [Code](https://github.com/MartinDelophy/ai-video-editor) | [WebMCP docs](https://github.com/MartinDelophy/ai-video-editor/blob/v1.0.8/docs/webmcp.md) - An open-source browser video editor exposing WebMCP tools to inspect projects, preview and apply main-track reordering and supported source trims, undo eligible edits, and save editable project files.
   - **Example Prompt:** "Inspect the project I have open. If it has at least two main-track clips, preview moving the second clip before the first while keeping all other clips in order. Show me the changes before applying them."
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
