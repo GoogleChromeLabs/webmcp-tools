@@ -88,6 +88,14 @@ function matchesConstraint(constraint: any, actual: any): boolean {
 const SUPPORTED_INLINE_FLAGS = new Set(["d", "g", "i", "m", "s", "u", "v", "y"]);
 
 /**
+ * LRU cache for compiled regex patterns.
+ * Maps pattern string to compiled RegExp.
+ * Max 1000 entries to prevent unbounded memory growth.
+ */
+const PATTERN_CACHE = new Map<string, RegExp>();
+const PATTERN_CACHE_MAX = 1000;
+
+/**
  * Build a RegExp from a `$pattern` value.
  *
  * Accepts an optional leading inline-flag prefix `(?flags)` — POSIX/Python
@@ -99,11 +107,36 @@ const SUPPORTED_INLINE_FLAGS = new Set(["d", "g", "i", "m", "s", "u", "v", "y"])
  *
  * Supported flag characters are the ones `new RegExp(pattern, flags)`
  * accepts (`d g i m s u v y`). Unknown flags throw.
+ *
+ * Compiled patterns are cached to avoid repeated RegExp constructor calls
+ * on hot paths. Cache is LRU with a max of 1000 entries.
  */
 function buildPattern(rawPattern: string): RegExp {
-  const match = /^\(\?([a-zA-Z]+)\)/.exec(rawPattern);
-  if (!match) return new RegExp(rawPattern);
+  // Check cache first
+  if (PATTERN_CACHE.has(rawPattern)) {
+    return PATTERN_CACHE.get(rawPattern)!;
+  }
 
+  const match = /^\(\?([a-zA-Z]+)\)/.exec(rawPattern);
+  const regex = !match ? new RegExp(rawPattern) : buildPatternWithFlags(rawPattern, match);
+
+  // Cache the compiled pattern, with simple LRU eviction
+  if (PATTERN_CACHE.size >= PATTERN_CACHE_MAX) {
+    const firstKey = PATTERN_CACHE.keys().next().value as string;
+    if (firstKey !== undefined) {
+      PATTERN_CACHE.delete(firstKey);
+    }
+  }
+  PATTERN_CACHE.set(rawPattern, regex);
+
+  return regex;
+}
+
+/**
+ * Build a RegExp with inline flags (extracted from `(?flags)` prefix).
+ * @private
+ */
+function buildPatternWithFlags(rawPattern: string, match: RegExpExecArray): RegExp {
   const flags = match[1];
   for (const flag of flags) {
     if (!SUPPORTED_INLINE_FLAGS.has(flag)) {
