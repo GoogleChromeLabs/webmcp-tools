@@ -21,47 +21,10 @@ jobs:
         with:
           node-version: 22
           cache: "npm"
-          cache-dependency-path: "demos/react-flightsearch/package-lock.json"
+          cache-dependency-path: "demos/*/package-lock.json"
 
       - name: Build Demos
-        run: |
-          cd demos
-
-          cd react-flightsearch
-          npm ci
-          npm run build
-          cd ..
-
-          cd webmcp-maze
-          npm ci
-          npm run build
-          cd ..
-
-          cd sport-shop-angular
-          npm ci
-          npm run build -- --base-href /webmcp-tools/demos/sport-shop-angular/
-          cd ..
-
-          cd hotel-chain
-          npm ci
-          npm run build
-          cd ..
-
-          cd analytics-dashboard
-          npm ci
-          npm run build
-          cd ..
-
-          cd leather-bag
-          npm ci
-          npm run build -- --base-href /webmcp-tools/demos/leather-bag/
-          cd ..
-
-          cd smart-home
-          npm ci
-          npm run build
-          cd ..
-
+        run: ./build-demos.sh
 
       - name: Assemble Public Folder
         run: |
@@ -84,7 +47,6 @@ jobs:
           cp -r demos/smart-home/dist deployment-root/demos/smart-home
           cp -r demos/page-agent deployment-root/demos/page-agent
           cp -r demos/explainer deployment-root/demos/explainer
-
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
