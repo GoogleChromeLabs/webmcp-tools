@@ -106,6 +106,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Fix the scheduling conflict and find any jobs that don't have a driver yet."
 - [Respira for WordPress](https://chatgpt-respira.instawp.site) - A real WordPress site you edit by asking. The agent reads the page you are both looking at, writes your change to a copy of it, and waits for you to approve that copy before anything reaches the live page. Works with whatever page builder the site was already built in. [Source](https://github.com/respira-press/webmcp-for-wordpress) | [How it works](https://www.respira.press)
   - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
+- [Timeline Studio](https://video-editor.ai-creator.top/) | [Code](https://github.com/MartinDelophy/ai-video-editor) | [WebMCP docs](https://github.com/MartinDelophy/ai-video-editor/blob/v1.0.8/docs/webmcp.md) - An open-source browser video editor exposing WebMCP tools to inspect projects, preview and apply main-track reordering and supported source trims, undo eligible edits, and save editable project files.
+  - **Example Prompt:** "Inspect the project I have open. If it has at least two main-track clips, preview moving the second clip before the first while keeping all other clips in order. Show me the changes before applying them."
 
 ## Libraries & Tools
 
