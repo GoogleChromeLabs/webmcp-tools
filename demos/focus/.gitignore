@@ -1,0 +1,5 @@
+node_modules/
+dist/
+audit-screenshots/
+gauntlet/
+.playwright-mcp/
