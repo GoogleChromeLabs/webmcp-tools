@@ -102,7 +102,21 @@ function getAbortErrorMessage(signal: AbortSignal): string {
  *
  * The worker is terminated automatically on completion, error, timeout, or abort.
  */
-export function createEvalTool(): WebMCP.ModelContextTool {
+export function createEvalTool() {
+  const inputSchema = {
+    type: "object",
+    properties: {
+      code: {
+        type: "string",
+        description:
+          "JavaScript code to execute. Runs as an async function body; may use await. " +
+          "Call tools via window.gameTools.executeTool(name, args). " +
+          "The result is a plain JS object — no JSON.parse needed.",
+      },
+    },
+    required: ["code"],
+  } as const;
+
   return {
     name: "eval_code",
     description:
@@ -123,21 +137,9 @@ export function createEvalTool(): WebMCP.ModelContextTool {
       "  Keys open matching doors; dynamite clears rocks. Call use({direction}) BEFORE move({direction}) to clear a blocker.\n" +
       "\nIMPORTANT: The code runs inside a function body — values are NOT returned automatically. " +
       "Always end with an explicit `return` statement. For async functions, use `return await myFn()`.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        code: {
-          type: "string",
-          description:
-            "JavaScript code to execute. Runs as an async function body; may use await. " +
-            "Call tools via window.gameTools.executeTool(name, args). " +
-            "The result is a plain JS object — no JSON.parse needed.",
-        },
-      },
-      required: ["code"],
-    },
+    inputSchema,
     execute(input, options): Promise<object> {
-      const code = input.code as string;
+      const code = input.code;
       const signal = options?.signal;
 
       console.group("[eval_code] LLM submitted code");
@@ -246,5 +248,5 @@ export function createEvalTool(): WebMCP.ModelContextTool {
         worker.postMessage({ type: "run", code });
       });
     },
-  };
+  } satisfies WebMCP.ModelContextToolFromSchema<typeof inputSchema>;
 }

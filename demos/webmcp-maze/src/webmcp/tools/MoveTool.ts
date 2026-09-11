@@ -16,25 +16,27 @@ const VALID_DIRECTIONS = new Set(Object.values(Direction));
  * @param game - The game orchestrator instance.
  * @returns A {@link WebMCP.ModelContextTool} for player movement.
  */
-export function createMoveTool(game: Game): WebMCP.ModelContextTool {
+export function createMoveTool(game: Game) {
+  const inputSchema = {
+    type: "object",
+    properties: {
+      direction: {
+        type: "string",
+        enum: ["north", "south", "east", "west"],
+        description: "The direction to move.",
+      },
+    },
+    required: ["direction"],
+  } as const;
+
   return {
     name: "move",
     description:
       "Move the player one cell in a cardinal direction (north, south, east, west). " +
       "Returns success or failure with a reason.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        direction: {
-          type: "string",
-          enum: ["north", "south", "east", "west"],
-          description: "The direction to move.",
-        },
-      },
-      required: ["direction"],
-    },
-    async execute(input: Record<string, unknown>) {
-      const dir = input.direction as string;
+    inputSchema,
+    async execute(input) {
+      const dir = input.direction;
 
       if (!VALID_DIRECTIONS.has(dir as Direction)) {
         return {
@@ -82,5 +84,5 @@ export function createMoveTool(game: Game): WebMCP.ModelContextTool {
         reason: `There is a wall blocking the ${dir} direction.`,
       };
     },
-  };
+  } satisfies WebMCP.ModelContextToolFromSchema<typeof inputSchema>;
 }
