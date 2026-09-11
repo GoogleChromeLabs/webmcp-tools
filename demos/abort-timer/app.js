@@ -1,6 +1,6 @@
 /**
  * WebMCP AbortSignal Explorer — Application Logic
- * Chrome 153 Reference Implementation
+ * Chrome 153 agent cancelation demo
  *
  * Demonstrates the Web Model Context Protocol (WebMCP) execution cancellation
  * architecture using standard DOM AbortSignal.
@@ -19,25 +19,25 @@ const timer = {
 
 
 // =============================================================================
-// 2. HEADLESS EXECUTION ENGINE
+// 2. EXECUTION ENGINE
 // =============================================================================
 
 /**
  * Runs a stopwatch animation loop at ~60 FPS.
- * If an AbortSignal is provided, listens for cooperative cancellation.
+ * If an AbortSignal is provided, listens for cancellation.
  */
 function runTimer(maxSeconds = 60, signal) {
   return new Promise((resolve) => {
     const startTime = performance.now() - timer.elapsed;
 
     // 1. Check if already aborted before starting
-    if (signal?.aborted) {
+    if (!signal || signal.aborted) {
       setTimerState('paused');
       return resolve({ status: 'paused', elapsed: timer.elapsed });
     }
 
-    // 2. Cooperative cancellation via standard DOM AbortSignal
-    signal?.addEventListener('abort', () => {
+    // 2. Cancellation via standard DOM AbortSignal
+    signal.addEventListener('abort', () => {
       cancelAnimationFrame(timer.rafId);
       timer.running = false;
       setTimerState('paused');
@@ -83,7 +83,7 @@ function registerTools() {
       }
     },
     // 👉 NEW IN CHROME 153: 2nd argument `options` receives the AbortSignal!
-    async execute({ duration = 60 } = {}, options = {}) {
+    execute: async ({ duration = 60 } = {}, options = {}) => {
       const outcome = await runTimer(duration, options.signal);
       return {
         status: outcome.status,
