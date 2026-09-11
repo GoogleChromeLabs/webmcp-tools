@@ -31,15 +31,15 @@
     "@ai-sdk/anthropic": "^3.0.47",
     "@ai-sdk/google": "^3.0.31",
     "@ai-sdk/openai": "^3.0.33",
-    "@google/genai": "^1.38.0",
+    "@google/genai": "^2.21.0",
     "@types/cli-progress": "^3.11.6",
     "ai": "^6.0.98",
-    "chalk": "^5.6.2",
+    "chalk": "^6.0.0",
     "cli-progress": "^3.12.0",
     "cli-table3": "^0.6.5",
-    "commander": "^13.1.0",
+    "commander": "^15.0.0",
     "dotenv": "^17.2.3",
-    "modern-web-guidance": "^0.0.177",
+    "modern-web-guidance": "^0.0.185",
     "ollama": "^0.6.3",
     "open": "^11.0.0",
     "ora": "^9.3.0",
@@ -47,11 +47,11 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^25.0.10",
+    "@types/node": "^26.4.1",
     "eslint-plugin-license-header": "^0.9.0",
     "oxfmt": "^0.66.0",
     "oxlint": "^1.51.0",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "webmcp-types": "^0.1.3"
   }
 }
