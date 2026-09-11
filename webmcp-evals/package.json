@@ -28,12 +28,12 @@
     "format": "oxfmt --write"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.47",
-    "@ai-sdk/google": "^3.0.31",
-    "@ai-sdk/openai": "^3.0.33",
+    "@ai-sdk/anthropic": "^4.0.49",
+    "@ai-sdk/google": "^4.0.63",
+    "@ai-sdk/openai": "^4.0.58",
     "@google/genai": "^2.21.0",
     "@types/cli-progress": "^3.11.6",
-    "ai": "^6.0.98",
+    "ai": "^7.0.92",
     "chalk": "^6.0.0",
     "cli-progress": "^3.12.0",
     "cli-table3": "^0.6.5",
