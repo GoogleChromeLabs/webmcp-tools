@@ -11,6 +11,7 @@
   <meta http-equiv="origin-trial" content="AkSy8NN0hHVbV1Tcto9+K2cDotMP5NcgNobK+M8bhWqrxefn6KOq0cpv/Glx1A+/1EmTU4KmfdLhdcrIA7L8EwwAAABaeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE3OTQ4NzM2MDB9">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Le Petit Bistro | WebMCP declarative demo</title>
+  <link rel="expect" href="#agent-persistentwidget" blocking="render">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -60,29 +61,8 @@
     </div>
   </div>
   <script src="../shared/webmcp-polyfill.js"></script>
+  <script src="setup-agent.js"></script>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('agentiframe')) {
-      const agentContainer = document.getElementById('agent-container');
-      if (agentContainer) agentContainer.remove();
-
-      const iframe = document.createElement('iframe');
-      iframe.src = 'agent.html' + window.location.search;
-      iframe.style.position = 'fixed';
-      iframe.style.bottom = '0';
-      iframe.style.right = '0';
-      iframe.style.width = '100px';
-      iframe.style.height = '100px';
-      iframe.style.border = 'none';
-      iframe.style.zIndex = '1000';
-      document.body.appendChild(iframe);
-    } else {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'agent.js';
-      document.body.appendChild(script);
-    }
-
     const modalDetails = document.getElementById('modalDetails');
     const name = params.get('name');
     const time = params.get('time');

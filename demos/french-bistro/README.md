@@ -35,6 +35,8 @@ With `index.html?sharedworker`, the demo uses a `SharedWorker` to manage the in-
 
 With `index.html?agentiframe`, the in-page AI agent lives in an `<iframe>`.
 
+With `index.html?agentpersistentwidget`, the in-page AI agent lives in a `<persistentwidget>` that persists across same-origin navigations without reloading. This is particularly useful for maintaining continuity across page navigations (e.g., when combined with `?crossdocument`). It uses the experimental [`<persistentwidget>`](https://github.com/WICG/persistent-iframes) element.
+
 Testing WebMCP audit failures can be streamlined by using specific URL parameters to simulate common tool configuration issues:
 - `index.html?notoolname` removes `toolname` form attribute
 - `index.html?notooldescription` removes `tooldescription` form attribute.
