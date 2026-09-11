@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guided UI | WebMCP Demo</title>
+    <link href="style.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Data Processing Dashboard</h1>
+      <p>Complex Data Workflow Management</p>
+    </header>
+
+    <main class="dashboard">
+      <div id="webmcp-warning" class="warning-banner">
+        ⚠️ WebMCP is not detected. Please run this demo in a compatible browser or extension to use the AI Agent guidance.
+      </div>
+
+      <!-- Chat Interface / Goal Input -->
+      <section class="goal-section">
+        <h2>What is your Ultimate Goal?</h2>
+        <textarea id="goal-input" rows="3" placeholder="e.g., 'I want to generate and export a PDF report of our recent sales trends.'"></textarea>
+        
+        <div class="suggestions-container">
+          <span class="suggestions-label">Quick Suggestions:</span>
+          <button type="button" class="suggestion-chip">I need to connect to our live server, clean up the data, and email the report.</button>
+          <button type="button" class="suggestion-chip">I want to start a brand new project, initialize the database, and export a PDF.</button>
+          <button type="button" class="suggestion-chip">I'm in a hurry. I just want to use a template to generate a PDF report quickly.</button>
+          <button type="button" class="suggestion-chip">I just need to fetch the schema from a new project. Stop after that.</button>
+        </div>
+
+        <div id="agent-status" class="agent-status hidden">
+          <span class="spinner">⏳</span>
+          <span class="status-text">WebMCP Agent is thinking...</span>
+        </div>
+
+        <p class="instruction-text">Enter or select your goal above, then ask your WebMCP agent to guide you!</p>
+      </section>
+
+      <!-- Cluttered Dashboard with at least 10 buttons -->
+      <section class="actions-section">
+        <div class="actions-header">
+          <h2>Workflow Actions</h2>
+          <button id="btn-reset" class="secondary-btn">🔄 Reset Dashboard</button>
+        </div>
+        <div class="button-grid">
+          <!-- Entry Points -->
+          <button id="btn-new-project" class="action-btn">
+            <span class="icon">✨</span> New Project
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-connect-server" class="action-btn">
+            <span class="icon">🌍</span> Connect to Server
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-import-template" class="action-btn">
+            <span class="icon">📥</span> Import Template
+            <span class="status-indicator"></span>
+          </button>
+
+          <!-- Branch A: New Project -->
+          <button id="btn-init-db" class="action-btn hidden-action">
+            <span class="icon">🗄️</span> Initialize Database
+            <span class="status-indicator"></span>
+          </button>
+
+          <!-- Branch B: Connect -->
+          <button id="btn-enter-credentials" class="action-btn hidden-action">
+            <span class="icon">🔑</span> Enter Credentials
+            <span class="status-indicator"></span>
+          </button>
+
+          <!-- Branch C: Import -->
+          <button id="btn-select-template" class="action-btn hidden-action">
+            <span class="icon">📑</span> Select Template
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-customize-template" class="action-btn hidden-action">
+            <span class="icon">🎨</span> Customize Template
+            <span class="status-indicator"></span>
+          </button>
+
+          <!-- Shared Downstream -->
+          <button id="btn-fetch-schema" class="action-btn hidden-action">
+            <span class="icon">📄</span> Fetch Schema
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-clean-data" class="action-btn hidden-action">
+            <span class="icon">🧹</span> Clean Data
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-join-tables" class="action-btn hidden-action">
+            <span class="icon">🔗</span> Join Tables
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-apply-filter" class="action-btn hidden-action">
+            <span class="icon">🔍</span> Apply Filter
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-analyze-trends" class="action-btn hidden-action">
+            <span class="icon">📈</span> Analyze Trends
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-generate-report" class="action-btn hidden-action">
+            <span class="icon">📊</span> Generate Report
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-export-pdf" class="action-btn hidden-action">
+            <span class="icon">💾</span> Export PDF
+            <span class="status-indicator"></span>
+          </button>
+          <button id="btn-send-email" class="action-btn hidden-action">
+            <span class="icon">✉️</span> Send Email
+            <span class="status-indicator"></span>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Overlay and Tooltip for Guidance -->
+    <div id="backdrop" class="hidden"></div>
+    <div id="tooltip" class="hidden"></div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
