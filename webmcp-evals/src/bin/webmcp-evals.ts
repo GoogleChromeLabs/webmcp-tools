@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 import {
   runLocalCommand,
   runWebCommand,
+  runSimulateCommand,
   runSmokeCommand,
   runAnalyzeCommand,
 } from "../commands/index.js";
@@ -86,6 +87,39 @@ program
   .option("--timeout <milliseconds>", "Timeout per navigation or tool step", positiveInteger, 30000)
   .option("-v, --verbose", "Print live step-by-step navigation and tool call logs", false)
   .action(runSmokeCommand);
+
+// Command: run goal-oriented simulations against a live WebMCP page
+program
+  .command("simulate")
+  .description(
+    "Run goal-oriented simulations: a simulated user talks to the agent and a judge grades the outcome",
+  )
+  .requiredOption("-u, --url <url>", "Target web page URL")
+  .requiredOption("-s, --simulations <path>", "Path to simulations JSON file")
+  .option(
+    "--judge-model <model>",
+    "Model identifier for the judge (defaults to the analyzer model, so the agent does not grade itself)",
+  )
+  .option(
+    "--user-model <model>",
+    "Model identifier for the simulated user (defaults to the agent's model)",
+  )
+  // No --max-turns: every case states its own, because it is the one budget
+  // that changes what the case measures.
+  .option(
+    "--max-duration <milliseconds>",
+    "Wall-clock budget for cases that do not set maxDurationMs",
+    positiveInteger,
+    300000,
+  )
+  .option(
+    "--timeout <milliseconds>",
+    "Timeout per navigation or setup tool call",
+    positiveInteger,
+    30000,
+  )
+  .option("-v, --verbose", "Print live page and turn logs", false)
+  .action(runSimulateCommand);
 
 // Command: analyze evaluation report using an LLM
 program

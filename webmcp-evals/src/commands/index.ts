@@ -13,11 +13,19 @@ import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
 import type { ChromeReleaseChannel } from "puppeteer-core";
-import { Config, WebmcpConfig } from "../types/config.js";
+import { Config, SimulationConfig, WebmcpConfig } from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
-import { executeLocalEvals, executeInBrowserEvals, executeSmokeEvals } from "../evaluator/index.js";
+import {
+  executeLocalEvals,
+  executeInBrowserEvals,
+  executeSimulations,
+  executeSmokeEvals,
+} from "../evaluator/index.js";
+import type { SimulationResult, SimulationResults } from "../evaluator/simulationEvaluator.js";
+import { loadSimulations } from "../simulate/loadSimulations.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
+import { renderSimulationReport } from "../report/simulationReport.js";
 import { createBackend } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
 
@@ -38,6 +46,10 @@ export interface CommandOptions {
   chromeChannel?: ChromeReleaseChannel;
   timeout?: number;
   verbose?: boolean;
+  simulations?: string;
+  judgeModel?: string;
+  userModel?: string;
+  maxDuration?: number;
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -213,13 +225,13 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
         finalReporters,
         opts.outputDir,
         opts.open,
-        true,
+        "web",
       );
       if (jsonPath) {
         await runAnalyzeCommand(jsonPath, opts, command);
       }
     } else {
-      await outputReports(config, finalResults, finalReporters, opts.outputDir, opts.open, true);
+      await outputReports(config, finalResults, finalReporters, opts.outputDir, opts.open, "web");
     }
   } catch (error: any) {
     console.error(`\n${chalk.red.bold("❌ Error:")} ${error.message || error}\n`);
@@ -267,6 +279,159 @@ export async function runSmokeCommand(options: CommandOptions, command?: Command
         `across ${finalResults.testCount} case(s).\n`,
     );
     if (finalResults.errorCount > 0) process.exitCode = 1;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`\n${chalk.red.bold("❌ Error:")} ${message}\n`);
+    process.exitCode = 1;
+  }
+}
+
+/** How wide a slice of the judge's reasoning fits in a console cell. */
+const REASONING_PREVIEW_LENGTH = 64;
+
+/**
+ * The first line of the judge's reasoning, cut to fit. A bare `FAIL` with no
+ * stated reason sends the reader to the HTML report for every failure, which
+ * is a poor trade for one column.
+ */
+function summarizeVerdict(result: SimulationResult): string {
+  const text = result.verdict?.reasoning || result.error || "-";
+  const firstLine = text.split("\n")[0].trim();
+  return firstLine.length > REASONING_PREVIEW_LENGTH
+    ? `${firstLine.slice(0, REASONING_PREVIEW_LENGTH - 1)}…`
+    : firstLine;
+}
+
+const VERDICT_COLOURS = {
+  pass: chalk.green,
+  fail: chalk.red,
+  error: chalk.yellow,
+} as const;
+
+export function generateSimulationSummaryTable(results: SimulationResults): Table.Table {
+  const table = new Table({
+    // "Reason" rather than "Judge's reasoning": an errored row has no judge to
+    // quote, and the column carries whatever went wrong instead.
+    head: ["Run", "Verdict", "Turns", "Ended by", "Reason"],
+    style: { head: ["whiteBright"], border: ["grey"] },
+  });
+
+  const grouped = new Map<string, SimulationResult[]>();
+  for (const result of results.results) {
+    const name = result.simulation.name;
+    if (!grouped.has(name)) grouped.set(name, []);
+    grouped.get(name)!.push(result);
+  }
+
+  for (const [name, runs] of grouped.entries()) {
+    const passes = runs.filter((run) => run.outcome === "pass").length;
+    const rate = `${passes}/${runs.length}`;
+    table.push([
+      {
+        colSpan: 5,
+        content: `${chalk.bold.blue(`Simulation: ${name}`)} ${chalk.dim(`(${rate} passed)`)}`,
+      },
+    ]);
+
+    for (const run of runs) {
+      const colour = VERDICT_COLOURS[run.outcome];
+      table.push([
+        run.runIndex,
+        colour(run.outcome.toUpperCase()),
+        run.verdict?.turnsUsed ?? run.conversation?.turnsUsed ?? "-",
+        // Neutral on purpose: a run that used its whole turn budget and still
+        // achieved the goal is a pass, not a problem (ADR D6).
+        chalk.dim(run.verdict?.endedBy || run.conversation?.endedBy || "-"),
+        summarizeVerdict(run),
+      ]);
+    }
+  }
+
+  return table;
+}
+
+function printSimulationSummary(results: SimulationResults, url: string): void {
+  console.log("\n" + chalk.bold.underline("Simulation summary") + ` for ${url}` + "\n");
+  console.log(generateSimulationSummaryTable(results).toString());
+
+  const total = results.results.length;
+  const colour =
+    results.passCount === total ? chalk.green : results.passCount === 0 ? chalk.red : chalk.yellow;
+  const rate = total > 0 ? ((results.passCount / total) * 100).toFixed(1) : "0.0";
+  console.log(
+    `\nPassed: ${colour(`${results.passCount}/${total}`)} (${rate}%) ` +
+      `across ${results.simulationCount} simulation(s)` +
+      (results.errorCount > 0
+        ? chalk.yellow(` — ${results.errorCount} never reached a verdict`)
+        : "") +
+      "\n",
+  );
+}
+
+export async function runSimulateCommand(
+  options: CommandOptions,
+  command?: Command,
+): Promise<void> {
+  const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+  const url = opts.url!;
+  const simulationsFile = opts.simulations!;
+
+  process.on("SIGINT", () => {
+    console.log("\nGracefully shutting down from SIGINT (Ctrl-C)");
+    process.exit(1);
+  });
+
+  try {
+    const config: SimulationConfig = {
+      url,
+      simulationsFile,
+      model: opts.model,
+      ...(opts.judgeModel ? { judgeModel: opts.judgeModel } : {}),
+      ...(opts.userModel ? { userModel: opts.userModel } : {}),
+      runs: opts.runs,
+      maxSteps: opts.maxSteps,
+      maxDurationMs: opts.maxDuration,
+      timeoutMs: opts.timeout,
+      verbose: opts.verbose,
+      outputDir: opts.outputDir,
+      reporter: opts.reporter,
+      chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
+    };
+
+    // Validate the whole file before launching a browser, as `smoke` does: a
+    // typo in the last case should not cost a full run of the earlier ones.
+    const simulations = await loadSimulations(simulationsFile);
+
+    const reporters = opts.reporter || ["console", "html"];
+    const useConsole = reporters.includes("console");
+
+    let spinner: ReturnType<typeof ora> | undefined;
+    if (useConsole) spinner = ora({ discardStdin: false });
+
+    const results = await executeSimulations(simulations, config, (event) => {
+      if (!useConsole || !spinner) return;
+      if (event.type === "start") {
+        console.log(`\n${event.message}...`);
+        spinner.start(`${getProgressBar(0)} ${chalk.cyan("0%")}  Simulation 1/${event.total}`);
+      } else if (event.type === "progress") {
+        const total = simulations.length * (config.runs || 1);
+        const ratio = event.simulationNumber / total;
+        spinner.text =
+          `${getProgressBar(ratio)} ${chalk.cyan(`${Math.round(ratio * 100)}%`)}  ` +
+          `Simulation ${event.simulationNumber}/${total}`;
+      }
+    });
+
+    if (useConsole && spinner) {
+      spinner.succeed(`Simulations completed! ${getProgressBar(1)} ${chalk.cyan("100%")}`);
+      printSimulationSummary(results, url);
+    }
+
+    await outputReports(config, results, reporters, opts.outputDir, opts.open, "simulation");
+
+    // A case that never reached a verdict is not a pass, so it counts against
+    // the exit code just as a failure does.
+    if (results.failCount > 0 || results.errorCount > 0) process.exitCode = 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`\n${chalk.red.bold("❌ Error:")} ${message}\n`);
@@ -378,7 +543,8 @@ async function outputReports(
   reporters: string[],
   outputDir: string = ".evals",
   shouldOpen: boolean = false,
-  isWeb: boolean = false,
+  // Was a boolean `isWeb` until `simulate` arrived and made it a third case.
+  renderer: "local" | "web" | "simulation" = "local",
 ): Promise<{ htmlPath?: string; jsonPath?: string }> {
   if (reporters.includes("html") || reporters.includes("json")) {
     await mkdir(resolve(process.cwd(), outputDir), { recursive: true });
@@ -389,9 +555,12 @@ async function outputReports(
   let jsonPath: string | undefined;
 
   if (reporters.includes("html")) {
-    const reportHtml = isWeb
-      ? renderWebmcpReport(config, finalResults)
-      : renderReport(config, finalResults);
+    const reportHtml =
+      renderer === "simulation"
+        ? renderSimulationReport(config, finalResults)
+        : renderer === "web"
+          ? renderWebmcpReport(config, finalResults)
+          : renderReport(config, finalResults);
     htmlPath = resolve(process.cwd(), outputDir, `report-${timestamp}.html`);
     await writeFile(htmlPath, reportHtml);
     console.log(`HTML report saved to ${htmlPath}`);

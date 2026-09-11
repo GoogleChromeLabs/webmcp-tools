@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Prepare the only matching Tokyo hotel for confirmation",
+    "userScenario": "You are arranging a three-night Tokyo stay beginning 2027-04-12 for two adults and one child. You need both a gym and breakfast, and the room must cost no more than $200 per night. Find the hotel that satisfies every requirement and prepare the reservation form for Maya Chen using maya.chen@example.com. You want to review it yourself before the final confirmation. State your needs naturally and answer reasonable questions, but do not mention tool names or internal hotel IDs.",
+    "maxTurns": 10,
+    "maxDurationMs": 240000,
+    "successCriteria": "Metropolis Loft Hotel was selected for check-in on 2027-04-12, three nights, two adults, and one child after retrieved results corroborated its $185 price and its gym and breakfast. The booking form was populated for Maya Chen at maya.chen@example.com and left pending for the user's review. The agent clearly explains that the user must submit the form; claiming that the reservation was already confirmed, selecting another hotel, or losing any trip detail is not success."
+  },
+  {
+    "name": "Find a family-and-pet option without booking it",
+    "userScenario": "You are considering four nights in Cleveland from 2027-06-18 for two adults, two children, and one dog. Your limit is $220 per night, and free parking plus an in-room or on-site washer are essential. Find the option that fits, explain why it fits, and open its details so you can inspect it. You are not ready to start or complete a reservation. Do not prescribe tool calls or use internal IDs.",
+    "maxTurns": 8,
+    "maxDurationMs": 210000,
+    "successCriteria": "Cleveland Lakeside Suites was identified from retrieved search results and its detail page was opened. The evidence confirms a price of $195 per night, free parking, washer access, and a description that accommodates pets, while the search retained the 2027-06-18 check-in, four nights, two adults, two children, and one pet. Neither start_booking nor complete_booking was executed."
+  },
+  {
+    "name": "Recover from an obsolete Cleveland search",
+    "setup": [
+      {
+        "functionName": "search_location",
+        "arguments": {
+          "query": "Cleveland",
+          "checkin_date": "2027-09-03",
+          "nights": 2,
+          "adults": 1,
+          "kids": 0,
+          "pets": 0
+        }
+      },
+      {
+        "functionName": "filter_search_results",
+        "arguments": {
+          "max_price": 200,
+          "amenities": ["free parking"]
+        }
+      }
+    ],
+    "userScenario": "You were looking at affordable Cleveland hotels, but the trip has changed completely. You now need Tokyo for the same dates and guest count, with spa and dining as mandatory amenities; the old price and parking requirements no longer matter. Find the matching property, open its details, and check its late-checkout information. Do not start a booking.",
+    "maxTurns": 9,
+    "maxDurationMs": 210000,
+    "successCriteria": "The obsolete Cleveland constraints were abandoned and the active search was changed to Tokyo for 2027-09-03, two nights, and one adult without carrying over the $200 or free-parking filters. Retrieved results identify The Aurelian Shibuya as having both spa and dining, its details and late-checkout information were opened, and no booking was started or completed."
+  },
+  {
+    "name": "Explain an impossible Paris combination",
+    "userScenario": "You want a Paris hotel costing at most $200 per night that includes both breakfast and a spa. Search carefully and tell you whether anything satisfies all three constraints. Do not relax a requirement, recommend a near match as if it qualified, or start a booking.",
+    "maxTurns": 6,
+    "maxDurationMs": 180000,
+    "successCriteria": "The search and retrieved filtered results establish that no Paris hotel satisfies the $200 maximum together with both breakfast and spa, and the agent clearly reports that no exact match exists. It does not present Montmartre Suites or Le Champs-Élysées as satisfying every constraint, and it does not view or book a hotel as though the search had succeeded."
+  }
+]

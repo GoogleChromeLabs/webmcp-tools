@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Build and share a family pesto pizza",
+    "userScenario": "You are making pizza for five people. You want a pesto pizza with extra sauce, cheese, mushrooms, and bell peppers. Once it is ready, you want a link you can send to everyone. Describe the result you want naturally; do not mention tool names, argument names, or emoji values.",
+    "maxTurns": 8,
+    "maxDurationMs": 180000,
+    "successCriteria": "A Large Pesto pizza suitable for five people was created with sauce and cheese layers, mushrooms, and bell peppers, and a share URL was produced after those choices were applied. A different size or style, a missing requested layer or topping, or sharing before the requested pizza was ready is not success. Tool results must corroborate the outcome."
+  },
+  {
+    "name": "Revise an existing pizza and share it",
+    "setup": [
+      {
+        "functionName": "set_pizza_size",
+        "arguments": { "size": "Medium" }
+      },
+      {
+        "functionName": "set_pizza_style",
+        "arguments": { "style": "Classic" }
+      },
+      {
+        "functionName": "toggle_layer",
+        "arguments": { "layer": "sauce-layer", "action": "add" }
+      },
+      {
+        "functionName": "add_topping",
+        "arguments": { "topping": "🍄", "count": 4 }
+      },
+      {
+        "functionName": "add_topping",
+        "arguments": { "topping": "🌽", "count": 3 }
+      }
+    ],
+    "userScenario": "You already started a medium classic pizza with sauce, mushrooms, and corn. You changed your mind: remove all the corn, keep the mushrooms and sauce, switch the pizza to BBQ style, and give you a shareable link. Speak naturally and do not tell the assistant which tools to call.",
+    "maxTurns": 6,
+    "maxDurationMs": 180000,
+    "successCriteria": "The existing pizza was changed to BBQ style, all corn was removed, the mushrooms and sauce from the initial state were preserved, and a share URL was produced after the changes. Resetting the pizza, removing the mushrooms or sauce, leaving any corn, or sharing the old state is not success. Tool results must corroborate the changes."
+  }
+]

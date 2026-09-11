@@ -7,11 +7,12 @@ A TypeScript evaluation framework and CLI for testing the tool-calling capabilit
 
 ## Features
 
-- **CLI Interface**: Built with `commander` providing `local`, `browser`, and `smoke` commands.
+- **CLI Interface**: Built with `commander` providing `local`, `browser`, `smoke`, `simulate`, and `analyze` commands.
 - **Execution Modes**:
   - **`local`**: Runs evaluations against static JSON tool schema definition files.
   - **`browser`**: Runs live evaluations against WebMCP tools exposed on web pages via Puppeteer.
   - **`smoke`**: Executes concrete expected tool calls against a live page without an LLM or API key.
+  - **`simulate`**: Lets a simulated user converse with an agent on a live page, then asks a separate judge model whether the requested outcome was achieved.
 - **Model Backends**: Supports `@google/genai` (`gemini`), Ollama (`ollama`), and Vercel AI SDK (`vercel`).
 - **Reporters**: Supports `console`, `json`, and `html` output to the `.evals` directory.
 - **Constraint-Based Matching**: Matches expected tool calls using regex patterns, numerical ranges, type checks, and orderings (`ordered` and `unordered`).
@@ -147,6 +148,56 @@ resolved to concrete sample arguments so standard evaluation suites can be reuse
 
 ---
 
+### Command: `simulate`
+
+Runs goal-oriented evaluations against a live WebMCP page. For every case, a simulated user
+converses with the agent under test until the user finishes or a turn/time budget is exhausted.
+A judge model then evaluates the complete transcript against the authored success criteria.
+
+```bash
+npx webmcp-evals simulate \
+  -u https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/ \
+  -s examples/pizza-maker/simulations.json \
+  --model google:gemini-3.5-flash \
+  --judge-model google:gemini-3.5-flash
+```
+
+The bundled Pizza Maker suite targets the public demo and its live `set_pizza_size`,
+`set_pizza_style`, `toggle_layer`, `add_topping`, `remove_topping`, `manage_pizza`, and
+`share_pizza` tools. Set `GEMINI_API_KEY` (or the key required by your selected provider) before
+running it. Simulations always use tools registered by a live page, not a static `schema.json`.
+
+For a more demanding suite that covers multi-step search, constraint changes, safe refusal, and
+handoff to a user-confirmed declarative booking form, run:
+
+```bash
+npx webmcp-evals simulate \
+  -u https://googlechromelabs.github.io/webmcp-tools/demos/hotel-chain/ \
+  -s examples/hotel-chain/simulations.json \
+  --model google:gemini-3.5-flash \
+  --judge-model google:gemini-3.5-flash
+```
+
+| Option                          | Required | Default        | Description                                                  |
+| ------------------------------- | -------- | -------------- | ------------------------------------------------------------ |
+| `-u, --url <url>`               | Yes      | —              | Target WebMCP page URL                                       |
+| `-s, --simulations <path>`      | Yes      | —              | Path to a `simulations.json` file                            |
+| `--user-model <model>`          | No       | Agent model    | Model that plays the simulated user                          |
+| `--judge-model <model>`         | No       | Analyzer model | Model that judges whether the success criteria were achieved |
+| `--max-duration <milliseconds>` | No       | `300000`       | Fallback wall-clock budget when a case omits `maxDurationMs` |
+| `--timeout <milliseconds>`      | No       | `30000`        | Timeout per navigation or setup tool call                    |
+| `-v, --verbose`                 | No       | `false`        | Print live page and conversation logs                        |
+
+The global `--runs`, `--max-steps`, `--reporter`, `--output-dir`, and `--chrome-channel`
+options also apply. There is no `--max-turns` option: `maxTurns` belongs to each case because it
+changes what that case measures.
+
+A simulation uses three model roles per case per run: the agent under test, the simulated user,
+and the judge. It therefore costs more and is non-deterministic. Keep `smoke` as the deterministic,
+API-key-free CI signal; `simulate` complements it rather than replacing it.
+
+---
+
 ### Command: `analyze`
 
 Analyzes an evaluation JSON report using an LLM to identify root causes and hypotheses for evaluation failures.
@@ -188,6 +239,49 @@ npx webmcp-evals analyze .evals/report-1784621327799.json --open
   }
 ]
 ```
+
+## Simulation Suite Schema (`simulations.json`)
+
+Each simulation describes the user rather than pre-authoring their messages. `successCriteria` is
+one prose statement judged as a whole. Optional `setup` calls establish initial world state before
+the conversation and are labelled separately in reports so they are never credited to the agent.
+
+```json
+[
+  {
+    "name": "Remove one item from a two-item cart",
+    "setup": [
+      {
+        "functionName": "addToCart",
+        "arguments": { "productId": "p3", "quantity": 1 }
+      },
+      {
+        "functionName": "addToCart",
+        "arguments": { "productId": "p4", "quantity": 1 }
+      }
+    ],
+    "userScenario": "You changed your mind about the hat and only want the jacket now.",
+    "maxTurns": 6,
+    "maxDurationMs": 180000,
+    "successCriteria": "The Baseball Cap is no longer in the cart and the Bomber Jacket is still in it. No checkout was performed."
+  }
+]
+```
+
+Field reference:
+
+| Field             | Required | Description                                              |
+| ----------------- | -------- | -------------------------------------------------------- |
+| `name`            | No       | Report label; defaults to `Simulation N`                 |
+| `setup`           | No       | Ordered concrete tool calls run before the conversation  |
+| `userScenario`    | Yes      | Brief supplied only to the simulated user                |
+| `maxTurns`        | Yes      | Positive integer limiting completed user/agent exchanges |
+| `maxDurationMs`   | No       | Positive wall-clock budget; falls back to the CLI value  |
+| `successCriteria` | Yes      | Non-empty prose statement supplied only to the judge     |
+
+See the complete [Pizza Maker simulation suite](examples/pizza-maker/simulations.json), the
+advanced [Hotel Chain simulation suite](examples/hotel-chain/simulations.json), and the additional
+[shopping format example](examples/commerce/shopping/simulations.json).
 
 ### Argument Matching Operators
 
@@ -233,6 +327,11 @@ You can run evaluations or deterministic smoke tests across all deployed WebMCP 
 ./run_evals.sh hotel-chain
 ./run_evals.sh all
 ```
+
+`run_evals.sh` intentionally remains limited to trajectory-based `browser` evaluations. It does
+not run simulations implicitly because simulations use three model roles and case-specific
+budgets. Run `simulate` explicitly with the command shown above when that additional cost and
+non-determinism are intended.
 
 ## License
 

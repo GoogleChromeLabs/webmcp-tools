@@ -6,10 +6,15 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { Config, WebmcpConfig } from "../types/config.js";
 import { makeSignaturePreservingFetch } from "./googleThoughtSignatures.js";
 
-export function getModel(config: Config | WebmcpConfig) {
+/**
+ * Widened from `Config | WebmcpConfig` to the two fields actually read, so
+ * callers that resolve several models from one config — the `simulate` command
+ * needs three — can ask for one model at a time without inventing a config
+ * object per model.
+ */
+export function getModel(config: { model?: string; provider?: string }) {
   const modelId = config.model || "google:gemini-3-flash-preview";
 
   if (config.provider === "openai" || modelId.startsWith("openai:")) {
