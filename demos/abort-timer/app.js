@@ -386,11 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimerState(state);
   });
 
-  // Attach event listeners (replacing inline HTML onclick attributes)
-  document.getElementById('btn-start')?.addEventListener('click', () => triggerAgentExecution(stopwatch));
-  document.getElementById('btn-pause')?.addEventListener('click', () => triggerAgentAbort(stopwatch));
+  // Attach event listeners
   document.getElementById('btn-reset')?.addEventListener('click', () => resetDemo(stopwatch));
-
   document.getElementById('btn-agent-execute')?.addEventListener('click', () => triggerAgentExecution(stopwatch));
   document.getElementById('btn-agent-abort')?.addEventListener('click', () => triggerAgentAbort(stopwatch));
 

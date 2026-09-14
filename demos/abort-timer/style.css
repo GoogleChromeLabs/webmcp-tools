@@ -191,6 +191,12 @@
     border: 1px solid color-mix(in oklab, var(--blue) 40%, transparent);
   }
 
+  .badge-purple {
+    background: color-mix(in oklab, #c084fc 15%, transparent);
+    color: #c084fc;
+    border: 1px solid color-mix(in oklab, #c084fc 40%, transparent);
+  }
+
   /* Toolbar */
   .toolbar {
     display: flex;
@@ -298,6 +304,42 @@
     box-shadow: 0 0 8px var(--mint);
   }
 
+  /* Two-Column Timer Grid */
+  .timer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+
+  @media (min-width: 680px) {
+    .timer-grid {
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.25rem;
+    }
+  }
+
+  .timer-display-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timer-display-col .readout-bay {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-block: 1.75rem;
+  }
+
+  .timer-status-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.875rem;
+  }
+
   /* Digital Readout Bay */
   .readout-bay {
     background: var(--bg-surface-inset);
@@ -324,7 +366,7 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums lining-nums;
     font-weight: 700;
-    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-size: clamp(2.5rem, 5.5vw, 3.75rem);
     letter-spacing: -0.03em;
     color: #fff;
     user-select: none;
@@ -334,6 +376,25 @@
   .ms-mint {
     color: var(--mint);
     text-shadow: 0 0 15px color-mix(in oklab, var(--mint) 70%, transparent);
+  }
+
+  /* Thread Status Panel */
+  .status-panel {
+    background: var(--bg-surface-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   /* State Badges */
@@ -370,7 +431,7 @@
     background: var(--bg-surface-inset);
     border: 1px solid var(--border-subtle);
     border-radius: 0.75rem;
-    padding: 0.875rem;
+    padding: 0.75rem 0.875rem;
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -402,40 +463,48 @@
     color: var(--rose);
   }
 
-  /* Checklist */
-  .checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-  }
-
-  .check-item {
+  /* Timer Reset Row */
+  .timer-reset-row {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 0.25rem;
   }
 
-  .check-success {
-    color: var(--mint);
+  .reset-hint {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
   }
 
-  /* Agent Toolkit Section */
+  /* Simulated Agent Toolkit Section */
   .toolkit-section {
     background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
+    border: 1px solid color-mix(in oklab, var(--cyan) 30%, var(--border-subtle));
     border-radius: 1rem;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    box-shadow: 0 0 20px color-mix(in oklab, var(--cyan) 8%, transparent);
   }
 
   .toolkit-header {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.375rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .agent-avatar {
+    font-size: 1.75rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .toolkit-title {
@@ -443,14 +512,30 @@
     font-size: 0.875rem;
     font-weight: 700;
     color: #fff;
+    letter-spacing: 0.03em;
   }
 
   .toolkit-desc {
     font-size: 0.75rem;
     color: var(--text-muted);
+    margin-top: 0.2rem;
   }
 
-  .tool-card {
+  .agent-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  @media (min-width: 680px) {
+    .agent-columns {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .agent-col-card {
     background: var(--bg-surface-inset);
     border: 1px solid var(--border-subtle);
     border-radius: 0.75rem;
@@ -460,53 +545,121 @@
     gap: 0.75rem;
   }
 
-  .tool-card-cyan {
-    border-color: color-mix(in oklab, var(--cyan) 40%, transparent);
+  .agent-controls-card {
+    border-color: color-mix(in oklab, var(--mint) 30%, var(--border-subtle));
   }
 
-  .tool-card-header code {
+  .agent-schema-card {
+    border-color: color-mix(in oklab, var(--cyan) 30%, var(--border-subtle));
+  }
+
+  .agent-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border-subtle) 80%, transparent);
+  }
+
+  .agent-badge-pill {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--cyan);
+    font-size: 0.625rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--mint) 15%, transparent);
+    color: var(--mint);
+    border: 1px solid color-mix(in oklab, var(--mint) 35%, transparent);
   }
 
-  .tool-card-desc {
-    font-size: 0.75rem;
+  .agent-pill-cyan {
+    background: color-mix(in oklab, var(--cyan) 15%, transparent);
+    color: var(--cyan);
+    border-color: color-mix(in oklab, var(--cyan) 35%, transparent);
+  }
+
+  .agent-subtext {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
     color: var(--text-muted);
+  }
+
+  .agent-code-preview {
+    background: #030408;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     line-height: 1.4;
   }
 
-  .tool-card-actions {
+  .code-comment {
+    color: #52525b;
+  }
+
+  .agent-code-preview code {
+    color: var(--mint);
+    word-break: break-word;
+  }
+
+  .agent-action-buttons {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
   }
 
-  .tool-schema-details {
-    margin-top: 0.25rem;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: 0.5rem;
-    padding: 0.5rem 0.75rem;
-  }
-
-  .tool-schema-summary {
-    font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    color: var(--cyan);
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .tool-schema-code {
-    font-family: var(--font-mono);
+  .agent-hint {
     font-size: 0.6875rem;
     color: var(--text-muted);
-    margin-top: 0.5rem;
-    overflow-x: auto;
-    white-space: pre;
     line-height: 1.4;
+  }
+
+  .agent-hint strong {
+    color: var(--text-primary);
+  }
+
+  .tool-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .tool-fn-name code {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+
+  .tool-target-desc {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+  }
+
+  .schema-viewer {
+    background: #030408;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .schema-viewer .tool-schema-code {
+    margin-top: 0;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    white-space: pre;
   }
 
   /* HUD Log Section */
