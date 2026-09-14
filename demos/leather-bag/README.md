@@ -11,9 +11,9 @@ A premium, modern e-commerce storefront for hand-crafted leather products, built
     - `check_return_policy` (Imperative): Access site-wide return and guarantee policy.
     - `search_store` (Imperative): Search the Luxe Leather store catalog for products matching a query.
     - `view_product` (Imperative): Navigate to the detailed product page for a specific leather item by its slug.
-  - **Product Page Specific Tools (Available on `/product/:id` route)**:
+  - **Product Page Specific Tools (Available on `#/product/:id` route)**:
     - `add_to_cart` (Declarative via Signal Form): Add items to the shopping cart with chosen variations (color and quantity).
-  - **Search Page Specific Tools (Available on `/search` route)**:
+  - **Search Page Specific Tools (Available on `#/search` route)**:
     - `filter_results` (Imperative): Filter search results on the page by colors, finishes, and maximum price.
     - `get_search_results` (Imperative): Return the list of products matching current search query and filters.
     - `add_search_result_to_cart` (Imperative): Add a product from search results to the cart by name/keywords or index.

@@ -4,6 +4,7 @@ import {
   Router,
   withComponentInputBinding,
   withExperimentalAutoCleanupInjectors,
+  withHashLocation,
 } from '@angular/router';
 
 import { provideExperimentalWebMcpTools } from '@angular/core';
@@ -13,7 +14,12 @@ import { routes } from './app.routes';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withExperimentalAutoCleanupInjectors(), withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withHashLocation(),
+      withExperimentalAutoCleanupInjectors(),
+      withComponentInputBinding()
+    ),
     provideExperimentalWebMcpForms(),
     provideExperimentalWebMcpTools([
       {

@@ -54,21 +54,25 @@ export class VercelBackend implements Backend {
       // so without a stopWhen the loop would run until the model itself
       // stops calling tools — which can be never. Cap it explicitly.
       stopWhen: stepCountIs(this.maxSteps),
-      experimental_onToolCallStart: (event) => {
+      onToolExecutionStart: (event) => {
         this.logger.debug(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
         this.logger.dir((event.toolCall as any).args || (event.toolCall as any).input, {
           depth: null,
           colors: true,
         });
       },
-      experimental_onToolCallFinish: (event) => {
-        if (event.success) {
+      onToolExecutionEnd: (event) => {
+        if (event.toolOutput.type === "tool-result") {
           this.logger.debug(
-            `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+            `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.toolExecutionMs}ms`,
           );
-          if (event.output) this.logger.dir(event.output, { depth: null, colors: true });
+          if (event.toolOutput.output)
+            this.logger.dir(event.toolOutput.output, { depth: null, colors: true });
         } else {
-          this.logger.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+          this.logger.error(
+            `[DEBUG] Tool "${event.toolCall.toolName}" failed:`,
+            event.toolOutput.error,
+          );
         }
       },
       onStepFinish: (event) => {
@@ -152,21 +156,25 @@ export class VercelBackend implements Backend {
         model: this.aiModel,
         tools: aiToolsWithExecution,
         instructions: SYSTEM_PROMPT,
-        experimental_onToolCallStart: (event) => {
+        onToolExecutionStart: (event) => {
           this.logger.debug(`\n[DEBUG] Tool "${event.toolCall.toolName}" starting...`);
           this.logger.dir((event.toolCall as any).args || (event.toolCall as any).input, {
             depth: null,
             colors: true,
           });
         },
-        experimental_onToolCallFinish: (event) => {
-          if (event.success) {
+        onToolExecutionEnd: (event) => {
+          if (event.toolOutput.type === "tool-result") {
             this.logger.debug(
-              `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.durationMs}ms`,
+              `[DEBUG] Tool "${event.toolCall.toolName}" completed in ${event.toolExecutionMs}ms`,
             );
-            if (event.output) this.logger.dir(event.output, { depth: null, colors: true });
+            if (event.toolOutput.output)
+              this.logger.dir(event.toolOutput.output, { depth: null, colors: true });
           } else {
-            this.logger.error(`[DEBUG] Tool "${event.toolCall.toolName}" failed:`, event.error);
+            this.logger.error(
+              `[DEBUG] Tool "${event.toolCall.toolName}" failed:`,
+              event.toolOutput.error,
+            );
           }
         },
         onStepFinish: (event) => {

@@ -55,7 +55,7 @@ async function getTools() {
 
 async function getConfig() {
   const tools = await getTools();
-  
+
   if (codeModeCheckbox.checked) {
     const { getSystemInstruction } = await import('../shared/webmcp-batch.js');
     const systemInstruction = getSystemInstruction(tools);
@@ -188,19 +188,19 @@ async function handleUserSubmit() {
       } else {
         const toolResponses = [];
         for (const { name, args } of functionCalls) {
-          const inputArgs = JSON.stringify(args);
           try {
             appendMessage('System', `⚙️ Executing tool: ${name}...`, 'tool-indicator');
             const tools = await getTools();
+            const tool = tools.find((t) => t.name == name);
             let result;
             try {
-              // Modern Chrome (153+) accepts JS object directly
               result = await document.modelContext.executeTool(tool, args);
-            } catch (err) {
-              if (err instanceof TypeError || err.message?.includes('string')) {
-                result = await document.modelContext.executeTool(tool, inputArgs);
+            } catch (e) {
+              // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
+              if (e.message.startsWith('Failed to parse input')) {
+                result = await document.modelContext.executeTool(tool, JSON.stringify(args));
               } else {
-                throw err;
+                throw e;
               }
             }
 

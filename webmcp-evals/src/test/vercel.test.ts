@@ -223,5 +223,108 @@ describe("VercelBackend", () => {
       assert.deepStrictEqual(result.toolCalls[1].args, { page: 2 });
       assert.strictEqual(result.toolCalls[1].result, "Page 2 items");
     });
+
+    it("should handle onToolExecutionStart and onToolExecutionEnd callbacks without error", async (t) => {
+      const dummyRegistry = {
+        getCurrentTools: () => [
+          {
+            functionName: "test_tool",
+            description: "Test tool",
+            parameters: { type: "object" },
+          },
+        ],
+        executeTool: async () => ({}),
+      };
+
+      let capturedCallbacks: {
+        onStart?: (event: any) => void;
+        onEnd?: (event: any) => void;
+      } = {};
+      t.mock.method(ai.ToolLoopAgent.prototype, "generate", async function (this: any) {
+        capturedCallbacks = {
+          onStart: this.settings.onToolExecutionStart,
+          onEnd: this.settings.onToolExecutionEnd,
+        };
+        return { steps: [], text: "done" };
+      });
+
+      const backend = new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+        debug: true,
+      } as any);
+
+      const evalTest: Eval = {
+        name: "Callback test case",
+        messages: [{ role: "user", type: "message", content: "Run test" }],
+        expectedCall: [],
+      };
+
+      await backend.executeInBrowserEval(evalTest, dummyRegistry);
+
+      assert.strictEqual(typeof capturedCallbacks.onStart, "function");
+      assert.strictEqual(typeof capturedCallbacks.onEnd, "function");
+
+      // Verify onToolExecutionStart executes safely
+      assert.doesNotThrow(() => {
+        capturedCallbacks.onStart!({
+          callId: "call-1",
+          messages: [],
+          toolCall: {
+            type: "tool-call",
+            toolCallId: "call-1",
+            toolName: "test_tool",
+            input: { action: "search" },
+          },
+          toolContext: undefined,
+        });
+      });
+
+      // Verify onToolExecutionEnd executes safely for success
+      assert.doesNotThrow(() => {
+        capturedCallbacks.onEnd!({
+          callId: "call-1",
+          messages: [],
+          toolExecutionMs: 42,
+          toolCall: {
+            type: "tool-call",
+            toolCallId: "call-1",
+            toolName: "test_tool",
+            input: { action: "search" },
+          },
+          toolContext: undefined,
+          toolOutput: {
+            type: "tool-result",
+            toolCallId: "call-1",
+            toolName: "test_tool",
+            input: { action: "search" },
+            output: { result: "found" },
+          },
+        });
+      });
+
+      // Verify onToolExecutionEnd executes safely for error
+      assert.doesNotThrow(() => {
+        capturedCallbacks.onEnd!({
+          callId: "call-1",
+          messages: [],
+          toolExecutionMs: 15,
+          toolCall: {
+            type: "tool-call",
+            toolCallId: "call-1",
+            toolName: "test_tool",
+            input: { action: "search" },
+          },
+          toolContext: undefined,
+          toolOutput: {
+            type: "tool-error",
+            toolCallId: "call-1",
+            toolName: "test_tool",
+            input: { action: "search" },
+            error: new Error("tool failure"),
+          },
+        });
+      });
+    });
   });
 });
