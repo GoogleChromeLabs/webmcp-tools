@@ -33,7 +33,7 @@
     "prettier": "^3.9.6",
     "tailwindcss": "^4.2.1",
     "typescript": "~6.0.2",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.0",
     "webmcp-types": "^0.1.3"
   }
 }
