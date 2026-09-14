@@ -59,7 +59,7 @@ class StopwatchEngine {
    *
    * @param {number} maxSeconds - Maximum runtime in seconds.
    * @param {AbortSignal} [signal] - Optional DOM AbortSignal for cooperative cancellation.
-   * @returns {Promise<{ status: 'completed' | 'paused', elapsed: number }>}
+   * @returns {Promise<{ status: 'completed' | 'cancelled', elapsed: number, reason?: any }>}
    */
   run(maxSeconds = 60, signal) {
     if (this.#state === 'running') {
@@ -70,7 +70,11 @@ class StopwatchEngine {
     if (signal?.aborted) {
       this.#state = 'paused';
       this.#notify();
-      return Promise.resolve({ status: 'paused', elapsed: this.#elapsed });
+      return Promise.resolve({
+        status: 'cancelled',
+        elapsed: this.#elapsed,
+        reason: signal.reason || 'AbortError'
+      });
     }
 
     return new Promise((resolve) => {
@@ -83,7 +87,11 @@ class StopwatchEngine {
         cleanup();
         this.#state = 'paused';
         this.#notify();
-        resolve({ status: 'paused', elapsed: this.#elapsed });
+        resolve({
+          status: 'cancelled',
+          elapsed: this.#elapsed,
+          reason: signal?.reason || 'AbortError'
+        });
       };
 
       const cleanup = () => {
@@ -104,7 +112,10 @@ class StopwatchEngine {
           cleanup();
           this.#state = 'completed';
           this.#notify();
-          return resolve({ status: 'completed', elapsed: this.#elapsed });
+          return resolve({
+            status: 'completed',
+            elapsed: this.#elapsed
+          });
         }
 
         this.#notify();
@@ -121,48 +132,124 @@ class StopwatchEngine {
 // 2. WEBMCP TOOL LAYER: Tool Provider
 // =============================================================================
 
+const TIMER_TOOL_DEFINITION = {
+  name: 'start_timer',
+  description: 'Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      duration: {
+        type: 'number',
+        default: 60,
+        description: 'Maximum timer duration in seconds before completing.'
+      }
+    }
+  }
+};
+
 /**
  * Registers the stopwatch execution tool on document.modelContext.
  * Receives options.signal (Chrome 153+) and passes it to the stopwatch engine.
+ *
+ * Centralizes all Promise lifecycle telemetry and logging so both simulated
+ * UI runs and external agents update the UI consistently.
  *
  * @param {StopwatchEngine} stopwatch - The stopwatch instance to expose.
  */
 function registerTools(stopwatch) {
   if (!document.modelContext?.registerTool) {
     hudLog('WARN', 'document.modelContext is not available in this environment.');
+    renderRegisteredSchema(TIMER_TOOL_DEFINITION);
     return;
   }
 
   document.modelContext.registerTool({
-    name: 'start_timer',
-    description: 'Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        duration: {
-          type: 'number',
-          default: 60,
-          description: 'Maximum timer duration in seconds before completing.'
-        }
-      }
-    },
+    ...TIMER_TOOL_DEFINITION,
     // 👉 Chrome 153+: 2nd argument `options` receives the AbortSignal!
     execute: async ({ duration = 60 } = {}, options = {}) => {
-      const outcome = await stopwatch.run(duration, options.signal);
-      return {
-        status: outcome.status,
-        output: `Timer ${outcome.status} at ${(outcome.elapsed / 1000).toFixed(2)}s`,
-        elapsed: outcome.elapsed
-      };
+      setPromiseInspectorState('pending');
+      hudLog('AGENT', `executeTool("start_timer", { duration: ${duration} }, { signal: ${options.signal ? 'AbortSignal' : 'none'} })`);
+      announce('Timer started via WebMCP');
+
+      try {
+        const outcome = await stopwatch.run(duration, options.signal);
+        const elapsedSec = (outcome.elapsed / 1000).toFixed(2);
+
+        setPromiseInspectorState('fulfilled', outcome, elapsedSec);
+
+        if (outcome.status === 'cancelled') {
+          hudLog('SIGNAL', `Promise fulfilled: Cancelled by agent at ${elapsedSec}s (reason: "${outcome.reason || 'AbortError'}")`);
+          announce(`Timer cancelled by agent at ${elapsedSec} seconds`);
+          return {
+            status: 'cancelled',
+            elapsed: outcome.elapsed,
+            output: `Timer cancelled by agent at ${elapsedSec}s`,
+            reason: outcome.reason || options.signal?.reason || 'AbortError'
+          };
+        } else {
+          hudLog('EXEC', `Promise fulfilled: Completed at ${elapsedSec}s`);
+          announce(`Timer completed at ${elapsedSec} seconds`);
+          return {
+            status: 'completed',
+            elapsed: outcome.elapsed,
+            output: `Timer completed at ${elapsedSec}s`
+          };
+        }
+      } catch (err) {
+        setPromiseInspectorState('rejected', err);
+        hudLog('WARN', `Execution rejected: ${err.name} - ${err.message}`);
+        throw err;
+      }
     }
   });
 
   hudLog('SYS', 'Tool "start_timer" registered on document.modelContext');
+  renderRegisteredSchema(TIMER_TOOL_DEFINITION);
+
+  if (document.modelContext?.addEventListener) {
+    document.modelContext.addEventListener('toolchange', () => {
+      renderRegisteredSchema(TIMER_TOOL_DEFINITION);
+    });
+  }
+}
+
+/**
+ * Computes and renders the registered tool schema dynamically at runtime
+ * by querying document.modelContext.getTools(), matching the exact discovery
+ * mechanism used by AI agents.
+ *
+ * @param {object} [fallbackDef] - Fallback definition if getTools() is unavailable.
+ */
+async function renderRegisteredSchema(fallbackDef) {
+  const schemaCodeEl = document.getElementById('tool-schema-display');
+  if (!schemaCodeEl) return;
+
+  try {
+    if (document.modelContext?.getTools) {
+      const tools = await document.modelContext.getTools();
+      const tool = tools.find((t) => t.name === 'start_timer');
+      if (tool) {
+        const publicContract = {
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema
+        };
+        schemaCodeEl.textContent = JSON.stringify(publicContract, null, 2);
+        return;
+      }
+    }
+  } catch (err) {
+    // If getTools fails or throws, use fallback definition
+  }
+
+  if (fallbackDef) {
+    schemaCodeEl.textContent = JSON.stringify(fallbackDef, null, 2);
+  }
 }
 
 
 // =============================================================================
-// 3. AGENT SIMULATOR & HOST ACTUATION (Caller Side)
+// 3. AGENT SIMULATOR (UI Host Caller Side)
 // =============================================================================
 
 let activeAbortController = null;
@@ -171,7 +258,6 @@ let activeAbortController = null;
  * Simulates how an AI agent or browser assistant calls the tool via WebMCP:
  * 1. Creates an AbortController to manage execution lifecycle.
  * 2. Invokes document.modelContext.executeTool() passing options = { signal }.
- * 3. Handles cooperative settlement (fulfilled) or rejection.
  *
  * @param {StopwatchEngine} stopwatch
  */
@@ -186,52 +272,38 @@ async function triggerAgentExecution(stopwatch) {
   activeAbortController = new AbortController();
   const options = { signal: activeAbortController.signal };
 
-  setPromiseInspectorState('pending');
-  hudLog('AGENT', 'executeTool("start_timer", { duration: 60 }, { signal })');
-  announce('Timer started via WebMCP');
+  const tools = document.modelContext.getTools ? await document.modelContext.getTools() : [];
+  const tool = tools.find((t) => t.name === 'start_timer') || { name: 'start_timer' };
 
+  // Pass native JavaScript object (Chrome 154 spec), with fallback to stringified JSON for older Chrome
+  let rawResult;
   try {
-    const tools = document.modelContext.getTools ? await document.modelContext.getTools() : [];
-    const tool = tools.find((t) => t.name === 'start_timer') || { name: 'start_timer' };
-
-    // Pass native JavaScript object (Chrome 154 spec), with fallback to stringified JSON for older Chrome
-    let rawResult;
-    try {
-      rawResult = await document.modelContext.executeTool(tool, { duration: 60 }, options);
-    } catch (err) {
-      if (err instanceof TypeError || err.message?.includes('string')) {
-        rawResult = await document.modelContext.executeTool(tool, JSON.stringify({ duration: 60 }), options);
-      } else {
-        throw err;
-      }
-    }
-    const result = typeof rawResult === 'string' ? JSON.parse(rawResult) : rawResult;
-
-    const sec = (stopwatch.elapsed / 1000).toFixed(2);
-    setPromiseInspectorState('fulfilled', result, sec);
-    hudLog('SIGNAL', `Promise fulfilled: status="${result?.status}", elapsed=${sec}s`);
-
-    if (result?.status === 'paused') {
-      announce(`Timer paused at ${sec} seconds`);
-    } else if (result?.status === 'completed') {
-      announce(`Timer completed at ${sec} seconds`);
-    }
+    rawResult = await document.modelContext.executeTool(tool, { duration: 60 }, options);
   } catch (err) {
-    setPromiseInspectorState('rejected', err);
-    hudLog('WARN', `Execution rejected: ${err.name} - ${err.message}`);
+    if (err instanceof TypeError || err.message?.includes('string')) {
+      rawResult = await document.modelContext.executeTool(tool, JSON.stringify({ duration: 60 }), options);
+    } else {
+      throw err;
+    }
   }
 }
 
 /**
  * Simulates cancellation initiated by the agent or user.
  * Dispatches controller.abort() which triggers the 'abort' event on options.signal.
+ * Only cancels executions initiated by the on-page simulator.
  *
  * @param {StopwatchEngine} stopwatch
  */
 function triggerAgentAbort(stopwatch) {
   if (!stopwatch.isRunning) return;
-  hudLog('AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched');
-  activeAbortController?.abort('User/Agent Cancellation');
+
+  if (activeAbortController) {
+    hudLog('AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched');
+    activeAbortController.abort('User/Agent Cancellation');
+  } else {
+    hudLog('WARN', 'Cannot abort: execution was initiated by an external agent AbortSignal.');
+  }
 }
 
 /**
@@ -241,6 +313,7 @@ function triggerAgentAbort(stopwatch) {
  */
 function resetDemo(stopwatch) {
   activeAbortController?.abort('Reset');
+  activeAbortController = null;
   stopwatch.reset();
   setPromiseInspectorState('uninvoked');
   hudLog('SYS', 'Timer reset to zero.');
@@ -290,8 +363,13 @@ function setPromiseInspectorState(state, result, elapsedSec) {
       span.textContent = '<PENDING>';
       break;
     case 'fulfilled':
-      span.className = 'promise-resolved';
-      span.textContent = `<FULFILLED { status: "${result?.status || 'completed'}", elapsed: "${elapsedSec}s" }>`;
+      if (result?.status === 'cancelled') {
+        span.className = 'promise-cancelled';
+        span.textContent = `<FULFILLED: Cancelled by Agent { status: "cancelled", elapsed: "${elapsedSec}s" }>`;
+      } else {
+        span.className = 'promise-resolved';
+        span.textContent = `<FULFILLED: Completed { status: "completed", elapsed: "${elapsedSec}s" }>`;
+      }
       break;
     case 'rejected':
       span.className = 'promise-rejected';

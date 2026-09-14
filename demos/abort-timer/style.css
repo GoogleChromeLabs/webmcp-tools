@@ -459,6 +459,9 @@
     color: var(--mint);
   }
 
+        .promise-cancelled {
+          color: var(--amber);
+        }
   .promise-rejected {
     color: var(--rose);
   }
@@ -550,6 +553,7 @@
   }
 
   .agent-schema-card {
+    overflow: auto;
     border-color: color-mix(in oklab, var(--cyan) 30%, var(--border-subtle));
   }
 

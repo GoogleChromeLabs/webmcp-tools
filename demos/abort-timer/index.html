@@ -70,7 +70,7 @@
               </span>
               <span class="state-badge badge-paused">
                 <span class="badge-dot"></span>
-                <span>PAUSED (Thread Released 0% CPU)</span>
+                <span>CANCELLED BY AGENT (Thread Released 0% CPU)</span>
               </span>
               <span class="state-badge badge-completed">
                 COMPLETED (60s Limit)
@@ -93,7 +93,6 @@
               </svg>
               Reset Timer
             </button>
-            <span class="reset-hint">Agent-driven engine • Reset clears elapsed time</span>
           </div>
         </div>
       </div>
@@ -106,9 +105,7 @@
           <span class="agent-avatar">🤖</span>
           <div>
             <div class="flex-row">
-              <h2 class="toolkit-title" id="agent-deck-title">SIMULATED AGENT ENVIRONMENT</h2>
-              <span class="badge badge-purple">Host Context</span>
-              <span class="badge badge-cyan">1 Active Tool</span>
+              <h2 class="toolkit-title" id="agent-deck-title">SIMULATE AGENT ACTIONS</h2>
             </div>
             <p class="toolkit-desc">
               Simulates an external AI assistant discovering and invoking page tools via
@@ -167,20 +164,7 @@
           </div>
 
           <div class="schema-viewer">
-            <pre class="tool-schema-code"><code>{
-  "name": "start_timer",
-  "description": "Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.",
-  "inputSchema": {
-    "type": "object",
-    "properties": {
-      "duration": {
-        "type": "number",
-        "default": 60,
-        "description": "Maximum timer duration in seconds before completing."
-      }
-    }
-  }
-}</code></pre>
+            <pre class="tool-schema-code"><code id="tool-schema-display">Loading schema from document.modelContext...</code></pre>
           </div>
         </div>
       </div>
