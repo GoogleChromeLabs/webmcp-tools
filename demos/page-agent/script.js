@@ -192,8 +192,17 @@ async function handleUserSubmit() {
           try {
             appendMessage('System', `⚙️ Executing tool: ${name}...`, 'tool-indicator');
             const tools = await getTools();
-            const tool = tools.find((t) => t.name == name);
-            const result = await document.modelContext.executeTool(tool, inputArgs);
+            let result;
+            try {
+              // Modern Chrome (153+) accepts JS object directly
+              result = await document.modelContext.executeTool(tool, args);
+            } catch (err) {
+              if (err instanceof TypeError || err.message?.includes('string')) {
+                result = await document.modelContext.executeTool(tool, inputArgs);
+              } else {
+                throw err;
+              }
+            }
 
             if (codeModeCheckbox.checked && name === 'execute_batch' && result && Array.isArray(result.outputs)) {
               for (const out of result.outputs) {

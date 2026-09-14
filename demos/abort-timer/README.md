@@ -55,23 +55,34 @@ document.modelContext.registerTool({
   }
 });
 
-// 2. Headless Timer Engine: Listen to AbortSignal
-function runTimer(maxSeconds, signal) {
+// 2. Headless Timer Engine: Listen to AbortSignal (Signal is optional)
+function runTimer(maxSeconds = 60, signal) {
+  if (signal?.aborted) {
+    return Promise.resolve({ status: 'paused', elapsed: 0 });
+  }
+
   return new Promise((resolve) => {
     let elapsed = 0;
     let startTime = performance.now();
     let rafId = null;
 
-    // Listen for the abort event (identical to how fetch() works internally!)
-    signal?.addEventListener('abort', () => {
-      cancelAnimationFrame(rafId);
+    const onAbort = () => {
+      cleanup();
       resolve({ status: 'paused', elapsed });
-    }, { once: true });
+    };
+
+    const cleanup = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      signal?.removeEventListener('abort', onAbort);
+    };
+
+    // Listen for cooperative cancellation if a signal is provided
+    signal?.addEventListener('abort', onAbort, { once: true });
 
     function tick() {
       elapsed = performance.now() - startTime;
       if (elapsed >= maxSeconds * 1000) {
-        cancelAnimationFrame(rafId);
+        cleanup();
         return resolve({ status: 'completed', elapsed });
       }
       rafId = requestAnimationFrame(tick);
@@ -99,7 +110,6 @@ controller.abort();
 * **Visual Digits (`role="timer"`, `aria-live="off"`):** Ticking numbers explicitly disable live region announcements to prevent screen reader speech spam.
 * **Dedicated Announcer Region (`#a11y-announcer`):** Polite verbal announcements trigger only on meaningful state boundaries (Started, Paused, Reset).
 * **Tabular Typography:** Monospace font with `tabular-nums` prevents horizontal layout shifting.
-* **Keyboard Shortcuts:** `Space` toggles start/pause; `R` resets.
 
 ---
 

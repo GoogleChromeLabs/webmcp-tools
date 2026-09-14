@@ -483,6 +483,32 @@
     flex-wrap: wrap;
   }
 
+  .tool-schema-details {
+    margin-top: 0.25rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .tool-schema-summary {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--cyan);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .tool-schema-code {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.4;
+  }
+
   /* HUD Log Section */
   .log-section {
     background: var(--bg-surface);
@@ -610,8 +636,8 @@
 
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid var(--cyan) !important;
-    outline-offset: 2px !important;
+    outline: 2px solid var(--cyan);
+    outline-offset: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {

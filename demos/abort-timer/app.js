@@ -1,90 +1,154 @@
 /**
  * WebMCP AbortSignal Explorer — Application Logic
- * Chrome 153 agent cancelation demo
+ * Chrome 153 agent cancellation reference implementation
  *
  * Demonstrates the Web Model Context Protocol (WebMCP) execution cancellation
  * architecture using standard DOM AbortSignal.
  */
 
 // =============================================================================
-// 1. STATE
-// =============================================================================
-
-const timer = {
-  elapsed: 0,
-  running: false,
-  ctrl: null,
-  rafId: null
-};
-
-
-// =============================================================================
-// 2. EXECUTION ENGINE
+// 1. DOMAIN LAYER: Pure Stopwatch Engine
 // =============================================================================
 
 /**
- * Runs a stopwatch animation loop at ~60 FPS.
- * If an AbortSignal is provided, listens for cancellation.
+ * Headless stopwatch state machine.
+ * Completely decoupled from WebMCP and DOM rendering for testability and clean architecture.
  */
-function runTimer(maxSeconds = 60, signal) {
-  return new Promise((resolve) => {
-    const startTime = performance.now() - timer.elapsed;
+class StopwatchEngine {
+  #elapsed = 0;
+  #state = 'idle'; // 'idle' | 'running' | 'paused' | 'completed'
+  #rafId = null;
+  #onUpdate = null;
 
-    // 1. Check if already aborted before starting
-    if (!signal || signal.aborted) {
-      setTimerState('paused');
-      return resolve({ status: 'paused', elapsed: timer.elapsed });
+  constructor(onUpdate) {
+    this.#onUpdate = onUpdate;
+  }
+
+  get elapsed() {
+    return this.#elapsed;
+  }
+
+  get state() {
+    return this.#state;
+  }
+
+  get isRunning() {
+    return this.#state === 'running';
+  }
+
+  reset() {
+    if (this.#rafId) {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
+    this.#elapsed = 0;
+    this.#state = 'idle';
+    this.#notify();
+  }
+
+  #notify() {
+    this.#onUpdate?.({
+      elapsed: this.#elapsed,
+      state: this.#state
+    });
+  }
+
+  /**
+   * Runs the stopwatch up to maxSeconds.
+   * If an AbortSignal is provided, gracefully and cooperatively pauses on abort.
+   *
+   * @param {number} maxSeconds - Maximum runtime in seconds.
+   * @param {AbortSignal} [signal] - Optional DOM AbortSignal for cooperative cancellation.
+   * @returns {Promise<{ status: 'completed' | 'paused', elapsed: number }>}
+   */
+  run(maxSeconds = 60, signal) {
+    if (this.#state === 'running') {
+      return Promise.reject(new Error('Stopwatch is already running'));
     }
 
-    // 2. Cancellation via standard DOM AbortSignal
-    signal.addEventListener('abort', () => {
-      cancelAnimationFrame(timer.rafId);
-      timer.running = false;
-      setTimerState('paused');
-      resolve({ status: 'paused', elapsed: timer.elapsed });
-    }, { once: true });
-
-    // 3. High-frequency tick loop
-    function tick() {
-      timer.elapsed = performance.now() - startTime;
-      renderTime(timer.elapsed);
-
-      if (timer.elapsed >= maxSeconds * 1000) {
-        cancelAnimationFrame(timer.rafId);
-        timer.running = false;
-        setTimerState('completed');
-        return resolve({ status: 'completed', elapsed: timer.elapsed });
-      }
-
-      timer.rafId = requestAnimationFrame(tick);
+    // 1. If signal is provided and already aborted, pause immediately without starting a loop
+    if (signal?.aborted) {
+      this.#state = 'paused';
+      this.#notify();
+      return Promise.resolve({ status: 'paused', elapsed: this.#elapsed });
     }
 
-    timer.running = true;
-    setTimerState('running');
-    timer.rafId = requestAnimationFrame(tick);
-  });
+    return new Promise((resolve) => {
+      const startTime = performance.now() - this.#elapsed;
+      this.#state = 'running';
+      this.#notify();
+
+      // 2. Abort listener for cooperative cancellation
+      const onAbort = () => {
+        cleanup();
+        this.#state = 'paused';
+        this.#notify();
+        resolve({ status: 'paused', elapsed: this.#elapsed });
+      };
+
+      const cleanup = () => {
+        if (this.#rafId) {
+          cancelAnimationFrame(this.#rafId);
+          this.#rafId = null;
+        }
+        signal?.removeEventListener('abort', onAbort);
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      // 3. High-frequency tick loop
+      const tick = () => {
+        this.#elapsed = performance.now() - startTime;
+
+        if (this.#elapsed >= maxSeconds * 1000) {
+          cleanup();
+          this.#state = 'completed';
+          this.#notify();
+          return resolve({ status: 'completed', elapsed: this.#elapsed });
+        }
+
+        this.#notify();
+        this.#rafId = requestAnimationFrame(tick);
+      };
+
+      this.#rafId = requestAnimationFrame(tick);
+    });
+  }
 }
 
 
 // =============================================================================
-// 3. WEBMCP TOOL REGISTRATION
+// 2. WEBMCP TOOL LAYER: Tool Provider
 // =============================================================================
 
-function registerTools() {
-  if (!document.modelContext?.registerTool) return;
+/**
+ * Registers the stopwatch execution tool on document.modelContext.
+ * Receives options.signal (Chrome 153+) and passes it to the stopwatch engine.
+ *
+ * @param {StopwatchEngine} stopwatch - The stopwatch instance to expose.
+ */
+function registerTools(stopwatch) {
+  if (!document.modelContext?.registerTool) {
+    hudLog('WARN', 'document.modelContext is not available in this environment.');
+    return;
+  }
 
   document.modelContext.registerTool({
     name: 'start_timer',
-    description: 'Starts a stopwatch timer that halts cooperatively via AbortSignal.',
+    description: 'Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.',
     inputSchema: {
       type: 'object',
       properties: {
-        duration: { type: 'number', default: 60, description: 'Duration in seconds' }
+        duration: {
+          type: 'number',
+          default: 60,
+          description: 'Maximum timer duration in seconds before completing.'
+        }
       }
     },
-    // 👉 NEW IN CHROME 153: 2nd argument `options` receives the AbortSignal!
+    // 👉 Chrome 153+: 2nd argument `options` receives the AbortSignal!
     execute: async ({ duration = 60 } = {}, options = {}) => {
-      const outcome = await runTimer(duration, options.signal);
+      const outcome = await stopwatch.run(duration, options.signal);
       return {
         status: outcome.status,
         output: `Timer ${outcome.status} at ${(outcome.elapsed / 1000).toFixed(2)}s`,
@@ -93,85 +157,99 @@ function registerTools() {
     }
   });
 
-  hudLog('SYS', 'Tool "start_timer" registered with document.modelContext');
+  hudLog('SYS', 'Tool "start_timer" registered on document.modelContext');
 }
 
 
 // =============================================================================
-// 4. ACTUATION & CANCELLATION (Host caller side)
+// 3. AGENT SIMULATOR & HOST ACTUATION (Caller Side)
 // =============================================================================
 
+let activeAbortController = null;
+
 /**
- * Invokes start_timer via document.modelContext.executeTool().
- * Passes options = { signal: timer.ctrl.signal } to allow cancellation.
+ * Simulates how an AI agent or browser assistant calls the tool via WebMCP:
+ * 1. Creates an AbortController to manage execution lifecycle.
+ * 2. Invokes document.modelContext.executeTool() passing options = { signal }.
+ * 3. Handles cooperative settlement (fulfilled) or rejection.
+ *
+ * @param {StopwatchEngine} stopwatch
  */
-async function startTimer() {
-  if (timer.running) return;
+async function triggerAgentExecution(stopwatch) {
+  if (stopwatch.isRunning) return;
 
-  timer.ctrl = new AbortController();
-  const options = { signal: timer.ctrl.signal };
+  if (!document.modelContext?.executeTool) {
+    hudLog('WARN', 'Cannot execute tool: document.modelContext.executeTool is unavailable.');
+    return;
+  }
 
-  const promiseEl = document.getElementById('promise-state');
-  if (promiseEl) promiseEl.innerHTML = '<span class="promise-pending">&lt;PENDING&gt;</span>';
+  activeAbortController = new AbortController();
+  const options = { signal: activeAbortController.signal };
 
+  setPromiseInspectorState('pending');
   hudLog('AGENT', 'executeTool("start_timer", { duration: 60 }, { signal })');
-  announce('Timer started');
+  announce('Timer started via WebMCP');
 
   try {
-    const tools = document.modelContext?.getTools ? await document.modelContext.getTools() : [];
-    const tool = tools.find(t => t.name === 'start_timer') || { name: 'start_timer' };
-    const rawResult = await document.modelContext.executeTool(tool, JSON.stringify({ duration: 60 }), options);
-    const result = typeof rawResult === 'string' ? JSON.parse(rawResult) : rawResult;
-    const sec = (timer.elapsed / 1000).toFixed(2);
-    if (promiseEl) {
-      promiseEl.innerHTML = `<span class="promise-resolved">&lt;RESOLVED { status: "${result?.status || 'completed'}", elapsed: "${sec}s" }&gt;</span>`;
-    }
-    hudLog('SIGNAL', `Promise resolved: status="${result?.status}", elapsed=${sec}s`);
-    if (result?.status === 'paused') announce(`Timer paused at ${sec} seconds`);
-  } catch (err) {
-    if (err.name === 'AbortError' || timer.ctrl?.signal?.aborted) {
-      const sec = (timer.elapsed / 1000).toFixed(2);
-      if (promiseEl) {
-        promiseEl.innerHTML = `<span class="promise-resolved">&lt;RESOLVED { status: "paused", elapsed: "${sec}s" }&gt;</span>`;
+    const tools = document.modelContext.getTools ? await document.modelContext.getTools() : [];
+    const tool = tools.find((t) => t.name === 'start_timer') || { name: 'start_timer' };
+
+    // Pass native JavaScript object (Chrome 154 spec), with fallback to stringified JSON for older Chrome
+    let rawResult;
+    try {
+      rawResult = await document.modelContext.executeTool(tool, { duration: 60 }, options);
+    } catch (err) {
+      if (err instanceof TypeError || err.message?.includes('string')) {
+        rawResult = await document.modelContext.executeTool(tool, JSON.stringify({ duration: 60 }), options);
+      } else {
+        throw err;
       }
-      hudLog('SIGNAL', 'Promise cooperatively aborted via AbortSignal');
-      announce(`Timer paused at ${sec} seconds`);
-    } else {
-      if (promiseEl) promiseEl.innerHTML = `<span class="promise-rejected">&lt;REJECTED: ${err.name}&gt;</span>`;
-      hudLog('WARN', `Execution error: ${err.message}`);
     }
+    const result = typeof rawResult === 'string' ? JSON.parse(rawResult) : rawResult;
+
+    const sec = (stopwatch.elapsed / 1000).toFixed(2);
+    setPromiseInspectorState('fulfilled', result, sec);
+    hudLog('SIGNAL', `Promise fulfilled: status="${result?.status}", elapsed=${sec}s`);
+
+    if (result?.status === 'paused') {
+      announce(`Timer paused at ${sec} seconds`);
+    } else if (result?.status === 'completed') {
+      announce(`Timer completed at ${sec} seconds`);
+    }
+  } catch (err) {
+    setPromiseInspectorState('rejected', err);
+    hudLog('WARN', `Execution rejected: ${err.name} - ${err.message}`);
   }
 }
 
 /**
- * Halts the timer by triggering controller.abort().
- * The timer loop hears the 'abort' event and pauses immediately.
+ * Simulates cancellation initiated by the agent or user.
+ * Dispatches controller.abort() which triggers the 'abort' event on options.signal.
+ *
+ * @param {StopwatchEngine} stopwatch
  */
-function pauseTimer() {
-  if (!timer.running) return;
-  hudLog('AGENT', 'controller.abort() dispatched');
-  timer.ctrl?.abort('User/Agent Pause');
+function triggerAgentAbort(stopwatch) {
+  if (!stopwatch.isRunning) return;
+  hudLog('AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched');
+  activeAbortController?.abort('User/Agent Cancellation');
 }
 
 /**
- * Resets the timer back to zero.
+ * Resets the timer and UI back to initial idle state.
+ *
+ * @param {StopwatchEngine} stopwatch
  */
-function resetTimer() {
-  timer.ctrl?.abort('Reset');
-  cancelAnimationFrame(timer.rafId);
-  timer.elapsed = 0;
-  timer.running = false;
-  renderTime(0);
-  setTimerState('idle');
-  const promiseEl = document.getElementById('promise-state');
-  if (promiseEl) promiseEl.textContent = '<UNINVOKED>';
+function resetDemo(stopwatch) {
+  activeAbortController?.abort('Reset');
+  stopwatch.reset();
+  setPromiseInspectorState('uninvoked');
   hudLog('SYS', 'Timer reset to zero.');
   announce('Timer reset.');
 }
 
 
 // =============================================================================
-// 5. UI, TELEMETRY & A11Y HELPERS
+// 4. UI, TELEMETRY & SAFE RENDERING HELPERS
 // =============================================================================
 
 function formatTime(ms) {
@@ -198,20 +276,61 @@ function setTimerState(state) {
   if (card) card.dataset.state = state;
 }
 
+function setPromiseInspectorState(state, result, elapsedSec) {
+  const promiseEl = document.getElementById('promise-state');
+  if (!promiseEl) return;
+
+  promiseEl.replaceChildren();
+
+  const span = document.createElement('span');
+
+  switch (state) {
+    case 'pending':
+      span.className = 'promise-pending';
+      span.textContent = '<PENDING>';
+      break;
+    case 'fulfilled':
+      span.className = 'promise-resolved';
+      span.textContent = `<FULFILLED { status: "${result?.status || 'completed'}", elapsed: "${elapsedSec}s" }>`;
+      break;
+    case 'rejected':
+      span.className = 'promise-rejected';
+      span.textContent = `<REJECTED: ${result?.name || 'Error'} - ${result?.message || 'aborted'}>`;
+      break;
+    case 'uninvoked':
+    default:
+      promiseEl.textContent = '<UNINVOKED>';
+      return;
+  }
+
+  promiseEl.appendChild(span);
+}
+
 function announce(msg) {
   const el = document.getElementById('a11y-announcer');
   if (el) {
     el.textContent = '';
-    setTimeout(() => { el.textContent = msg; }, 50);
+    setTimeout(() => {
+      el.textContent = msg;
+    }, 50);
   }
 }
 
+/**
+ * Safely appends an entry to the HUD log stream without innerHTML interpolation.
+ */
 function hudLog(tag, msg) {
   const stream = document.getElementById('hud-log-stream');
   if (!stream) return;
+
   const time = new Date().toLocaleTimeString();
   const div = document.createElement('div');
   div.className = 'log-entry';
+
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'log-time';
+  timeSpan.textContent = `[${time}]`;
+
   const tagClass = {
     SYS: 'log-tag-sys',
     EXEC: 'log-tag-exec',
@@ -220,42 +339,65 @@ function hudLog(tag, msg) {
     AGENT: 'log-tag-agent',
     SIGNAL: 'log-tag-signal'
   }[tag] || 'log-tag-sys';
-  div.innerHTML = `<span class="log-time">[${time}]</span><span class="log-tag ${tagClass}">[${tag}]</span><span>${msg}</span>`;
+
+  const tagSpan = document.createElement('span');
+  tagSpan.className = `log-tag ${tagClass}`;
+  tagSpan.textContent = `[${tag}]`;
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = msg;
+
+  div.append(timeSpan, tagSpan, msgSpan);
   stream.appendChild(div);
   stream.scrollTop = stream.scrollHeight;
 }
 
 function clearHudLog() {
   const stream = document.getElementById('hud-log-stream');
-  if (stream) stream.innerHTML = '';
+  if (stream) stream.replaceChildren();
 }
 
-// Keyboard shortcuts (Space: Start/Pause, R: Reset)
-window.addEventListener('keydown', (e) => {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-  if (e.code === 'Space') {
-    if (['BUTTON', 'A'].includes(e.target.tagName)) return;
-    e.preventDefault();
-    if (timer.running) pauseTimer();
-    else startTimer();
-  }
-  if (e.key === 'r' || e.key === 'R') {
-    resetTimer();
-  }
-});
-
-
-// =============================================================================
-// 6. INITIALIZATION
-// =============================================================================
-
-if (window.__webmcp_registered_tools) {
+function updateRuntimeBadge() {
   const badge = document.getElementById('runtime-badge');
-  if (badge) {
+  if (!badge) return;
+
+  if (window.__webmcp_registered_tools) {
     badge.textContent = 'Polyfill Active';
     badge.className = 'badge badge-blue';
+  } else if (document.modelContext) {
+    badge.textContent = 'Native API';
+    badge.className = 'badge badge-mint';
+  } else {
+    badge.textContent = 'API Unavailable';
+    badge.className = 'badge badge-amber';
+    hudLog('WARN', 'WebMCP API is not available. Please verify the WebMCP polyfill or flags.');
   }
 }
 
-renderTime(0);
-registerTools();
+
+// =============================================================================
+// 5. INITIALIZATION & EVENT BINDINGS
+// =============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize stopwatch engine
+  const stopwatch = new StopwatchEngine(({ elapsed, state }) => {
+    renderTime(elapsed);
+    setTimerState(state);
+  });
+
+  // Attach event listeners (replacing inline HTML onclick attributes)
+  document.getElementById('btn-start')?.addEventListener('click', () => triggerAgentExecution(stopwatch));
+  document.getElementById('btn-pause')?.addEventListener('click', () => triggerAgentAbort(stopwatch));
+  document.getElementById('btn-reset')?.addEventListener('click', () => resetDemo(stopwatch));
+
+  document.getElementById('btn-agent-execute')?.addEventListener('click', () => triggerAgentExecution(stopwatch));
+  document.getElementById('btn-agent-abort')?.addEventListener('click', () => triggerAgentAbort(stopwatch));
+
+  document.getElementById('btn-clear-log')?.addEventListener('click', clearHudLog);
+
+  // Initialize display
+  renderTime(0);
+  updateRuntimeBadge();
+  registerTools(stopwatch);
+});

@@ -26,7 +26,7 @@
           <div class="flex-row">
             <h1 class="hud-title">WEBMCP::ABORT_TIMER</h1>
             <span class="badge badge-cyan">Chrome 153</span>
-            <span id="runtime-badge" class="badge badge-mint">Native API</span>
+            <span id="runtime-badge" class="badge badge-mint">Detecting...</span>
           </div>
           <p class="hud-subtitle">WebMCP Execution Cancellation with Native DOM AbortSignal</p>
         </div>
@@ -39,16 +39,16 @@
       <div class="engine-header">
         <span class="status-dot"></span>
         <h2 id="timer-title">CHRONO VECTOR — WEBMCP EXECUTION ENGINE</h2>
-        </div>
+      </div>
 
       <!-- Digital Readout Display Bay -->
       <div class="readout-bay">
         <div class="readout-label">
           STOPWATCH TELEMETRY
-          </div>
-          <div role="timer" aria-live="off" class="readout-timer">
+        </div>
+        <div role="timer" aria-live="off" class="readout-timer">
           <span id="timer-sec">00:00</span>.<span id="timer-ms" class="ms-mint">00</span>
-          </div>
+        </div>
 
         <!-- Declarative Status Pill (Auto-styled via CSS [data-state]) -->
         <div class="badge-group">
@@ -58,32 +58,32 @@
           <span class="state-badge badge-running">
             <span class="badge-dot badge-dot-pulse"></span>
             <span>RUNNING (~60 FPS LOOP)</span>
-            </span>
-            <span class="state-badge badge-paused">
-              <span class="badge-dot"></span>
-              <span>PAUSED (Thread Released 0% CPU)</span>
-            </span>
-            <span class="state-badge badge-completed">
-              COMPLETED (60s Limit)
-            </span>
-            </div>
-            </div>
+          </span>
+          <span class="state-badge badge-paused">
+            <span class="badge-dot"></span>
+            <span>PAUSED (Thread Released 0% CPU)</span>
+          </span>
+          <span class="state-badge badge-completed">
+            COMPLETED (60s Limit)
+          </span>
+        </div>
+      </div>
 
       <!-- PRIMARY CONTROLS TOOLBAR -->
       <div class="toolbar">
-        <button id="btn-start" onclick="startTimer()" class="btn btn-mint" aria-label="Start timer via WebMCP">
+        <button id="btn-start" class="btn btn-mint" aria-label="Start timer via WebMCP">
           <svg viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z" />
           </svg>
           Start Timer
         </button>
-        <button id="btn-pause" onclick="pauseTimer()" class="btn btn-amber" aria-label="Pause timer via AbortSignal">
+        <button id="btn-pause" class="btn btn-amber" aria-label="Pause timer via AbortSignal">
           <svg viewBox="0 0 24 24">
             <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
           </svg>
           Pause (Abort)
         </button>
-        <button id="btn-reset" onclick="resetTimer()" class="btn btn-subtle" title="Reset Timer">
+        <button id="btn-reset" class="btn btn-subtle" aria-label="Reset timer to zero" title="Reset Timer">
           Reset
         </button>
       </div>
@@ -92,22 +92,21 @@
       <div class="inspector-box">
         <span class="inspector-label">start_timer() Promise:</span>
         <code id="promise-state" class="inspector-code">&lt;UNINVOKED&gt;</code>
-        </div>
+      </div>
 
       <!-- Key Capabilities Checklist -->
       <div class="checklist">
         <div class="check-item check-success">
           <span>✓</span> <span>Receives <code>options.signal</code> in WebMCP <code>execute()</code></span>
-          </div>
-          <div class="check-item check-success">
-          <span>✓</span> <span>Cooperatively halts <code>requestAnimationFrame</code> via
-            <code>signal.addEventListener('abort')</code></span>
-          </div>
-          <div class="check-item check-success">
+        </div>
+        <div class="check-item check-success">
+          <span>✓</span> <span>Cooperatively halts <code>requestAnimationFrame</code> via <code>signal.addEventListener('abort')</code></span>
+        </div>
+        <div class="check-item check-success">
           <span>✓</span> <span>Settles Promise cleanly and frees the browser execution thread</span>
-          </div>
-          </div>
-          </section>
+        </div>
+      </div>
+    </section>
 
     <!-- AGENT TOOL ACTUATION DECK -->
     <section class="toolkit-section" aria-labelledby="agent-deck-title">
@@ -116,8 +115,7 @@
           <span class="toolkit-title" id="agent-deck-title">🤖 WEBMCP AGENT TOOLKIT</span>
           <span class="badge badge-cyan">1 Registered Tool</span>
         </div>
-        <span class="toolkit-desc">Inspect registered tool schema and simulate tool actuation via
-          document.modelContext.executeTool()</span>
+        <span class="toolkit-desc">Inspect registered tool schema and simulate tool actuation via document.modelContext.executeTool()</span>
       </div>
 
       <div class="agent-grid">
@@ -126,17 +124,33 @@
             <code>start_timer({ duration })</code>
           </div>
           <p class="tool-card-desc">
-            Registered on <code>document.modelContext</code>. Listens for <code>options.signal</code> to cooperatively cancel
-            background execution.
+            Registered on <code>document.modelContext</code>. Listens for <code>options.signal</code> to cooperatively cancel background execution.
           </p>
           <div class="tool-card-actions">
-            <button onclick="startTimer()" class="btn btn-sm btn-mint">
+            <button id="btn-agent-execute" class="btn btn-sm btn-mint">
               <span>▶ Execute Tool</span>
             </button>
-            <button onclick="pauseTimer()" class="btn btn-sm btn-amber">
+            <button id="btn-agent-abort" class="btn btn-sm btn-amber">
               <span>⏸ Abort Signal</span>
             </button>
           </div>
+          <details class="tool-schema-details">
+            <summary class="tool-schema-summary">Inspect Registered JSON Schema</summary>
+            <pre class="tool-schema-code"><code>{
+  "name": "start_timer",
+  "description": "Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "duration": {
+        "type": "number",
+        "default": 60,
+        "description": "Maximum timer duration in seconds before completing."
+      }
+    }
+  }
+}</code></pre>
+          </details>
         </div>
       </div>
     </section>
@@ -148,7 +162,7 @@
           <span class="log-title-dot">●</span>
           LIVE_EVENT_TELEMETRY (document.modelContext)
         </span>
-        <button onclick="clearHudLog()" class="log-clear-btn">
+        <button id="btn-clear-log" class="log-clear-btn">
           CLEAR_LOG
         </button>
       </div>
