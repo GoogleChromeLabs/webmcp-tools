@@ -88,6 +88,13 @@ function matchesConstraint(constraint: any, actual: any): boolean {
 const SUPPORTED_INLINE_FLAGS = new Set(["d", "g", "i", "m", "s", "u", "v", "y"]);
 
 /**
+ * Module-level cache for compiled regex patterns.
+ * Maps raw pattern strings to compiled RegExp objects or cached Errors.
+ * Eliminates expensive RegExp compilation for repeated pattern strings.
+ */
+const PATTERN_CACHE = new Map<string, RegExp | Error>();
+
+/**
  * Build a RegExp from a `$pattern` value.
  *
  * Accepts an optional leading inline-flag prefix `(?flags)` — POSIX/Python
@@ -99,21 +106,48 @@ const SUPPORTED_INLINE_FLAGS = new Set(["d", "g", "i", "m", "s", "u", "v", "y"])
  *
  * Supported flag characters are the ones `new RegExp(pattern, flags)`
  * accepts (`d g i m s u v y`). Unknown flags throw.
+ *
+ * Results are cached to avoid recompiling identical patterns. Both successful
+ * RegExp objects and thrown Errors are cached to prevent redundant work on
+ * repeated invalid patterns.
  */
 function buildPattern(rawPattern: string): RegExp {
-  const match = /^\(\?([a-zA-Z]+)\)/.exec(rawPattern);
-  if (!match) return new RegExp(rawPattern);
-
-  const flags = match[1];
-  for (const flag of flags) {
-    if (!SUPPORTED_INLINE_FLAGS.has(flag)) {
-      throw new SyntaxError(
-        `Unsupported inline flag "(?${flag})" in $pattern ${JSON.stringify(rawPattern)}. ` +
-          `Supported flags: ${[...SUPPORTED_INLINE_FLAGS].join(", ")}.`,
-      );
+  // Check cache first
+  const cached = PATTERN_CACHE.get(rawPattern);
+  if (cached !== undefined) {
+    if (cached instanceof Error) {
+      throw cached;
     }
+    return cached;
   }
-  return new RegExp(rawPattern.slice(match[0].length), flags);
+
+  try {
+    const match = /^\(\?([a-zA-Z]+)\)/.exec(rawPattern);
+    if (!match) {
+      const regex = new RegExp(rawPattern);
+      PATTERN_CACHE.set(rawPattern, regex);
+      return regex;
+    }
+
+    const flags = match[1];
+    for (const flag of flags) {
+      if (!SUPPORTED_INLINE_FLAGS.has(flag)) {
+        throw new SyntaxError(
+          `Unsupported inline flag "(?${flag})" in $pattern ${JSON.stringify(rawPattern)}. ` +
+            `Supported flags: ${[...SUPPORTED_INLINE_FLAGS].join(", ")}.`,
+        );
+      }
+    }
+    const regex = new RegExp(rawPattern.slice(match[0].length), flags);
+    PATTERN_CACHE.set(rawPattern, regex);
+    return regex;
+  } catch (error) {
+    // Cache errors to avoid re-throwing on repeated invalid patterns
+    if (error instanceof Error) {
+      PATTERN_CACHE.set(rawPattern, error);
+    }
+    throw error;
+  }
 }
 
 /**
