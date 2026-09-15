@@ -4,6 +4,7 @@
  */
 
 import { movies as baseMovies } from './movies.js';
+import DOMPurify from 'https://esm.sh/dompurify';
 
 function getISODate(date) {
   return date.toISOString().split('T')[0];
@@ -56,8 +57,8 @@ function updateStateFromUrl() {
   const city = urlParams.get('city') || '';
   const genre = urlParams.get('genre') || 'all';
 
-  currentCity = city;
-  currentGenre = genre;
+  currentCity = DOMPurify.sanitize(city);
+  currentGenre = DOMPurify.sanitize(genre);
 
   // Update UI for location
   locationText.textContent = city || 'Select Location';
