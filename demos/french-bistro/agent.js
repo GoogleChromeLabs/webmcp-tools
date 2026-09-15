@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import DOMPurify from 'https://esm.sh/dompurify';
+
 const agentToggle = document.getElementById('agent-toggle');
 const agentChat = document.getElementById('agent-chat');
 const agentChatWindow = document.getElementById('agent-chat-window');
@@ -322,7 +324,7 @@ async function handleUserSubmit() {
 function appendMessage(sender, text, className) {
   const msgDiv = document.createElement('div');
   msgDiv.className = `agent-message ${className}`;
-  msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+  msgDiv.innerHTML = DOMPurify.sanitize(text.replace(/\n/g, '<br>'));
   agentChatWindow.appendChild(msgDiv);
   agentChatWindow.scrollTop = agentChatWindow.scrollHeight;
 }

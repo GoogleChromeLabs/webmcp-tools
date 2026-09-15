@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenAI } from 'https://esm.sh/@google/genai';
+import DOMPurify from 'https://esm.sh/dompurify';
 
 const setupContainer = document.getElementById('setup-container');
 const chatContainer = document.getElementById('chat-container');
@@ -254,7 +255,7 @@ async function handleUserSubmit() {
 function appendMessage(sender, text, className) {
   const msgDiv = document.createElement('div');
   msgDiv.className = `message ${className}`;
-  msgDiv.innerHTML = text.replace(/\n/g, '<br>');
+  msgDiv.innerHTML = DOMPurify.sanitize(text.replace(/\n/g, '<br>'));
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
