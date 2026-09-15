@@ -433,3 +433,15 @@ export async function cleanOldReports(): Promise<void> {
     // Ignore errors during cleanup
   }
 }
+
+export function resolveProjectPath(filePath: string, rootDir: string = process.cwd()): string {
+  const normalizedRoot = path.resolve(rootDir);
+  const resolvedPath = path.resolve(normalizedRoot, filePath);
+  const rootPrefix = normalizedRoot.endsWith(path.sep) ? normalizedRoot : normalizedRoot + path.sep;
+
+  if (resolvedPath !== normalizedRoot && !resolvedPath.startsWith(rootPrefix)) {
+    throw new Error(`Path "${filePath}" resolves outside the project root "${normalizedRoot}".`);
+  }
+
+  return resolvedPath;
+}

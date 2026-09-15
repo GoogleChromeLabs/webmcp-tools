@@ -20,6 +20,7 @@ import { executeLocalEvals, executeInBrowserEvals, executeSmokeEvals } from "../
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { createBackend } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
+import { resolveProjectPath } from "../utils.js";
 
 export interface CommandOptions {
   backend: string;
@@ -59,7 +60,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   };
 
   const toolsSchema: ToolsSchema = JSON.parse(
-    await readFile(resolve(process.cwd(), toolsFile), "utf-8"),
+    await readFile(resolveProjectPath(toolsFile), "utf-8"),
   );
   const tools: Array<Tool> = toolsSchema.tools.map((t) => ({
     description: t.description,
@@ -67,7 +68,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     parameters: t.inputSchema || {},
   }));
 
-  const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
+  const tests: Array<Eval> = JSON.parse(await readFile(resolveProjectPath(evalsFile), "utf-8"));
 
   const reporters = opts.reporter || ["console", "html"];
   const useConsole = reporters.includes("console");
@@ -154,9 +155,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       chromeChannel: opts.chromeChannel || "chrome-canary",
     };
 
-    const tests: Array<Eval> = JSON.parse(
-      await readFile(resolve(process.cwd(), evalsFile), "utf-8"),
-    );
+    const tests: Array<Eval> = JSON.parse(await readFile(resolveProjectPath(evalsFile), "utf-8"));
 
     const reporters = opts.reporter || ["console", "html"];
     const useConsole = reporters.includes("console");
@@ -234,9 +233,7 @@ export async function runSmokeCommand(options: CommandOptions, command?: Command
   const evalsFile = opts.evals!;
 
   try {
-    const tests: Array<Eval> = JSON.parse(
-      await readFile(resolve(process.cwd(), evalsFile), "utf-8"),
-    );
+    const tests: Array<Eval> = JSON.parse(await readFile(resolveProjectPath(evalsFile), "utf-8"));
     const finalResults = await executeSmokeEvals(tests, {
       url,
       timeoutMs: opts.timeout,
