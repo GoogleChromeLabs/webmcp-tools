@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import DOMPurify from 'https://esm.sh/dompurify';
+
 const form = document.getElementById('reservationForm');
 const submitBtn = document.getElementById("submitBtn");
 const dialog = document.getElementById('bookingDialog');
@@ -157,7 +159,9 @@ function showModal() {
     day: 'numeric',
   });
 
-  modalDetails.innerHTML = `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`;
+  modalDetails.innerHTML = DOMPurify.sanitize(
+    `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`
+  );
   dialog.showModal();
 }
 

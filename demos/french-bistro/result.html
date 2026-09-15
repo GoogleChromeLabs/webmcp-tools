@@ -60,7 +60,9 @@
     </div>
   </div>
   <script src="../shared/webmcp-polyfill.js"></script>
-  <script>
+  <script type="module">
+    import DOMPurify from 'https://esm.sh/dompurify';
+
     const params = new URLSearchParams(window.location.search);
     if (params.has('agentiframe')) {
       const agentContainer = document.getElementById('agent-container');
@@ -89,7 +91,9 @@
     const guests = params.get('guests');
     const seating = params.get('seating');
     const dateStr = params.get('date');
-    modalDetails.innerHTML = `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`;
+    modalDetails.innerHTML = DOMPurify.sanitize(
+      `Hello <strong>${name}</strong>,<br> We look forward to welcoming you on:<br><br> <strong>${dateStr}</strong> at <strong>${time}</strong><br> Party of <strong>${guests}</strong> &bull; ${seating}`
+    );
 
     const jsonLd = document.querySelector('script[type="application/ld+json"]');
     if (jsonLd) {
