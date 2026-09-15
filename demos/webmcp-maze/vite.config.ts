@@ -10,19 +10,20 @@ import { defineConfig } from "vite";
  *
  * Key directives:
  * - `script-src 'unsafe-eval'`  — required because the eval_code worker uses
- *   `new Function` internally. Blob workers inherit the page CSP, so this
- *   cannot be moved to a worker-only policy via a meta tag.
- * - `worker-src blob:`           — allows creating workers from Blob URLs,
- *   which is how EvalTool sandboxes untrusted LLM-submitted code.
- * - `connect-src 'self'`         — prevents worker code from making arbitrary
- *   outbound HTTP/WebSocket requests.
+ *   `new Function` internally (inherited by the srcdoc iframe and blob worker).
+ * - `script-src 'sha256-...'`   — allows the inline bootstrap script inside
+ *   EvalTool's sandboxed `<iframe sandbox="allow-scripts">` srcdoc document.
+ * - `worker-src blob:`           — allows creating workers from Blob URLs
+ *   inside the sandboxed iframe.
+ * - `connect-src 'self'`         — restricts outbound requests from the main
+ *   page (the sandboxed iframe further restricts its worker to `connect-src 'none'`).
  * - `style-src … fonts.googleapis.com` — needed for the Orbitron / Share Tech
  *   Mono Google Fonts stylesheet loaded in style.css.
  * - `font-src … fonts.gstatic.com`    — the actual font binary files.
  */
-const CSP = [
+export const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-eval' 'sha256-WFCiV7hPNR9ZCvdS5ykPkSin9WNCoEJiHQ0tHIJ2vpU='",
   "worker-src blob:",
   "connect-src 'self'",
   "img-src 'self' data: blob:",
