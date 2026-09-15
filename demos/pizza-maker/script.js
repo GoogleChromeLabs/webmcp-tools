@@ -22,7 +22,12 @@ const styles = {
   Wales: { crust: '#53d442', sauce: '#d32f2f', cheese: '#ffffff' },
 };
 
+const VALID_LAYERS = ['sauce-layer', 'cheese-layer'];
+const VALID_TOPPINGS = ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️', '🐑'];
+const MAX_TOPPING_COUNT = 50;
+
 function setPizzaStyle(styleName) {
+  if (!Object.prototype.hasOwnProperty.call(styles, styleName)) return;
   const style = styles[styleName];
   if (style) {
     currentStyle = styleName;
@@ -41,7 +46,9 @@ function changeSize(scale, name) {
 }
 
 function toggleLayer(layerId, action = 'toggle') {
+  if (!VALID_LAYERS.includes(layerId)) return;
   const layer = document.getElementById(layerId);
+  if (!layer) return;
   if (action === 'add') {
     layer.style.display = 'block';
   } else if (action === 'remove') {
@@ -52,12 +59,20 @@ function toggleLayer(layerId, action = 'toggle') {
 }
 
 function addTopping(emoji, size, count) {
-  for (let i = 0; i < count; i++) {
+  if (!VALID_TOPPINGS.includes(emoji)) return;
+
+  const sizeName = typeof size === 'string' ? size : size?.innerText;
+  const validSize = Object.prototype.hasOwnProperty.call(sizes, sizeName) ? sizeName : 'Medium';
+  const safeCount = Math.min(Math.max(Math.floor(Number(count) || 0), 0), MAX_TOPPING_COUNT);
+
+  for (let i = 0; i < safeCount; i++) {
     const topping = document.createElement('div');
     topping.className = 'topping';
     topping.dataset.emoji = emoji;
-    topping.dataset.size = size;
-    topping.innerHTML = `<span>${emoji}</span>`;
+    topping.dataset.size = validSize;
+    const span = document.createElement('span');
+    span.textContent = emoji;
+    topping.appendChild(span);
     const radius = 170;
     const angle = Math.random() * Math.PI * 2;
     const dist = Math.random() * radius;
@@ -66,7 +81,7 @@ function addTopping(emoji, size, count) {
     topping.style.left = `${x}px`;
     topping.style.top = `${y}px`;
 
-    const scale = sizes[size] || '1.0';
+    const scale = sizes[validSize] || '1.0';
     topping.style.transform = `rotate(${Math.random() * 90 - 45}deg) scale(${scale})`;
     pizza.appendChild(topping);
   }
@@ -78,6 +93,7 @@ function removeLastTopping() {
 }
 
 function removeTopping(emoji, all = false) {
+  if (!VALID_TOPPINGS.includes(emoji)) return false;
   const toppings = Array.from(document.querySelectorAll('.topping'));
   if (all) {
     let removed = false;
@@ -249,12 +265,15 @@ if (document.modelContext) {
     inputSchema: {
       type: 'object',
       properties: {
-        layer: { type: 'string', enum: ['sauce-layer', 'cheese-layer'] },
+        layer: { type: 'string', enum: VALID_LAYERS },
         action: { type: 'string', enum: ['add', 'remove', 'toggle'] },
       },
       required: ['layer'],
     },
     execute: ({ layer, action }) => {
+      if (!VALID_LAYERS.includes(layer)) {
+        return `Invalid layer: ${layer}`;
+      }
       toggleLayer(layer, action);
       return `Performed ${action || 'toggle'} on layer: ${layer}`;
     },
@@ -268,20 +287,28 @@ if (document.modelContext) {
       properties: {
         topping: {
           type: 'string',
-          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️', '🐑'],
+          enum: VALID_TOPPINGS,
         },
         size: { type: 'string', enum: ['Small', 'Medium', 'Large', 'Extra Large'] },
         count: {
           type: 'integer',
           minimum: 1,
+          maximum: MAX_TOPPING_COUNT,
           description: 'Number of toppings to add',
         },
       },
       required: ['topping'],
     },
     execute: ({ topping, size = 'Medium', count = 5 }) => {
-      addTopping(topping, size, count);
-      return `Added ${count} ${topping} topping(s)`;
+      if (!VALID_TOPPINGS.includes(topping)) {
+        return `Invalid topping: ${topping}`;
+      }
+      if (size && !Object.prototype.hasOwnProperty.call(sizes, size)) {
+        return `Invalid size: ${size}`;
+      }
+      const safeCount = Math.min(Math.max(Math.floor(Number(count) || 5), 1), MAX_TOPPING_COUNT);
+      addTopping(topping, size, safeCount);
+      return `Added ${safeCount} ${topping} topping(s)`;
     },
   }, toolOptions);
 
@@ -293,7 +320,7 @@ if (document.modelContext) {
       properties: {
         topping: {
           type: 'string',
-          enum: ['🍕', '🍄', '🌿', '🍍', '🫑', '🥓', '🧅', '🫒', '🌽', '🌶️', '🐑'],
+          enum: VALID_TOPPINGS,
         },
         all: {
           type: 'boolean',
@@ -303,6 +330,9 @@ if (document.modelContext) {
       required: ['topping'],
     },
     execute: ({ topping, all }) => {
+      if (!VALID_TOPPINGS.includes(topping)) {
+        return `Invalid topping: ${topping}`;
+      }
       const removed = removeTopping(topping, all);
       if (all) {
         return removed ? `Removed all ${topping} toppings` : `No ${topping} toppings found`;
