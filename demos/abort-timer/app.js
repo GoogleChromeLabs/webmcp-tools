@@ -140,7 +140,7 @@ class StopwatchEngine {
  */
 function registerTools(stopwatch) {
   if (!document.modelContext?.registerTool) {
-    hudLog('WARN', 'document.modelContext is not available in this environment.');
+    hudLog(HudLog.contextUnavailable());
     renderRegisteredSchema();
     return;
   }
@@ -161,7 +161,7 @@ function registerTools(stopwatch) {
     // 👉 Chrome 153+: 2nd argument `options` receives the AbortSignal!
     execute: async ({ duration = 60 } = {}, options = {}) => {
       setPromiseInspectorState('pending');
-      hudLog('AGENT', `executeTool("start_timer", { duration: ${duration} }, { signal: ${options.signal ? 'AbortSignal' : 'none'} })`);
+      hudLog(HudLog.started(duration, options.signal));
       announce('Timer started via WebMCP');
 
       try {
@@ -171,16 +171,17 @@ function registerTools(stopwatch) {
         setPromiseInspectorState('fulfilled', outcome, elapsedSec);
 
         if (outcome.status === 'cancelled') {
-          hudLog('SIGNAL', `Promise fulfilled: Cancelled by agent at ${elapsedSec}s (reason: "${outcome.reason || 'AbortError'}")`);
+          const reason = outcome.reason || options.signal?.reason || 'AbortError';
+          hudLog(HudLog.cancelled(elapsedSec, reason));
           announce(`Timer cancelled by agent at ${elapsedSec} seconds`);
           return {
             status: 'cancelled',
             elapsed: outcome.elapsed,
             output: `Timer cancelled by agent at ${elapsedSec}s`,
-            reason: outcome.reason || options.signal?.reason || 'AbortError'
+            reason
           };
         } else {
-          hudLog('EXEC', `Promise fulfilled: Completed at ${elapsedSec}s`);
+          hudLog(HudLog.completed(elapsedSec));
           announce(`Timer completed at ${elapsedSec} seconds`);
           return {
             status: 'completed',
@@ -190,13 +191,13 @@ function registerTools(stopwatch) {
         }
       } catch (err) {
         setPromiseInspectorState('rejected', err);
-        hudLog('WARN', `Execution rejected: ${err.name} - ${err.message}`);
+        hudLog(HudLog.rejected(err));
         throw err;
       }
     }
   });
 
-  hudLog('SYS', 'Tool "start_timer" registered on document.modelContext');
+  hudLog(HudLog.toolRegistered());
   renderRegisteredSchema();
 
   if (document.modelContext?.addEventListener) {
@@ -256,7 +257,7 @@ async function triggerAgentExecution(stopwatch) {
   if (stopwatch.isRunning) return;
 
   if (!document.modelContext?.executeTool) {
-    hudLog('WARN', 'Cannot execute tool: document.modelContext.executeTool is unavailable.');
+    hudLog(HudLog.executeUnavailable());
     return;
   }
 
@@ -290,10 +291,10 @@ function triggerAgentAbort(stopwatch) {
   if (!stopwatch.isRunning) return;
 
   if (activeAbortController) {
-    hudLog('AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched');
+    hudLog(HudLog.simulatedCancelation());
     activeAbortController.abort('User/Agent Cancellation');
   } else {
-    hudLog('WARN', 'Cannot abort: execution was initiated by an external agent AbortSignal.');
+    hudLog(HudLog.externalAgentRunningWarn());
   }
 }
 
@@ -307,7 +308,7 @@ function resetDemo(stopwatch) {
   activeAbortController = null;
   stopwatch.reset();
   setPromiseInspectorState('uninvoked');
-  hudLog('SYS', 'Timer reset to zero.');
+  hudLog(HudLog.reset());
   announce('Timer reset.');
 }
 
@@ -391,6 +392,8 @@ function announce(msg) {
 // HUD Log Constructors (Pure Data Builders)
 // ==========================================
 const HudLog = {
+  toolRegistered: () =>
+    ['SYS', 'Tool "start_timer" registered on document.modelContext'],
   reset: () =>
     ['SYS', 'Timer reset to zero.'],
   started: (duration, signal) =>
@@ -405,6 +408,12 @@ const HudLog = {
     ['WARN', 'Cannot abort: execution was initiated by an external agent AbortSignal.'],
   simulatedCancelation: () =>
     ['AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched'],
+  contextUnavailable: () =>
+    ['WARN', 'document.modelContext is not available in this environment.'],
+  executeUnavailable: () =>
+    ['WARN', 'Cannot execute tool: document.modelContext.executeTool is unavailable.'],
+  apiUnavailable: () =>
+    ['WARN', 'WebMCP API is not available. Please verify the WebMCP polyfill or flags.'],
   error: (msg) =>
     ['ERROR', msg]
 };
@@ -429,13 +438,15 @@ const createLogEntryNode = ({ tag, msg, time }) =>
   ]);
 
 
-function hudLog(tag, msg) {
+function hudLog(tagOrTuple, msg) {
   const stream = document.getElementById('hud-log-stream');
   if (!stream) return;
 
+  const [tag, message] = Array.isArray(tagOrTuple) ? tagOrTuple : [tagOrTuple, msg];
+
   const entry = createLogEntryNode({
     tag,
-    msg,
+    msg: message,
     time: new Date().toLocaleTimeString()
   });
 
@@ -461,7 +472,7 @@ function updateRuntimeBadge() {
   } else {
     badge.textContent = 'API Unavailable';
     badge.className = 'badge badge-amber';
-    hudLog('WARN', 'WebMCP API is not available. Please verify the WebMCP polyfill or flags.');
+    hudLog(HudLog.apiUnavailable());
   }
 }
 
