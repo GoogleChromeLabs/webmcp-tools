@@ -30,6 +30,9 @@ echo -e "\n[6/7] Building leather-bag..."
 echo -e "\n[7/7] Building smart-home..."
 (cd smart-home && npm ci && npm run build)
 
+echo -e "\n[8/8] Building abort-timer..."
+(cd abort-timer && npm ci && npm run build)
+
 echo -e "\n==============================================="
 echo "   ✓ ALL DEMO BUILDS COMPLETED SUCCESSFULLY!   "
 echo "==============================================="
