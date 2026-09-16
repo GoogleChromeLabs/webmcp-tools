@@ -340,52 +340,56 @@ function setTimerState(state) {
   if (card) card.dataset.state = state;
 }
 
+// Declarative DOM node creator (Hyperscript pattern)
+const el = (tag, props = {}, children = []) => {
+  const node = document.createElement(tag);
+  Object.assign(node, props);
+  node.append(...[children].flat());
+  return node;
+};
+
+const PROMISE_STATE_VIEWS = {
+  pending: () =>
+    el('span', { className: 'promise-pending', textContent: '<PENDING>' }),
+  fulfilled: (result, elapsedSec) =>
+    result?.status === 'cancelled'
+      ? el('span', {
+        className: 'promise-cancelled',
+        textContent: `<FULFILLED: Cancelled by Agent { status: "cancelled", elapsed: "${elapsedSec}s" }>`
+      })
+      : el('span', {
+        className: 'promise-resolved',
+        textContent: `<FULFILLED: Completed { status: "completed", elapsed: "${elapsedSec}s" }>`
+      }),
+  rejected: (result) =>
+    el('span', {
+      className: 'promise-rejected',
+      textContent: `<REJECTED: ${result?.name || 'Error'} - ${result?.message || 'aborted'}>`
+    }),
+  uninvoked: () => '<UNINVOKED>'
+};
+
 function setPromiseInspectorState(state, result, elapsedSec) {
   const promiseEl = document.getElementById('promise-state');
   if (!promiseEl) return;
 
-  promiseEl.replaceChildren();
-
-  const span = document.createElement('span');
-
-  switch (state) {
-    case 'pending':
-      span.className = 'promise-pending';
-      span.textContent = '<PENDING>';
-      break;
-    case 'fulfilled':
-      if (result?.status === 'cancelled') {
-        span.className = 'promise-cancelled';
-        span.textContent = `<FULFILLED: Cancelled by Agent { status: "cancelled", elapsed: "${elapsedSec}s" }>`;
-      } else {
-        span.className = 'promise-resolved';
-        span.textContent = `<FULFILLED: Completed { status: "completed", elapsed: "${elapsedSec}s" }>`;
-      }
-      break;
-    case 'rejected':
-      span.className = 'promise-rejected';
-      span.textContent = `<REJECTED: ${result?.name || 'Error'} - ${result?.message || 'aborted'}>`;
-      break;
-    case 'uninvoked':
-    default:
-      promiseEl.textContent = '<UNINVOKED>';
-      return;
-  }
-
-  promiseEl.appendChild(span);
+  const view = PROMISE_STATE_VIEWS[state]?.(result, elapsedSec) ?? PROMISE_STATE_VIEWS.uninvoked();
+  promiseEl.replaceChildren(view);
 }
 
 function announce(msg) {
-  const el = document.getElementById('a11y-announcer');
-  if (el) {
-    el.textContent = '';
+  const announcer = document.getElementById('a11y-announcer');
+  if (announcer) {
+    announcer.textContent = '';
     setTimeout(() => {
-      el.textContent = msg;
+      announcer.textContent = msg;
     }, 50);
   }
 }
 
-// ========================================== // HUD Log Constructors (Pure Data Builders) // ========================================== 
+// ==========================================
+// HUD Log Constructors (Pure Data Builders)
+// ==========================================
 const HudLog = {
   reset: () =>
     ['SYS', 'Timer reset to zero.'],
@@ -402,42 +406,40 @@ const HudLog = {
   simulatedCancelation: () =>
     ['AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched'],
   error: (msg) =>
-    ['ERROR', msg],
+    ['ERROR', msg]
+};
+
+const TAG_CLASSES = {
+  SYS: 'log-tag-sys',
+  EXEC: 'log-tag-exec',
+  ABORT: 'log-tag-abort',
+  WARN: 'log-tag-warn',
+  AGENT: 'log-tag-agent',
+  SIGNAL: 'log-tag-signal'
 };
 
 /**
- * Safely appends an entry to the HUD log stream without innerHTML interpolation.
+ * Pure builder function that constructs a DOM log entry declaratively.
  */
+const createLogEntryNode = ({ tag, msg, time }) =>
+  el('div', { className: 'log-entry' }, [
+    el('span', { className: 'log-time', textContent: `[${time}]` }),
+    el('span', { className: `log-tag ${TAG_CLASSES[tag] || 'log-tag-sys'}`, textContent: `[${tag}]` }),
+    el('span', { textContent: msg })
+  ]);
+
+
 function hudLog(tag, msg) {
   const stream = document.getElementById('hud-log-stream');
   if (!stream) return;
 
-  const time = new Date().toLocaleTimeString();
-  const div = document.createElement('div');
-  div.className = 'log-entry';
+  const entry = createLogEntryNode({
+    tag,
+    msg,
+    time: new Date().toLocaleTimeString()
+  });
 
-  const timeSpan = document.createElement('span');
-  timeSpan.className = 'log-time';
-  timeSpan.textContent = `[${time}]`;
-
-  const tagClass = {
-    SYS: 'log-tag-sys',
-    EXEC: 'log-tag-exec',
-    ABORT: 'log-tag-abort',
-    WARN: 'log-tag-warn',
-    AGENT: 'log-tag-agent',
-    SIGNAL: 'log-tag-signal'
-  }[tag] || 'log-tag-sys';
-
-  const tagSpan = document.createElement('span');
-  tagSpan.className = `log-tag ${tagClass}`;
-  tagSpan.textContent = `[${tag}]`;
-
-  const msgSpan = document.createElement('span');
-  msgSpan.textContent = msg;
-
-  div.append(timeSpan, tagSpan, msgSpan);
-  stream.appendChild(div);
+  stream.appendChild(entry);
   stream.scrollTop = stream.scrollHeight;
 }
 
