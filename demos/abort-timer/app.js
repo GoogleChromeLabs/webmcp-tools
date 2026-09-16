@@ -1,13 +1,13 @@
 /**
  * WebMCP AbortSignal Explorer — Application Logic
- * Chrome 153 agent cancellation reference implementation
+ * Chrome 153 agent cancellation demo implementation
  *
  * Demonstrates the Web Model Context Protocol (WebMCP) execution cancellation
- * architecture using standard DOM AbortSignal.
+ * using standard DOM AbortSignal.
  */
 
 // =============================================================================
-// 1. DOMAIN LAYER: Pure Stopwatch Engine
+// 1. DOMAIN LAYER: Pure Timer Engine
 // =============================================================================
 
 /**
@@ -54,16 +54,16 @@ class StopwatchEngine {
   }
 
   /**
-   * Runs the stopwatch up to maxSeconds.
+   * Runs the timer up to maxSeconds.
    * If an AbortSignal is provided, gracefully and cooperatively pauses on abort.
    *
    * @param {number} maxSeconds - Maximum runtime in seconds.
    * @param {AbortSignal} [signal] - Optional DOM AbortSignal for cooperative cancellation.
    * @returns {Promise<{ status: 'completed' | 'cancelled', elapsed: number, reason?: any }>}
    */
-  run(maxSeconds = 60, signal) {
+  runTimer(maxSeconds = 60, signal) {
     if (this.#state === 'running') {
-      return Promise.reject(new Error('Stopwatch is already running'));
+      return Promise.reject(new Error('Timer is already running'));
     }
 
     // 1. If signal is provided and already aborted, pause immediately without starting a loop
@@ -132,39 +132,32 @@ class StopwatchEngine {
 // 2. WEBMCP TOOL LAYER: Tool Provider
 // =============================================================================
 
-const TIMER_TOOL_DEFINITION = {
-  name: 'start_timer',
-  description: 'Starts or resumes a stopwatch timer that halts cooperatively via AbortSignal.',
-  inputSchema: {
-    type: 'object',
-    properties: {
-      duration: {
-        type: 'number',
-        default: 60,
-        description: 'Maximum timer duration in seconds before completing.'
-      }
-    }
-  }
-};
-
 /**
  * Registers the stopwatch execution tool on document.modelContext.
  * Receives options.signal (Chrome 153+) and passes it to the stopwatch engine.
- *
- * Centralizes all Promise lifecycle telemetry and logging so both simulated
- * UI runs and external agents update the UI consistently.
  *
  * @param {StopwatchEngine} stopwatch - The stopwatch instance to expose.
  */
 function registerTools(stopwatch) {
   if (!document.modelContext?.registerTool) {
     hudLog('WARN', 'document.modelContext is not available in this environment.');
-    renderRegisteredSchema(TIMER_TOOL_DEFINITION);
+    renderRegisteredSchema();
     return;
   }
 
   document.modelContext.registerTool({
-    ...TIMER_TOOL_DEFINITION,
+    name: 'start_timer',
+    description: 'Starts or resumes a timer.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        duration: {
+          type: 'number',
+          default: 60,
+          description: 'Maximum timer duration in seconds before completing.'
+        }
+      }
+    },
     // 👉 Chrome 153+: 2nd argument `options` receives the AbortSignal!
     execute: async ({ duration = 60 } = {}, options = {}) => {
       setPromiseInspectorState('pending');
@@ -172,7 +165,7 @@ function registerTools(stopwatch) {
       announce('Timer started via WebMCP');
 
       try {
-        const outcome = await stopwatch.run(duration, options.signal);
+        const outcome = await stopwatch.runTimer(duration, options.signal);
         const elapsedSec = (outcome.elapsed / 1000).toFixed(2);
 
         setPromiseInspectorState('fulfilled', outcome, elapsedSec);
@@ -204,46 +197,44 @@ function registerTools(stopwatch) {
   });
 
   hudLog('SYS', 'Tool "start_timer" registered on document.modelContext');
-  renderRegisteredSchema(TIMER_TOOL_DEFINITION);
+  renderRegisteredSchema();
 
   if (document.modelContext?.addEventListener) {
     document.modelContext.addEventListener('toolchange', () => {
-      renderRegisteredSchema(TIMER_TOOL_DEFINITION);
+      renderRegisteredSchema();
     });
   }
 }
 
 /**
- * Computes and renders the registered tool schema dynamically at runtime
- * by querying document.modelContext.getTools(), matching the exact discovery
- * mechanism used by AI agents.
- *
- * @param {object} [fallbackDef] - Fallback definition if getTools() is unavailable.
+ * Queries document.modelContext.getTools() at runtime and renders the
+ * discovered tool contract directly into the UI inspector.
  */
-async function renderRegisteredSchema(fallbackDef) {
+async function renderRegisteredSchema() {
   const schemaCodeEl = document.getElementById('tool-schema-display');
   if (!schemaCodeEl) return;
 
-  try {
-    if (document.modelContext?.getTools) {
-      const tools = await document.modelContext.getTools();
-      const tool = tools.find((t) => t.name === 'start_timer');
-      if (tool) {
-        const publicContract = {
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema
-        };
-        schemaCodeEl.textContent = JSON.stringify(publicContract, null, 2);
-        return;
-      }
-    }
-  } catch (err) {
-    // If getTools fails or throws, use fallback definition
+  if (!document.modelContext?.getTools) {
+    schemaCodeEl.textContent = '// WebMCP API unavailable: cannot query document.modelContext.getTools()';
+    return;
   }
 
-  if (fallbackDef) {
-    schemaCodeEl.textContent = JSON.stringify(fallbackDef, null, 2);
+  try {
+    const tools = await document.modelContext.getTools();
+    const tool = tools.find((t) => t.name === 'start_timer');
+
+    if (tool) {
+      const publicContract = {
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema
+      };
+      schemaCodeEl.textContent = JSON.stringify(publicContract, null, 2);
+    } else {
+      schemaCodeEl.textContent = '// Tool "start_timer" not found in document.modelContext';
+    }
+  } catch (err) {
+    schemaCodeEl.textContent = `// Error querying document.modelContext: ${err.message}`;
   }
 }
 
@@ -393,6 +384,26 @@ function announce(msg) {
     }, 50);
   }
 }
+
+// ========================================== // HUD Log Constructors (Pure Data Builders) // ========================================== 
+const HudLog = {
+  reset: () =>
+    ['SYS', 'Timer reset to zero.'],
+  started: (duration, signal) =>
+    ['AGENT', `executeTool("start_timer", { duration: ${duration} }, { signal: ${signal ? 'AbortSignal' : 'none'} })`],
+  completed: (elapsedSec) =>
+    ['EXEC', `Promise fulfilled: Completed at ${elapsedSec}s`],
+  cancelled: (elapsedSec, reason) =>
+    ['SIGNAL', `Promise fulfilled: Cancelled by agent at ${elapsedSec}s (reason: "${reason}")`],
+  rejected: (err) =>
+    ['WARN', `Execution rejected: ${err.name} - ${err.message}`],
+  externalAgentRunningWarn: () =>
+    ['WARN', 'Cannot abort: execution was initiated by an external agent AbortSignal.'],
+  simulatedCancelation: () =>
+    ['AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched'],
+  error: (msg) =>
+    ['ERROR', msg],
+};
 
 /**
  * Safely appends an entry to the HUD log stream without innerHTML interpolation.
