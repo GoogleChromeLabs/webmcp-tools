@@ -10,13 +10,13 @@ A premium, modern e-commerce storefront for hand-crafted leather products, built
   - **Application-wide Tools (Available on all pages)**:
     - `check_return_policy` (Imperative): Access site-wide return and guarantee policy.
     - `search_store` (Imperative): Search the Luxe Leather store catalog for products matching a query.
-    - `view_product` (Imperative): Navigate to the detailed product page for a specific leather item by its slug.
+    - `view_leather_product` (Imperative): Navigate to the detailed product page for a specific leather item by its slug.
   - **Product Page Specific Tools (Available on `#/product/:id` route)**:
     - `add_to_cart` (Declarative via Signal Form): Add items to the shopping cart with chosen variations (color and quantity).
   - **Search Page Specific Tools (Available on `#/search` route)**:
     - `filter_results` (Imperative): Filter search results on the page by colors, finishes, and maximum price.
     - `get_search_results` (Imperative): Return the list of products matching current search query and filters.
-    - `add_search_result_to_cart` (Imperative): Add a product from search results to the cart by name/keywords or index.
+    - `add_search_item_to_cart` (Imperative): Add a product from search results to the cart by name/keywords or index.
 - **Premium Design System**: Features the "Artisanal Archive" aesthetic with curated color palettes and elegant typography.
 - **Actionable Filters**: Dynamic price slider, color swatches, and finish checkboxes on the search page.
 - **Cart Management**: A dedicated Cart Page with quantity controls and order summary calculation.

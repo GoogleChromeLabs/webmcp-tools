@@ -60,7 +60,7 @@ export default function SearchResults() {
   });
 
   useWebMCP({
-    name: 'get_current_search_results',
+    name: 'get_hotel_search_results',
     description: 'Retrieve the list of hotels matching the current search query and applied filters.',
     execute: () => {
       const allResults = [...featuredHotels, ...standardHotels];

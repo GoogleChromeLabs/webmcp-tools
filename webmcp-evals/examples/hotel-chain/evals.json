@@ -22,7 +22,7 @@
         }
       },
       {
-        "functionName": "get_current_search_results",
+        "functionName": "get_hotel_search_results",
         "arguments": {},
         "optional": true
       }
@@ -52,7 +52,7 @@
         }
       },
       {
-        "functionName": "get_current_search_results",
+        "functionName": "get_hotel_search_results",
         "arguments": {},
         "optional": true
       }
