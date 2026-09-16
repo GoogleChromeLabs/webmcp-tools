@@ -1,0 +1,502 @@
+/**
+ * WebMCP AbortSignal Explorer — Application Logic
+ * Chrome 153 agent cancellation demo implementation
+ *
+ * Demonstrates the Web Model Context Protocol (WebMCP) execution cancellation
+ * using standard DOM AbortSignal.
+ */
+
+// =============================================================================
+// 1. DOMAIN LAYER: Pure Timer Engine
+// =============================================================================
+
+/**
+ * Headless stopwatch state machine.
+ * Completely decoupled from WebMCP and DOM rendering for testability and clean architecture.
+ */
+class StopwatchEngine {
+  #elapsed = 0;
+  #state = 'idle'; // 'idle' | 'running' | 'paused' | 'completed'
+  #rafId = null;
+  #onUpdate = null;
+
+  constructor(onUpdate) {
+    this.#onUpdate = onUpdate;
+  }
+
+  get elapsed() {
+    return this.#elapsed;
+  }
+
+  get state() {
+    return this.#state;
+  }
+
+  get isRunning() {
+    return this.#state === 'running';
+  }
+
+  reset() {
+    if (this.#rafId) {
+      cancelAnimationFrame(this.#rafId);
+      this.#rafId = null;
+    }
+    this.#elapsed = 0;
+    this.#state = 'idle';
+    this.#notify();
+  }
+
+  #notify() {
+    this.#onUpdate?.({
+      elapsed: this.#elapsed,
+      state: this.#state
+    });
+  }
+
+  /**
+   * Runs the timer up to maxSeconds.
+   * If an AbortSignal is provided, gracefully and cooperatively pauses on abort.
+   *
+   * @param {number} maxSeconds - Maximum runtime in seconds.
+   * @param {AbortSignal} [signal] - Optional DOM AbortSignal for cooperative cancellation.
+   * @returns {Promise<{ status: 'completed' | 'cancelled', elapsed: number, reason?: any }>}
+   */
+  runTimer(maxSeconds = 60, signal) {
+    if (this.#state === 'running') {
+      return Promise.reject(new Error('Timer is already running'));
+    }
+
+    // 1. If signal is provided and already aborted, pause immediately without starting a loop
+    if (signal?.aborted) {
+      this.#state = 'paused';
+      this.#notify();
+      return Promise.resolve({
+        status: 'cancelled',
+        elapsed: this.#elapsed,
+        reason: signal.reason || 'AbortError'
+      });
+    }
+
+    return new Promise((resolve) => {
+      const startTime = performance.now() - this.#elapsed;
+      this.#state = 'running';
+      this.#notify();
+
+      // 2. Abort listener for cooperative cancellation
+      const onAbort = () => {
+        cleanup();
+        this.#state = 'paused';
+        this.#notify();
+        resolve({
+          status: 'cancelled',
+          elapsed: this.#elapsed,
+          reason: signal?.reason || 'AbortError'
+        });
+      };
+
+      const cleanup = () => {
+        if (this.#rafId) {
+          cancelAnimationFrame(this.#rafId);
+          this.#rafId = null;
+        }
+        signal?.removeEventListener('abort', onAbort);
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+
+      // 3. High-frequency tick loop
+      const tick = () => {
+        this.#elapsed = performance.now() - startTime;
+
+        if (this.#elapsed >= maxSeconds * 1000) {
+          cleanup();
+          this.#state = 'completed';
+          this.#notify();
+          return resolve({
+            status: 'completed',
+            elapsed: this.#elapsed
+          });
+        }
+
+        this.#notify();
+        this.#rafId = requestAnimationFrame(tick);
+      };
+
+      this.#rafId = requestAnimationFrame(tick);
+    });
+  }
+}
+
+
+// =============================================================================
+// 2. WEBMCP TOOL LAYER: Tool Provider
+// =============================================================================
+
+/**
+ * Registers the stopwatch execution tool on document.modelContext.
+ * Receives options.signal (Chrome 153+) and passes it to the stopwatch engine.
+ *
+ * @param {StopwatchEngine} stopwatch - The stopwatch instance to expose.
+ */
+function registerTools(stopwatch) {
+  if (!document.modelContext?.registerTool) {
+    hudLog(HudLog.contextUnavailable());
+    renderRegisteredSchema();
+    return;
+  }
+
+  document.modelContext.registerTool({
+    name: 'start_timer',
+    description: 'Starts or resumes a timer.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        duration: {
+          type: 'number',
+          default: 60,
+          description: 'Maximum timer duration in seconds before completing.'
+        }
+      }
+    },
+    // 👉 Chrome 153+: 2nd argument `options` receives the AbortSignal!
+    execute: async ({ duration = 60 } = {}, options = {}) => {
+      setPromiseInspectorState('pending');
+      hudLog(HudLog.started(duration, options.signal));
+      announce('Timer started via WebMCP');
+
+      try {
+        const outcome = await stopwatch.runTimer(duration, options.signal);
+        const elapsedSec = (outcome.elapsed / 1000).toFixed(2);
+
+        setPromiseInspectorState('fulfilled', outcome, elapsedSec);
+
+        if (outcome.status === 'cancelled') {
+          const reason = outcome.reason || options.signal?.reason || 'AbortError';
+          hudLog(HudLog.cancelled(elapsedSec, reason));
+          announce(`Timer cancelled by agent at ${elapsedSec} seconds`);
+          return {
+            status: 'cancelled',
+            elapsed: outcome.elapsed,
+            output: `Timer cancelled by agent at ${elapsedSec}s`,
+            reason
+          };
+        } else {
+          hudLog(HudLog.completed(elapsedSec));
+          announce(`Timer completed at ${elapsedSec} seconds`);
+          return {
+            status: 'completed',
+            elapsed: outcome.elapsed,
+            output: `Timer completed at ${elapsedSec}s`
+          };
+        }
+      } catch (err) {
+        setPromiseInspectorState('rejected', err);
+        hudLog(HudLog.rejected(err));
+        throw err;
+      }
+    }
+  });
+
+  hudLog(HudLog.toolRegistered());
+  renderRegisteredSchema();
+
+  if (document.modelContext?.addEventListener) {
+    document.modelContext.addEventListener('toolchange', () => {
+      renderRegisteredSchema();
+    });
+  }
+}
+
+/**
+ * Queries document.modelContext.getTools() at runtime and renders the
+ * discovered tool contract directly into the UI inspector.
+ */
+async function renderRegisteredSchema() {
+  const schemaCodeEl = document.getElementById('tool-schema-display');
+  if (!schemaCodeEl) return;
+
+  if (!document.modelContext?.getTools) {
+    schemaCodeEl.textContent = '// WebMCP API unavailable: cannot query document.modelContext.getTools()';
+    return;
+  }
+
+  try {
+    const tools = await document.modelContext.getTools();
+    const tool = tools.find((t) => t.name === 'start_timer');
+
+    if (tool) {
+      const publicContract = {
+        name: tool.name,
+        description: tool.description,
+        inputSchema: tool.inputSchema
+      };
+      schemaCodeEl.textContent = JSON.stringify(publicContract, null, 2);
+    } else {
+      schemaCodeEl.textContent = '// Tool "start_timer" not found in document.modelContext';
+    }
+  } catch (err) {
+    schemaCodeEl.textContent = `// Error querying document.modelContext: ${err.message}`;
+  }
+}
+
+
+// =============================================================================
+// 3. AGENT SIMULATOR (UI Host Caller Side)
+// =============================================================================
+
+let activeAbortController = null;
+
+/**
+ * Simulates how an AI agent or browser assistant calls the tool via WebMCP:
+ * 1. Creates an AbortController to manage execution lifecycle.
+ * 2. Invokes document.modelContext.executeTool() passing options = { signal }.
+ *
+ * @param {StopwatchEngine} stopwatch
+ */
+async function triggerAgentExecution(stopwatch) {
+  if (stopwatch.isRunning) return;
+
+  if (!document.modelContext?.executeTool) {
+    hudLog(HudLog.executeUnavailable());
+    return;
+  }
+
+  activeAbortController = new AbortController();
+  const options = { signal: activeAbortController.signal };
+
+  const tools = document.modelContext.getTools ? await document.modelContext.getTools() : [];
+  const tool = tools.find((t) => t.name === 'start_timer') || { name: 'start_timer' };
+
+  // Pass native JavaScript object (Chrome 154 spec), with fallback to stringified JSON for older Chrome
+  let rawResult;
+  try {
+    rawResult = await document.modelContext.executeTool(tool, { duration: 60 }, options);
+  } catch (err) {
+    if (err instanceof TypeError || err.message?.includes('string')) {
+      rawResult = await document.modelContext.executeTool(tool, JSON.stringify({ duration: 60 }), options);
+    } else {
+      throw err;
+    }
+  }
+}
+
+/**
+ * Simulates cancellation initiated by the agent or user.
+ * Dispatches controller.abort() which triggers the 'abort' event on options.signal.
+ * Only cancels executions initiated by the on-page simulator.
+ *
+ * @param {StopwatchEngine} stopwatch
+ */
+function triggerAgentAbort(stopwatch) {
+  if (!stopwatch.isRunning) return;
+
+  if (activeAbortController) {
+    hudLog(HudLog.simulatedCancelation());
+    activeAbortController.abort('User/Agent Cancellation');
+  } else {
+    hudLog(HudLog.externalAgentRunningWarn());
+  }
+}
+
+/**
+ * Resets the timer and UI back to initial idle state.
+ *
+ * @param {StopwatchEngine} stopwatch
+ */
+function resetDemo(stopwatch) {
+  activeAbortController?.abort('Reset');
+  activeAbortController = null;
+  stopwatch.reset();
+  setPromiseInspectorState('uninvoked');
+  hudLog(HudLog.reset());
+  announce('Timer reset.');
+}
+
+
+// =============================================================================
+// 4. UI, TELEMETRY & SAFE RENDERING HELPERS
+// =============================================================================
+
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const hundredths = Math.floor((ms % 1000) / 10);
+  return {
+    sec: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+    ms: String(hundredths).padStart(2, '0')
+  };
+}
+
+function renderTime(ms) {
+  const t = formatTime(ms);
+  const secEl = document.getElementById('timer-sec');
+  const msEl = document.getElementById('timer-ms');
+  if (secEl) secEl.textContent = t.sec;
+  if (msEl) msEl.textContent = t.ms;
+}
+
+function setTimerState(state) {
+  const card = document.getElementById('timer-card');
+  if (card) card.dataset.state = state;
+}
+
+// Declarative DOM node creator (Hyperscript pattern)
+const el = (tag, props = {}, children = []) => {
+  const node = document.createElement(tag);
+  Object.assign(node, props);
+  node.append(...[children].flat());
+  return node;
+};
+
+const PROMISE_STATE_VIEWS = {
+  pending: () =>
+    el('span', { className: 'promise-pending', textContent: '<PENDING>' }),
+  fulfilled: (result, elapsedSec) =>
+    result?.status === 'cancelled'
+      ? el('span', {
+        className: 'promise-cancelled',
+        textContent: `<FULFILLED: Cancelled by Agent { status: "cancelled", elapsed: "${elapsedSec}s" }>`
+      })
+      : el('span', {
+        className: 'promise-resolved',
+        textContent: `<FULFILLED: Completed { status: "completed", elapsed: "${elapsedSec}s" }>`
+      }),
+  rejected: (result) =>
+    el('span', {
+      className: 'promise-rejected',
+      textContent: `<REJECTED: ${result?.name || 'Error'} - ${result?.message || 'aborted'}>`
+    }),
+  uninvoked: () => '<UNINVOKED>'
+};
+
+function setPromiseInspectorState(state, result, elapsedSec) {
+  const promiseEl = document.getElementById('promise-state');
+  if (!promiseEl) return;
+
+  const view = PROMISE_STATE_VIEWS[state]?.(result, elapsedSec) ?? PROMISE_STATE_VIEWS.uninvoked();
+  promiseEl.replaceChildren(view);
+}
+
+function announce(msg) {
+  const announcer = document.getElementById('a11y-announcer');
+  if (announcer) {
+    announcer.textContent = '';
+    setTimeout(() => {
+      announcer.textContent = msg;
+    }, 50);
+  }
+}
+
+// ==========================================
+// HUD Log Constructors (Pure Data Builders)
+// ==========================================
+const HudLog = {
+  toolRegistered: () =>
+    ['SYS', 'Tool "start_timer" registered on document.modelContext'],
+  reset: () =>
+    ['SYS', 'Timer reset to zero.'],
+  started: (duration, signal) =>
+    ['AGENT', `executeTool("start_timer", { duration: ${duration} }, { signal: ${signal ? 'AbortSignal' : 'none'} })`],
+  completed: (elapsedSec) =>
+    ['EXEC', `Promise fulfilled: Completed at ${elapsedSec}s`],
+  cancelled: (elapsedSec, reason) =>
+    ['SIGNAL', `Promise fulfilled: Cancelled by agent at ${elapsedSec}s (reason: "${reason}")`],
+  rejected: (err) =>
+    ['WARN', `Execution rejected: ${err.name} - ${err.message}`],
+  externalAgentRunningWarn: () =>
+    ['WARN', 'Cannot abort: execution was initiated by an external agent AbortSignal.'],
+  simulatedCancelation: () =>
+    ['AGENT', 'activeAbortController.abort("User/Agent Cancellation") dispatched'],
+  contextUnavailable: () =>
+    ['WARN', 'document.modelContext is not available in this environment.'],
+  executeUnavailable: () =>
+    ['WARN', 'Cannot execute tool: document.modelContext.executeTool is unavailable.'],
+  apiUnavailable: () =>
+    ['WARN', 'WebMCP API is not available. Please verify the WebMCP polyfill or flags.'],
+  error: (msg) =>
+    ['ERROR', msg]
+};
+
+const TAG_CLASSES = {
+  SYS: 'log-tag-sys',
+  EXEC: 'log-tag-exec',
+  ABORT: 'log-tag-abort',
+  WARN: 'log-tag-warn',
+  AGENT: 'log-tag-agent',
+  SIGNAL: 'log-tag-signal'
+};
+
+/**
+ * Pure builder function that constructs a DOM log entry declaratively.
+ */
+const createLogEntryNode = ({ tag, msg, time }) =>
+  el('div', { className: 'log-entry' }, [
+    el('span', { className: 'log-time', textContent: `[${time}]` }),
+    el('span', { className: `log-tag ${TAG_CLASSES[tag] || 'log-tag-sys'}`, textContent: `[${tag}]` }),
+    el('span', { textContent: msg })
+  ]);
+
+
+function hudLog(tagOrTuple, msg) {
+  const stream = document.getElementById('hud-log-stream');
+  if (!stream) return;
+
+  const [tag, message] = Array.isArray(tagOrTuple) ? tagOrTuple : [tagOrTuple, msg];
+
+  const entry = createLogEntryNode({
+    tag,
+    msg: message,
+    time: new Date().toLocaleTimeString()
+  });
+
+  stream.appendChild(entry);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function clearHudLog() {
+  const stream = document.getElementById('hud-log-stream');
+  if (stream) stream.replaceChildren();
+}
+
+function updateRuntimeBadge() {
+  const badge = document.getElementById('runtime-badge');
+  if (!badge) return;
+
+  if (window.__webmcp_registered_tools) {
+    badge.textContent = 'Polyfill Active';
+    badge.className = 'badge badge-blue';
+  } else if (document.modelContext) {
+    badge.textContent = 'Native API';
+    badge.className = 'badge badge-mint';
+  } else {
+    badge.textContent = 'API Unavailable';
+    badge.className = 'badge badge-amber';
+    hudLog(HudLog.apiUnavailable());
+  }
+}
+
+
+// =============================================================================
+// 5. INITIALIZATION & EVENT BINDINGS
+// =============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize stopwatch engine
+  const stopwatch = new StopwatchEngine(({ elapsed, state }) => {
+    renderTime(elapsed);
+    setTimerState(state);
+  });
+
+  // Attach event listeners
+  document.getElementById('btn-reset')?.addEventListener('click', () => resetDemo(stopwatch));
+  document.getElementById('btn-agent-execute')?.addEventListener('click', () => triggerAgentExecution(stopwatch));
+  document.getElementById('btn-agent-abort')?.addEventListener('click', () => triggerAgentAbort(stopwatch));
+
+  document.getElementById('btn-clear-log')?.addEventListener('click', clearHudLog);
+
+  // Initialize display
+  renderTime(0);
+  updateRuntimeBadge();
+  registerTools(stopwatch);
+});
