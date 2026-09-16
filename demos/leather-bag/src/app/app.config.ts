@@ -63,7 +63,7 @@ Process: To initiate a return, please visit our returns portal or contact our co
         },
       },
       {
-        name: 'view_product',
+        name: 'view_leather_product',
         description: 'Navigates to the detailed page for a specific premium leather bag.',
         inputSchema: {
           type: 'object',

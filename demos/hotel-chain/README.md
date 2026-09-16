@@ -26,7 +26,9 @@ These tools are registered via `document.modelContext.registerTool`:
 | `search_location` | Navigate to search results for a specific city or area. | `query` (string) |
 | `lookup_amenity` | Deep-link to a hotel's detail page and highlight a specific amenity or policy. | `hotel_id` (string), `amenity` (string) |
 | `view_hotel` | Navigate directly to a hotel's detail page by name or ID. | `hotel_name_or_id` (string) |
-| `search_hotels` | Apply price and amenity filters directly on the Search Results page. | `max_price` (number), `amenities` (string[]) |
+| `filter_search_results` | Apply price and amenity filters directly on the Search Results page. | `max_price` (number), `amenities` (string[]) |
+| `reset_filters` | Remove all applied search filters and show all results for the current location. | (none) |
+| `get_hotel_search_results` | Retrieve the list of hotels matching the current search query and applied filters. | (none) |
 | `start_booking` | Initiate the booking process for the currently viewed hotel. | (none) |
 
 ### Declarative Tools

@@ -79,7 +79,7 @@ export const routes: Routes = [
           }
         },
         {
-          name: 'add_search_result_to_cart',
+          name: 'add_search_item_to_cart',
           description: 'Add a product from search results to the cart by name or index. Optional color (defaults to Brown or first available).',
           inputSchema: {
             type: 'object',
