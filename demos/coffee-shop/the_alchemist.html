@@ -211,7 +211,7 @@
     document.modelContext.registerTool({
         name: "get_machine_specifications",
         description: "Provides technical dimensions, height, and water tank capacity for the Alchemist machine.",
-        inputSchema: { type: "object", properties: {}, required: [] },
+        inputSchema: { type: "object", properties: {} },
         execute: () => {
         const specsSection = document.getElementById('specs-section');
         if (specsSection) {

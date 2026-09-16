@@ -338,7 +338,7 @@ if (document.modelContext) {
         },
         date: {
           type: 'string',
-          description: `The date of the show in YYYY-MM-DD format (e.g., '${getISODate(today)}').`,
+          description: 'The date of the show in YYYY-MM-DD format. Must be one of the dates returned by query_content for this movie.',
           pattern: '^\\d{4}-\\d{2}-\\d{2}$',
         },
         time: {
