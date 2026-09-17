@@ -286,7 +286,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
     document.modelContext.registerTool({
       name: "search_catalog",
-      description: "Navigates to a product detail page.",
+      description: "Navigates the boutique to find a product and opens its page.",
       inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
       execute: (params) => {
         const q = params.query.toLowerCase();
@@ -305,7 +305,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
     document.modelContext.registerTool({
       name: "get_order_history",
-      description: "Retrieves past orders for reordering.",
+      description: "Retrieves past orders to identify a user's 'usual' beans for reordering.",
       inputSchema: { type: "object", properties: {} },
       execute: () => {
         return {
@@ -321,7 +321,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
     document.modelContext.registerTool({
       name: "reorder_product",
-      description: "Adds an item to the cart and updates the UI badge.",
+      description: "Adds an item to the cart and visually updates the UI bag icon.",
       inputSchema: { type: "object", properties: { item_id: { type: "string" } }, required: ["item_id"] },
       execute: (params) => {
         localStorage.setItem('tmr-cart-count', '1');
@@ -337,7 +337,7 @@ section class="relative min-height-[819px] flex flex-col md:flex-row items-cente
 
     document.modelContext.registerTool({
       name: "get_machine_specifications",
-      description: "Provides dimensions and water tank capacity for the Alchemist espresso machine.",
+      description: "Provides technical dimensions, height, and water tank capacity for the Alchemist machine.",
       inputSchema: { type: "object", properties: {} },
       execute: () => {
         setTimeout(() => { window.location.href = "the_alchemist.html"; }, 100);

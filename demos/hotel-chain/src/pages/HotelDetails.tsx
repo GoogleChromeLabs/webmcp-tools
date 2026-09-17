@@ -38,7 +38,7 @@ export default function HotelDetails() {
   // Register WebMCP Tool
   useWebMCP({
     name: 'start_booking',
-    description: `Navigate to the booking form to reserve a room at ${hotel.name}.`,
+    description: 'Initiate the booking process for the currently viewed hotel.',
     execute: () => {
       navigate('/book/' + hotel.id);
       return { success: true, message: `Navigated to booking form for ${hotel.name}` };
