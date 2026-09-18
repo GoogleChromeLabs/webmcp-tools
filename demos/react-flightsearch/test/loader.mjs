@@ -1,4 +1,9 @@
 /**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/**
  * Custom ESM loader to resolve extensionless TypeScript imports in tests.
  */
 export async function resolve(specifier, context, nextResolve) {
