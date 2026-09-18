@@ -3,15 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   HashRouter as Router,
   Routes,
   Route,
   useSearchParams,
 } from "react-router-dom";
+import { useWebMCP } from "use-webmcp-tool";
 import FlightSearch from "./components/FlightSearch";
 import FlightResults from "./components/FlightResults";
+import SupportTickets from "./components/SupportTickets";
+import Toast from "./components/Toast";
+import { fileSupportTicketTool } from "./webmcp";
+import { setContextualStateProvider } from "./data/ticketService";
 import "./App.css";
 
 export interface SearchParams {
@@ -25,6 +30,10 @@ export interface SearchParams {
 
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [ticketToast, setTicketToast] = useState("");
+
+  // Register the fileSupportTicket WebMCP tool across the entire application
+  useWebMCP(fileSupportTicketTool);
 
   const params = useMemo(
     () => ({
@@ -44,6 +53,44 @@ function AppContent() {
     [searchParams],
   );
 
+  // Synchronize current search state for contextual ticket bug reports
+  useEffect(() => {
+    setContextualStateProvider(() => ({
+      searchParams: {
+        origin: params.origin,
+        destination: params.destination,
+        tripType: params.tripType,
+        outboundDate: params.outboundDate,
+        inboundDate: params.inboundDate,
+        passengers: String(params.passengers),
+      },
+    }));
+  }, [params]);
+
+  // Listen for tickets created by agent to notify the user
+  useEffect(() => {
+    const handleTicketCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const ticket = customEvent.detail?.ticket;
+      if (ticket) {
+        setTicketToast(
+          `AI Agent (${ticket.agentName}) filed a support ticket: "${ticket.title}"`,
+        );
+      }
+    };
+
+    window.addEventListener(
+      "supportTicketCreated",
+      handleTicketCreated as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        "supportTicketCreated",
+        handleTicketCreated as EventListener,
+      );
+    };
+  }, []);
+
   const handleSetSearchParams = (newParams: Partial<SearchParams>) => {
     const updatedParams = { ...params, ...newParams };
     setSearchParams(
@@ -60,28 +107,35 @@ function AppContent() {
   };
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <FlightSearch
-            searchParams={params}
-            setSearchParams={handleSetSearchParams}
-          />
-        }
-      />
-      <Route
-        path="/results"
-        element={
-          <FlightResults
-            searchParams={params}
-            setSearchParams={handleSetSearchParams}
-          />
-        }
-      />
-    </Routes>
+    <>
+      {ticketToast && (
+        <Toast message={ticketToast} onClose={() => setTicketToast("")} />
+      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <FlightSearch
+              searchParams={params}
+              setSearchParams={handleSetSearchParams}
+            />
+          }
+        />
+        <Route
+          path="/results"
+          element={
+            <FlightResults
+              searchParams={params}
+              setSearchParams={handleSetSearchParams}
+            />
+          }
+        />
+        <Route path="/tickets" element={<SupportTickets />} />
+      </Routes>
+    </>
   );
 }
+
 
 
 

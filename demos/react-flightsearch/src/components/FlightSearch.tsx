@@ -4,12 +4,13 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useWebMCP } from "use-webmcp-tool";
 import type { SearchParams } from "../App";
 import { searchFlightsTool } from "../webmcp";
 import { airports } from "../data/airports";
 import { cityNames } from "../data/cityToAirports";
+import { getTicketCount } from "../data/ticketService";
 import "../App.css";
 
 interface FlightSearchProps {
@@ -24,6 +25,15 @@ export default function FlightSearch({
   const navigate = useNavigate();
   const [completedRequestId, setCompletedRequestId] = React.useState<string | null>(null);
   const [errors, setErrors] = useState<{ origin?: string; destination?: string }>({});
+  const [ticketCount, setTicketCount] = useState(() => getTicketCount());
+
+  useEffect(() => {
+    const updateCount = () => setTicketCount(getTicketCount());
+    window.addEventListener("supportTicketsChanged", updateCount);
+    return () => {
+      window.removeEventListener("supportTicketsChanged", updateCount);
+    };
+  }, []);
 
   useWebMCP(searchFlightsTool);
 
@@ -106,6 +116,12 @@ export default function FlightSearch({
 
   return (
     <div className="app">
+      <div className="search-top-nav">
+        <span className="search-brand-title">✈️ WebMCP Flight Search</span>
+        <Link to="/tickets" className="nav-tickets-btn">
+          📋 Support Tickets {ticketCount > 0 && <span className="nav-badge">{ticketCount}</span>}
+        </Link>
+      </div>
       <main className="app-main">
         <div className="search-form-container">
           <h1>Flight Search</h1>
