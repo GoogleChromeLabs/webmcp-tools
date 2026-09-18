@@ -14,7 +14,7 @@ import {
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
-function escapeHtml(str: string | null | undefined): string {
+export function escapeHtml(str: string | null | undefined): string {
   if (str === null || str === undefined) return "";
   return String(str)
     .replace(/&/g, "&amp;")
@@ -24,7 +24,7 @@ function escapeHtml(str: string | null | undefined): string {
     .replace(/'/g, "&#039;");
 }
 
-function getDetailedTimestamp(date: Date = new Date()): string {
+export function getDetailedTimestamp(date: Date = new Date()): string {
   return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
@@ -36,7 +36,7 @@ function getDetailedTimestamp(date: Date = new Date()): string {
   });
 }
 
-function getCompactTimestamp(date: Date = new Date()): string {
+export function getCompactTimestamp(date: Date = new Date()): string {
   return date.toLocaleTimeString("en-US");
 }
 
@@ -372,7 +372,7 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
   `;
 }
 
-function renderBrowserConsoleErrors(errors?: BrowserConsoleError[]): string {
+export function renderBrowserConsoleErrors(errors?: BrowserConsoleError[]): string {
   if (!errors?.length) return "";
 
   return `
@@ -554,7 +554,7 @@ function renderStepDetails(stepEval: TestStep, totalSteps: number): string {
   `;
 }
 
-function renderTrajectory(trajectory?: any[]): string {
+export function renderTrajectory(trajectory?: any[]): string {
   if (!trajectory || trajectory.length === 0) return "";
 
   return `

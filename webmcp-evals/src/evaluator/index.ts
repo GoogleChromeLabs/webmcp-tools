@@ -6,5 +6,6 @@
 import { executeInBrowserEvals } from "./browserEvaluator.js";
 import { executeLocalEvals } from "./localEvaluator.js";
 import { executeSmokeEvals } from "./smokeEvaluator.js";
+import { executeSimulations } from "./simulationEvaluator.js";
 
-export { executeInBrowserEvals, executeLocalEvals, executeSmokeEvals };
+export { executeInBrowserEvals, executeLocalEvals, executeSimulations, executeSmokeEvals };
