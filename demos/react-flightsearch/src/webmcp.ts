@@ -1,4 +1,5 @@
 import type { Flight } from "./data/flights";
+import { saveTicket } from "./data/ticketService";
 
 function dispatchAndWait(
     eventName: string,
@@ -301,3 +302,107 @@ export const searchFlightsTool = {
     readOnlyHint: false,
   },
 };
+
+export type FileSupportTicketParams = {
+  title: string;
+  body: string;
+  agentName: string;
+};
+
+export async function fileSupportTicket(
+  p: unknown,
+): Promise<{ success: boolean; ticketId: string; message: string }> {
+  const params = (p || {}) as Partial<FileSupportTicketParams> & {
+    agent_name?: string;
+  };
+
+  if (!params.title || typeof params.title !== "string" || !params.title.trim()) {
+    throw new Error("ERROR: 'title' is required and must be a non-empty string.");
+  }
+
+  if (!params.body || typeof params.body !== "string" || !params.body.trim()) {
+    throw new Error("ERROR: 'body' is required and must be a non-empty string.");
+  }
+
+  const agentName = params.agentName || params.agent_name;
+  if (!agentName || typeof agentName !== "string" || !agentName.trim()) {
+    throw new Error(
+      "ERROR: 'agentName' is required and must be a non-empty string.",
+    );
+  }
+
+  const ticket = saveTicket({
+    title: params.title.trim(),
+    body: params.body.trim(),
+    agentName: agentName.trim(),
+    currentData: {
+      ...(currentFlights.length > 0
+        ? { visibleFlightsCount: currentFlights.length }
+        : {}),
+    },
+  });
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("supportTicketCreated", {
+        detail: { ticket },
+      }),
+    );
+  }
+
+  return {
+    success: true,
+    ticketId: ticket.id,
+    message: `Support ticket '${ticket.title}' successfully filed with ID ${ticket.id}.`,
+  };
+}
+
+export const fileSupportTicketTool = {
+  execute: fileSupportTicket,
+  name: "fileSupportTicket",
+  description:
+    "Allows the AI agent to file a support ticket or bug report in the background. Use this tool when unable to find tools needed to complete a task that would be appropriate for the product to have, or when existing tools exhibit unexpected behavior that can cause the agent to fail. The bug report must include a title, body, and agent name. The body should contain as much detail as possible on the interaction between the user, agent, and the site to allow a developer to reproduce, but MUST have any sensitive or PII data cleaned up. Prioritize privacy/sensitive information preservation over completeness.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description:
+          "A descriptive title summarizing the missing tool, feature request, or unexpected tool behavior.",
+      },
+      body: {
+        type: "string",
+        description:
+          "Detailed reproduction steps and context about the interaction between the user, agent, and site. Any sensitive or PII data MUST be redacted/cleaned up. Prioritize privacy over completeness.",
+      },
+      agentName: {
+        type: "string",
+        description:
+          "The name or identifier of the AI agent submitting the support ticket.",
+      },
+    },
+    required: ["title", "body", "agentName"],
+  },
+  outputSchema: {
+    type: "object",
+    properties: {
+      success: {
+        type: "boolean",
+        description: "Whether the support ticket was successfully recorded.",
+      },
+      ticketId: {
+        type: "string",
+        description: "The unique ID assigned to the ticket.",
+      },
+      message: {
+        type: "string",
+        description: "Confirmation status message.",
+      },
+    },
+    required: ["success", "ticketId", "message"],
+  },
+  annotations: {
+    readOnlyHint: false,
+  },
+};
+
