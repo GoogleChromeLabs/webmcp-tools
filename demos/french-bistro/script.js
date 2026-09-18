@@ -235,7 +235,13 @@ function validateForm() {
   validateField(seatingInput, seatingInput.selectedIndex !== -1);
 }
 
-window.addEventListener('toolactivated', ({ toolName }) => {
+const onToolActivated = ({ toolName }) => {
   if (toolName !== 'book_table_le_petit_bistro') return;
   validateForm();
-});
+};
+
+if ('ontoolactivated' in document.modelContext) {
+  document.modelContext.addEventListener('toolactivated', onToolActivated);
+} else {
+  window.addEventListener('toolactivated', onToolActivated);
+}
