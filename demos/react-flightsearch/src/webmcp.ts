@@ -1,5 +1,5 @@
 import type { Flight } from "./data/flights";
-import { saveTicket } from "./data/ticketService.ts";
+import { saveTicket } from "./data/ticketService";
 
 function dispatchAndWait(
     eventName: string,

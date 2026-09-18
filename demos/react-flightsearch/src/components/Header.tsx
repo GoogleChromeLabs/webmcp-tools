@@ -3,25 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { SearchParams } from "../App";
-import { getTicketCount } from "../data/ticketService";
+import { useTicketCount } from "../hooks/useTicketCount";
 
 interface HeaderProps {
   searchParams: SearchParams;
 }
 
 export default function Header({ searchParams }: HeaderProps) {
-  const [ticketCount, setTicketCount] = useState(() => getTicketCount());
+  const ticketCount = useTicketCount();
 
-  useEffect(() => {
-    const updateCount = () => setTicketCount(getTicketCount());
-    window.addEventListener("supportTicketsChanged", updateCount);
-    return () => {
-      window.removeEventListener("supportTicketsChanged", updateCount);
-    };
-  }, []);
 
   return (
     <div className="header">

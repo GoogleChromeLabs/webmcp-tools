@@ -10,7 +10,7 @@ import type { SearchParams } from "../App";
 import { searchFlightsTool } from "../webmcp";
 import { airports } from "../data/airports";
 import { cityNames } from "../data/cityToAirports";
-import { getTicketCount } from "../data/ticketService";
+import { useTicketCount } from "../hooks/useTicketCount";
 import "../App.css";
 
 interface FlightSearchProps {
@@ -25,15 +25,8 @@ export default function FlightSearch({
   const navigate = useNavigate();
   const [completedRequestId, setCompletedRequestId] = React.useState<string | null>(null);
   const [errors, setErrors] = useState<{ origin?: string; destination?: string }>({});
-  const [ticketCount, setTicketCount] = useState(() => getTicketCount());
+  const ticketCount = useTicketCount();
 
-  useEffect(() => {
-    const updateCount = () => setTicketCount(getTicketCount());
-    window.addEventListener("supportTicketsChanged", updateCount);
-    return () => {
-      window.removeEventListener("supportTicketsChanged", updateCount);
-    };
-  }, []);
 
   useWebMCP(searchFlightsTool);
 

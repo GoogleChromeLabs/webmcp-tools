@@ -77,13 +77,28 @@ export function getCurrentSiteData(): TicketSiteData {
   };
 }
 
-export function getTickets(): SupportTicket[] {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return [];
+function getSafeLocalStorage(): Storage | null {
+  if (typeof window === "undefined") {
+    return null;
   }
-
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return window.localStorage;
+  } catch (err) {
+    console.warn(
+      "localStorage is inaccessible (e.g. sandboxed iframe or third-party storage blocked):",
+      err,
+    );
+    return null;
+  }
+}
+
+export function getTickets(): SupportTicket[] {
+  try {
+    const storage = getSafeLocalStorage();
+    if (!storage) {
+      return [];
+    }
+    const raw = storage.getItem(STORAGE_KEY);
     if (!raw) {
       return [];
     }
@@ -92,9 +107,10 @@ export function getTickets(): SupportTicket[] {
       return [];
     }
 
-    // Always sort by most recent first
+    // Always sort by most recent first, with NaN-safe timestamp comparison
     return tickets.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      (a, b) =>
+        (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0),
     );
   } catch (err) {
     console.error("Failed to read support tickets from localStorage:", err);
@@ -124,16 +140,27 @@ export function saveTicket(input: CreateTicketInput): SupportTicket {
     currentData: currentSiteData,
   };
 
+  const storage = getSafeLocalStorage();
+  if (!storage) {
+    throw new Error(
+      "Cannot save support ticket: localStorage is inaccessible in this environment.",
+    );
+  }
+
   const existing = getTickets();
   const updated = [ticket, ...existing];
 
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (err) {
-      console.error("Failed to save support ticket to localStorage:", err);
-    }
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.error("Failed to save support ticket to localStorage:", err);
+    throw new Error(
+      `Failed to persist support ticket to local storage: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
+  }
 
+  if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("supportTicketsChanged", {
         detail: { tickets: updated, newTicket: ticket },
@@ -145,16 +172,22 @@ export function saveTicket(input: CreateTicketInput): SupportTicket {
 }
 
 export function deleteTicket(id: string): void {
+  const storage = getSafeLocalStorage();
+  if (!storage) {
+    return;
+  }
+
   const existing = getTickets();
   const updated = existing.filter((t) => t.id !== id);
 
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (err) {
-      console.error("Failed to delete support ticket from localStorage:", err);
-    }
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.error("Failed to delete support ticket from localStorage:", err);
+    return;
+  }
 
+  if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("supportTicketsChanged", {
         detail: { tickets: updated, deletedTicketId: id },
@@ -164,13 +197,19 @@ export function deleteTicket(id: string): void {
 }
 
 export function clearTickets(): void {
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch (err) {
-      console.error("Failed to clear support tickets from localStorage:", err);
-    }
+  const storage = getSafeLocalStorage();
+  if (!storage) {
+    return;
+  }
 
+  try {
+    storage.removeItem(STORAGE_KEY);
+  } catch (err) {
+    console.error("Failed to clear support tickets from localStorage:", err);
+    return;
+  }
+
+  if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("supportTicketsChanged", {
         detail: { tickets: [] },
@@ -178,3 +217,4 @@ export function clearTickets(): void {
     );
   }
 }
+

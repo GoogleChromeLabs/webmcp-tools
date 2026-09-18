@@ -28,4 +28,10 @@ export default tseslint.config([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  {
+    files: ["test/**/*.{ts,js,mjs}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);

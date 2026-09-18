@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   HashRouter as Router,
   Routes,
@@ -65,6 +65,8 @@ function AppContent() {
         passengers: String(params.passengers),
       },
     }));
+
+    return () => setContextualStateProvider(null);
   }, [params]);
 
   // Listen for tickets created by agent to notify the user
@@ -91,6 +93,8 @@ function AppContent() {
     };
   }, []);
 
+  const handleCloseToast = useCallback(() => setTicketToast(""), []);
+
   const handleSetSearchParams = (newParams: Partial<SearchParams>) => {
     const updatedParams = { ...params, ...newParams };
     setSearchParams(
@@ -109,7 +113,7 @@ function AppContent() {
   return (
     <>
       {ticketToast && (
-        <Toast message={ticketToast} onClose={() => setTicketToast("")} />
+        <Toast message={ticketToast} onClose={handleCloseToast} />
       )}
       <Routes>
         <Route

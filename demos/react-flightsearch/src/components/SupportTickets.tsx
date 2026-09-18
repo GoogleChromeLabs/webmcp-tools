@@ -32,8 +32,10 @@ export default function SupportTickets() {
     };
 
     window.addEventListener("supportTicketsChanged", handleStorageUpdate);
+    window.addEventListener("storage", handleStorageUpdate);
     return () => {
       window.removeEventListener("supportTicketsChanged", handleStorageUpdate);
+      window.removeEventListener("storage", handleStorageUpdate);
     };
   }, [loadTickets]);
 
@@ -263,6 +265,28 @@ export default function SupportTickets() {
                                 </span>
                               </div>
                             )}
+                            {Object.entries(ticket.currentData)
+                              .filter(
+                                ([key]) =>
+                                  ![
+                                    "route",
+                                    "url",
+                                    "timestamp",
+                                    "userAgent",
+                                    "searchParams",
+                                    "visibleFlightsCount",
+                                  ].includes(key),
+                              )
+                              .map(([key, val]) => (
+                                <div key={key} className="context-item full-width">
+                                  <span className="context-label">{key}:</span>
+                                  <pre className="context-json">
+                                    {typeof val === "object"
+                                      ? JSON.stringify(val, null, 2)
+                                      : String(val)}
+                                  </pre>
+                                </div>
+                              ))}
                           </div>
                         </div>
                       )}
