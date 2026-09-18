@@ -42,8 +42,8 @@ WebMCP Sports registers 13 in-browser tools categorized by scope:
 - `get_cart`: Returns current cart items, delivery options, subtotal, applied discounts, and total price.
 - `update_cart_delivery_option`: Updates delivery mode (`ship` or `pickup`) for a cart item, enforcing local pickup eligibility.
 - `remove_from_cart`: Removes an item from the cart by `index`, `productId`, or `productName`.
-- `start_checkout`: Initiates cart checkout and order processing.
-- `confirm_order`: Confirms order completion on the checkout success screen.
+- `quick_checkout`: Initiates cart checkout and order processing. Annotated with `consequentialHint: true`, since it completes a real purchase and cannot be safely retried.
+- `close_checkout_screen`: Closes the checkout success screen.
 
 ## 🛠 Tech Stack
 

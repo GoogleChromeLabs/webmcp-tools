@@ -63,9 +63,13 @@ export class CartModalComponent {
 
     // 2. Start Checkout Tool
     declareExperimentalWebMcpTool({
-      name: "start_checkout",
+      name: "quick_checkout",
       description: "Processes the items in the cart and completes the order. Only available when the cart is open and in summary state.",
       inputSchema: { type: "object", properties: {} },
+      annotations: {
+        // Checkout completes a real purchase, so it is never a safe retry.
+        consequentialHint: true,
+      },
       execute: () => {
         if (this.checkoutState !== 'summary') {
           return { success: false, message: "Checkout already in progress or completed." };
@@ -77,7 +81,7 @@ export class CartModalComponent {
 
     // 3. Confirm Order Tool
     declareExperimentalWebMcpTool({
-      name: "confirm_order",
+      name: "close_checkout_screen",
       description: "Closes the checkout success screen. Only available after a successful checkout.",
       inputSchema: { type: "object", properties: {} },
       execute: () => {
