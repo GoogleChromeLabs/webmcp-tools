@@ -18,7 +18,7 @@
     "@angular/platform-browser": "^22.1.6",
     "@angular/router": "^22.1.6",
     "@google/genai": "^2.10.0",
-    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "marked": "^18.0.7",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
@@ -27,11 +27,11 @@
     "@angular/build": "^22.1.8",
     "@angular/cli": "^22.1.8",
     "@angular/compiler-cli": "^22.1.6",
-    "autoprefixer": "^10.5.4",
+    "autoprefixer": "^10.6.0",
     "jsdom": "^28.0.0",
-    "postcss": "^8.5.25",
+    "postcss": "^8.5.28",
     "prettier": "^3.9.6",
-    "tailwindcss": "^4.2.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vitest": "^4.1.11",
     "webmcp-types": "^0.1.3"
