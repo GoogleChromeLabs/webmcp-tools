@@ -45,7 +45,6 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - [Code](https://github.com/happyhj/webmcp-blackjack)
   - **Example Prompt:** "Play my turn"
 - [WebMCP Bridge](https://h3manth.com/ai/webmcp/) - A bridge that connects any remote MCP server to Chrome's WebMCP API (`document.modelContext`), letting browser-based AI agents discover and invoke tools from existing MCP servers.
-
   - **Example Prompt:** "Search for TC39 proposals related to decorators"
 - [WebMCP × Excalidraw x WebAI](https://shidh.in/demo/webmcp-excalidraw/) - A Web app that converts natural language descriptions into Excalidraw diagrams through a 3-tool WebMCP pipeline (generate_mermaid → validate_mermaid → render_excalidraw), with optional on-device generation using Chrome's built-in AI.
   - **Example Prompt**: "Create a flowchart showing the user login flow with error handling"
