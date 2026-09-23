@@ -7,7 +7,7 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**WebMCP - Model Context Tool Inspector**](https://github.com/beaufortfrancois/model-context-tool-inspector): A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 - [**WebMCP Evals**](webmcp-evals/): A CLI Tool to evaluate a website's WebMCP tools against an agent (a built-in LLM agent or a Chrome extension agent), with test cases that check whether the agent calls the right tools for each user request.
 - [**WebMCP Skills**](webmcp-skills/): A collection of agent skills and testing workflows for designing, role-playing, evaluating, auditing, and implementing WebMCP tools into web applications.
-- [**WebMCP Polyfill**](demos/shared/webmcp-polyfill.js): A JavaScript polyfill to make WebMCP tools and CSS pseudo-classes work in browsers that do not support the API natively.
+- [**WebMCP Declarative Polyfill**](demos/shared/webmcp-declarative.js): A JavaScript polyfill for the experimental declarative surface of WebMCP: `<form toolname>` tools, `toolautosubmit`, `respondWith()`, and the `:tool-form-active` / `:tool-submit-active` CSS pseudo-classes.
 
 ## Demos
 
