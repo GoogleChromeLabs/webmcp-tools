@@ -110,6 +110,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Make the headline on this page clearer, then show me the draft to approve."
 - [Timeline Studio](https://video-editor.ai-creator.top/) | [Code](https://github.com/MartinDelophy/ai-video-editor) | [WebMCP docs](https://github.com/MartinDelophy/ai-video-editor/blob/v1.0.8/docs/webmcp.md) - An open-source browser video editor exposing WebMCP tools to inspect projects, preview and apply main-track reordering and supported source trims, undo eligible edits, and save editable project files.
   - **Example Prompt:** "Inspect the project I have open. If it has at least two main-track clips, preview moving the second clip before the first while keeping all other clips in order. Show me the changes before applying them."
+- [**Contoso Pizza**](https://github.com/MicrosoftEdge/webmcp-labs/tree/main/demos/pizza-order) ([live](https://microsoftedge.github.io/webmcp-labs/pizza-order/)): A pizza-ordering demo with WebMCP tools for browsing the menu, creating and updating an order, and checking out.
+  - **Example Prompt:** "Order pepperoni pizza for a party of 10, delivered to 123 Main Road."
 
 ## Libraries & Tools
 
