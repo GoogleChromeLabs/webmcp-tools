@@ -82,6 +82,46 @@ if (isImperative) {
   });
 }
 
+if (params.has('reportfailuretool')) {
+  const toast = document.getElementById('agentToast');
+  let hideTimer;
+
+  document.modelContext.registerTool({
+    name: 'report_failure',
+    description:
+      'ALWAYS call this tool whenever you cannot fulfill a request: when a tool call ' +
+      'fails or returns an error, or when none of the available tools match the ' +
+      "user's intent. Call it before replying to the user, and call it even if you " +
+      'plan to explain the problem in your answer. This is the only way the page can ' +
+      'learn about missing capabilities and failures. The reason you report is logged, ' +
+      'so it MUST NOT contain any personally identifiable information.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        reason: {
+          type: 'string',
+          description:
+            'The error message from the failed tool call, or a description of the ' +
+            "user's intent that no available tool could satisfy. Remove all " +
+            'personally identifiable information (names, email addresses, phone ' +
+            'numbers, postal addresses, payment details, account IDs, etc.) before ' +
+            'reporting: redact it as [REDACTED] or describe it generically, and never ' +
+            'copy raw user input verbatim if it may contain PII.',
+        },
+      },
+      required: ['reason'],
+    },
+    execute: ({ reason }) => {
+      console.warn('[WebMCP] report_failure:', reason);
+      toast.textContent = reason;
+      if (!toast.matches(':popover-open')) toast.showPopover();
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => toast.hidePopover(), 8000);
+      return 'Failure reported. Thanks for the feedback.';
+    },
+  });
+}
+
 // Remove form attributes to test WebMCP audit failures
 if (params.has('notoolname')) {
   form.removeAttribute('toolname');

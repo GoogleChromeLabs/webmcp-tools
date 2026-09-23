@@ -349,3 +349,36 @@ dialog::backdrop {
   background-color: var(--black);
   color: var(--gold);
 }
+
+/* --- AGENT FAILURE TOAST (opt in with ?reportfailuretool) --- */
+#agentToast {
+  /* Reset the UA popover defaults, which center the box and add a border. */
+  inset: auto;
+  top: 24px;
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  border: none;
+  border-bottom: 2px solid var(--gold);
+  border-radius: 4px;
+  width: min(440px, calc(100vw - 40px));
+  padding: 14px 18px;
+  background-color: var(--black);
+  color: var(--cream);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 0.85em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+#agentToast::before {
+  content: '⚠ The assistant hit a dead end';
+  display: block;
+  color: var(--gold);
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
