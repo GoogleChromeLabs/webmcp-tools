@@ -40,10 +40,18 @@ if (isImperative) {
     element.removeAttribute("toolparamdescription");
   });
 
+  // Removing the attributes withdraws the declarative tool asynchronously. Wait
+  // for that to land, otherwise registering the same name throws.
+  await new Promise((resolve) =>
+    document.modelContext.addEventListener("toolchange", resolve, { once: true }),
+  );
+
   document.modelContext.registerTool({
     name: tool.name,
     description: tool.description,
-    inputSchema: JSON.parse(tool.inputSchema),
+    // Chrome hands back a JSON string today; the spec and the polyfill use an object.
+    inputSchema:
+      typeof tool.inputSchema === "string" ? JSON.parse(tool.inputSchema) : tool.inputSchema,
     execute: async (args = {}) => {
       for (const [key, value] of Object.entries(args)) {
         form.elements[key].value = value;
