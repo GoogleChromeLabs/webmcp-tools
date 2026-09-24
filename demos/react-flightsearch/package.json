@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --import ./test/register.mjs --experimental-strip-types test/ticketService.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

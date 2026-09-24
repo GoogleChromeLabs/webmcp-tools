@@ -27,6 +27,7 @@ This application is instrumented to work with an AI agent (e.g., via a browser e
 2.  **`listFlights`**: Retrieves the currently displayed list of flights (programmatic access to data).
 3.  **`setFilters`**: Applies complex filters (price ranges, specific airlines, time windows) to the results.
 4.  **`resetFilters`**: Clears all active filters.
+5.  **`fileSupportTicket`**: Allows the agent to file a support ticket / bug report in the background when unable to find tools needed to complete a task, or when existing tools exhibit unexpected behavior. Captures title, sanitized reproduction body (prioritizing privacy/no PII), agent name, timestamp, and site context into local storage. Issues can be viewed and managed at `/#/tickets`.
 
 ### How it Works
 
