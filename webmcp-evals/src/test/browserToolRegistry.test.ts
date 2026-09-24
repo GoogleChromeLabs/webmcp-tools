@@ -215,6 +215,27 @@ describe("BrowserToolRegistry", () => {
     assert.deepStrictEqual(result, { success: false, error: "Out of stock" });
   });
 
+  it("should report a canceled invocation as canceled instead of a raw status", async () => {
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "slow_report",
+          description: "Takes a while",
+          inputSchema: { type: "object" },
+          execute: async () => ({ status: "Canceled" }),
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+
+    assert.deepStrictEqual(await registry.executeToolChecked("slow_report", {}), {
+      success: false,
+      error: 'Tool "slow_report" invocation was canceled before it completed',
+    });
+  });
+
   it("should preserve falsy returns like false or 0 in executeTool", async () => {
     const page = new MockBrowserPage();
     page.webmcp = {

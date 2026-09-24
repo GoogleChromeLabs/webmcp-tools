@@ -30,6 +30,13 @@ export async function launchBrowser(
   });
 }
 
+// The page (or our own AbortSignal) ended the invocation before it answered,
+// which says nothing about the tool itself. Leaking the bare status makes a
+// canceled step read as a broken tool in reports.
+function canceledInvocationError(name: string): string {
+  return `Tool "${name}" invocation was canceled before it completed`;
+}
+
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
   private browserConsoleErrors: BrowserConsoleError[] = [];
@@ -161,6 +168,8 @@ export class BrowserToolRegistry implements ToolRegistry {
                     success: false,
                     error: res.errorText || `Error executing tool "${name}"`,
                   });
+                } else if (res.status === "Canceled") {
+                  resolve({ success: false, error: canceledInvocationError(name) });
                 } else {
                   resolve({ success: false, error: `Tool execution status: ${res.status}` });
                 }
@@ -192,6 +201,8 @@ export class BrowserToolRegistry implements ToolRegistry {
             success: false,
             error: res.errorText || `Error executing tool "${name}"`,
           };
+        } else if (res.status === "Canceled") {
+          return { success: false, error: canceledInvocationError(name) };
         } else {
           return { success: false, error: `Tool execution status: ${res.status}` };
         }
