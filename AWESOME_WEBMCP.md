@@ -113,6 +113,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [**Contoso Pizza**](https://github.com/MicrosoftEdge/webmcp-labs/tree/main/demos/pizza-order) ([live](https://microsoftedge.github.io/webmcp-labs/pizza-order/)): A pizza-ordering demo with WebMCP tools for browsing the menu, creating and updating an order, and checking out.
   - **Example Prompt:** "Order pepperoni pizza for a party of 10, delivered to 123 Main Road."
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
