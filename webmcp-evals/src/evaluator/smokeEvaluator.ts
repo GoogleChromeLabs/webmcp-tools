@@ -51,6 +51,7 @@ export interface SmokeToolRegistry {
   executeToolChecked(
     name: string,
     args?: Record<string, unknown>,
+    options?: { signal?: AbortSignal },
   ): Promise<{ success: true; result: unknown } | { success: false; error: string }>;
 }
 
@@ -263,6 +264,10 @@ export async function runSmokeTest(
   const results: SmokeStepResult[] = [];
 
   for (const step of test.steps) {
+    // Lets a step that never answers be canceled in the page instead of only
+    // being abandoned here — otherwise the invocation keeps running while the
+    // next case starts on the same browser session.
+    const abortController = new AbortController();
     try {
       if (verbose) {
         console.log(
@@ -293,7 +298,9 @@ export async function runSmokeTest(
       }
 
       const outcome = await withTimeout(
-        registry.executeToolChecked(step.functionName, step.arguments),
+        registry.executeToolChecked(step.functionName, step.arguments, {
+          signal: abortController.signal,
+        }),
         timeoutMs,
         `tool "${step.functionName}"`,
       );
@@ -320,6 +327,7 @@ export async function runSmokeTest(
         result: outcome.result,
       });
     } catch (error) {
+      abortController.abort();
       const message = error instanceof Error ? error.message : String(error);
       results.push(stepError(step, test, message));
       break;

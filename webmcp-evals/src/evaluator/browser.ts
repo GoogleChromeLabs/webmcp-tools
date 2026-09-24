@@ -4,7 +4,12 @@
  */
 
 import puppeteer, { Browser, ChromeReleaseChannel, ConsoleMessage } from "puppeteer-core";
-import type { Page as BrowserPage, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
+import type {
+  Page as BrowserPage,
+  WebMCPToolCall,
+  WebMCPToolCallResult,
+  WebMCPToolExecuteOptions,
+} from "puppeteer-core";
 import { BrowserConsoleError } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
@@ -58,10 +63,11 @@ export class BrowserToolRegistry implements ToolRegistry {
   async executeToolChecked(
     name: string,
     args: Record<string, unknown> = {},
+    options: WebMCPToolExecuteOptions = {},
   ): Promise<{ success: true; result: any } | { success: false; error: string }> {
     const stopCollecting = this.startCollectingBrowserConsoleErrors(name, args);
     try {
-      return await this.executeToolWithoutConsoleCapture(name, args);
+      return await this.executeToolWithoutConsoleCapture(name, args, options);
     } finally {
       stopCollecting();
     }
@@ -125,6 +131,7 @@ export class BrowserToolRegistry implements ToolRegistry {
   private async executeToolWithoutConsoleCapture(
     name: string,
     args: Record<string, unknown> = {},
+    options: WebMCPToolExecuteOptions = {},
   ): Promise<{ success: true; result: any } | { success: false; error: string }> {
     let executionResult: { result?: any; error?: string } = {};
 
@@ -154,7 +161,7 @@ export class BrowserToolRegistry implements ToolRegistry {
             this.page.webmcp.once("toolinvoked", onToolInvoked);
 
             tool
-              .execute(args)
+              .execute(args, options)
               .then((res: WebMCPToolCallResult) => {
                 if (timer) clearTimeout(timer);
                 this.page.webmcp.off("toolinvoked", onToolInvoked);
@@ -193,7 +200,7 @@ export class BrowserToolRegistry implements ToolRegistry {
           };
         }
       } else {
-        const res = await tool.execute(args);
+        const res = await tool.execute(args, options);
         if (res.status === "Completed") {
           executionResult.result = res.output !== undefined ? res.output : "Success";
         } else if (res.status === "Error") {
@@ -235,8 +242,12 @@ export class BrowserToolRegistry implements ToolRegistry {
     return { success: true, result: r };
   }
 
-  async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
-    const outcome = await this.executeToolChecked(name, args);
+  async executeTool(
+    name: string,
+    args: Record<string, unknown> = {},
+    options: WebMCPToolExecuteOptions = {},
+  ): Promise<any> {
+    const outcome = await this.executeToolChecked(name, args, options);
     if (!outcome.success) return { error: outcome.error };
     return outcome.result !== undefined ? outcome.result : "Success";
   }

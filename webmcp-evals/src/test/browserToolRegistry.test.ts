@@ -236,6 +236,73 @@ describe("BrowserToolRegistry", () => {
     });
   });
 
+  it("should forward the abort signal to the page tool", async () => {
+    const controller = new AbortController();
+    let receivedOptions: unknown = null;
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "slow_report",
+          description: "Takes a while",
+          inputSchema: { type: "object" },
+          execute: async (_input: unknown, options: unknown) => {
+            receivedOptions = options;
+            return { status: "Completed", output: "done" };
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    await registry.executeToolChecked("slow_report", {}, { signal: controller.signal });
+
+    assert.deepStrictEqual(receivedOptions, { signal: controller.signal });
+  });
+
+  it("should forward the abort signal to declarative form tools and surface cancellation", async () => {
+    const listeners: Record<string, Function[]> = {};
+    const controller = new AbortController();
+    let receivedOptions: any = null;
+    const page = new MockBrowserPage();
+    page.webmcp = {
+      once: (event: string, cb: Function) => {
+        listeners[event] = listeners[event] || [];
+        listeners[event].push(cb);
+      },
+      off: (event: string, cb: Function) => {
+        if (listeners[event]) {
+          listeners[event] = listeners[event].filter((l) => l !== cb);
+        }
+      },
+      tools: () => [
+        {
+          name: "book_table",
+          description: "Form-based tool without autosubmit",
+          formElement: Promise.resolve({} as any),
+          annotations: { autosubmit: false },
+          execute: async (_input: unknown, options: any) => {
+            receivedOptions = options;
+            return { status: "Canceled" };
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    const result = await registry.executeToolChecked(
+      "book_table",
+      { guests: 2 },
+      { signal: controller.signal },
+    );
+
+    assert.deepStrictEqual(receivedOptions, { signal: controller.signal });
+    assert.deepStrictEqual(result, {
+      success: false,
+      error: 'Tool "book_table" invocation was canceled before it completed',
+    });
+  });
+
   it("should preserve falsy returns like false or 0 in executeTool", async () => {
     const page = new MockBrowserPage();
     page.webmcp = {

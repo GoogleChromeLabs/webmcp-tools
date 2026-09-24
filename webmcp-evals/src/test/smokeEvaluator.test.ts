@@ -201,6 +201,27 @@ describe("runSmokeTest", () => {
     assert.match(results[0].error || "", /tool reported failure.*out of stock/i);
   });
 
+  it("cancels the in-flight invocation when a step times out", async () => {
+    let seenSignal: AbortSignal | undefined;
+    const registry: SmokeToolRegistry = {
+      getCurrentTools: async () => [tool("first")],
+      executeToolChecked: async (_name, _args, options) => {
+        seenSignal = options?.signal;
+        return await new Promise(() => {});
+      },
+    };
+
+    const results = await runSmokeTest(
+      { ...compiled, steps: compiled.steps.slice(0, 1) },
+      registry,
+      5,
+    );
+
+    assert.strictEqual(results[0].outcome, "error");
+    assert.match(results[0].error || "", /timed out.*5 ms/i);
+    assert.strictEqual(seenSignal?.aborted, true);
+  });
+
   it("times out a stuck tool call", async () => {
     const registry: SmokeToolRegistry = {
       getCurrentTools: async () => [tool("first")],
