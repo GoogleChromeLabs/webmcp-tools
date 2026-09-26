@@ -218,7 +218,7 @@
           let isSameOrigin = false;
           try {
             isSameOrigin = !!win.document;
-          } catch (e) {}
+          } catch (e) { }
 
           if (isSameOrigin) {
             allTools.push(...getLocalTools(win));
