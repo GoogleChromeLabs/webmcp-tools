@@ -112,6 +112,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Inspect the project I have open. If it has at least two main-track clips, preview moving the second clip before the first while keeping all other clips in order. Show me the changes before applying them."
 - [**Contoso Pizza**](https://github.com/MicrosoftEdge/webmcp-labs/tree/main/demos/pizza-order) ([live](https://microsoftedge.github.io/webmcp-labs/pizza-order/)): A pizza-ordering demo with WebMCP tools for browsing the menu, creating and updating an order, and checking out.
   - **Example Prompt:** "Order pepperoni pizza for a party of 10, delivered to 123 Main Road."
+- [ScoreTail](https://scoretail.com/en/sheet-music/canon-in-d-pachelbel-johann/view) - A browser sheet music editor where an agent can read, arrange and play notation. Public score pages expose read-only tools (`get_score_info`, `read_measures`, `play`) with no sign-in. In the editor (free account), `rewrite_measures` takes the new notes in the same compact text notation that `read_measures` returns; each call is validated all-or-nothing, lands on the user's undo stack as a single step, and syncs live to collaborators.
+  - **Example Prompt:** "Read the first 8 measures and tell me the chord progression, then play them." In the editor: "Add a simple bass line to measures 5–12."
 
 ## Libraries & Tools
 
