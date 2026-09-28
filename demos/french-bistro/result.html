@@ -102,6 +102,10 @@
       jsonLd.textContent = JSON.stringify(data);
     }
 
+    if (params.has('token')) {
+      await document.modelContext.resumeTool(params.get('token'), () => modalDetails.innerText);
+    }
+
     document.getElementById('closeDialogBtn').addEventListener('click', () => {
       location = document.referrer;
     });

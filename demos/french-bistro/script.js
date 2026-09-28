@@ -44,7 +44,7 @@ if (isImperative) {
     name: tool.name,
     description: tool.description,
     inputSchema: JSON.parse(tool.inputSchema),
-    execute: async (args = {}) => {
+    execute: async (args = {}, options) => {
       for (const [key, value] of Object.entries(args)) {
         form.elements[key].value = value;
       }
@@ -71,6 +71,13 @@ if (isImperative) {
       }
 
       if (isCrossDocument) {
+        if (options.invocation) {
+          const token = await options.invocation.requestToken();
+          const tokenInput = document.createElement("input");
+          tokenInput.name = "token";
+          tokenInput.value = token;
+          form.appendChild(tokenInput);
+        }
         form.submit();
         return "Form submitted.";
       }
