@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import fs from "node:fs";
 import type http from "node:http";
 import path from "node:path";
 
@@ -57,14 +58,40 @@ export function isValidEvalId(evalId: unknown): evalId is string {
 
 /**
  * Safely resolves a file path within a designated root directory.
- * Returns null if the resolved path escapes the directory boundary.
+ * Returns null if the resolved path escapes the directory boundary lexically
+ * or via symbolic links pointing outside the root.
  */
 export function resolveSafePath(rootDir: string, ...segments: string[]): string | null {
   const resolvedRoot = path.resolve(rootDir);
   const resolvedTarget = path.resolve(resolvedRoot, ...segments);
 
-  if (!resolvedTarget.startsWith(resolvedRoot + path.sep)) {
+  // 1. Lexical prefix check
+  if (!resolvedTarget.startsWith(resolvedRoot + path.sep) && resolvedTarget !== resolvedRoot) {
     return null;
+  }
+
+  // 2. Canonical realpath check to prevent symlink traversal outside root
+  const realRoot = fs.existsSync(resolvedRoot) ? fs.realpathSync(resolvedRoot) : resolvedRoot;
+
+  let current = resolvedTarget;
+  while (current.length >= resolvedRoot.length) {
+    try {
+      const lstat = fs.lstatSync(current);
+      // For any existing directory or file, resolve its real canonical path
+      const realCurrent = fs.realpathSync(current);
+      if (!realCurrent.startsWith(realRoot + path.sep) && realCurrent !== realRoot) {
+        return null;
+      }
+      // If the target path itself is a symlink, disallow direct writes/access to redirected targets
+      if (current === resolvedTarget && lstat.isSymbolicLink()) {
+        return null;
+      }
+    } catch {
+      // Path component does not exist yet; walk up to verify existing parents
+    }
+
+    if (current === resolvedRoot) break;
+    current = path.dirname(current);
   }
 
   return resolvedTarget;

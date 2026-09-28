@@ -41,6 +41,10 @@ jobs:
         working-directory: webmcp-skills
         run: npm run test:unit
 
+      - name: Validate Skill Frontmatter
+        working-directory: webmcp-skills
+        run: npm run skill:validate
+
       - name: Check for Gemini API key
         id: check_key
         env:
@@ -48,18 +52,21 @@ jobs:
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "has_key=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::GEMINI_API_KEY is not set. Running dry-run schema validation."
+            echo "::notice::GEMINI_API_KEY is not set."
           else
             echo "has_key=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run Modular Skill Evals (Dry-Run)
-        if: steps.check_key.outputs.has_key != 'true'
+      # On pull_request, always run fast, deterministic offline dry-run evaluation.
+      # This prevents flaky PR checks and unnecessary paid API token consumption.
+      - name: Run Modular Skill Evals (Dry-Run / PR Validation)
+        if: github.event_name == 'pull_request' || steps.check_key.outputs.has_key != 'true'
         working-directory: webmcp-skills
         run: npm run eval:dry-run
 
-      - name: Run Modular Skill Evals
-        if: steps.check_key.outputs.has_key == 'true'
+      # Live evaluations with the Gemini API run only on manual workflow_dispatch or pushes to main.
+      - name: Run Live Modular Skill Evals (Gemini API)
+        if: github.event_name != 'pull_request' && steps.check_key.outputs.has_key == 'true'
         working-directory: webmcp-skills
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

@@ -535,6 +535,26 @@ describe("Eval Viewer - Security & Path Traversal Guards", () => {
     expect(resolveSafePath(root, "../../../etc/passwd")).toBeNull();
   });
 
+  it("blocks symbolic links that point outside root directory", () => {
+    const root = path.resolve("evals-workspace");
+    const testDir = path.join(root, "symlink-test");
+    fs.mkdirSync(testDir, { recursive: true });
+
+    const outsideTarget = path.resolve(process.cwd(), "..", "outside-eval-test.json");
+    fs.writeFileSync(outsideTarget, "{}", "utf8");
+
+    const symlinkPath = path.join(testDir, "symlink.json");
+    if (fs.existsSync(symlinkPath)) fs.unlinkSync(symlinkPath);
+    try {
+      fs.symlinkSync(outsideTarget, symlinkPath);
+      expect(resolveSafePath(root, "symlink-test", "symlink.json")).toBeNull();
+    } finally {
+      if (fs.existsSync(symlinkPath)) fs.unlinkSync(symlinkPath);
+      if (fs.existsSync(outsideTarget)) fs.unlinkSync(outsideTarget);
+      if (fs.existsSync(testDir)) fs.rmdirSync(testDir);
+    }
+  });
+
   it("validates request origins to block cross-site requests", () => {
     const localReq = {
       headers: {
@@ -575,5 +595,29 @@ describe("Eval Viewer - Security & Path Traversal Guards", () => {
       },
     } as any;
     expect(isAllowedOrigin(evilHostReq)).toBe(false);
+  });
+});
+
+describe("Eval Runner - Provider Retry & Error Handling", () => {
+  it("fails immediately on non-transient 4xx errors without retrying", async () => {
+    const { generateContent, NonRetryableError } = await import("../provider.js");
+
+    let callCount = 0;
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => {
+      callCount++;
+      return new Response("Invalid model name", { status: 404, statusText: "Not Found" });
+    };
+
+    const prevKey = process.env.GEMINI_API_KEY;
+    process.env.GEMINI_API_KEY = "test-key";
+
+    try {
+      await expect(generateContent("test prompt")).rejects.toThrow(NonRetryableError);
+      expect(callCount).toBe(1); // Must NOT retry
+    } finally {
+      globalThis.fetch = originalFetch;
+      process.env.GEMINI_API_KEY = prevKey;
+    }
   });
 });

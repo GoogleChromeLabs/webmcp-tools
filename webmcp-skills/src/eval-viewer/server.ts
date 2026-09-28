@@ -145,7 +145,8 @@ async function start() {
               }
 
               const contentType = req.headers["content-type"];
-              if (!contentType || !contentType.includes("application/json")) {
+              const mediaType = contentType ? contentType.split(";")[0].trim().toLowerCase() : "";
+              if (mediaType !== "application/json") {
                 res.statusCode = 415;
                 res.setHeader("Content-Type", "application/json");
                 res.end(
@@ -199,6 +200,7 @@ async function start() {
                   if (
                     !itDirPath ||
                     !fs.existsSync(itDirPath) ||
+                    fs.lstatSync(itDirPath).isSymbolicLink() ||
                     !fs.statSync(itDirPath).isDirectory()
                   ) {
                     res.statusCode = 404;
@@ -212,9 +214,24 @@ async function start() {
                     res.statusCode = 400;
                     res.setHeader("Content-Type", "application/json");
                     res.end(
-                      JSON.stringify({ error: "Invalid path: directory traversal detected" }),
+                      JSON.stringify({
+                        error: "Invalid path: directory traversal or symlink detected",
+                      }),
                     );
                     return;
+                  }
+
+                  try {
+                    if (fs.lstatSync(fbPath).isSymbolicLink()) {
+                      res.statusCode = 400;
+                      res.setHeader("Content-Type", "application/json");
+                      res.end(
+                        JSON.stringify({ error: "Invalid path: symbolic links are not allowed" }),
+                      );
+                      return;
+                    }
+                  } catch {
+                    // File does not exist yet
                   }
 
                   const current = fs.existsSync(fbPath)

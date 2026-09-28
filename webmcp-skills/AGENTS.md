@@ -164,9 +164,3 @@ When authoring or maintaining files in this repository, agents must adhere to An
    - `SKILL.md` is loaded directly as the `systemInstruction` in Promptfoo evaluations and whenever an agent activates the skill.
    - Keep `SKILL.md` lean (well under 24 KB) to avoid context bloat, slow evaluation runs, or truncation.
    - Move framework-specific walkthroughs, testing harnesses, and lengthy code snippets into `references/*.md`, referencing them via relative markdown links.
-
----
-
-## Attribution
-
-The `skill-creator` meta-skill and associated evaluation methodologies are derived from Anthropic's [`skill-creator`](https://github.com/anthropics/anthropic-quickstarts), licensed under the Apache License, Version 2.0 (Copyright (c) Anthropic, PBC). See [`NOTICE`](NOTICE) for details.

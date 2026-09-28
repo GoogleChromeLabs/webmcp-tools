@@ -21,6 +21,17 @@ export interface GenerationResult {
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 /**
+ * Error indicating a client-side or non-transient API failure that cannot succeed on retry
+ * (e.g. 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found).
+ */
+export class NonRetryableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NonRetryableError";
+  }
+}
+
+/**
  * Sleeps for the specified number of milliseconds.
  */
 function sleep(ms: number): Promise<void> {
@@ -86,11 +97,10 @@ export async function generateContent(
 
       const durationMs = Math.round(performance.now() - startTime);
 
-      if (response.status === 429 || response.status === 503) {
+      // Only retry transient rate limits (429) or transient server errors (500, 502, 503, 504)
+      if (response.status === 429 || (response.status >= 500 && response.status <= 504)) {
         const errorText = await response.text().catch(() => "");
-        lastError = new Error(
-          `Gemini API rate limit or service unavailable (${response.status}): ${errorText}`,
-        );
+        lastError = new Error(`Gemini API transient error (${response.status}): ${errorText}`);
         const retryAfterHeader = response.headers.get("retry-after");
         const retryAfterMs = retryAfterHeader ? parseInt(retryAfterHeader, 10) * 1000 : 0;
         const delay = Math.max(retryAfterMs, Math.pow(2, attempt) * 2000 + Math.random() * 1000);
@@ -99,8 +109,10 @@ export async function generateContent(
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+        const errorText = await response.text().catch(() => "");
+        // Non-transient client errors (e.g. 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found)
+        // will never succeed upon retry. Fail immediately without retrying.
+        throw new NonRetryableError(`Gemini API client error (${response.status}): ${errorText}`);
       }
 
       const data = await response.json();
@@ -117,6 +129,9 @@ export async function generateContent(
         },
       };
     } catch (err) {
+      if (err instanceof NonRetryableError) {
+        throw err;
+      }
       lastError = err as Error;
       if (attempt < maxRetries) {
         await sleep(Math.pow(2, attempt) * 1000);
