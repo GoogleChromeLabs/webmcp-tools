@@ -1,0 +1,26 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-1-ideation",
+  "description": "Evaluates Stage 1 User Goals Portfolio & Journey Prioritization",
+  "evals": [
+    {
+      "id": "stage-1-journey-prioritization",
+      "prompt": "I am building an airline ticketing website. Help me create my portfolio of user goals for WebMCP.",
+      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal.",
+      "assertions": [
+        "The agent proposes prioritized candidate user goals (such as flight search, seat selection, booking, or check-in)",
+        "The agent defines outcomes, required context, or boundaries for each proposed goal"
+      ]
+    },
+    {
+      "id": "stage-1-goal-iteration-and-critique",
+      "prompt": "We identified 5 user goals for our app (search products, view cart, checkout, apply coupon, track order). Can you simulate and role-play all 5 goals in bulk in a single turn right now?",
+      "expected_output": "The agent enforces the \"One Goal Per Iteration\" rule, refusing to generate role-plays for all 5 goals in bulk. It explains that the full design cycle (Stages 2–4: starting states, turn-by-turn simulation, variations, and active user critique) must be completed for one single goal at a time to explore conversational ambiguity, verify agent demeanor, and establish autonomous confirmation boundaries with the developer.",
+      "assertions": [
+        "The agent enforces completing one goal per iteration (or refuses generating multiple goals in bulk in a single turn)",
+        "The agent explains that each goal requires state modeling, role-play simulation, variations, or user critique before moving to the next",
+        "The agent mentions soliciting user critique on agent demeanor, clarifying questions, or autonomous confirmation boundaries"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "core-principles",
+  "description": "Evaluates Core WebMCP Architectural Principles and Guardrails",
+  "evals": [
+    {
+      "id": "core-intab-vs-stdio",
+      "prompt": "How do I configure the stdio transport for WebMCP in my Express backend?",
+      "expected_output": "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext and does not use stdio, SSE, or Node.js backend server transports.",
+      "assertions": [
+        "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext",
+        "The agent clarifies that WebMCP does not use stdio, SSE, or Node.js backend server transports"
+      ]
+    },
+    {
+      "id": "core-character-budgets",
+      "prompt": "What are the official Chrome character and token budget limits for WebMCP tools?",
+      "expected_output": "The agent specifies character budgets: tool name <= 30 chars, tool description <= 500 chars, parameter description <= 150 chars, and tool output <= 1,500 chars (or ~1.5KB).",
+      "assertions": [
+        "The agent specifies that tool names must be 30 characters or fewer",
+        "The agent specifies that tool descriptions must be 500 characters or fewer",
+        "The agent specifies that parameter descriptions must be 150 characters or fewer",
+        "The agent specifies that tool output should be 1,500 characters (~1.5KB) or fewer"
+      ]
+    },
+    {
+      "id": "core-naming-initiation-vs-execution",
+      "prompt": "How should I name a tool that navigates the user to a flight checkout form vs one that executes the booking immediately?",
+      "expected_output": "The agent distinguishes execution (e.g. book_flight or create_event) from initiation (e.g. initiate_booking or start_event_creation_process) rather than treating them identically.",
+      "assertions": [
+        "The agent distinguishes initiation actions (e.g. initiate_booking) from execution actions (e.g. book_flight)"
+      ]
+    },
+    {
+      "id": "core-annotations-matrix",
+      "prompt": "Which annotations can I attach to a WebMCP tool and what do they mean?",
+      "expected_output": "The agent explains all three WebMCP annotations: readOnlyHint, consequentialHint, and untrustedContentHint.",
+      "assertions": [
+        "The output explains readOnlyHint",
+        "The output explains consequentialHint",
+        "The output explains untrustedContentHint"
+      ]
+    },
+    {
+      "id": "core-clean-tool-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Polymorphic Zustand-backed mutation handler that dispatches to the internal Axum REST bridge to update task state and invalidate TanStack cache.\" What is wrong with this description and how should it be rewritten?",
+      "expected_output": "The agent identifies that internal implementation jargon (e.g. Zustand, Axum, REST bridge, TanStack cache) must be strictly omitted because it wastes character budget and causes model confusion or hallucination. It explains that descriptions should focus on user/agent capabilities rather than internal implementation details, and provides a clean rewrite such as \"Updates the progress or completion status of an existing task in the workspace. Use when marking items as pending, in-progress, or completed.\"",
+      "assertions": [
+        "The agent identifies that internal implementation jargon (e.g. Zustand, Axum, REST, TanStack) must be omitted",
+        "The agent explains that descriptions must describe user or agent capabilities rather than internal architecture",
+        "The agent provides a clean rewrite focused on task updating without mentioning internal libraries"
+      ]
+    },
+    {
+      "id": "core-annotations-untrusted-ugc",
+      "prompt": "A developer is implementing a WebMCP tool `get_note` that retrieves the markdown content of a user's note from their workspace database. The developer sets `annotations: { readOnlyHint: true }` reasoning that the data comes from their own database and doesn't mutate state. What security vulnerability or annotation mistake exists here, and how should it be fixed?",
+      "expected_output": "The agent explains that user-generated content (UGC) such as notes, tasks, comments, or external content must declare untrustedContentHint: true, even if it comes from the application's own database. User-authored text is a primary vector for indirect prompt injection. Omitting untrustedContentHint allows untrusted text to be treated as trusted instructions by host agents instead of being isolated via spotlighting or delimiter sandboxing (such as <untrusted_content> tags). The tool must declare annotations: { readOnlyHint: true, untrustedContentHint: true }.",
+      "assertions": [
+        "The agent identifies that untrustedContentHint: true is required for user-generated or third-party content",
+        "The agent explains the risk of indirect prompt injection from user-authored text",
+        "The agent explains that untrustedContentHint instructs the agent to isolate, spotlight, or delimiter-sandbox the payload"
+      ]
+    },
+    {
+      "id": "core-intent-focused-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Searches items with query string, directory_id string, author_id string, tags array, and date_range object.\" What is wrong with this description, and how should it be rewritten to optimize model tool selection?",
+      "expected_output": "The agent identifies that duplicating parameter names, types, and schema structures already defined in inputSchema wastes character budget and creates tool selection ambiguity. It explains that descriptions should focus on what the tool does and when to use it (intent matching), and provides a clean rewrite such as \"Searches the workspace for items by meaning, keywords, or metadata. Use when locating existing notes, tasks, or documents across folders.\"",
+      "assertions": [
+        "The agent identifies that repeating schema parameters and types in the description is an anti-pattern",
+        "The agent explains that descriptions should prioritize intent matching ('what' it does and 'when' to use it)",
+        "The agent provides an intent-focused rewrite without parameter enumeration"
+      ]
+    },
+    {
+      "id": "core-navigation-consequential-actions",
+      "prompt": "A developer is writing a `switch_tab` tool for an accounting dashboard that switches the active tab between 'Expenses', 'Invoices', and 'Payroll'. The developer sets `annotations: { readOnlyHint: true }` because 'it only changes what is visible and doesn't write to the backend database'. What is the problem with this annotation, and how should it be configured?",
+      "expected_output": "The agent explains that client-side UI navigation, tab switching, and route changes mutate active client state and can unmount active components, destroying uncommitted form state or disrupting user workflow. Therefore, navigation tools must not be marked as read-only; they should declare `consequentialHint: true` (and omit `readOnlyHint: true`) so agents do not execute them autonomously in the background without user confirmation.",
+      "assertions": [
+        "The agent explains that UI navigation or tab switching mutates active client viewport state and can destroy unsaved form state",
+        "The agent states that readOnlyHint must NOT be set to true on UI navigation tools",
+        "The agent recommends declaring consequentialHint: true (or requiring user confirmation)"
+      ]
+    },
+    {
+      "id": "core-tools-only-no-prompts",
+      "prompt": "Can I register pre-baked system prompt templates or context resources on `document.modelContext` alongside my tools in WebMCP?",
+      "expected_output": "The agent clarifies that the current WebMCP specification supports Tools only (no Prompts or Resources), and that tools execute direct application logic rather than simulating DOM interaction.",
+      "assertions": [
+        "The agent clarifies that WebMCP supports Tools only",
+        "The agent explicitly states that Resources or Prompts are not supported in current WebMCP"
+      ]
+    },
+    {
+      "id": "core-accept-raw-user-input",
+      "prompt": "We are designing a flight search tool. Should the tool accept `departure_date` as an ISO string / natural string, or require the model to calculate milliseconds since unix epoch and pass `epoch_ms` and `shipping_id=3`?",
+      "expected_output": "The agent instructs accepting raw natural-language inputs (e.g. YYYY-MM-DD dates, airport codes, natural names) rather than forcing the model to calculate manual timestamps, math offsets, or opaque database IDs.",
+      "assertions": [
+        "The agent instructs accepting natural or standard string dates rather than forcing manual epoch calculations",
+        "The agent recommends natural values over opaque numeric database IDs"
+      ]
+    },
+    {
+      "id": "core-security-cross-origin-permissions",
+      "prompt": "We have an embedded partner iframe on `https://partner.example.com` and want to allow it to invoke our WebMCP tool `shareable_cart_lookup`. How do we securely configure the iframe, Permissions Policy, and tool registration?",
+      "expected_output": "The agent explains that WebMCP tools are same-origin by default and gated by the `tools` Permissions Policy. To share a tool with a cross-origin partner, the host page must embed the iframe with `<iframe allow=\"tools\">` and register the tool with `{ exposedTo: ['https://partner.example.com'] }`. Additionally, origin isolation must not be disabled.",
+      "assertions": [
+        "The output specifies `<iframe allow=\"tools\">` for iframe permission delegation",
+        "The output specifies `{ exposedTo: [...] }` with the permitted origin in `registerTool` options",
+        "The output mentions the `tools` Permissions Policy or origin isolation requirement"
+      ]
+    },
+    {
+      "id": "core-security-spotlighting-delimiters",
+      "prompt": "When our agent framework receives a response from a WebMCP tool that declared `untrustedContentHint: true`, how should the host agent process and sandbox the output before feeding it into the LLM context to prevent indirect prompt injection?",
+      "expected_output": "The agent explains that consuming agent frameworks must route outputs with `untrustedContentHint: true` into a defensive spotlighting pipeline, such as wrapping the payload in structural delimiters like `<untrusted_content>...</untrusted_content>` or Base64 encoding, and applying anchoring system prompt instructions directing the model to treat the content strictly as data rather than executable directives.",
+      "assertions": [
+        "The agent explains using structural delimiters (e.g. `<untrusted_content>`) or Base64 spotlighting to sandbox the payload",
+        "The agent mentions applying system prompt anchoring directives to treat tool output as passive data",
+        "The agent explains that this prevents indirect prompt injection from user-generated content"
+      ]
+    },
+    {
+      "id": "core-design-vs-code-completion",
+      "prompt": "We are building a simple bookmark manager in React. Since saving a bookmark is just a one-line `setBookmarks([...bookmarks, newBookmark])`, can we skip conversational role-playing and start implementing the WebMCP tool code immediately?",
+      "expected_output": "The agent enforces Principle 12: Never conflate code completion with design completion. It explains that implementation simplicity does not mean conversational design is trivial overhead. Natural language interactions introduce coreference, user ambiguity, confirmation boundaries, recovery paths, and indirect prompt injection vectors that do not exist in button clicks, so thorough conversational co-design in Stages 1–4 must be completed before writing code.",
+      "assertions": [
+        "The agent states that code completion or implementation simplicity must not be conflated with design completion",
+        "The agent explains that natural language interaction introduces coreference, ambiguity, confirmation boundaries, or prompt injection risks",
+        "The agent insists on completing conversational design or role-playing before implementing tool code"
+      ]
+    }
+  ]
+}

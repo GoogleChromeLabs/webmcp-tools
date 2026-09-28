@@ -1,0 +1,67 @@
+# Copyright 2026 Google LLC
+# SPDX-License-Identifier: Apache-2.0
+
+name: Skills Evaluation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'webmcp-skills/**'
+      - '.github/workflows/skills-evals.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'webmcp-skills/**'
+      - '.github/workflows/skills-evals.yml'
+  workflow_dispatch:
+    inputs:
+      gemini_api_key:
+        description: "Gemini API Key (optional if repository secret is configured)"
+        required: false
+        type: string
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: webmcp-skills/package-lock.json
+
+      - name: Install dependencies
+        working-directory: webmcp-skills
+        run: npm ci
+
+      - name: Run Unit Tests
+        working-directory: webmcp-skills
+        run: npm run test:unit
+
+      - name: Check for Gemini API key
+        id: check_key
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || inputs.gemini_api_key }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "has_key=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GEMINI_API_KEY is not set. Running dry-run schema validation."
+          else
+            echo "has_key=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Modular Skill Evals (Dry-Run)
+        if: steps.check_key.outputs.has_key != 'true'
+        working-directory: webmcp-skills
+        run: npm run eval:dry-run
+
+      - name: Run Modular Skill Evals
+        if: steps.check_key.outputs.has_key == 'true'
+        working-directory: webmcp-skills
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || inputs.gemini_api_key }}
+        run: npm test
