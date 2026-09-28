@@ -15,6 +15,13 @@ import { runSkillEvals } from "../runner.js";
 import { runTriggerEval } from "../trigger-eval.js";
 import type { ConfigStats, EvalCase, SingleRunResult } from "../types.js";
 import { validateSkill } from "../validate-skill.js";
+import {
+  isAllowedOrigin,
+  isValidEvalId,
+  isValidIteration,
+  isValidSkillName,
+  resolveSafePath,
+} from "../../eval-viewer/security.js";
 
 describe("Eval Runner - Loader", () => {
   it("discovers skills in skills directory", () => {
@@ -486,5 +493,87 @@ describe("Eval Runner - Multi-Trial Execution", () => {
     });
     expect(savedReport.metadata?.runs_per_configuration).toBe(1);
     fs.rmSync(iterationDir, { recursive: true, force: true });
+  });
+});
+
+describe("Eval Viewer - Security & Path Traversal Guards", () => {
+  it("validates skill names to prevent path traversal", () => {
+    expect(isValidSkillName("build-webmcp-tools")).toBe(true);
+    expect(isValidSkillName("my_skill_1")).toBe(true);
+    expect(isValidSkillName("../../evil")).toBe(false);
+    expect(isValidSkillName("skill/subfolder")).toBe(false);
+    expect(isValidSkillName("skill\\subfolder")).toBe(false);
+    expect(isValidSkillName("")).toBe(false);
+    expect(isValidSkillName(null)).toBe(false);
+  });
+
+  it("validates iteration numbers strictly", () => {
+    expect(isValidIteration(1)).toBe(true);
+    expect(isValidIteration("5")).toBe(true);
+    expect(isValidIteration(0)).toBe(false);
+    expect(isValidIteration(-1)).toBe(false);
+    expect(isValidIteration(1.5)).toBe(false);
+    expect(isValidIteration("abc")).toBe(false);
+    expect(isValidIteration(NaN)).toBe(false);
+  });
+
+  it("validates eval_id to prevent directory traversal", () => {
+    expect(isValidEvalId("stage-6-test")).toBe(true);
+    expect(isValidEvalId("case.1_foo")).toBe(true);
+    expect(isValidEvalId("../../../etc/passwd")).toBe(false);
+    expect(isValidEvalId("case/test")).toBe(false);
+  });
+
+  it("safely resolves paths within root directory and blocks traversal attempts", () => {
+    const root = path.resolve("evals-workspace");
+    const safePath = resolveSafePath(root, "skill-a", "iteration-1", "feedback.json");
+    expect(safePath).toBe(path.join(root, "skill-a", "iteration-1", "feedback.json"));
+
+    // Traversal attempts
+    expect(resolveSafePath(root, "..", "outside.json")).toBeNull();
+    expect(resolveSafePath(root, "skill-a", "..", "..", "outside.json")).toBeNull();
+    expect(resolveSafePath(root, "../../../etc/passwd")).toBeNull();
+  });
+
+  it("validates request origins to block cross-site requests", () => {
+    const localReq = {
+      headers: {
+        host: "localhost:3333",
+        origin: "http://localhost:3333",
+      },
+    } as any;
+    expect(isAllowedOrigin(localReq)).toBe(true);
+
+    const ipReq = {
+      headers: {
+        host: "127.0.0.1:3333",
+        origin: "http://127.0.0.1:3333",
+      },
+    } as any;
+    expect(isAllowedOrigin(ipReq)).toBe(true);
+
+    const crossSiteReq = {
+      headers: {
+        host: "localhost:3333",
+        origin: "https://evil.com",
+        "sec-fetch-site": "cross-site",
+      },
+    } as any;
+    expect(isAllowedOrigin(crossSiteReq)).toBe(false);
+
+    const evilOriginReq = {
+      headers: {
+        host: "localhost:3333",
+        origin: "https://malicious-website.com",
+      },
+    } as any;
+    expect(isAllowedOrigin(evilOriginReq)).toBe(false);
+
+    const evilHostReq = {
+      headers: {
+        host: "evil-rebinding.com",
+      },
+    } as any;
+    expect(isAllowedOrigin(evilHostReq)).toBe(false);
   });
 });

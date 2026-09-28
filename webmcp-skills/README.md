@@ -115,6 +115,12 @@ For guidelines on repository conventions and eval-driven skill development, see 
 
 ---
 
+## Attribution & Acknowledgments
+
+The `skill-creator` meta-skill and associated evaluation methodologies are derived from Anthropic's [`skill-creator`](https://github.com/anthropics/anthropic-quickstarts), licensed under the Apache License, Version 2.0 (Copyright (c) Anthropic, PBC). See [`NOTICE`](NOTICE) for details.
+
+---
+
 ## License
 
 Apache 2.0. See [LICENSE](LICENSE) for details.

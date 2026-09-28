@@ -3,6 +3,15 @@ name: skill-creator
 description: Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, edit, or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.
 ---
 
+<!--
+Copyright 2026 Google LLC
+SPDX-License-Identifier: Apache-2.0
+
+Portions derived from Anthropic's skill-creator (https://github.com/anthropics/anthropic-quickstarts),
+licensed under the Apache License, Version 2.0.
+Copyright (c) Anthropic, PBC.
+-->
+
 # Skill Creator
 
 A skill for creating new skills and iteratively improving them following the [agentskills.io](https://agentskills.io/skill-creation/evaluating-skills) standard, powered by TypeScript and Vite.

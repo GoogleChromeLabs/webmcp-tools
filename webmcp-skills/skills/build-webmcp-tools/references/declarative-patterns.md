@@ -172,27 +172,32 @@ reservationForm.addEventListener("submit", async (event) => {
 
 ---
 
-## 4. Window Lifecycle Events (`toolactivated` and `toolcancel`)
+## 4. ModelContext Lifecycle Events (`toolactivated` and `toolcancel`)
 
-When an agent interacts with a declarative form, the browser dispatches lifecycle events to `window`. Listen to these events to adjust the UI dynamically (e.g., displaying an agent indicator or disabling conflicting controls):
+In Chrome 156+ and the WebMCP specification, lifecycle events fire directly on `document.modelContext` (not on `window` or the `<form>`). Listen to these events to adjust the UI dynamically (e.g., displaying an agent indicator or disabling conflicting controls):
 
 ```javascript
-// Fired when the agent pre-fills the form fields
-window.addEventListener("toolactivated", ({ toolName }) => {
+// Fired on document.modelContext when the agent pre-fills the form fields
+document.modelContext.addEventListener("toolactivated", ({ toolName }) => {
   console.log(`Agent started interacting with tool: ${toolName}`);
   document.body.classList.add("agent-interacting");
   showLiveBanner(`AI assistant is filling in the ${toolName} form...`);
 });
 
-// Fired when the agent interaction is cancelled or form is reset
-window.addEventListener("toolcancel", ({ toolName }) => {
+// Fired on document.modelContext when the agent interaction is cancelled or form is reset
+document.modelContext.addEventListener("toolcancel", ({ toolName }) => {
   console.log(`Agent cancelled interaction with tool: ${toolName}`);
   document.body.classList.remove("agent-interacting");
   hideLiveBanner();
 });
 ```
 
-- Both events are non-cancelable and include `event.toolName`.
+- Both events implement `ToolActivatedEvent` and `ToolCancelEvent` and provide `event.toolName`.
+- **Chrome 156+ Note**: Prior to Chrome 156, earlier experimental implementations dispatched these events on `window`. For backward compatibility with older browsers/polyfills, applications can feature-detect `ontoolactivated`:
+  ```javascript
+  const target = "ontoolactivated" in document.modelContext ? document.modelContext : window;
+  target.addEventListener("toolactivated", onToolActivated);
+  ```
 
 ---
 

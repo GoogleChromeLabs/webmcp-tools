@@ -103,9 +103,9 @@
     {
       "id": "stage-6-declarative-lifecycle-and-styling",
       "prompt": "How can a web application provide visual feedback to users when an AI agent is actively populating and submitting a declarative WebMCP form?",
-      "expected_output": "The agent explains listening to `window` events `toolactivated` and `toolcancel` to toggle UI banners or indicators, and styling `:tool-form-active` and `:tool-submit-active` pseudo-classes to highlight the form and submit buttons.",
+      "expected_output": "The agent explains listening to lifecycle events `toolactivated` and `toolcancel` on `document.modelContext` to toggle UI banners or indicators, and styling `:tool-form-active` and `:tool-submit-active` pseudo-classes to highlight the form and submit buttons.",
       "assertions": [
-        "The output references window events toolactivated and toolcancel",
+        "The output references document.modelContext lifecycle events toolactivated and toolcancel",
         "The output references CSS pseudo-classes :tool-form-active or :tool-submit-active"
       ]
     },

@@ -15,11 +15,6 @@ on:
       - 'webmcp-skills/**'
       - '.github/workflows/skills-evals.yml'
   workflow_dispatch:
-    inputs:
-      gemini_api_key:
-        description: "Gemini API Key (optional if repository secret is configured)"
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -49,7 +44,7 @@ jobs:
       - name: Check for Gemini API key
         id: check_key
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || inputs.gemini_api_key }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "has_key=false" >> "$GITHUB_OUTPUT"
@@ -67,5 +62,5 @@ jobs:
         if: steps.check_key.outputs.has_key == 'true'
         working-directory: webmcp-skills
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || inputs.gemini_api_key }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm test

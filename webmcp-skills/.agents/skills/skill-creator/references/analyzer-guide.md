@@ -1,3 +1,12 @@
+<!--
+Copyright 2026 Google LLC
+SPDX-License-Identifier: Apache-2.0
+
+Portions derived from Anthropic's skill-creator (https://github.com/anthropics/anthropic-quickstarts),
+licensed under the Apache License, Version 2.0.
+Copyright (c) Anthropic, PBC.
+-->
+
 # Post-Hoc Analyzer Agent & Benchmark Diagnostics
 
 This guide provides the analytical protocols for both **Post-Hoc A/B Analysis** (explaining why a winning output won) and **Benchmark Diagnostics** (identifying patterns and anomalies across multi-run benchmarks).

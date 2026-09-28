@@ -1,3 +1,12 @@
+<!--
+Copyright 2026 Google LLC
+SPDX-License-Identifier: Apache-2.0
+
+Portions derived from Anthropic's skill-creator (https://github.com/anthropics/anthropic-quickstarts),
+licensed under the Apache License, Version 2.0.
+Copyright (c) Anthropic, PBC.
+-->
+
 # JSON Schemas Specification
 
 This document defines the formal JSON schemas used across the skill-creator evaluation engine, test suites, benchmark aggregator, and Vite evaluation viewer.
