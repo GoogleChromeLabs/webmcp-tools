@@ -107,8 +107,53 @@
     });
   }
 
+  // https://webmachinelearning.github.io/webmcp/#tool-activated-event
+  class ToolActivatedEvent extends Event {
+    #toolName;
+
+    constructor(type, eventInitDict = {}) {
+      super(type, eventInitDict);
+      this.#toolName = eventInitDict.toolName ?? '';
+    }
+
+    get toolName() {
+      return this.#toolName;
+    }
+  }
+
+  // https://webmachinelearning.github.io/webmcp/#tool-cancel-event
+  class ToolCancelEvent extends Event {
+    #toolName;
+
+    constructor(type, eventInitDict = {}) {
+      super(type, eventInitDict);
+      this.#toolName = eventInitDict.toolName ?? '';
+    }
+
+    get toolName() {
+      return this.#toolName;
+    }
+  }
+
+  const TOOL_EVENT_INTERFACES = {
+    toolactivated: ToolActivatedEvent,
+    toolcancel: ToolCancelEvent,
+  };
+
+  // Dispatch a tool lifecycle event on the target window's modelContext.
+  function dispatchToolEvent(win, type, toolName) {
+    const event = new TOOL_EVENT_INTERFACES[type](type, { toolName });
+    try {
+      win.document?.modelContext?.dispatchEvent(event);
+    } catch (e) {
+      // Accessing the document of a cross-origin window throws a SecurityError.
+    }
+  }
+
   class ModelContext extends EventTarget {
     #ontoolchange = null;
+    #ontoolactivated = null;
+    #ontoolcancel = null;
 
     get ontoolchange() {
       return this.#ontoolchange;
@@ -121,6 +166,34 @@
       this.#ontoolchange = handler;
       if (handler) {
         this.addEventListener('toolchange', handler);
+      }
+    }
+
+    get ontoolactivated() {
+      return this.#ontoolactivated;
+    }
+
+    set ontoolactivated(handler) {
+      if (this.#ontoolactivated) {
+        this.removeEventListener('toolactivated', this.#ontoolactivated);
+      }
+      this.#ontoolactivated = handler;
+      if (handler) {
+        this.addEventListener('toolactivated', handler);
+      }
+    }
+
+    get ontoolcancel() {
+      return this.#ontoolcancel;
+    }
+
+    set ontoolcancel(handler) {
+      if (this.#ontoolcancel) {
+        this.removeEventListener('toolcancel', this.#ontoolcancel);
+      }
+      this.#ontoolcancel = handler;
+      if (handler) {
+        this.addEventListener('toolcancel', handler);
       }
     }
 
@@ -346,10 +419,8 @@
         }
       }
 
-      // Dispatch toolactivated event on the target window
-      const activatedEvent = new Event('toolactivated');
-      activatedEvent.toolName = tool.name;
-      win.dispatchEvent(activatedEvent);
+      // Dispatch toolactivated event on the target modelContext
+      dispatchToolEvent(win, 'toolactivated', tool.name);
 
       return new Promise((resolve, reject) => {
         let resolved = false;
@@ -379,9 +450,7 @@
               if (resolved) return;
               resolved = true;
               cleanup();
-              const cancelEvent = new Event('toolcancel');
-              cancelEvent.toolName = tool.name;
-              win.dispatchEvent(cancelEvent);
+              dispatchToolEvent(win, 'toolcancel', tool.name);
               reject(options.signal.reason || new DOMException('Aborted', 'AbortError'));
             },
             { once: true },
@@ -391,9 +460,7 @@
         const onReset = () => {
           resolved = true;
           cleanup();
-          const cancelEvent = new Event('toolcancel');
-          cancelEvent.toolName = tool.name;
-          win.dispatchEvent(cancelEvent);
+          dispatchToolEvent(win, 'toolcancel', tool.name);
           resolve(null);
         };
         form.addEventListener('reset', onReset);
@@ -436,9 +503,7 @@
           if (formRemoved || attributesChanged) {
             resolved = true;
             cleanup();
-            const cancelEvent = new Event('toolcancel');
-            cancelEvent.toolName = tool.name;
-            win.dispatchEvent(cancelEvent);
+            dispatchToolEvent(win, 'toolcancel', tool.name);
             resolve(null);
           }
         });
@@ -526,6 +591,9 @@
   }
 
   const modelContext = new ModelContext();
+
+  window.ToolActivatedEvent = ToolActivatedEvent;
+  window.ToolCancelEvent = ToolCancelEvent;
 
   Object.defineProperty(window.document, 'modelContext', {
     value: modelContext,
