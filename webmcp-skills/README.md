@@ -111,6 +111,8 @@ npm run eval:bundle
 npm run eval:view
 ```
 
+For comprehensive empirical results across 500 benchmark runs, see the **[Benchmark Report (5-Run Comparative Evaluation)](BENCHMARK.md)**.
+
 For guidelines on repository conventions and eval-driven skill development, see the [Agent Guide (AGENTS.md)](AGENTS.md).
 
 ---
