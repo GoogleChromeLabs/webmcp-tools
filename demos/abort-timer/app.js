@@ -19,6 +19,7 @@ class StopwatchEngine {
   #state = 'idle'; // 'idle' | 'running' | 'paused' | 'completed'
   #rafId = null;
   #onUpdate = null;
+  #cancelActiveRun = null;
 
   constructor(onUpdate) {
     this.#onUpdate = onUpdate;
@@ -43,6 +44,7 @@ class StopwatchEngine {
     }
     this.#elapsed = 0;
     this.#state = 'idle';
+    this.#cancelActiveRun?.();
     this.#notify();
   }
 
@@ -64,6 +66,11 @@ class StopwatchEngine {
   runTimer(maxSeconds = 60, signal) {
     if (this.#state === 'running') {
       return Promise.reject(new Error('Timer is already running'));
+    }
+
+    // Reset elapsed time when starting fresh after completion or when elapsed already exceeds target duration
+    if (this.#state === 'completed' || this.#elapsed >= maxSeconds * 1000) {
+      this.#elapsed = 0;
     }
 
     // 1. If signal is provided and already aborted, pause immediately without starting a loop
@@ -99,7 +106,17 @@ class StopwatchEngine {
           cancelAnimationFrame(this.#rafId);
           this.#rafId = null;
         }
+        this.#cancelActiveRun = null;
         signal?.removeEventListener('abort', onAbort);
+      };
+
+      this.#cancelActiveRun = () => {
+        cleanup();
+        resolve({
+          status: 'cancelled',
+          elapsed: 0,
+          reason: 'Reset'
+        });
       };
 
       signal?.addEventListener('abort', onAbort, { once: true });
@@ -109,6 +126,7 @@ class StopwatchEngine {
         this.#elapsed = performance.now() - startTime;
 
         if (this.#elapsed >= maxSeconds * 1000) {
+          this.#elapsed = maxSeconds * 1000;
           cleanup();
           this.#state = 'completed';
           this.#notify();
@@ -167,6 +185,16 @@ function registerTools(stopwatch) {
       try {
         const outcome = await stopwatch.runTimer(duration, options.signal);
         const elapsedSec = (outcome.elapsed / 1000).toFixed(2);
+
+        // Guard against reset microtask overwriting the reset UI state
+        if (outcome.reason === 'Reset' || stopwatch.state === 'idle') {
+          return {
+            status: 'cancelled',
+            elapsed: outcome.elapsed,
+            output: `Timer reset at ${elapsedSec}s`,
+            reason: 'Reset'
+          };
+        }
 
         setPromiseInspectorState('fulfilled', outcome, elapsedSec);
 
@@ -438,15 +466,13 @@ const createLogEntryNode = ({ tag, msg, time }) =>
   ]);
 
 
-function hudLog(tagOrTuple, msg) {
+function hudLog([tag, msg]) {
   const stream = document.getElementById('hud-log-stream');
   if (!stream) return;
 
-  const [tag, message] = Array.isArray(tagOrTuple) ? tagOrTuple : [tagOrTuple, msg];
-
   const entry = createLogEntryNode({
     tag,
-    msg: message,
+    msg,
     time: new Date().toLocaleTimeString()
   });
 

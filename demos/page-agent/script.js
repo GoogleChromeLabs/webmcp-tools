@@ -55,7 +55,7 @@ async function getTools() {
 
 async function getConfig() {
   const tools = await getTools();
-
+  
   if (codeModeCheckbox.checked) {
     const { getSystemInstruction } = await import('../shared/webmcp-batch.js');
     const systemInstruction = getSystemInstruction(tools);

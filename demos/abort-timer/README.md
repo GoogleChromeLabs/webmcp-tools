@@ -30,7 +30,7 @@ document.modelContext.registerTool({
   },
   // 👉 The second argument `options` receives the AbortSignal!
   execute: async ({ duration = 60 } = {}, options = {}) => {
-    const outcome = await stopwatch.run(duration, options.signal);
+    const outcome = await stopwatch.runTimer(duration, options.signal);
     return {
       status: outcome.status,
       output: `Timer ${outcome.status} at ${(outcome.elapsed / 1000).toFixed(2)}s`,
@@ -58,7 +58,7 @@ This demo registers a stopwatch execution tool on `document.modelContext`:
 Starts an active execution thread that ticks continuously at 60 FPS. Receives `options.signal` from the host context.
 * **Schema Parameters:**
   * `duration`: Maximum runtime in seconds (default: 60).
-* **Return**: Promise resolving with `{ status: "completed" | "paused", elapsed: number }`.
+* **Return**: Promise resolving with `{ status: "completed" | "cancelled", elapsed: number, output: string, reason?: string }`.
 
 ---
 
