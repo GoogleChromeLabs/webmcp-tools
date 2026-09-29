@@ -1,0 +1,16 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-2-context",
+  "description": "Evaluates Stage 2 Context & Diagnostic Pruning",
+  "evals": [
+    {
+      "id": "stage-2-context-pruning",
+      "prompt": "The user wants to search for shoes on an e-commerce site. The application state is: current_url=/products, device_battery=87%, gpu_temp=68C, screen_dpi=2.0, cart_items=[]. Establish the starting state.",
+      "expected_output": "Relevant application state is retained while irrelevant hardware diagnostics are pruned.",
+      "assertions": [
+        "The agent retains relevant application state such as URL and cart items",
+        "The agent explicitly prunes or excludes irrelevant diagnostics like device_battery, gpu_temp, and screen_dpi"
+      ]
+    }
+  ]
+}

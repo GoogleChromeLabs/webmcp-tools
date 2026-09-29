@@ -1,0 +1,15 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-0-router",
+  "description": "Evaluates Stage 0 Dynamic Stage Assessment & Router adherence",
+  "evals": [
+    {
+      "id": "stage-0-router-existing-tools",
+      "prompt": "I already have a schema.json defining tools for my pizza maker application. I want to generate evals.json for automated testing.",
+      "expected_output": "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2.",
+      "assertions": [
+        "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2."
+      ]
+    }
+  ]
+}
