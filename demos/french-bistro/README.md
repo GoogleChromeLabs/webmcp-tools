@@ -35,6 +35,8 @@ With `index.html?sharedworker`, the demo uses a `SharedWorker` to manage the in-
 
 With `index.html?agentiframe`, the in-page AI agent lives in an `<iframe>`.
 
+With `index.html?reportfailuretool`, an extra `report_failure` tool is registered, whose description tells the agent to *always* call it when a tool call fails or when no tool matches the user's intent. The `reason` it passes (PII redacted) is logged and shown as a toast, making it easy to see whether agents report dead ends instead of silently giving up in prose.
+
 Testing WebMCP audit failures can be streamlined by using specific URL parameters to simulate common tool configuration issues:
 - `index.html?notoolname` removes `toolname` form attribute
 - `index.html?notooldescription` removes `tooldescription` form attribute.
