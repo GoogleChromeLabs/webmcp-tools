@@ -115,6 +115,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [ScoreTail](https://scoretail.com/en/sheet-music/canon-in-d-pachelbel-johann/view) - A browser sheet music editor where an agent can read, arrange and play notation. Public score pages expose read-only tools (`get_score_info`, `read_measures`, `play`) with no sign-in. In the editor (free account), `rewrite_measures` takes the new notes in the same compact text notation that `read_measures` returns; each call is validated all-or-nothing, lands on the user's undo stack as a single step, and syncs live to collaborators.
   - **Example Prompt:** "Read the first 8 measures and tell me the chord progression, then play them." In the editor: "Add a simple bass line to measures 5–12."
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
