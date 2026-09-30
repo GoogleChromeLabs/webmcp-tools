@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2026 Google LLC
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="origin-trial" content="AkSy8NN0hHVbV1Tcto9+K2cDotMP5NcgNobK+M8bhWqrxefn6KOq0cpv/Glx1A+/1EmTU4KmfdLhdcrIA7L8EwwAAABaeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE3OTQ4NzM2MDB9">
+  <title>Report Exporter — cancelling a long WebMCP tool</title>
+  <script src="../shared/webmcp-polyfill.js"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 40rem;
+      margin: 3rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+
+    progress { width: 100%; height: 1.25rem; }
+    button { font: inherit; padding: .5rem 1rem; }
+    #log {
+      background: #f4f4f4;
+      padding: .75rem;
+      min-height: 5rem;
+      white-space: pre-wrap;
+      font-family: ui-monospace, monospace;
+      font-size: .85rem;
+    }
+    .hint { color: #666; font-size: .9rem; }
+  </style>
+</head>
+
+<body>
+  <h1>Report Exporter</h1>
+  <p>Exporting takes 10 seconds. An agent can stop it halfway.</p>
+
+  <progress id="bar" value="0" max="1"></progress>
+  <p id="status" role="status">Idle.</p>
+
+  <button id="run">Run as an agent</button>
+  <button id="cancel" disabled>Cancel</button>
+
+  <h2>What the agent sees</h2>
+  <pre id="log"></pre>
+  <p class="hint" id="support"></p>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const log = (line) => $('log').textContent += line + '\n';
+
+    // ---------------------------------------------------------------------
+    // The lesson: a long job that stops when the caller cancels.
+    // ---------------------------------------------------------------------
+    function runWithProgress(ms, signal, onProgress) {
+      return new Promise((resolve, reject) => {
+        // The caller may have cancelled before we even started.
+        signal?.throwIfAborted();
+
+        const start = performance.now();
+
+        const finish = (settle, value) => {
+          clearInterval(timer);
+          signal?.removeEventListener('abort', onAbort);
+          settle(value);
+        };
+
+        // Reject with the caller's reason. Do not resolve with a
+        // "cancelled" result: the caller will never see it.
+        const onAbort = () => finish(reject, signal.reason);
+
+        const timer = setInterval(() => {
+          const done = Math.min(1, (performance.now() - start) / ms);
+          onProgress(done);
+          if (done === 1) finish(resolve, `Report ready. 1,284 rows exported.`);
+        }, 100);
+
+        signal?.addEventListener('abort', onAbort, { once: true });
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // Tool side: read options.signal and pass it down.
+    // ---------------------------------------------------------------------
+    const registered = document.modelContext.registerTool({
+      name: 'export_report',
+      description: 'Exports the sales report. Takes about 10 seconds.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          seconds: { type: 'number', default: 10, description: 'How long the export runs.' }
+        }
+      },
+      // Chrome 153+ passes an options object as the second argument.
+      execute: async ({ seconds = 10 } = {}, { signal } = {}) => {
+        $('support').textContent = signal
+          ? 'This browser passed an AbortSignal to the tool. Cancel works.'
+          : 'This browser did not pass an AbortSignal. Cancel will not stop the export.';
+
+        $('status').textContent = 'Exporting…';
+        $('cancel').disabled = false;
+
+        try {
+          const result = await runWithProgress(seconds * 1000, signal, (p) => $('bar').value = p);
+          $('status').textContent = result;
+          return result;
+        } catch (err) {
+          $('status').textContent = `Stopped: ${err.message}`;
+          $('bar').value = 0;
+          throw err; // Let the agent see the rejection.
+        } finally {
+          $('cancel').disabled = true;
+        }
+      }
+    });
+
+    // ---------------------------------------------------------------------
+    // Caller side: this is what an agent does.
+    // ---------------------------------------------------------------------
+    let controller = null;
+
+    $('run').onclick = async () => {
+      $('run').disabled = true;
+      controller = new AbortController();
+
+      try {
+        await registered; // Registration is async. Do not race it.
+      } catch (err) {
+        log(`  registerTool failed: ${err.name} — ${err.message}`);
+        $('run').disabled = false;
+        return;
+      }
+
+      const tools = await document.modelContext.getTools();
+      const tool = tools.find((t) => t.name === 'export_report');
+
+      log('executeTool("export_report", { seconds: 10 }, { signal })');
+      try {
+        const result = await document.modelContext.executeTool(
+          tool, { seconds: 10 }, { signal: controller.signal });
+        log(`  resolved: ${result}`);
+      } catch (err) {
+        log(`  rejected: ${err.name} — ${err.message}`);
+      } finally {
+        controller = null;
+        $('run').disabled = false;
+      }
+    };
+
+    $('cancel').onclick = () => {
+      log('controller.abort(...)');
+      controller?.abort(new DOMException('Cancelled by the user', 'AbortError'));
+    };
+  </script>
+</body>
+
+</html>
