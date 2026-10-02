@@ -201,6 +201,25 @@ describe("runSmokeTest", () => {
     assert.match(results[0].error || "", /tool reported failure.*out of stock/i);
   });
 
+  it("accepts an empty error field returned on success", async () => {
+    const registry: SmokeToolRegistry = {
+      getCurrentTools: async () => [tool("first")],
+      executeToolChecked: async () => ({
+        success: true,
+        result: { error: "", itemId: "p3" },
+      }),
+    };
+
+    const results = await runSmokeTest(
+      { ...compiled, steps: compiled.steps.slice(0, 1) },
+      registry,
+      100,
+    );
+
+    assert.strictEqual(results[0].outcome, "pass");
+    assert.deepStrictEqual(results[0].result, { error: "", itemId: "p3" });
+  });
+
   it("times out a stuck tool call", async () => {
     const registry: SmokeToolRegistry = {
       getCurrentTools: async () => [tool("first")],

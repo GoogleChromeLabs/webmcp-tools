@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 import {
   runLocalCommand,
   runWebCommand,
+  runSimulateCommand,
   runSmokeCommand,
   runAnalyzeCommand,
 } from "../commands/index.js";
@@ -37,7 +38,6 @@ program
 
 // Global options shared across commands
 program
-  .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
   .option("-m, --model <model>", "Model identifier", "gemini-3.5-flash")
   .option("-r, --runs <number>", "Number of runs per test case", (v) => parseInt(v, 10), 1)
   .option("--max-steps <number>", "Maximum agent step count", (v) => parseInt(v, 10))
@@ -62,6 +62,7 @@ program
 program
   .command("local")
   .description("Run evals against a static JSON tool schema definition file")
+  .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
   .requiredOption("-t, --tools <path>", "Path to tool schema JSON file")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--analyze", "Automatically run LLM report analysis upon completion", false)
@@ -71,6 +72,7 @@ program
 program
   .command("browser")
   .description("Run evals live against WebMCP tools exposed on a web page via Puppeteer")
+  .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
   .requiredOption("-u, --url <url>", "Target web page URL")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
@@ -86,6 +88,37 @@ program
   .option("--timeout <milliseconds>", "Timeout per navigation or tool step", positiveInteger, 30000)
   .option("-v, --verbose", "Print live step-by-step navigation and tool call logs", false)
   .action(runSmokeCommand);
+
+// Command: run goal-oriented simulations against a live WebMCP page
+program
+  .command("simulate")
+  .description(
+    "Run goal-oriented simulations and check the final state with DOM assertions, an LLM judge, or both",
+  )
+  .requiredOption("-u, --url <url>", "Target web page URL")
+  .requiredOption("-s, --simulations <path>", "Path to simulations JSON file")
+  .option(
+    "--judge-model <model>",
+    "Model identifier for the judge (defaults to the analyzer model, so the agent does not grade itself)",
+  )
+  .option(
+    "--user-model <model>",
+    "Model identifier for the simulated user (defaults to the agent's model)",
+  )
+  .option(
+    "--max-duration <milliseconds>",
+    "Total wall-clock budget for whole simulation",
+    positiveInteger,
+    300000,
+  )
+  .option(
+    "--timeout <milliseconds>",
+    "Timeout per-operation limit for navigation, setup tool calls, and the judge request",
+    positiveInteger,
+    30000,
+  )
+  .option("-v, --verbose", "Print live page and turn logs", false)
+  .action(runSimulateCommand);
 
 // Command: analyze evaluation report using an LLM
 program

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Find and add a leather jacket to the cart",
+    "userMessage": "Find a leather jacket and add one to my shopping bag.",
+    "maxDurationMs": 180000,
+    "assertions": [
+      {
+        "type": "dom",
+        "selector": ".cart-badge",
+        "expect": { "text": "1" }
+      }
+    ]
+  },
+  {
+    "name": "Add a leather jacket and matching gloves to the cart",
+    "userMessage": "Add one leather jacket and one pair of leather gloves to my shopping bag. Nothing else.",
+    "maxDurationMs": 180000,
+    "assertions": [
+      {
+        "type": "dom",
+        "selector": ".cart-badge",
+        "expect": { "text": "2" }
+      }
+    ]
+  }
+]
