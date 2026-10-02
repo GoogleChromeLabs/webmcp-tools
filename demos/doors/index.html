@@ -99,6 +99,15 @@
             </form>
         </div>
     </div>
+    <script type="module">
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('token')) {
+            await document.modelContext.resumeTool(
+                urlParams.get('token'),
+                () => 'Success! Returned to the hallway. Mystery doors are available again',
+            );
+        }
+    </script>
 </body>
 
 </html>
