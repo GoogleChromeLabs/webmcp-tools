@@ -114,6 +114,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Order pepperoni pizza for a party of 10, delivered to 123 Main Road."
 - [ScoreTail](https://scoretail.com/en/sheet-music/canon-in-d-pachelbel-johann/view) - A browser sheet music editor where an agent can read, arrange and play notation. Public score pages expose read-only tools (`get_score_info`, `read_measures`, `play`) with no sign-in. In the editor (free account), `rewrite_measures` takes the new notes in the same compact text notation that `read_measures` returns; each call is validated all-or-nothing, lands on the user's undo stack as a single step, and syncs live to collaborators.
   - **Example Prompt:** "Read the first 8 measures and tell me the chord progression, then play them." In the editor: "Add a simple bass line to measures 5–12."
+- [1 Million Emojis](https://chriswijnia.com/lab/emoji) - A shared 1,000 x 1,000 emoji canvas. The page registers WebMCP tools (`emoji_paint`, `emoji_latest`, `emoji_space`, `emoji_jev`), so an agent paints on the same live canvas people paint, and Jev answers each stroke with an emoji of its own.
+  - **Example Prompt:** "Find the largest empty area of the canvas, paint a 🌊 there, then let Jev paint next to it."
 
 ## Libraries & Tools
 
