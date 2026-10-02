@@ -249,7 +249,7 @@
       return filteredTools;
     }
 
-    async executeTool(tool, inputObject, options) {
+    async executeTool(tool, inputObject, options = {}) {
       if (inputObject === undefined) {
         throw new TypeError('inputObject is undefined');
       }
@@ -595,6 +595,47 @@
       }
     }
   });
+
+  // Fire `toolchange` when declarative (form) tools change, including forms
+  // that are added, removed, or no longer tools (e.g. `toolname` removed).
+  function getDeclarativeToolsSignature() {
+    return JSON.stringify(
+      getLocalTools(window)
+        .filter((t) => t._form)
+        .map(({ name, description, inputSchema }) => ({ name, description, inputSchema }))
+    );
+  }
+
+  function observeDeclarativeTools() {
+    let signature = getDeclarativeToolsSignature();
+    let scheduled = false;
+
+    const check = () => {
+      scheduled = false;
+      const newSignature = getDeclarativeToolsSignature();
+      if (newSignature !== signature) {
+        signature = newSignature;
+        modelContext.dispatchEvent(new Event('toolchange'));
+      }
+    };
+
+    const observer = new MutationObserver(() => {
+      if (!scheduled) {
+        scheduled = true;
+        queueMicrotask(check);
+      }
+    });
+    observer.observe(window.document.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['toolname', 'tooldescription', 'toolparamdescription', 'name', 'type', 'required'],
+    });
+  }
+
+  // Start right away (not on DOMContentLoaded) so that changes made by module
+  // scripts before DOMContentLoaded still fire `toolchange`.
+  observeDeclarativeTools();
 
   if (window.document.readyState === 'loading') {
     window.document.addEventListener('DOMContentLoaded', () => polyfillCSSPseudoClasses(window));
