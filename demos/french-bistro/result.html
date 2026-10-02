@@ -103,7 +103,11 @@
     }
 
     if (params.has('token')) {
-      await document.modelContext.resumeTool(params.get('token'), () => modalDetails.innerText);
+      try {
+        await document.modelContext.resumeTool(params.get('token'), () => modalDetails.innerText);
+      } catch (error) {
+        console.log('error', error);
+      }
     }
 
     document.getElementById('closeDialogBtn').addEventListener('click', () => {

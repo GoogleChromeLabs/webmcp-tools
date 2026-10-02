@@ -100,12 +100,13 @@
         </div>
     </div>
     <script type="module">
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('token')) {
-            await document.modelContext.resumeTool(
-                urlParams.get('token'),
-                () => 'Success! Returned to the hallway. Mystery doors are available again',
-            );
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('token')) {
+            try {
+                await document.modelContext.resumeTool(params.get('token'), () => 'Success! Returned to the hallway. Mystery doors are available again');
+            } catch (error) {
+                console.error('error', error);
+            }
         }
     </script>
 </body>
