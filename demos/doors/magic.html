@@ -39,11 +39,23 @@
 
             controller.abort();
             document.querySelector('button').setAttribute('disabled', '');
+            document.querySelector('form button').removeAttribute('disabled');
+
+            if ('ModelContextToolInvocation' in window) {
+                document.modelContext.registerTool({
+                    name: 'returnToHallway',
+                    description: 'Return to Hallway.',
+                    execute: async (args, { invocation }) => {
+                        const token = await invocation.requestToken();
+                        window.location.href = `index.html?token=${token}`;
+                    },
+                });
+                return
+            }
 
             document.querySelector('form').setAttribute('toolname', 'returnToHallway');
             document.querySelector('form').setAttribute('tooldescription', 'Return to Hallway.');
             document.querySelector('form').setAttribute('toolautosubmit', '');
-            document.querySelector('form button').removeAttribute('disabled');
         }
 
         document.modelContext.registerTool({

@@ -79,6 +79,7 @@ async function getConfig() {
   const systemInstruction = [
     'You are an assistant embedded in a web page.',
     'CRITICAL RULE: Do not try to use other tools than the available ones.',
+    `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
   ];
 
   const functionDeclarations = tools.map((tool) => ({
