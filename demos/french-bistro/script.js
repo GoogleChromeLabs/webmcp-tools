@@ -82,6 +82,7 @@ if (isImperative) {
         if (options.invocation) {
           const token = await options.invocation.requestToken();
           const tokenInput = document.createElement("input");
+          tokenInput.type = "hidden";
           tokenInput.name = "token";
           tokenInput.value = token;
           form.appendChild(tokenInput);
