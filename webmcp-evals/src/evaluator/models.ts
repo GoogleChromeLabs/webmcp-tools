@@ -6,10 +6,9 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { Config, WebmcpConfig } from "../types/config.js";
 import { makeSignaturePreservingFetch } from "./googleThoughtSignatures.js";
 
-export function getModel(config: Config | WebmcpConfig) {
+export function getModel(config: { model?: string; provider?: string }) {
   const modelId = config.model || "google:gemini-3-flash-preview";
 
   if (config.provider === "openai" || modelId.startsWith("openai:")) {

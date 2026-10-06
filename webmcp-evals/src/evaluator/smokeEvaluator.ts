@@ -8,6 +8,7 @@ import type { ChromeReleaseChannel } from "puppeteer-core";
 import { Eval, ExpectedCallNode } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { isFunctionCall, isOrderedGroup, isUnorderedGroup } from "../utils.js";
+import { explicitToolFailure } from "../simulate/toolSequence.js";
 import { BrowserToolRegistry, launchBrowser, type Browser, type BrowserPage } from "./browser.js";
 
 export const DEFAULT_SMOKE_TIMEOUT_MS = 30_000;
@@ -66,16 +67,6 @@ function testName(test: Eval, testIndex: number): string {
     return firstMessage.content.trim();
   }
   return `Test ${testIndex + 1}`;
-}
-
-function constraintKeys(value: unknown): string[] {
-  if (Array.isArray(value)) return value.flatMap(constraintKeys);
-  if (value === null || typeof value !== "object") return [];
-
-  const entries = Object.entries(value as Record<string, unknown>);
-  const dollarKeys = entries.map(([key]) => key).filter((key) => key.startsWith("$"));
-  const childKeys = entries.flatMap(([, child]) => constraintKeys(child));
-  return [...dollarKeys, ...childKeys];
 }
 
 export function resolveConcreteValue(key: string, value: unknown): any {
@@ -224,34 +215,6 @@ function stepError(
     outcome: "error",
     error: `Smoke test "${test.name}" step ${step.stepIndex} (${step.functionName}): ${error}`,
   };
-}
-
-function explicitToolFailure(result: unknown): string | undefined {
-  if (typeof result === "string") {
-    const trimmed = result.trim();
-    if (/^error[:\s]/i.test(trimmed)) {
-      return `tool reported failure: ${trimmed}`;
-    }
-    try {
-      result = JSON.parse(result);
-    } catch {
-      return undefined;
-    }
-  }
-
-  if (result === null || typeof result !== "object") return undefined;
-  const response = result as Record<string, unknown>;
-  if (
-    response.success === false ||
-    response.isError === true ||
-    (response.error !== undefined && typeof response.error === "string")
-  ) {
-    const detail = response.error ?? response.message;
-    return typeof detail === "string" && detail.trim()
-      ? `tool reported failure: ${detail}`
-      : `tool reported failure: ${JSON.stringify(result)}`;
-  }
-  return undefined;
 }
 
 export async function runSmokeTest(
