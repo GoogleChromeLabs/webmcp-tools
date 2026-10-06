@@ -48,16 +48,12 @@ export function useWebMCPTools({
     }),
     execute: async () => {
       triggerAgentActivity(1500);
-      return JSON.stringify(
-        playlistTracks.map((t, idx) => ({
-          position: idx + 1,
-          title: t.title,
-          artist: t.artist,
-          duration: t.duration,
-        })),
-        null,
-        2
-      );
+      return playlistTracks.map((t, idx) => ({
+        position: idx + 1,
+        title: t.title,
+        artist: t.artist,
+        duration: t.duration,
+      }));
     },
   });
 
@@ -109,7 +105,7 @@ export function useWebMCPTools({
             enum: AVAILABLE_COMPONENT_IDS,
           },
           description:
-            "Array of component IDs to display on the dashboard. Examples: 'thermostat_control', 'camera_front_door', 'lock_front_door', 'guest_message_board', 'smart_lights_living_room', 'energy_summary', 'weather_widget', 'media_player_living_room', 'alarm_panel', 'air_quality_sensor', 'solar_grid'",
+            "Array of component IDs to display on the dashboard.",
         },
       },
       required: ['componentIds'],
@@ -132,10 +128,6 @@ export function useWebMCPTools({
   useWebMCP({
     name: 'lockFrontDoor',
     description: 'Locks the smart home front door lock to secure the house.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
     annotations: getToolAnnotations({
       consequentialHint: false,
     }),
@@ -153,10 +145,6 @@ export function useWebMCPTools({
     name: 'unlockFrontDoor',
     description:
       'Unlocks the smart home front door lock. Grants physical access to the home.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
     annotations: getToolAnnotations({
       consequentialHint: true,
     }),
@@ -174,10 +162,6 @@ export function useWebMCPTools({
     name: 'getGuestMessages',
     description:
       'Reads visitor and guest sticky notes left on the smart home digital message board.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
     annotations: getToolAnnotations({
       readOnlyHint: true,
       untrustedContentHint: true,
@@ -185,15 +169,11 @@ export function useWebMCPTools({
     }),
     execute: async () => {
       triggerAgentActivity(1500);
-      return JSON.stringify(
-        guestMessages.map(({ author, timestamp, text }) => ({
-          author,
-          timestamp,
-          text,
-        })),
-        null,
-        2
-      );
+      return guestMessages.map(({ author, timestamp, text }) => ({
+        author,
+        timestamp,
+        text,
+      }));
     },
   });
 }

@@ -38,7 +38,7 @@ export const ClimatePage = () => (
 
 export const EnergyPage = () => (
   <PageLayout title="Energy">
-    {React.createElement(COMPONENT_MAP['solar_grid'])}
+    {React.createElement(COMPONENT_MAP['energy_summary'])}
   </PageLayout>
 );
 

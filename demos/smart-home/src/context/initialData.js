@@ -13,7 +13,6 @@ export const AVAILABLE_COMPONENT_IDS = [
   'media_player_living_room',
   'alarm_panel',
   'air_quality_sensor',
-  'solar_grid',
   'energy_summary',
 ];
 

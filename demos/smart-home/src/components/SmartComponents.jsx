@@ -41,6 +41,5 @@ export const COMPONENT_MAP = {
   'media_player_living_room': MediaPlayer,
   'alarm_panel': AlarmPanel,
   'air_quality_sensor': AirQuality,
-  'solar_grid': SolarGrid,
   'energy_summary': SolarGrid,
 };
