@@ -79,7 +79,7 @@ export const AirQuality = () => (
   </div>
 );
 
-export const SolarGrid = () => (
+export const EnergySummary = () => (
   <div className="card">
     <div className="widget-header">
       <h3>Energy Distribution</h3>
