@@ -11,12 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "framer-motion": "^12.38.0",
-    "lucide-react": "^1.14.0",
+    "framer-motion": "^13.4.6",
+    "lucide-react": "^1.48.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
-    "use-webmcp-tool": "^0.2.0"
+    "use-webmcp-tool": "^0.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -26,8 +26,8 @@
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "globals": "^17.5.0",
-    "jsdom": "^27.4.0",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.1",
     "vite": "^8.0.16",
     "vitest": "^4.1.11"
   }
