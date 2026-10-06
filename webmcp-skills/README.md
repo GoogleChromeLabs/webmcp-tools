@@ -156,6 +156,8 @@ For guidelines on repository conventions and eval-driven skill development, see 
 
 ## Attribution & Acknowledgments
 
+Special thanks to [Sarah Drasner](https://github.com/sdras) for her contributions to this project and her work on WebMCP agent skills that helped improve `build-webmcp-tools`.
+
 The `skill-creator` meta-skill under `.agents/skills/skill-creator` is derived from Anthropic's [`skill-creator`](https://github.com/anthropics/skills), licensed under the Apache License, Version 2.0 (Copyright (c) Anthropic, PBC), and has been modified by Google LLC. See [`NOTICE`](NOTICE) for details.
 
 ---
