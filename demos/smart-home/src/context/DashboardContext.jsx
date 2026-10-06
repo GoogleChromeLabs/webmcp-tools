@@ -3,46 +3,126 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, createContext, useContext } from 'react';
-import { useWebMCP } from 'use-webmcp-tool';
+import { useState, useEffect, createContext, useContext } from 'react';
+import { useWebMCPTools } from './useWebMCPTools';
+import {
+  INITIAL_DASHBOARD_COMPONENTS,
+  INITIAL_GUEST_MESSAGES,
+  INITIAL_PLAYLIST_TRACKS,
+} from './initialData';
 
-export const DashboardContext = createContext();
+const DashboardContext = createContext();
 
 export function DashboardProvider({ children }) {
-  const [dashboardComponents, setDashboardComponents] = useState([
-    'weather_widget',
-  ]);
+  const [dashboardComponents, setDashboardComponents] = useState(
+    INITIAL_DASHBOARD_COMPONENTS
+  );
 
   const [isAgentActive, setIsAgentActive] = useState(false);
+  const [isFrontDoorLocked, setIsFrontDoorLocked] = useState(true);
+  const [lastLockStatusText, setLastLockStatusText] = useState('Locked • 5 mins ago');
+  const [useReadOnlyHint, setUseReadOnlyHint] = useState(true);
+  const [useConsequentialHint, setUseConsequentialHint] = useState(true);
+  const [useUntrustedContentHint, setUseUntrustedContentHint] = useState(true);
+  const [includePlaylistInjection, setIncludePlaylistInjection] = useState(true);
+  const [includeGuestbookInjection, setIncludeGuestbookInjection] = useState(true);
+  const [showInlineDevInfo, setShowInlineDevInfo] = useState(true);
 
-  useWebMCP({
-    name: "rearrangeDOMComponents",
-    description: "Rearranges the user's home dashboard by adding, removing, or reordering smart home control components based on the user's intent.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        componentIds: {
-          type: "array",
-          items: { type: "string" },
-          description: "Array of component IDs to display on the dashboard. Examples: 'thermostat_control', 'camera_front_door', 'lock_front_door', 'smart_lights_living_room', 'energy_summary', 'weather_widget', 'media_player_living_room', 'alarm_panel', 'air_quality_sensor', 'robot_vacuum', 'solar_grid'"
-        }
-      },
-      required: ["componentIds"]
-    },
-    execute: async (input) => {
-      setIsAgentActive(true);
-      setDashboardComponents(input.componentIds);
+  // Smart Lights state
+  const [lightsPower, setLightsPower] = useState('off');
+  const [lightsBrightness, setLightsBrightness] = useState(0);
 
-      setTimeout(() => setIsAgentActive(false), 2000);
-      return "Dashboard successfully updated with requested components.";
-    }
+  useEffect(() => {
+    document.body.classList.toggle('hide-dev-inline-info', !showInlineDevInfo);
+  }, [showInlineDevInfo]);
+
+  const playlistTracks = includePlaylistInjection
+    ? INITIAL_PLAYLIST_TRACKS
+    : INITIAL_PLAYLIST_TRACKS.filter((t) => !t.isPoisoned);
+
+  const guestMessages = includeGuestbookInjection
+    ? INITIAL_GUEST_MESSAGES
+    : INITIAL_GUEST_MESSAGES.filter((m) => !m.isPoisoned);
+
+  const setLivingRoomLightsState = (power, brightness) => {
+    const nextPower = power === 'off' ? 'off' : 'on';
+    const nextBrightness =
+      typeof brightness === 'number'
+        ? Math.max(0, Math.min(100, brightness))
+        : nextPower === 'off'
+        ? 0
+        : 80;
+    setLightsPower(nextPower);
+    setLightsBrightness(nextBrightness);
+    return { nextPower, nextBrightness };
+  };
+
+  const ensureMediaAndLightsVisible = () => {
+    setDashboardComponents((prev) => {
+      const next = [...prev];
+      if (!next.includes('smart_lights_living_room')) {
+        next.unshift('smart_lights_living_room');
+      }
+      if (!next.includes('media_player_living_room')) {
+        next.unshift('media_player_living_room');
+      }
+      return next;
+    });
+  };
+
+  const ensureLockWidgetVisible = () => {
+    setDashboardComponents((prev) =>
+      prev.includes('lock_front_door') ? prev : ['lock_front_door', ...prev]
+    );
+  };
+
+  useWebMCPTools({
+    playlistTracks,
+    guestMessages,
+    setDashboardComponents,
+    setIsAgentActive,
+    setIsFrontDoorLocked,
+    setLastLockStatusText,
+    setLivingRoomLightsState,
+    ensureMediaAndLightsVisible,
+    ensureLockWidgetVisible,
+    useReadOnlyHint,
+    useConsequentialHint,
+    useUntrustedContentHint,
   });
 
   return (
-    <DashboardContext.Provider value={{ dashboardComponents, isAgentActive }}>
+    <DashboardContext.Provider
+      value={{
+        dashboardComponents,
+        isAgentActive,
+        isFrontDoorLocked,
+        setIsFrontDoorLocked,
+        lastLockStatusText,
+        setLastLockStatusText,
+        guestMessages,
+        lightsPower,
+        lightsBrightness,
+        setLivingRoomLightsState,
+        playlistTracks,
+        useReadOnlyHint,
+        setUseReadOnlyHint,
+        useConsequentialHint,
+        setUseConsequentialHint,
+        useUntrustedContentHint,
+        setUseUntrustedContentHint,
+        includePlaylistInjection,
+        setIncludePlaylistInjection,
+        includeGuestbookInjection,
+        setIncludeGuestbookInjection,
+        showInlineDevInfo,
+        setShowInlineDevInfo,
+      }}
+    >
       {children}
     </DashboardContext.Provider>
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDashboard = () => useContext(DashboardContext);
