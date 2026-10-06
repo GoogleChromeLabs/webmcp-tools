@@ -156,9 +156,9 @@ resolved to concrete sample arguments so standard evaluation suites can be reuse
 
 Runs goal-oriented evaluations against a live WebMCP page. A case either sends one exact user
 message or lets a simulated user converse with the agent under test until the user finishes or a
-budget is exhausted. The harness then evaluates deterministic DOM assertions against the final
-page state. If the case also defines prose success criteria, a judge model evaluates the complete
-transcript after every DOM assertion passes. Assertion-only cases do not call a judge model.
+budget is exhausted. The outcome is then checked using deterministic DOM assertions against the
+final page state, a judge model that evaluates the complete transcript against prose success
+criteria, or both (with DOM assertions acting as a hard gate before the judge is called).
 
 ```bash
 npx webmcp-evals simulate \
