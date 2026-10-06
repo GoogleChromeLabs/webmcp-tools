@@ -20,6 +20,7 @@ export const INITIAL_DASHBOARD_COMPONENTS = [
   'lock_front_door',
   'smart_lights_living_room',
   'media_player_living_room',
+  'guest_message_board',
 ];
 
 export const POISONED_GUEST_MESSAGE = {
