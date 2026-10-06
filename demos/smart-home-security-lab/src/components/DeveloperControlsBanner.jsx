@@ -10,13 +10,19 @@ import { useDashboard } from '../context/DashboardContext';
 export function DeveloperControlsBanner() {
   const [isExpanded, setIsExpanded] = useState(false);
   const {
-    includePlaylistInjection,
+    useReadOnlyHint = true,
+    setUseReadOnlyHint,
+    useConsequentialHint = true,
+    setUseConsequentialHint,
+    useUntrustedContentHint = true,
+    setUseUntrustedContentHint,
+    includePlaylistInjection = true,
     setIncludePlaylistInjection,
-    includeGuestbookInjection,
+    includeGuestbookInjection = true,
     setIncludeGuestbookInjection,
-    showInlineDevInfo,
+    showInlineDevInfo = true,
     setShowInlineDevInfo,
-  } = useDashboard();
+  } = useDashboard() || {};
 
   return (
     <header className="dev-controls-banner" role="region" aria-label="Developer controls">
