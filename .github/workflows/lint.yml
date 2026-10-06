@@ -23,14 +23,26 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install dependencies (webmcp-evals)
         working-directory: ./webmcp-evals
         run: npm install
 
-      - name: Run Lint
+      - name: Run Lint (webmcp-evals)
         working-directory: ./webmcp-evals
         run: npm run lint
 
-      - name: Run Format Check
+      - name: Run Format Check (webmcp-evals)
         working-directory: ./webmcp-evals
+        run: npx oxfmt --check
+
+      - name: Install dependencies (webmcp-skills)
+        working-directory: ./webmcp-skills
+        run: npm install
+
+      - name: Run Lint (webmcp-skills)
+        working-directory: ./webmcp-skills
+        run: npm run lint
+
+      - name: Run Format Check (webmcp-skills)
+        working-directory: ./webmcp-skills
         run: npx oxfmt --check

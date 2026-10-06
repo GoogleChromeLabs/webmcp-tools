@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.local
+
+# Promptfoo & Evals workspace outputs & cache
+.promptfoo/
+output/
+evals-workspace/
+
+# Logs & OS artifacts
+*.log
+*.skill
+.DS_Store

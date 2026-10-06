@@ -25,6 +25,33 @@ updates:
     cooldown:
       default-days: 7
 
+  # Agent skills and evaluation runner
+  - package-ecosystem: "npm"
+    directory: "/webmcp-skills"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      vite:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "vitest*"
+          - "@vitest/*"
+      lint-format:
+        patterns:
+          - "oxlint*"
+          - "oxfmt*"
+          - "eslint*"
+          - "@eslint*"
+          - "prettier*"
+      all-other-dependencies:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+
   # Demo applications
   - package-ecosystem: "npm"
     directories:

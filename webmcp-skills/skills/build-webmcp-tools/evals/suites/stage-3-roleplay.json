@@ -1,0 +1,15 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-3-roleplay",
+  "description": "Evaluates Stage 3 Turn-by-Turn Roleplay Structure & Pagination",
+  "evals": [
+    {
+      "id": "stage-3-roleplay-structure",
+      "prompt": "Role-play the first turn where a user asks for available hotel rooms in Paris next Friday.",
+      "expected_output": "A complete role-play turn documenting 6 turn elements including pagination in tool response.",
+      "assertions": [
+        "The role-play turn documents user utterance, agent intent, tool invocation, structured JSON tool response with pagination (page_size, total_count), site UI reaction, and agent response"
+      ]
+    }
+  ]
+}

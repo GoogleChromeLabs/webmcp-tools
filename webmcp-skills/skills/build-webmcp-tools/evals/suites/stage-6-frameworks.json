@@ -1,0 +1,215 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-6-frameworks",
+  "description": "Evaluates Stage 6 Framework & Pattern Implementations (React, Angular, Vanilla, Declarative)",
+  "evals": [
+    {
+      "id": "stage-6-react-implementation",
+      "prompt": "Write the implementation code for search_hotels tool in a React component.",
+      "expected_output": "React implementation using useWebMCP from use-webmcp-tool with readOnlyHint: true and no deprecated APIs.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output includes readOnlyHint: true",
+        "The output does NOT include navigator.modelContext",
+        "The output does NOT include unregisterTool"
+      ]
+    },
+    {
+      "id": "stage-6-angular-implementation",
+      "prompt": "Write the implementation code for search_hotels tool in an Angular application config.",
+      "expected_output": "Angular implementation using provideExperimentalWebMcpTools without deprecated navigator.modelContext.",
+      "assertions": [
+        "The output uses provideExperimentalWebMcpTools",
+        "The output does NOT include navigator.modelContext",
+        "The agent read references/angular-patterns.md",
+        "The agent did NOT read references/react-patterns.md",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "stage-6-angular-route-auto-cleanup",
+      "prompt": "How do we configure WebMCP tools in Angular so they are only available on the `/dashboard` route and automatically clean up when the user navigates away?",
+      "expected_output": "The agent shows configuring `provideRouter(routes, withExperimentalAutoCleanupInjectors())` in `appConfig`, and declaring `providers: [provideExperimentalWebMcpTools([...])]` on the `/dashboard` route in `app.routes.ts`.",
+      "assertions": [
+        "The output uses withExperimentalAutoCleanupInjectors with provideRouter",
+        "The output declares provideExperimentalWebMcpTools in route providers",
+        "The agent explains that this automatically cleans up tools upon route navigation"
+      ]
+    },
+    {
+      "id": "stage-6-angular-signal-forms",
+      "prompt": "How do we expose an Angular Signal Form as an AI-callable WebMCP tool without manually authoring a JSON Schema?",
+      "expected_output": "The agent provides `provideExperimentalWebMcpForms()` in root providers, and adds `experimentalWebMcpTool: { name: '...', description: '...' }` to the `form()` configuration, noting that types are inferred from the initial model signals.",
+      "assertions": [
+        "The output includes provideExperimentalWebMcpForms",
+        "The output configures experimentalWebMcpTool in the form() setup",
+        "The agent notes that parameter types are inferred automatically from initial signal values"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-abortcontroller",
+      "prompt": "Write the implementation code for search_hotels tool in vanilla JavaScript.",
+      "expected_output": "Vanilla JS implementation registering on document.modelContext with AbortController/signal lifecycle management.",
+      "assertions": [
+        "The output registers tools on document.modelContext using registerTool",
+        "The output includes AbortController or signal lifecycle management"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-cancellation-signal",
+      "prompt": "When authoring a native WebMCP tool on `document.modelContext.registerTool`, how should the `execute` callback handle cancellation when the user or agent aborts the call midway through a long fetch?",
+      "expected_output": "The agent explains that `execute(input, { signal })` receives an `AbortSignal` in its second argument, and code must forward `{ signal }` to `fetch()` or async operations so in-flight HTTP requests abort immediately upon cancellation.",
+      "assertions": [
+        "The agent explains that the execute callback receives { signal } in its second argument",
+        "The agent demonstrates forwarding the signal to fetch() or abortable async operations"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-consumer-discovery",
+      "prompt": "We are building an in-browser assistant panel. How do we discover available WebMCP tools on the current page, execute one programmatically, and listen for dynamic tool additions or removals?",
+      "expected_output": "The agent shows calling `document.modelContext.getTools()` to list tools, `document.modelContext.executeTool(tool, jsonPayload, { signal })` to run a tool, and listening to `document.modelContext.addEventListener('toolchange', ...)` for catalog changes.",
+      "assertions": [
+        "The output uses document.modelContext.getTools()",
+        "The output uses document.modelContext.executeTool()",
+        "The output listens to the toolchange event on document.modelContext",
+        "The output passes executeTool arguments as a plain object, not as a JSON.stringify string (JSON-string arguments are deprecated from Chrome 155)"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-structured-errors",
+      "prompt": "In native `document.modelContext.registerTool`, what happens if the `execute` function rejects or throws an unhandled error, and how should recoverable errors be returned so the agent can self-correct?",
+      "expected_output": "The agent explains that unhandled throws/rejections in native WebMCP are converted by the browser into a generic `DOMException: UnknownError`, discarding error details. To allow the agent to self-correct, the tool should resolve with a structured error payload (e.g. `{ error, code, retryable }`).",
+      "assertions": [
+        "The agent explains that unhandled rejections map to a generic UnknownError in native WebMCP",
+        "The agent instructs resolving with a structured error payload rather than rejecting"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-forms",
+      "prompt": "How do I expose a search tool using declarative HTML forms?",
+      "expected_output": "Declarative HTML form using standard toolname and toolautosubmit attributes, handling submission with event.respondWith.",
+      "assertions": [
+        "The output includes the toolname attribute on the form",
+        "The output includes the toolautosubmit attribute",
+        "The output uses event.respondWith to return the tool result",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-structured-validation",
+      "prompt": "In a declarative WebMCP `<form>`, how should our submit event listener return field validation errors back to the AI agent when required form fields are missing or invalid?",
+      "expected_output": "The agent explains checking `event.agentInvoked`, collecting field-level errors (e.g. `[{ field, message }]`), and resolving them via `event.respondWith(Promise.resolve(errors))` rather than calling `Promise.reject()`, ensuring the model receives specific field correction guidance.",
+      "assertions": [
+        "The output checks event.agentInvoked",
+        "The output resolves structured field validation errors via event.respondWith",
+        "The agent explains that resolving errors prevents them from being swallowed as generic DOMException errors"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-lifecycle-and-styling",
+      "prompt": "How can a web application provide visual feedback to users when an AI agent is actively populating and submitting a declarative WebMCP form?",
+      "expected_output": "The agent explains listening to lifecycle events `toolactivated` and `toolcancel` on `document.modelContext` to toggle UI banners or indicators, and styling `:tool-form-active` and `:tool-submit-active` pseudo-classes to highlight the form and submit buttons.",
+      "assertions": [
+        "The output references document.modelContext lifecycle events toolactivated and toolcancel",
+        "The output references CSS pseudo-classes :tool-form-active or :tool-submit-active"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-autosubmit-policy",
+      "prompt": "When should the `toolautosubmit` attribute be omitted from a declarative WebMCP `<form>` element, and what behavior does omitting it trigger?",
+      "expected_output": "The agent explains that `toolautosubmit` must be omitted for financial transactions, deletions, or high-risk actions to keep the human in the loop. Omitting it causes the browser to pre-fill the form fields and highlight the submit button (`:tool-submit-active`), leaving the final submit click to the user.",
+      "assertions": [
+        "The agent specifies omitting toolautosubmit for financial, destructive, or high-risk actions",
+        "The agent explains that omitting toolautosubmit pre-fills the form and requires the human user to confirm submission"
+      ]
+    },
+    {
+      "id": "stage-6-react-error-handling",
+      "prompt": "In useWebMCP, how should I handle a validation error when the user provides an invalid flight date?",
+      "expected_output": "Instructs throwing an Error instance (throw new Error) so the tool result receives isError: true, and advises against returning error objects.",
+      "assertions": [
+        "The agent instructs throwing an Error (e.g. throw new Error) so the tool result receives isError: true",
+        "The agent advises against returning error objects as successful responses"
+      ]
+    },
+    {
+      "id": "stage-6-react-polymorphic",
+      "prompt": "Write the implementation code for a polymorphic tool list_items in a React component that queries across multiple entity types (issues and bug reports).",
+      "expected_output": "React implementation using useWebMCP and Promise.all for concurrent fetching with readOnlyHint: true.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output uses Promise.all for concurrent entity fetching",
+        "The output includes readOnlyHint: true"
+      ]
+    },
+    {
+      "id": "stage-6-react-enabled-gating",
+      "prompt": "In a multi-step checkout wizard React component that handles 'cart', 'shipping', and 'payment' steps, how do we expose the `apply_coupon` tool only during the 'payment' step without unmounting the wizard component?",
+      "expected_output": "The agent uses the `enabled` option of `useWebMCP` (e.g. `enabled: currentStep === 'payment'`), explaining that this conditionally registers the tool with the browser model context only during the valid wizard step and unregisters it when leaving that step.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output configures the enabled property (e.g. enabled: currentStep === 'payment')",
+        "The agent explains that enabled conditionally registers and unregisters the tool based on component state"
+      ]
+    },
+    {
+      "id": "stage-6-react-schema-stability",
+      "prompt": "A developer notices that their React component re-registers its WebMCP tool on every re-render even though the tool name didn't change. Why does `useWebMCP` do this, and how can the developer prevent registration churn?",
+      "expected_output": "The agent explains that `useWebMCP` checks registration dependencies using `JSON.stringify()` for `inputSchema` and `annotations`. If inline schema objects are recreated with different key ordering or dynamically constructed on each render, it triggers unnecessary unregister and re-register cycles. The fix is to hoist schema objects outside the component or ensure stable object literal key ordering.",
+      "assertions": [
+        "The output includes 'JSON.stringify'",
+        "The agent identifies key-order sensitivity or inline object recreation as the cause of re-registration churn",
+        "The agent recommends hoisting schema definitions outside the component to keep them stable"
+      ]
+    },
+    {
+      "id": "stage-6-react-unit-testing",
+      "prompt": "How do we write a deterministic unit test in Vitest and React Testing Library to verify that our React component's WebMCP tool executes and updates component state, without calling any AI models?",
+      "expected_output": "The agent writes a test that mocks `document.modelContext.registerTool`, renders the component, captures the registered tool definition and options from the mock, executes `tool.execute(...)` directly, and asserts expected return values and DOM/state updates.",
+      "assertions": [
+        "The test mocks document.modelContext.registerTool",
+        "The test renders the React component and inspects mock calls to registerTool",
+        "The test directly invokes tool.execute with test parameters and asserts the result or state update"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-api-failure",
+      "prompt": "Write a declarative WebMCP <form> for reserving a restaurant table. Its submit handler posts to our /api/reservations endpoint. How should the handler report a failed API call (for example, no availability or a 500 error) back to the AI agent?",
+      "expected_output": "A <form toolname tooldescription> whose submit listener checks event.agentInvoked and passes a promise to event.respondWith. When the API call fails, that promise resolves with a structured error payload (e.g. { error, code, retryable, suggestion }) instead of throwing, rethrowing in .catch, or rejecting, because a rejected respondWith promise reaches the agent only as a generic DOMException: UnknownError.",
+      "assertions": [
+        "The output uses event.respondWith to return the result to the agent",
+        "When the API call fails, the promise passed to event.respondWith resolves with a structured error payload (e.g. { error, code, retryable }) rather than throwing, rethrowing inside .catch, or rejecting",
+        "The agent explains that a rejected event.respondWith promise reaches the agent only as a generic DOMException: UnknownError"
+      ]
+    },
+    {
+      "id": "stage-6-react-polymorphic-roundtrip",
+      "prompt": "Write React useWebMCP tools for our project tracker: list_items, which searches across issues and bug reports, and move_items, which moves a batch of items to a sprint.",
+      "expected_output": "Two useWebMCP tools from use-webmcp-tool. list_items tags each result with a type value, and move_items accepts items: [{ type, id }] whose type enum uses exactly the same values as list_items (either both singular or both plural), so list_items output is valid move_items input. list_items fetches entity types concurrently with Promise.all.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "move_items accepts an array of { type, id } items",
+        "The type values list_items returns for each item are the same set of strings move_items accepts for items[].type (either both singular or both plural). It is a failure only if they differ, e.g. list_items returns 'issues' while move_items accepts 'issue'."
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-store-errors",
+      "prompt": "Write a Vue 3 composable that registers an add_to_cart WebMCP tool with document.modelContext.registerTool, backed by a Pinia cart store whose addItem() can throw (for example, when an item is out of stock).",
+      "expected_output": "A composable that registers add_to_cart on document.modelContext with an AbortController signal and returns a cleanup that aborts it. The execute callback wraps cartStore.addItem in try/catch and resolves a structured error payload (e.g. { error, code, retryable }) on failure, because an unhandled throw in native registerTool reaches the agent only as a generic DOMException: UnknownError.",
+      "assertions": [
+        "The output registers the tool with document.modelContext.registerTool and unregisters it via AbortController",
+        "The execute callback catches failures from cartStore.addItem and resolves a structured error payload (e.g. { error, code, retryable }) instead of letting the error propagate as a rejection"
+      ]
+    },
+    {
+      "id": "stage-6-typescript-webmcp-types",
+      "prompt": "We're adding WebMCP tools to our existing TypeScript app. We already wrote our own types for it in src/webmcp.d.ts:\n\n```ts\ninterface WebMCPTool {\n  name: string;\n  description: string;\n  inputSchema: object;\n  execute: (args: Record<string, unknown>) => string | Promise<string>;\n}\n\ninterface ModelContext {\n  registerTool(tool: WebMCPTool, options?: { signal?: AbortSignal }): void;\n}\n\ndeclare global {\n  interface Document {\n    modelContext?: ModelContext;\n  }\n}\n```\n\nIs this a good setup for our WebMCP types?",
+      "expected_output": "The agent recommends replacing the hand-written declarations with the webmcp-types package (npm install -D webmcp-types), which is maintained with the WebMCP spec and augments the global DOM types, and shows how to enable it: add \"webmcp-types\" to compilerOptions.types in tsconfig.json (adding to any existing types array, since listing types restricts which @types packages are included) or use /// <reference types=\"webmcp-types\" />. It explains that hand-written types drift from the spec and miss parts of the API, e.g. this execute signature has no second argument, so the execution cancellation signal is never available, and annotations are missing.",
+      "assertions": [
+        "The agent recommends replacing the hand-written WebMCP declarations with the webmcp-types package",
+        "The agent explains at least one way to enable webmcp-types (either compilerOptions.types in tsconfig.json, or a /// <reference types=\"webmcp-types\" /> directive; one is enough)",
+        "The agent explains that hand-written types drift from the spec or miss parts of the API, such as the execute callback's second argument with the cancellation signal, or annotations"
+      ]
+    }
+  ]
+}

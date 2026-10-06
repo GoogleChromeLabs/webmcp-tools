@@ -1,0 +1,152 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "stage-0-router",
+  "description": "Evaluates Stage 0 Dynamic Stage Assessment & Router adherence",
+  "evals": [
+    {
+      "id": "stage-0-router-local-codebase-greenfield",
+      "prompt": "Add WebMCP tools to this project.",
+      "expected_output": "The agent reads the project files (package.json, routes in App.tsx, and the store) before responding, recognizes a React recipe and meal-planning app, and routes to Stage 1 by proposing 3 candidate user journeys specific to recipes and meal planning (e.g. finding recipes by ingredient or dietary tag, organizing recipes into collections or a weekly meal plan, sharing a recipe, deleting a recipe), each with an ideal outcome and autonomous boundary (e.g. public sharing or permanent deletion requires confirmation). It invites the user to pick one goal and writes no code or schemas.",
+      "assertions": [
+        "The agent read evals/fixtures/recipe-app/src/App.tsx",
+        "The output proposes candidate user journeys specific to a recipe or meal-planning app (such as finding recipes, organizing into collections or meal plans, sharing, or deleting recipes) and does not propose shopping cart or checkout journeys.",
+        "The output explicitly defines or highlights autonomous boundaries for the proposed journeys, such as requiring confirmation before publicly sharing or permanently deleting a recipe.",
+        "The output invites the user to select or focus on ONE goal first (enforcing the \"One Goal Per Iteration\" rule).",
+        "The output does NOT write or modify application code (e.g., no useWebMCP, registerTool, or final schema generation) in this initial turn."
+      ],
+      "files": [
+        "evals/fixtures/recipe-app/package.json",
+        "evals/fixtures/recipe-app/src/App.tsx",
+        "evals/fixtures/recipe-app/src/store.ts"
+      ]
+    },
+    {
+      "id": "stage-0-router-preconceived-single-tool",
+      "prompt": "I want to add a tool to search flights.",
+      "expected_output": "The agent frames flight search as a conversational user journey / goal via the Iterative Incremental Pathway, models starting states or advances to role-play simulation, avoids full portfolio ideation friction, and avoids premature code generation.",
+      "assertions": [
+        "The output frames flight search as a conversational user journey / goal rather than just a raw function signature.",
+        "The output defines or identifies ideal outcomes, required context, or autonomous boundaries for flight search.",
+        "The output advances to Stage 2 (starting states) or Stage 3 (conversational role-play) for this specific goal (Iterative Incremental Pathway).",
+        "The output does NOT force the user to ideate an entire unrelated portfolio of other features.",
+        "The output does NOT immediately write tool code (useWebMCP, registerTool) or generate a final schema before role-playing."
+      ]
+    },
+    {
+      "id": "stage-0-router-defined-goals",
+      "prompt": "We already defined our user goals: 1) Search flights, 2) Seat selection. Let's establish starting states.",
+      "expected_output": "The agent routes directly to Stage 2 (Starting States Matrix), identifies functional application state dimensions, and explicitly prunes diagnostic bloat.",
+      "assertions": [
+        "The output routes directly to Stage 2 (Starting States Matrix) without re-ideating goals.",
+        "The output identifies functional application state dimensions (routes, session, authentication).",
+        "The output explicitly prunes diagnostic bloat (device_battery, gpu_temp, screen_dpi)."
+      ]
+    },
+    {
+      "id": "stage-0-router-roleplay-simulation",
+      "prompt": "Goal is 'Order Pizza', starting state is 'empty cart on /menu'. Let's role-play the interaction.",
+      "expected_output": "The agent routes to Stage 3 (Turn-by-Turn Role-Playing) simulating the 6 core turn elements, adheres to tool character limits, and triggers the mandatory User Critique Loop.",
+      "assertions": [
+        "The output routes to Stage 3 (Turn-by-Turn Role-Playing) simulating the 6 core turn elements.",
+        "The output respects tool character limits (names <= 30 chars, payloads <= 1,500 chars).",
+        "The output explicitly triggers the mandatory User Critique Loop (agent demeanor/tone, clarifying questions, autonomous boundaries)."
+      ]
+    },
+    {
+      "id": "stage-0-router-variations-robustness",
+      "prompt": "Here is our happy path transcript for booking a flight. How do we make it robust?",
+      "expected_output": "The agent routes to Stage 4 (Variations & Graceful Failure), exploring missing parameters, prerequisite errors, over-constrained queries, coreference resolution, and human confirmation hand-offs.",
+      "assertions": [
+        "The output routes to Stage 4 (Variations & Graceful Failure).",
+        "The output explores missing parameters, prerequisite errors, over-constrained queries, coreference resolution, and human confirmation hand-offs for sensitive actions (confirmation on a dedicated UI, or consequentialHint: true on tools that commit the action)."
+      ]
+    },
+    {
+      "id": "stage-0-router-specs-evals-generation",
+      "prompt": "Here are our approved role-play transcripts. Generate the tool schemas and automated evals.",
+      "expected_output": "The agent reads the approved role-play transcript and routes to Stage 5. It consolidates the per-entity search_issues/search_bugs and repeated move_issue/move_bug calls into polymorphic batched tools (e.g. list_items with a types array and move_items with an items array executed with Promise.all), writes What + When descriptions without jargon, sets readOnlyHint and untrustedContentHint on the listing tool (issue and bug text is reporter-authored), and offers the local evaluation gate (npx webmcp-evals local).",
+      "assertions": [
+        "The output routes to Stage 5 (Tool Specs & Evals Generation).",
+        "The agent read references/evals-format.md",
+        "The agent read evals/fixtures/project-app/roleplay-triage.md",
+        "The output consolidates the per-entity search_issues/search_bugs and repeated move_issue/move_bug calls into polymorphic batched tools (e.g. list_items with a types array and move_items with an items array) rather than keeping per-entity tools.",
+        "The output enforces \"What + When\" descriptions, strips internal jargon, and audits annotations (readOnlyHint, consequentialHint, untrustedContentHint).",
+        "The output proactively offers the local evaluation gate (npx webmcp-evals local)."
+      ],
+      "files": ["evals/fixtures/project-app/roleplay-triage.md"]
+    },
+    {
+      "id": "stage-0-router-existing-tools",
+      "prompt": "I already have a schema.json defining tools for my pizza maker application. I want to generate evals.json for automated testing.",
+      "expected_output": "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2.",
+      "assertions": [
+        "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2."
+      ]
+    },
+    {
+      "id": "stage-0-router-schema-to-implementation",
+      "prompt": "Here is my schema.json for my web app. Help me implement these tools in React.",
+      "expected_output": "The agent routes directly to Stage 6 (Application Implementation) without re-opening conversational design, recommending use-webmcp-tool (useWebMCP), stable schema literals, and RTL mocking.",
+      "assertions": [
+        "The agent read evals/fixtures/hotel-app/schema.json",
+        "The output routes directly to Stage 6 (Application Implementation) without re-opening conversational design.",
+        "The output uses use-webmcp-tool (useWebMCP), stable/hoisted schema literals, and RTL mocking.",
+        "The agent read references/react-patterns.md",
+        "The agent did NOT read references/angular-patterns.md"
+      ],
+      "files": ["evals/fixtures/hotel-app/schema.json"]
+    },
+    {
+      "id": "stage-0-router-live-site-url",
+      "prompt": "I want to add WebMCP tools to example.com. Where do we start?",
+      "expected_output": "The agent clarifies that WebMCP runs client-side in the browser tab on document.modelContext rather than external headless scraping, recommends using browser capabilities (such as the browser or page inspection or checking /llms.txt) to explore workflows, routes to Stage 1 (User Goals Portfolio) proposing candidate user journeys with autonomous boundaries, and avoids premature code dumping.",
+      "assertions": [
+        "The agent read references/live-site-discovery.md",
+        "The output clarifies that WebMCP runs client-side in the browser tab on document.modelContext (requiring first-party site code or extension/content script execution).",
+        "The output does NOT confuse WebMCP with external headless scraping (Puppeteer, Playwright, or DOM clicking).",
+        "The output recommends using browser capabilities (e.g., browsing or inspecting the live pages, or checking /llms.txt) to explore the site's workflows.",
+        "The output routes to Stage 1 (User Goals Portfolio) by proposing or offering to inspect candidate user journeys with autonomous boundaries.",
+        "The output does NOT immediately output frontend code before defining goals."
+      ]
+    },
+    {
+      "id": "stage-0-router-live-site-audit",
+      "prompt": "Can you give feedback on the tools on example.com?",
+      "expected_output": "The agent references inspecting live tools via document.modelContext.getTools(), the Chrome DevTools Application > WebMCP pane, or using browser inspection to inspect the live page, routes to the Stage 6 audit/review checklist rather than restarting Stage 1 ideation, audits annotations and character budgets without jargon, and suggests running the Lighthouse 'Agentic browsing' audit or DevTools manual execution.",
+      "assertions": [
+        "The agent read references/audit-checklist.md",
+        "The output references inspecting live tools via document.modelContext.getTools(), the Chrome DevTools Application > WebMCP pane, or browsing/inspecting the live page.",
+        "The output routes to the Stage 6 audit/review checklist rather than restarting Stage 1 ideation from scratch.",
+        "The output mentions auditing tool annotations (specifically readOnlyHint, consequentialHint for irreversible actions, or untrustedContentHint for UGC).",
+        "The output mentions character budgets (names <= 30 chars, descriptions <= 500 chars) or removing implementation jargon.",
+        "The output suggests running the Lighthouse \"Agentic browsing\" audit or checking DevTools manual execution."
+      ]
+    },
+    {
+      "id": "stage-0-router-local-codebase-audit",
+      "prompt": "Can you audit our existing WebMCP tools in src/tools/ for best practices and security?",
+      "expected_output": "The agent routes directly to Stage 6 Review Checklist & Auditing, reads references/audit-checklist.md and references/agent-security.md (plus references/error-handling.md as needed) before auditing, and systematically checks against character budgets, unhandled rejections, UI view navigation missing consequentialHint, UGC missing untrustedContentHint, and DevTools/Lighthouse readiness.",
+      "assertions": [
+        "The output routes directly to Stage 6 Review Checklist & Auditing.",
+        "The agent read evals/fixtures/project-app/src/tools/project-tools.ts",
+        "The agent read references/audit-checklist.md",
+        "The agent read references/agent-security.md",
+        "The output systematically checks against character budgets (names <= 30 chars, descriptions <= 500 chars) and removing internal implementation jargon.",
+        "The output audits that tools return actionable error guidance rather than unhandled Promise rejections.",
+        "The output flags that the tab-switching tool must not declare readOnlyHint: true (it mutates UI state) and does NOT require consequentialHint: true for it.",
+        "The output audits that tools returning user-generated text declare untrustedContentHint: true.",
+        "The output verifies live inspection in the Chrome DevTools Application > WebMCP pane and running the Lighthouse \"Agentic browsing\" audit."
+      ],
+      "files": ["evals/fixtures/project-app/src/tools/project-tools.ts"]
+    },
+    {
+      "id": "skill-discovery-mcp-disambiguation",
+      "prompt": "Create a Python stdio MCP server for Claude Desktop to query my Postgres database.",
+      "expected_output": "The agent clarifies that WebMCP is specifically for client-side in-browser tools on document.modelContext, whereas backend MCP runs over stdio or SSE in Node/Python, and redirects or clarifies the protocol boundary rather than attempting to use document.modelContext in a backend environment.",
+      "assertions": [
+        "The output clarifies that WebMCP is specifically for client-side in-browser tools on document.modelContext, whereas backend MCP runs over stdio or SSE in Node/Python.",
+        "The agent either redirects or clarifies the protocol boundary rather than incorrectly attempting to use document.modelContext in a Node/Python backend."
+      ]
+    }
+  ]
+}
