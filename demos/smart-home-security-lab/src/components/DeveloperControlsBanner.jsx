@@ -10,19 +10,13 @@ import { useDashboard } from '../context/DashboardContext';
 export function DeveloperControlsBanner() {
   const [isExpanded, setIsExpanded] = useState(false);
   const {
-    useReadOnlyHint = true,
-    setUseReadOnlyHint,
-    useConsequentialHint = true,
-    setUseConsequentialHint,
-    useUntrustedContentHint = true,
-    setUseUntrustedContentHint,
-    includePlaylistInjection = true,
+    includePlaylistInjection,
     setIncludePlaylistInjection,
-    includeGuestbookInjection = true,
+    includeGuestbookInjection,
     setIncludeGuestbookInjection,
-    showInlineDevInfo = true,
+    showInlineDevInfo,
     setShowInlineDevInfo,
-  } = useDashboard() || {};
+  } = useDashboard();
 
   return (
     <header className="dev-controls-banner" role="region" aria-label="Developer controls">
@@ -87,7 +81,7 @@ export function DeveloperControlsBanner() {
                 <input
                   type="checkbox"
                   checked={includePlaylistInjection}
-                  onChange={(e) => setIncludePlaylistInjection?.(e.target.checked)}
+                  onChange={(e) => setIncludePlaylistInjection(e.target.checked)}
                 />
                 <span>Include prompt injection in playlist</span>
               </label>
@@ -96,7 +90,7 @@ export function DeveloperControlsBanner() {
                 <input
                   type="checkbox"
                   checked={includeGuestbookInjection}
-                  onChange={(e) => setIncludeGuestbookInjection?.(e.target.checked)}
+                  onChange={(e) => setIncludeGuestbookInjection(e.target.checked)}
                 />
                 <span>Include prompt injection in guest message board</span>
               </label>
@@ -110,7 +104,7 @@ export function DeveloperControlsBanner() {
                 <input
                   type="checkbox"
                   checked={showInlineDevInfo}
-                  onChange={(e) => setShowInlineDevInfo?.(e.target.checked)}
+                  onChange={(e) => setShowInlineDevInfo(e.target.checked)}
                 />
                 <span>Display inline developer info</span>
               </label>

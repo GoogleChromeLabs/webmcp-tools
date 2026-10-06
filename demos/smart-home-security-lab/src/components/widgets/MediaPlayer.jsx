@@ -7,7 +7,7 @@ import { Music, Play, SkipForward } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 export const MediaPlayer = () => {
-  const { playlistTracks = [] } = useDashboard() || {};
+  const { playlistTracks } = useDashboard();
 
   const currentTrack = playlistTracks[0] || {
     title: 'Queue Empty',

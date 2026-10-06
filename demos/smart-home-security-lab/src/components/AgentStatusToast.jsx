@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '../context/DashboardContext';
 
 export function AgentStatusToast() {
-  const { isAgentActive } = useDashboard() || {};
+  const { isAgentActive } = useDashboard();
 
   return (
     <AnimatePresence>

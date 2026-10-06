@@ -8,20 +8,20 @@ import { useDashboard } from '../../context/DashboardContext';
 
 export const LockFrontDoor = () => {
   const {
-    isFrontDoorLocked = true,
+    isFrontDoorLocked,
     setIsFrontDoorLocked,
-    lastLockStatusText = 'Locked • 5 mins ago',
+    lastLockStatusText,
     setLastLockStatusText,
-  } = useDashboard() || {};
+  } = useDashboard();
 
   const handleLock = () => {
-    setIsFrontDoorLocked?.(true);
-    setLastLockStatusText?.('Locked • Just now');
+    setIsFrontDoorLocked(true);
+    setLastLockStatusText('Locked • Just now');
   };
 
   const handleUnlock = () => {
-    setIsFrontDoorLocked?.(false);
-    setLastLockStatusText?.('Unlocked • Just now');
+    setIsFrontDoorLocked(false);
+    setLastLockStatusText('Unlocked • Just now');
   };
 
   return (

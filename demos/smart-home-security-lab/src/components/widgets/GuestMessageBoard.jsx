@@ -7,7 +7,7 @@ import { MessageSquare } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 export const GuestMessageBoard = ({ expanded = false }) => {
-  const { guestMessages = [] } = useDashboard() || {};
+  const { guestMessages } = useDashboard();
 
   return (
     <div className={`card guestbook-card ${expanded ? 'guestbook-card--expanded' : ''}`}>

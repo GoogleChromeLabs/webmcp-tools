@@ -7,7 +7,7 @@ import { Lightbulb } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 export const SmartLightsLivingRoom = () => {
-  const { lightsPower = 'off', lightsBrightness = 0, setLivingRoomLightsState } = useDashboard() || {};
+  const { lightsPower, lightsBrightness, setLivingRoomLightsState } = useDashboard();
   const isOn = lightsPower === 'on' && lightsBrightness > 0;
 
   const dynamicCardStyle = isOn
@@ -42,13 +42,13 @@ export const SmartLightsLivingRoom = () => {
       <div className="lights-controls">
         <button
           className={`glass-btn lights-btn ${isOn ? 'active lights-btn--on-active' : ''}`}
-          onClick={() => setLivingRoomLightsState?.('on', lightsBrightness > 0 ? lightsBrightness : 80)}
+          onClick={() => setLivingRoomLightsState('on', lightsBrightness > 0 ? lightsBrightness : 80)}
         >
           ON
         </button>
         <button
           className={`glass-btn lights-btn ${!isOn ? 'active lights-btn--off-active' : ''}`}
-          onClick={() => setLivingRoomLightsState?.('off', 0)}
+          onClick={() => setLivingRoomLightsState('off', 0)}
         >
           OFF
         </button>
@@ -63,7 +63,7 @@ export const SmartLightsLivingRoom = () => {
           value={isOn ? lightsBrightness : 0}
           onChange={(e) => {
             const val = Number(e.target.value);
-            setLivingRoomLightsState?.(val === 0 ? 'off' : 'on', val);
+            setLivingRoomLightsState(val === 0 ? 'off' : 'on', val);
           }}
           className="lights-slider"
         />
