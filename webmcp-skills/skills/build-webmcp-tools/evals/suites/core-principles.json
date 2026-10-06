@@ -1,0 +1,192 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "core-principles",
+  "description": "Evaluates Core WebMCP Architectural Principles and Guardrails",
+  "evals": [
+    {
+      "id": "core-intab-vs-stdio",
+      "prompt": "How do I configure the stdio transport for WebMCP in my Express backend?",
+      "expected_output": "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext and does not use stdio, SSE, or Node.js backend server transports.",
+      "assertions": [
+        "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext",
+        "The agent clarifies that WebMCP does not use stdio, SSE, or Node.js backend server transports"
+      ]
+    },
+    {
+      "id": "core-character-budgets",
+      "prompt": "What are the official Chrome character and token budget limits for WebMCP tools?",
+      "expected_output": "The agent specifies character budgets: tool name <= 30 chars, tool description <= 500 chars, parameter description <= 150 chars, and tool output <= 1,500 chars (or ~1.5KB).",
+      "assertions": [
+        "The agent specifies that tool names must be 30 characters or fewer",
+        "The agent specifies that tool descriptions must be 500 characters or fewer",
+        "The agent specifies that parameter descriptions must be 150 characters or fewer",
+        "The agent specifies that tool output should be 1,500 characters or fewer"
+      ]
+    },
+    {
+      "id": "core-naming-initiation-vs-execution",
+      "prompt": "How should I name a tool that navigates the user to a flight checkout form vs one that executes the booking immediately?",
+      "expected_output": "The agent distinguishes execution (e.g. book_flight or create_event) from initiation (e.g. initiate_booking or start_event_creation_process) rather than treating them identically.",
+      "assertions": [
+        "The agent distinguishes initiation actions (e.g. initiate_booking) from execution actions (e.g. book_flight)"
+      ]
+    },
+    {
+      "id": "core-annotations-matrix",
+      "prompt": "Which annotations can I attach to a WebMCP tool and what do they mean?",
+      "expected_output": "The agent explains all three WebMCP annotations: readOnlyHint, consequentialHint, and untrustedContentHint.",
+      "assertions": [
+        "The output explains readOnlyHint",
+        "The output explains consequentialHint",
+        "The output explains untrustedContentHint"
+      ]
+    },
+    {
+      "id": "core-clean-tool-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Polymorphic Redux-backed mutation handler that dispatches to the internal Express REST controller to update ticket state and invalidate React Query cache.\" What is wrong with this description and how should it be rewritten?",
+      "expected_output": "The agent identifies that internal implementation jargon (e.g. Redux, Express, REST controller, React Query cache) must be strictly omitted because it wastes character budget and causes model confusion or hallucination. It explains that descriptions should focus on user/agent capabilities rather than internal implementation details, and provides a clean rewrite such as \"Updates the status of an existing customer support ticket. Use when marking tickets as open, pending, or resolved.\"",
+      "assertions": [
+        "The agent identifies that internal implementation jargon (e.g. Redux, Express, REST, React Query) must be omitted",
+        "The agent explains that descriptions must describe user or agent capabilities rather than internal architecture",
+        "The agent provides a clean rewrite focused on updating ticket status without mentioning internal libraries"
+      ]
+    },
+    {
+      "id": "core-annotations-untrusted-ugc",
+      "prompt": "A developer is implementing a WebMCP tool `get_ticket` that retrieves the message body of a customer's support ticket from their helpdesk database. The developer sets `annotations: { readOnlyHint: true }` reasoning that the data comes from their own database and doesn't mutate state. What security vulnerability or annotation mistake exists here, and how should it be fixed?",
+      "expected_output": "The agent explains that user-generated content (UGC) such as support tickets, issues, comments, or external content must declare untrustedContentHint: true, even if it comes from the application's own database. User-authored text is a primary vector for indirect prompt injection. Omitting untrustedContentHint allows untrusted text to be treated as trusted instructions by host agents instead of being isolated via spotlighting or delimiter sandboxing (such as <untrusted_content> tags). The tool must declare annotations: { readOnlyHint: true, untrustedContentHint: true }.",
+      "assertions": [
+        "The agent identifies that untrustedContentHint: true is required for user-generated or third-party content",
+        "The agent explains the risk of indirect prompt injection from user-authored text",
+        "The agent explains that untrustedContentHint instructs the agent to isolate, spotlight, or delimiter-sandbox the payload"
+      ]
+    },
+    {
+      "id": "core-intent-focused-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Searches items with query string, category_id string, brand_id string, tags array, and price_range object.\" What is wrong with this description, and how should it be rewritten to optimize model tool selection?",
+      "expected_output": "The agent identifies that duplicating parameter names, types, and schema structures already defined in inputSchema wastes character budget and creates tool selection ambiguity. It explains that descriptions should focus on what the tool does and when to use it (intent matching), and provides a clean rewrite such as \"Searches the store catalog for products by keyword, category, or price range. Use when browsing products, comparing options, or filtering inventory.\"",
+      "assertions": [
+        "The agent identifies that repeating schema parameters and types in the description is an anti-pattern",
+        "The agent explains that descriptions should prioritize intent matching ('what' it does and 'when' to use it)",
+        "The agent provides an intent-focused rewrite without parameter enumeration"
+      ]
+    },
+    {
+      "id": "core-navigation-annotations",
+      "prompt": "A developer is writing a `switch_tab` tool for an accounting dashboard that switches the active tab between 'Expenses', 'Invoices', and 'Payroll'. The developer sets `annotations: { readOnlyHint: true }` because 'it only changes what is visible and doesn't write to the backend database'. What is the problem with this annotation, and how should it be configured?",
+      "expected_output": "The agent explains that tab switching mutates client UI state and can unmount the active view, so readOnlyHint must not be true; the tool should omit readOnlyHint (or omit annotations entirely since hints default to false). It should NOT declare consequentialHint: true, which the WebMCP spec reserves for significant, irreversible real-world actions (e.g. booking a flight, transferring money); flagging navigation causes confirmation fatigue. Unsaved drafts are protected by the app itself: the tool checks for unsaved changes and returns an actionable error (ask the user to save or discard) or preserves the draft.",
+      "assertions": [
+        "The agent explains that UI navigation or tab switching mutates client UI state, so readOnlyHint must NOT be true (it should be omitted)",
+        "The agent does NOT recommend consequentialHint: true for the tab-switching tool, reserving it for significant or irreversible real-world actions such as payments or bookings",
+        "The agent explains how to protect unsaved form state without consequentialHint, e.g. the tool checks for unsaved changes and returns an actionable error or preserves the draft"
+      ]
+    },
+    {
+      "id": "core-tools-only-no-prompts",
+      "prompt": "Can I register pre-baked system prompt templates or context resources on `document.modelContext` alongside my tools in WebMCP?",
+      "expected_output": "The agent clarifies that the current WebMCP specification supports Tools only (no Prompts or Resources), and that tools execute direct application logic rather than simulating DOM interaction.",
+      "assertions": [
+        "The agent clarifies that WebMCP supports Tools only",
+        "The agent explicitly states that Resources or Prompts are not supported in current WebMCP"
+      ]
+    },
+    {
+      "id": "core-accept-raw-user-input",
+      "prompt": "We are designing a flight search tool. Should the tool accept `departure_date` as an ISO string / natural string, or require the model to calculate milliseconds since unix epoch and pass `epoch_ms` and `shipping_id=3`?",
+      "expected_output": "The agent instructs accepting raw natural-language inputs (e.g. YYYY-MM-DD dates, airport codes, natural names) rather than forcing the model to calculate manual timestamps, math offsets, or opaque database IDs.",
+      "assertions": [
+        "The agent instructs accepting natural or standard string dates rather than forcing manual epoch calculations",
+        "The agent recommends natural values over opaque numeric database IDs"
+      ]
+    },
+    {
+      "id": "core-security-cross-origin-permissions",
+      "prompt": "We have an embedded partner iframe on `https://partner.example.com` and want to allow it to invoke our WebMCP tool `shareable_cart_lookup`. How do we securely configure the iframe, Permissions Policy, and tool registration?",
+      "expected_output": "The agent explains that WebMCP tools are same-origin by default and gated by the `tools` Permissions Policy. To share a tool with a cross-origin partner, the host page must embed the iframe with `<iframe allow=\"tools\">` and register the tool with `{ exposedTo: ['https://partner.example.com'] }`. Additionally, origin isolation must not be disabled.",
+      "assertions": [
+        "The output specifies `<iframe allow=\"tools\">` for iframe permission delegation",
+        "The output specifies `{ exposedTo: [...] }` with the permitted origin in `registerTool` options",
+        "The output mentions the `tools` Permissions Policy or origin isolation requirement"
+      ]
+    },
+    {
+      "id": "core-security-spotlighting-delimiters",
+      "prompt": "When our agent framework receives a response from a WebMCP tool that declared `untrustedContentHint: true`, how should the host agent process and sandbox the output before feeding it into the LLM context to prevent indirect prompt injection?",
+      "expected_output": "The agent explains that consuming agent frameworks must route outputs with `untrustedContentHint: true` into a defensive spotlighting pipeline, such as wrapping the payload in structural delimiters like `<untrusted_content>...</untrusted_content>` or Base64 encoding, and applying anchoring system prompt instructions directing the model to treat the content strictly as data rather than executable directives.",
+      "assertions": [
+        "The agent explains using structural delimiters (e.g. `<untrusted_content>`) or Base64 spotlighting to sandbox the payload",
+        "The agent mentions applying system prompt anchoring directives to treat tool output as passive data",
+        "The agent explains that this prevents indirect prompt injection from user-generated content"
+      ]
+    },
+    {
+      "id": "core-design-vs-code-completion",
+      "prompt": "We are building a simple bookmark manager in React. Since saving a bookmark is just a one-line `setBookmarks([...bookmarks, newBookmark])`, can we skip conversational role-playing and start implementing the WebMCP tool code immediately?",
+      "expected_output": "The agent takes the explicit fast path, but first corrects the misconception behind the request (Principle 12): a one-line state update is easy to code, but the conversation around it is not. It names the natural-language risks being skipped (coreference such as 'the one I just saved', ambiguous or missing parameters, duplicates, confirmation boundaries, prompt injection) in a short opening statement, then delivers or offers the tool without re-arguing for design.",
+      "assertions": [
+        "The agent states that code completion or implementation simplicity must not be conflated with design or conversational simplicity",
+        "The agent explains that natural language interaction introduces coreference, ambiguity, confirmation boundaries, or prompt injection risks",
+        "The agent delivers or offers the tool implementation without refusing or repeatedly insisting on role-play first"
+      ]
+    },
+    {
+      "id": "core-raw-input-relative-dates",
+      "prompt": "Write the WebMCP inputSchema and description for a search_flights tool. Users typically say things like \"fly from San Francisco to Tokyo next Friday, returning Sunday\".",
+      "expected_output": "A search_flights schema whose date parameters do not force the model to compute absolute dates from relative phrases: they accept an ISO date or the user's phrasing (e.g. 'next Friday') and the app resolves relative dates. Origin and destination may use airport codes, since mapping a city to a code is a lookup, ideally also accepting a city name for multi-airport cities. The tool description states what the tool does and when to use it, without listing parameters.",
+      "assertions": [
+        "The date parameters accept the user's relative phrasing (e.g. 'next Friday') or explicitly state that the app resolves relative dates, rather than requiring the model to compute an absolute YYYY-MM-DD date on its own",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "core-consolidation-boundaries",
+      "prompt": "Our customer support app has customer-submitted support tickets and admin-managed canned reply templates (read-only boilerplate that customers cannot edit). We already expose a polymorphic list_items tool for tickets and bug reports. Should templates also go into list_items, or get their own tool?",
+      "expected_output": "Templates should stay out of list_items (e.g. a separate list_templates tool). Consolidation fits entities that share a lifecycle, parameters, permissions, and annotations; list_items returns user-authored text and must declare untrustedContentHint: true, while trusted system templates do not, so merging them would either mislabel trusted content or drop the untrusted-content signal.",
+      "assertions": [
+        "The agent recommends keeping templates in a separate tool rather than adding them to list_items",
+        "The agent explains that the entities differ in trust or annotations (untrustedContentHint applies to customer tickets/bugs but not to system templates), or otherwise do not share a lifecycle"
+      ]
+    },
+    {
+      "id": "core-handoff-annotations",
+      "prompt": "In our flight app, `initiate_booking` opens the checkout screen with the selected flight so the user can review the price and press Confirm themselves. The agent cannot complete the payment. Should `initiate_booking` declare `consequentialHint: true`? What if we later add a `confirm_booking` tool that charges the card directly?",
+      "expected_output": "initiate_booking only navigates to a confirmation screen where the human commits the booking, so it is not itself a significant, irreversible action: it must not declare readOnlyHint: true (it omits annotations since hints default to false) and does not need consequentialHint: true. The hand-off to the human-confirmed checkout UI is the confirmation boundary. A confirm_booking tool that charges the card commits an irreversible financial action and must declare consequentialHint: true.",
+      "assertions": [
+        "The agent says initiate_booking does not need consequentialHint: true because the human confirms the booking in the checkout UI",
+        "The agent says a confirm_booking tool that charges the card must declare consequentialHint: true",
+        "The agent states that initiate_booking should not be marked readOnlyHint: true because it changes the UI or navigates"
+      ]
+    },
+    {
+      "id": "core-explicit-fast-path",
+      "prompt": "Add one read-only search_reviews tool to our React storefront app. Skip the goal portfolio and role-play stages, I understand the risks. I just want the tool schema, a minimal eval, and the useWebMCP code now.",
+      "expected_output": "Because the user explicitly chose to skip design for a single tool, the agent briefly states the risk being skipped (untested ambiguity and confirmation boundaries) once, then delivers the schema, a minimal evals.json case, and useWebMCP code. It still applies the core rules: What + When description, readOnlyHint: true, and untrustedContentHint: true because customer reviews are user-authored.",
+      "assertions": [
+        "The output delivers the search_reviews implementation using useWebMCP from use-webmcp-tool",
+        "The output includes a tool schema and at least one evals.json-style test case for search_reviews",
+        "The output briefly notes the risk of skipping conversational design without refusing or insisting on role-play first",
+        "The output declares readOnlyHint: true and untrustedContentHint: true for search_reviews"
+      ]
+    },
+    {
+      "id": "core-read-tools-capability-not-size",
+      "prompt": "Our markdown editor exposes a WebMCP `read` tool that returns the whole document, which is too big for long files. We plan to add `read_range(start_line, end_line)` and `read_full()` tools alongside it. Is that a good tool design?",
+      "expected_output": "The agent advises against adding tools that differ only in how much text they return, because they overlap: all of them answer 'show me the text', so the agent must guess between them and every extra tool costs prompt tokens. It recommends one read tool with optional range or section parameters, plus a separate tool for a different capability such as a document outline (headings with line numbers) or search, so the agent can locate content before reading it.",
+      "assertions": [
+        "The agent advises against separate read tools that differ only in size or range, explaining that they overlap or answer the same request",
+        "The agent recommends a single read tool with optional range, section, or offset parameters",
+        "The agent suggests a separate way to locate content before reading, such as an outline or table-of-contents tool, or search with line numbers"
+      ]
+    },
+    {
+      "id": "core-long-content-budget-exact-text",
+      "prompt": "Our markdown editor exposes a WebMCP `read_document` tool and an `edit(originalText, newText)` tool that only works when `originalText` exactly matches text in the document. Documents can be 20,000 characters long. How should `read_document` respect the 1,500-character tool output budget?",
+      "expected_output": "The agent recommends paginated or ranged reads (offset/limit or line ranges) that return an explicit truncation or continuation signal (e.g. truncated: true plus the next offset) instead of silently cutting the document at 1,500 characters. It recommends a way to locate the relevant part first (an outline, search with line numbers) so the agent only fetches what it needs, and it keeps the returned text exact and unsummarized so edit can match originalText.",
+      "assertions": [
+        "The agent recommends paginated or ranged reads with an explicit truncation or continuation signal, rather than silently cutting the document at 1,500 characters",
+        "The agent recommends a way to locate the relevant part before reading, such as an outline, headings, or search with line numbers",
+        "The agent says the returned text must be exact (not summarized or paraphrased) so the edit tool can match originalText"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "suite": "auditing-readiness",
+  "description": "Evaluates Stage 6 Page-Level Readiness, Lighthouse Agentic Browsing Audits, and Chrome DevTools Inspection",
+  "evals": [
+    {
+      "id": "stage-6-lighthouse-agentic-audits",
+      "prompt": "What checks does the Lighthouse 'Agentic browsing' audit run on WebMCP applications, and what causes a page to fail?",
+      "expected_output": "The agent details the Lighthouse Agentic browsing audits: paired `toolname`/`tooldescription`, unique field names, parameter description fallback chain, accessibility tree naming, CLS thresholds to prevent agent misclicks, and `/llms.txt` presence. It explains that missing either `toolname` or `tooldescription`, or having inputs without names, triggers audit failures.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The agent explains pairing toolname and tooldescription on forms",
+        "The agent mentions field names, label/toolparamdescription fallbacks, or accessibility tree readiness",
+        "The agent mentions layout stability (CLS) or /llms.txt"
+      ]
+    },
+    {
+      "id": "stage-6-devtools-webmcp-debugging",
+      "prompt": "How can a developer inspect and debug registered WebMCP tools using Chrome DevTools without invoking an LLM?",
+      "expected_output": "The agent explains opening Chrome DevTools → Application → WebMCP pane to view active tools, check the invocation counter, execute tools manually with custom parameters via the Play icon, and review schema validation warnings.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The agent points to Chrome DevTools Application > WebMCP pane",
+        "The agent explains manual tool execution or checking invocation counts/schema warnings"
+      ]
+    },
+    {
+      "id": "stage-6-audit-reference-loading-directives",
+      "prompt": "Can you audit the WebMCP tools on our live production site and advise on best practices for error reporting and user-generated content?",
+      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: UnknownError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
+      "assertions": [
+        "The agent read references/audit-checklist.md",
+        "The agent read references/agent-security.md",
+        "The agent read references/error-handling.md",
+        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: UnknownError.",
+        "The output explains the First-Party Database Fallacy or untrusted user-authored content prompt injection threat model."
+      ]
+    },
+    {
+      "id": "stage-6-devtools-mcp-live-discovery",
+      "prompt": "I'm using chrome-devtools-mcp to audit the WebMCP tools on a live web app (https://example.com/app), and on the initial page I don't see any tools yet. Should I fetch the page's <script> files to find the tool definitions, or how should I discover all registered WebMCP tools across the app?",
+      "expected_output": "The agent warns against fetching or regex-scraping minified production JS bundles on a live site (only inspect source if unminified or sourcemapped). It explains discovering tools at runtime using `list_webmcp_tools` (when `--categoryExperimentalWebmcp` is enabled) or `await document.modelContext.getTools()` via `evaluate_script`. It notes that if `document.modelContext` is `undefined`, WebMCP is not enabled in the browser (`--enable-features=WebMCP` or `chrome://flags/#enable-webmcp-testing`), causing guarded registrations (`if (!document.modelContext) return`) to be skipped. Finally, it instructs walking the app's routes, tabs, and UI states and re-querying tools at each state to build a route/state-to-tools inventory because tools are often dynamically scoped to specific routes or UI states.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The output advises against fetching or scraping minified production JS bundles on a live site",
+        "The output explains discovering tools at runtime via list_webmcp_tools or document.modelContext.getTools()",
+        "The output explains checking if document.modelContext is undefined because WebMCP flags (--enable-features=WebMCP or chrome://flags/#enable-webmcp-testing) must be enabled in the browser",
+        "The output explains navigating across routes, views, or UI states and re-checking tools at each state because tools can be route-scoped or state-gated"
+      ]
+    },
+    {
+      "id": "stage-6-audit-annotations-default-false",
+      "prompt": "During a code review of our WebMCP tools, an auditor flagged `update_cart_quantity` and `switch_tab` because they omit `annotations: { readOnlyHint: false, consequentialHint: false }`. The auditor insists that WebMCP standards require every mutating and navigation tool to explicitly specify `readOnlyHint: false` and `consequentialHint: false`. Is this audit finding valid, and how should annotations be configured?",
+      "expected_output": "The agent explains that the audit finding is invalid (a false positive). In WebMCP and the underlying Model Context Protocol specification, all tool annotation hints (readOnlyHint, consequentialHint, untrustedContentHint) default to false: omission of readOnlyHint means the tool mutates state, omission of consequentialHint means the action is safe/routine, and omission of untrustedContentHint means output is trusted application data. Annotations are strictly opt-in and should only be specified when true; developers must never declare redundant `: false` properties. Routine mutating tools like update_cart_quantity and navigation tools like switch_tab do not need an annotations object at all unless another hint (such as untrustedContentHint for user-generated content) is true. For navigation tools, the requirement is simply to avoid declaring readOnlyHint: true (they omit it).",
+      "assertions": [
+        "The agent states that the audit finding is invalid or a false positive",
+        "The output explains that all WebMCP annotation hints default to false (omission of readOnlyHint means mutating, omission of consequentialHint means non-consequential)",
+        "The output states that annotations are opt-in and should only be specified when true (never declare : false)",
+        "The output states that routine mutating or navigation tools do not need readOnlyHint: false or an annotations block"
+      ]
+    }
+  ]
+}

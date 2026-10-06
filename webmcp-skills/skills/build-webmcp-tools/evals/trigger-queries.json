@@ -1,0 +1,116 @@
+[
+  { "query": "Add WebMCP tools to this project.", "should_trigger": true },
+  {
+    "query": "How do I let the AI agent built into Chrome search products on my store without scraping the page?",
+    "should_trigger": true
+  },
+  {
+    "query": "Make the main actions of my React app callable by in-browser AI agents.",
+    "should_trigger": true
+  },
+  {
+    "query": "My useWebMCP hook keeps re-registering the tool on every render. Why?",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a document.modelContext.registerTool call for a hotel search.",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I add toolname and tooldescription attributes to my checkout form?",
+    "should_trigger": true
+  },
+  {
+    "query": "Lighthouse says my page fails the Agentic browsing audit. What do I fix?",
+    "should_trigger": true
+  },
+  {
+    "query": "Audit the tools our site exposes on document.modelContext for security issues.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you review the annotations on our registered browser agent tools? Should switch_tab be readOnlyHint?",
+    "should_trigger": true
+  },
+  {
+    "query": "Generate schema.json and evals.json for webmcp-evals from our approved role-plays.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up provideExperimentalWebMcpTools on an Angular route so the tool cleans up on navigation.",
+    "should_trigger": true
+  },
+  {
+    "query": "We want our flight booking site to be agent-ready. Where do we start?",
+    "should_trigger": true
+  },
+  {
+    "query": "Help me design which actions of our recipe app should be exposed as tools for a browser AI assistant.",
+    "should_trigger": true
+  },
+  {
+    "query": "How should a WebMCP tool return errors so the agent can recover instead of getting UnknownError?",
+    "should_trigger": true
+  },
+  {
+    "query": "Should a tool that returns user comments set untrustedContentHint?",
+    "should_trigger": true
+  },
+  {
+    "query": "Expose our Vue app's cart to the page's AI agent with an AbortController-based tool registration.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our Signal Forms registration form should be usable by an in-browser agent. How?",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I inspect registered tools in the Chrome DevTools Application > WebMCP pane?",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a Python stdio MCP server for Claude Desktop that queries my Postgres database.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a Node.js MCP server over SSE that exposes our REST API to Cursor.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a Playwright script that logs in and scrapes order history from a website.",
+    "should_trigger": false
+  },
+  {
+    "query": "Automate checkout on an e-commerce site with Puppeteer clicks.",
+    "should_trigger": false
+  },
+  {
+    "query": "Improve my Lighthouse performance score; LCP is 4 seconds.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add client-side validation to a React signup form with react-hook-form.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add an OpenAI-powered chatbot widget to our website's support page.",
+    "should_trigger": false
+  },
+  {
+    "query": "Define function calling tools for the Gemini API in my Python backend.",
+    "should_trigger": false
+  },
+  {
+    "query": "Set up a Chrome extension manifest v3 with a background service worker.",
+    "should_trigger": false
+  },
+  { "query": "Write unit tests for a custom React hook with Vitest.", "should_trigger": false },
+  {
+    "query": "Configure Angular routing with lazy-loaded feature modules.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix accessibility issues flagged by axe on our navigation menu.",
+    "should_trigger": false
+  }
+]

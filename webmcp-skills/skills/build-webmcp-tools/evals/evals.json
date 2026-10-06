@@ -1,0 +1,760 @@
+{
+  "skill_name": "build-webmcp-tools",
+  "evals": [
+    {
+      "id": "stage-6-lighthouse-agentic-audits",
+      "prompt": "What checks does the Lighthouse 'Agentic browsing' audit run on WebMCP applications, and what causes a page to fail?",
+      "expected_output": "The agent details the Lighthouse Agentic browsing audits: paired `toolname`/`tooldescription`, unique field names, parameter description fallback chain, accessibility tree naming, CLS thresholds to prevent agent misclicks, and `/llms.txt` presence. It explains that missing either `toolname` or `tooldescription`, or having inputs without names, triggers audit failures.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The agent explains pairing toolname and tooldescription on forms",
+        "The agent mentions field names, label/toolparamdescription fallbacks, or accessibility tree readiness",
+        "The agent mentions layout stability (CLS) or /llms.txt"
+      ]
+    },
+    {
+      "id": "stage-6-devtools-webmcp-debugging",
+      "prompt": "How can a developer inspect and debug registered WebMCP tools using Chrome DevTools without invoking an LLM?",
+      "expected_output": "The agent explains opening Chrome DevTools → Application → WebMCP pane to view active tools, check the invocation counter, execute tools manually with custom parameters via the Play icon, and review schema validation warnings.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The agent points to Chrome DevTools Application > WebMCP pane",
+        "The agent explains manual tool execution or checking invocation counts/schema warnings"
+      ]
+    },
+    {
+      "id": "stage-6-audit-reference-loading-directives",
+      "prompt": "Can you audit the WebMCP tools on our live production site and advise on best practices for error reporting and user-generated content?",
+      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: UnknownError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
+      "assertions": [
+        "The agent read references/audit-checklist.md",
+        "The agent read references/agent-security.md",
+        "The agent read references/error-handling.md",
+        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: UnknownError.",
+        "The output explains the First-Party Database Fallacy or untrusted user-authored content prompt injection threat model."
+      ]
+    },
+    {
+      "id": "stage-6-devtools-mcp-live-discovery",
+      "prompt": "I'm using chrome-devtools-mcp to audit the WebMCP tools on a live web app (https://example.com/app), and on the initial page I don't see any tools yet. Should I fetch the page's <script> files to find the tool definitions, or how should I discover all registered WebMCP tools across the app?",
+      "expected_output": "The agent warns against fetching or regex-scraping minified production JS bundles on a live site (only inspect source if unminified or sourcemapped). It explains discovering tools at runtime using `list_webmcp_tools` (when `--categoryExperimentalWebmcp` is enabled) or `await document.modelContext.getTools()` via `evaluate_script`. It notes that if `document.modelContext` is `undefined`, WebMCP is not enabled in the browser (`--enable-features=WebMCP` or `chrome://flags/#enable-webmcp-testing`), causing guarded registrations (`if (!document.modelContext) return`) to be skipped. Finally, it instructs walking the app's routes, tabs, and UI states and re-querying tools at each state to build a route/state-to-tools inventory because tools are often dynamically scoped to specific routes or UI states.",
+      "assertions": [
+        "The agent read references/testing-and-debugging.md",
+        "The output advises against fetching or scraping minified production JS bundles on a live site",
+        "The output explains discovering tools at runtime via list_webmcp_tools or document.modelContext.getTools()",
+        "The output explains checking if document.modelContext is undefined because WebMCP flags (--enable-features=WebMCP or chrome://flags/#enable-webmcp-testing) must be enabled in the browser",
+        "The output explains navigating across routes, views, or UI states and re-checking tools at each state because tools can be route-scoped or state-gated"
+      ]
+    },
+    {
+      "id": "stage-6-audit-annotations-default-false",
+      "prompt": "During a code review of our WebMCP tools, an auditor flagged `update_cart_quantity` and `switch_tab` because they omit `annotations: { readOnlyHint: false, consequentialHint: false }`. The auditor insists that WebMCP standards require every mutating and navigation tool to explicitly specify `readOnlyHint: false` and `consequentialHint: false`. Is this audit finding valid, and how should annotations be configured?",
+      "expected_output": "The agent explains that the audit finding is invalid (a false positive). In WebMCP and the underlying Model Context Protocol specification, all tool annotation hints (readOnlyHint, consequentialHint, untrustedContentHint) default to false: omission of readOnlyHint means the tool mutates state, omission of consequentialHint means the action is safe/routine, and omission of untrustedContentHint means output is trusted application data. Annotations are strictly opt-in and should only be specified when true; developers must never declare redundant `: false` properties. Routine mutating tools like update_cart_quantity and navigation tools like switch_tab do not need an annotations object at all unless another hint (such as untrustedContentHint for user-generated content) is true. For navigation tools, the requirement is simply to avoid declaring readOnlyHint: true (they omit it).",
+      "assertions": [
+        "The agent states that the audit finding is invalid or a false positive",
+        "The output explains that all WebMCP annotation hints default to false (omission of readOnlyHint means mutating, omission of consequentialHint means non-consequential)",
+        "The output states that annotations are opt-in and should only be specified when true (never declare : false)",
+        "The output states that routine mutating or navigation tools do not need readOnlyHint: false or an annotations block"
+      ]
+    },
+    {
+      "id": "core-intab-vs-stdio",
+      "prompt": "How do I configure the stdio transport for WebMCP in my Express backend?",
+      "expected_output": "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext and does not use stdio, SSE, or Node.js backend server transports.",
+      "assertions": [
+        "The agent clarifies that WebMCP runs client-side in the browser tab via document.modelContext",
+        "The agent clarifies that WebMCP does not use stdio, SSE, or Node.js backend server transports"
+      ]
+    },
+    {
+      "id": "core-character-budgets",
+      "prompt": "What are the official Chrome character and token budget limits for WebMCP tools?",
+      "expected_output": "The agent specifies character budgets: tool name <= 30 chars, tool description <= 500 chars, parameter description <= 150 chars, and tool output <= 1,500 chars (or ~1.5KB).",
+      "assertions": [
+        "The agent specifies that tool names must be 30 characters or fewer",
+        "The agent specifies that tool descriptions must be 500 characters or fewer",
+        "The agent specifies that parameter descriptions must be 150 characters or fewer",
+        "The agent specifies that tool output should be 1,500 characters or fewer"
+      ]
+    },
+    {
+      "id": "core-naming-initiation-vs-execution",
+      "prompt": "How should I name a tool that navigates the user to a flight checkout form vs one that executes the booking immediately?",
+      "expected_output": "The agent distinguishes execution (e.g. book_flight or create_event) from initiation (e.g. initiate_booking or start_event_creation_process) rather than treating them identically.",
+      "assertions": [
+        "The agent distinguishes initiation actions (e.g. initiate_booking) from execution actions (e.g. book_flight)"
+      ]
+    },
+    {
+      "id": "core-annotations-matrix",
+      "prompt": "Which annotations can I attach to a WebMCP tool and what do they mean?",
+      "expected_output": "The agent explains all three WebMCP annotations: readOnlyHint, consequentialHint, and untrustedContentHint.",
+      "assertions": [
+        "The output explains readOnlyHint",
+        "The output explains consequentialHint",
+        "The output explains untrustedContentHint"
+      ]
+    },
+    {
+      "id": "core-clean-tool-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Polymorphic Redux-backed mutation handler that dispatches to the internal Express REST controller to update ticket state and invalidate React Query cache.\" What is wrong with this description and how should it be rewritten?",
+      "expected_output": "The agent identifies that internal implementation jargon (e.g. Redux, Express, REST controller, React Query cache) must be strictly omitted because it wastes character budget and causes model confusion or hallucination. It explains that descriptions should focus on user/agent capabilities rather than internal implementation details, and provides a clean rewrite such as \"Updates the status of an existing customer support ticket. Use when marking tickets as open, pending, or resolved.\"",
+      "assertions": [
+        "The agent identifies that internal implementation jargon (e.g. Redux, Express, REST, React Query) must be omitted",
+        "The agent explains that descriptions must describe user or agent capabilities rather than internal architecture",
+        "The agent provides a clean rewrite focused on updating ticket status without mentioning internal libraries"
+      ]
+    },
+    {
+      "id": "core-annotations-untrusted-ugc",
+      "prompt": "A developer is implementing a WebMCP tool `get_ticket` that retrieves the message body of a customer's support ticket from their helpdesk database. The developer sets `annotations: { readOnlyHint: true }` reasoning that the data comes from their own database and doesn't mutate state. What security vulnerability or annotation mistake exists here, and how should it be fixed?",
+      "expected_output": "The agent explains that user-generated content (UGC) such as support tickets, issues, comments, or external content must declare untrustedContentHint: true, even if it comes from the application's own database. User-authored text is a primary vector for indirect prompt injection. Omitting untrustedContentHint allows untrusted text to be treated as trusted instructions by host agents instead of being isolated via spotlighting or delimiter sandboxing (such as <untrusted_content> tags). The tool must declare annotations: { readOnlyHint: true, untrustedContentHint: true }.",
+      "assertions": [
+        "The agent identifies that untrustedContentHint: true is required for user-generated or third-party content",
+        "The agent explains the risk of indirect prompt injection from user-authored text",
+        "The agent explains that untrustedContentHint instructs the agent to isolate, spotlight, or delimiter-sandbox the payload"
+      ]
+    },
+    {
+      "id": "core-intent-focused-descriptions",
+      "prompt": "A developer wrote this WebMCP tool description: \"Searches items with query string, category_id string, brand_id string, tags array, and price_range object.\" What is wrong with this description, and how should it be rewritten to optimize model tool selection?",
+      "expected_output": "The agent identifies that duplicating parameter names, types, and schema structures already defined in inputSchema wastes character budget and creates tool selection ambiguity. It explains that descriptions should focus on what the tool does and when to use it (intent matching), and provides a clean rewrite such as \"Searches the store catalog for products by keyword, category, or price range. Use when browsing products, comparing options, or filtering inventory.\"",
+      "assertions": [
+        "The agent identifies that repeating schema parameters and types in the description is an anti-pattern",
+        "The agent explains that descriptions should prioritize intent matching ('what' it does and 'when' to use it)",
+        "The agent provides an intent-focused rewrite without parameter enumeration"
+      ]
+    },
+    {
+      "id": "core-navigation-annotations",
+      "prompt": "A developer is writing a `switch_tab` tool for an accounting dashboard that switches the active tab between 'Expenses', 'Invoices', and 'Payroll'. The developer sets `annotations: { readOnlyHint: true }` because 'it only changes what is visible and doesn't write to the backend database'. What is the problem with this annotation, and how should it be configured?",
+      "expected_output": "The agent explains that tab switching mutates client UI state and can unmount the active view, so readOnlyHint must not be true; the tool should omit readOnlyHint (or omit annotations entirely since hints default to false). It should NOT declare consequentialHint: true, which the WebMCP spec reserves for significant, irreversible real-world actions (e.g. booking a flight, transferring money); flagging navigation causes confirmation fatigue. Unsaved drafts are protected by the app itself: the tool checks for unsaved changes and returns an actionable error (ask the user to save or discard) or preserves the draft.",
+      "assertions": [
+        "The agent explains that UI navigation or tab switching mutates client UI state, so readOnlyHint must NOT be true (it should be omitted)",
+        "The agent does NOT recommend consequentialHint: true for the tab-switching tool, reserving it for significant or irreversible real-world actions such as payments or bookings",
+        "The agent explains how to protect unsaved form state without consequentialHint, e.g. the tool checks for unsaved changes and returns an actionable error or preserves the draft"
+      ]
+    },
+    {
+      "id": "core-tools-only-no-prompts",
+      "prompt": "Can I register pre-baked system prompt templates or context resources on `document.modelContext` alongside my tools in WebMCP?",
+      "expected_output": "The agent clarifies that the current WebMCP specification supports Tools only (no Prompts or Resources), and that tools execute direct application logic rather than simulating DOM interaction.",
+      "assertions": [
+        "The agent clarifies that WebMCP supports Tools only",
+        "The agent explicitly states that Resources or Prompts are not supported in current WebMCP"
+      ]
+    },
+    {
+      "id": "core-accept-raw-user-input",
+      "prompt": "We are designing a flight search tool. Should the tool accept `departure_date` as an ISO string / natural string, or require the model to calculate milliseconds since unix epoch and pass `epoch_ms` and `shipping_id=3`?",
+      "expected_output": "The agent instructs accepting raw natural-language inputs (e.g. YYYY-MM-DD dates, airport codes, natural names) rather than forcing the model to calculate manual timestamps, math offsets, or opaque database IDs.",
+      "assertions": [
+        "The agent instructs accepting natural or standard string dates rather than forcing manual epoch calculations",
+        "The agent recommends natural values over opaque numeric database IDs"
+      ]
+    },
+    {
+      "id": "core-security-cross-origin-permissions",
+      "prompt": "We have an embedded partner iframe on `https://partner.example.com` and want to allow it to invoke our WebMCP tool `shareable_cart_lookup`. How do we securely configure the iframe, Permissions Policy, and tool registration?",
+      "expected_output": "The agent explains that WebMCP tools are same-origin by default and gated by the `tools` Permissions Policy. To share a tool with a cross-origin partner, the host page must embed the iframe with `<iframe allow=\"tools\">` and register the tool with `{ exposedTo: ['https://partner.example.com'] }`. Additionally, origin isolation must not be disabled.",
+      "assertions": [
+        "The output specifies `<iframe allow=\"tools\">` for iframe permission delegation",
+        "The output specifies `{ exposedTo: [...] }` with the permitted origin in `registerTool` options",
+        "The output mentions the `tools` Permissions Policy or origin isolation requirement"
+      ]
+    },
+    {
+      "id": "core-security-spotlighting-delimiters",
+      "prompt": "When our agent framework receives a response from a WebMCP tool that declared `untrustedContentHint: true`, how should the host agent process and sandbox the output before feeding it into the LLM context to prevent indirect prompt injection?",
+      "expected_output": "The agent explains that consuming agent frameworks must route outputs with `untrustedContentHint: true` into a defensive spotlighting pipeline, such as wrapping the payload in structural delimiters like `<untrusted_content>...</untrusted_content>` or Base64 encoding, and applying anchoring system prompt instructions directing the model to treat the content strictly as data rather than executable directives.",
+      "assertions": [
+        "The agent explains using structural delimiters (e.g. `<untrusted_content>`) or Base64 spotlighting to sandbox the payload",
+        "The agent mentions applying system prompt anchoring directives to treat tool output as passive data",
+        "The agent explains that this prevents indirect prompt injection from user-generated content"
+      ]
+    },
+    {
+      "id": "core-design-vs-code-completion",
+      "prompt": "We are building a simple bookmark manager in React. Since saving a bookmark is just a one-line `setBookmarks([...bookmarks, newBookmark])`, can we skip conversational role-playing and start implementing the WebMCP tool code immediately?",
+      "expected_output": "The agent takes the explicit fast path, but first corrects the misconception behind the request (Principle 12): a one-line state update is easy to code, but the conversation around it is not. It names the natural-language risks being skipped (coreference such as 'the one I just saved', ambiguous or missing parameters, duplicates, confirmation boundaries, prompt injection) in a short opening statement, then delivers or offers the tool without re-arguing for design.",
+      "assertions": [
+        "The agent states that code completion or implementation simplicity must not be conflated with design or conversational simplicity",
+        "The agent explains that natural language interaction introduces coreference, ambiguity, confirmation boundaries, or prompt injection risks",
+        "The agent delivers or offers the tool implementation without refusing or repeatedly insisting on role-play first"
+      ]
+    },
+    {
+      "id": "core-raw-input-relative-dates",
+      "prompt": "Write the WebMCP inputSchema and description for a search_flights tool. Users typically say things like \"fly from San Francisco to Tokyo next Friday, returning Sunday\".",
+      "expected_output": "A search_flights schema whose date parameters do not force the model to compute absolute dates from relative phrases: they accept an ISO date or the user's phrasing (e.g. 'next Friday') and the app resolves relative dates. Origin and destination may use airport codes, since mapping a city to a code is a lookup, ideally also accepting a city name for multi-airport cities. The tool description states what the tool does and when to use it, without listing parameters.",
+      "assertions": [
+        "The date parameters accept the user's relative phrasing (e.g. 'next Friday') or explicitly state that the app resolves relative dates, rather than requiring the model to compute an absolute YYYY-MM-DD date on its own",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "core-consolidation-boundaries",
+      "prompt": "Our customer support app has customer-submitted support tickets and admin-managed canned reply templates (read-only boilerplate that customers cannot edit). We already expose a polymorphic list_items tool for tickets and bug reports. Should templates also go into list_items, or get their own tool?",
+      "expected_output": "Templates should stay out of list_items (e.g. a separate list_templates tool). Consolidation fits entities that share a lifecycle, parameters, permissions, and annotations; list_items returns user-authored text and must declare untrustedContentHint: true, while trusted system templates do not, so merging them would either mislabel trusted content or drop the untrusted-content signal.",
+      "assertions": [
+        "The agent recommends keeping templates in a separate tool rather than adding them to list_items",
+        "The agent explains that the entities differ in trust or annotations (untrustedContentHint applies to customer tickets/bugs but not to system templates), or otherwise do not share a lifecycle"
+      ]
+    },
+    {
+      "id": "core-handoff-annotations",
+      "prompt": "In our flight app, `initiate_booking` opens the checkout screen with the selected flight so the user can review the price and press Confirm themselves. The agent cannot complete the payment. Should `initiate_booking` declare `consequentialHint: true`? What if we later add a `confirm_booking` tool that charges the card directly?",
+      "expected_output": "initiate_booking only navigates to a confirmation screen where the human commits the booking, so it is not itself a significant, irreversible action: it must not declare readOnlyHint: true (it omits annotations since hints default to false) and does not need consequentialHint: true. The hand-off to the human-confirmed checkout UI is the confirmation boundary. A confirm_booking tool that charges the card commits an irreversible financial action and must declare consequentialHint: true.",
+      "assertions": [
+        "The agent says initiate_booking does not need consequentialHint: true because the human confirms the booking in the checkout UI",
+        "The agent says a confirm_booking tool that charges the card must declare consequentialHint: true",
+        "The agent states that initiate_booking should not be marked readOnlyHint: true because it changes the UI or navigates"
+      ]
+    },
+    {
+      "id": "core-explicit-fast-path",
+      "prompt": "Add one read-only search_reviews tool to our React storefront app. Skip the goal portfolio and role-play stages, I understand the risks. I just want the tool schema, a minimal eval, and the useWebMCP code now.",
+      "expected_output": "Because the user explicitly chose to skip design for a single tool, the agent briefly states the risk being skipped (untested ambiguity and confirmation boundaries) once, then delivers the schema, a minimal evals.json case, and useWebMCP code. It still applies the core rules: What + When description, readOnlyHint: true, and untrustedContentHint: true because customer reviews are user-authored.",
+      "assertions": [
+        "The output delivers the search_reviews implementation using useWebMCP from use-webmcp-tool",
+        "The output includes a tool schema and at least one evals.json-style test case for search_reviews",
+        "The output briefly notes the risk of skipping conversational design without refusing or insisting on role-play first",
+        "The output declares readOnlyHint: true and untrustedContentHint: true for search_reviews"
+      ]
+    },
+    {
+      "id": "core-read-tools-capability-not-size",
+      "prompt": "Our markdown editor exposes a WebMCP `read` tool that returns the whole document, which is too big for long files. We plan to add `read_range(start_line, end_line)` and `read_full()` tools alongside it. Is that a good tool design?",
+      "expected_output": "The agent advises against adding tools that differ only in how much text they return, because they overlap: all of them answer 'show me the text', so the agent must guess between them and every extra tool costs prompt tokens. It recommends one read tool with optional range or section parameters, plus a separate tool for a different capability such as a document outline (headings with line numbers) or search, so the agent can locate content before reading it.",
+      "assertions": [
+        "The agent advises against separate read tools that differ only in size or range, explaining that they overlap or answer the same request",
+        "The agent recommends a single read tool with optional range, section, or offset parameters",
+        "The agent suggests a separate way to locate content before reading, such as an outline or table-of-contents tool, or search with line numbers"
+      ]
+    },
+    {
+      "id": "core-long-content-budget-exact-text",
+      "prompt": "Our markdown editor exposes a WebMCP `read_document` tool and an `edit(originalText, newText)` tool that only works when `originalText` exactly matches text in the document. Documents can be 20,000 characters long. How should `read_document` respect the 1,500-character tool output budget?",
+      "expected_output": "The agent recommends paginated or ranged reads (offset/limit or line ranges) that return an explicit truncation or continuation signal (e.g. truncated: true plus the next offset) instead of silently cutting the document at 1,500 characters. It recommends a way to locate the relevant part first (an outline, search with line numbers) so the agent only fetches what it needs, and it keeps the returned text exact and unsummarized so edit can match originalText.",
+      "assertions": [
+        "The agent recommends paginated or ranged reads with an explicit truncation or continuation signal, rather than silently cutting the document at 1,500 characters",
+        "The agent recommends a way to locate the relevant part before reading, such as an outline, headings, or search with line numbers",
+        "The agent says the returned text must be exact (not summarized or paraphrased) so the edit tool can match originalText"
+      ]
+    },
+    {
+      "id": "stage-0-router-local-codebase-greenfield",
+      "prompt": "Add WebMCP tools to this project.",
+      "expected_output": "The agent reads the project files (package.json, routes in App.tsx, and the store) before responding, recognizes a React recipe and meal-planning app, and routes to Stage 1 by proposing 3 candidate user journeys specific to recipes and meal planning (e.g. finding recipes by ingredient or dietary tag, organizing recipes into collections or a weekly meal plan, sharing a recipe, deleting a recipe), each with an ideal outcome and autonomous boundary (e.g. public sharing or permanent deletion requires confirmation). It invites the user to pick one goal and writes no code or schemas.",
+      "assertions": [
+        "The agent read evals/fixtures/recipe-app/src/App.tsx",
+        "The output proposes candidate user journeys specific to a recipe or meal-planning app (such as finding recipes, organizing into collections or meal plans, sharing, or deleting recipes) and does not propose shopping cart or checkout journeys.",
+        "The output explicitly defines or highlights autonomous boundaries for the proposed journeys, such as requiring confirmation before publicly sharing or permanently deleting a recipe.",
+        "The output invites the user to select or focus on ONE goal first (enforcing the \"One Goal Per Iteration\" rule).",
+        "The output does NOT write or modify application code (e.g., no useWebMCP, registerTool, or final schema generation) in this initial turn."
+      ],
+      "files": [
+        "evals/fixtures/recipe-app/package.json",
+        "evals/fixtures/recipe-app/src/App.tsx",
+        "evals/fixtures/recipe-app/src/store.ts"
+      ]
+    },
+    {
+      "id": "stage-0-router-preconceived-single-tool",
+      "prompt": "I want to add a tool to search flights.",
+      "expected_output": "The agent frames flight search as a conversational user journey / goal via the Iterative Incremental Pathway, models starting states or advances to role-play simulation, avoids full portfolio ideation friction, and avoids premature code generation.",
+      "assertions": [
+        "The output frames flight search as a conversational user journey / goal rather than just a raw function signature.",
+        "The output defines or identifies ideal outcomes, required context, or autonomous boundaries for flight search.",
+        "The output advances to Stage 2 (starting states) or Stage 3 (conversational role-play) for this specific goal (Iterative Incremental Pathway).",
+        "The output does NOT force the user to ideate an entire unrelated portfolio of other features.",
+        "The output does NOT immediately write tool code (useWebMCP, registerTool) or generate a final schema before role-playing."
+      ]
+    },
+    {
+      "id": "stage-0-router-defined-goals",
+      "prompt": "We already defined our user goals: 1) Search flights, 2) Seat selection. Let's establish starting states.",
+      "expected_output": "The agent routes directly to Stage 2 (Starting States Matrix), identifies functional application state dimensions, and explicitly prunes diagnostic bloat.",
+      "assertions": [
+        "The output routes directly to Stage 2 (Starting States Matrix) without re-ideating goals.",
+        "The output identifies functional application state dimensions (routes, session, authentication).",
+        "The output explicitly prunes diagnostic bloat (device_battery, gpu_temp, screen_dpi)."
+      ]
+    },
+    {
+      "id": "stage-0-router-roleplay-simulation",
+      "prompt": "Goal is 'Order Pizza', starting state is 'empty cart on /menu'. Let's role-play the interaction.",
+      "expected_output": "The agent routes to Stage 3 (Turn-by-Turn Role-Playing) simulating the 6 core turn elements, adheres to tool character limits, and triggers the mandatory User Critique Loop.",
+      "assertions": [
+        "The output routes to Stage 3 (Turn-by-Turn Role-Playing) simulating the 6 core turn elements.",
+        "The output respects tool character limits (names <= 30 chars, payloads <= 1,500 chars).",
+        "The output explicitly triggers the mandatory User Critique Loop (agent demeanor/tone, clarifying questions, autonomous boundaries)."
+      ]
+    },
+    {
+      "id": "stage-0-router-variations-robustness",
+      "prompt": "Here is our happy path transcript for booking a flight. How do we make it robust?",
+      "expected_output": "The agent routes to Stage 4 (Variations & Graceful Failure), exploring missing parameters, prerequisite errors, over-constrained queries, coreference resolution, and human confirmation hand-offs.",
+      "assertions": [
+        "The output routes to Stage 4 (Variations & Graceful Failure).",
+        "The output explores missing parameters, prerequisite errors, over-constrained queries, coreference resolution, and human confirmation hand-offs for sensitive actions (confirmation on a dedicated UI, or consequentialHint: true on tools that commit the action)."
+      ]
+    },
+    {
+      "id": "stage-0-router-specs-evals-generation",
+      "prompt": "Here are our approved role-play transcripts. Generate the tool schemas and automated evals.",
+      "expected_output": "The agent reads the approved role-play transcript and routes to Stage 5. It consolidates the per-entity search_issues/search_bugs and repeated move_issue/move_bug calls into polymorphic batched tools (e.g. list_items with a types array and move_items with an items array executed with Promise.all), writes What + When descriptions without jargon, sets readOnlyHint and untrustedContentHint on the listing tool (issue and bug text is reporter-authored), and offers the local evaluation gate (npx webmcp-evals local).",
+      "assertions": [
+        "The output routes to Stage 5 (Tool Specs & Evals Generation).",
+        "The agent read references/evals-format.md",
+        "The agent read evals/fixtures/project-app/roleplay-triage.md",
+        "The output consolidates the per-entity search_issues/search_bugs and repeated move_issue/move_bug calls into polymorphic batched tools (e.g. list_items with a types array and move_items with an items array) rather than keeping per-entity tools.",
+        "The output enforces \"What + When\" descriptions, strips internal jargon, and audits annotations (readOnlyHint, consequentialHint, untrustedContentHint).",
+        "The output proactively offers the local evaluation gate (npx webmcp-evals local)."
+      ],
+      "files": ["evals/fixtures/project-app/roleplay-triage.md"]
+    },
+    {
+      "id": "stage-0-router-existing-tools",
+      "prompt": "I already have a schema.json defining tools for my pizza maker application. I want to generate evals.json for automated testing.",
+      "expected_output": "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2.",
+      "assertions": [
+        "The agent routes directly to Stage 5 (Tool Specs & Evals Generation) or asks to view the existing schema.json, rather than forcing the user to redo Stage 1 (Goal Ideation) or Stage 2."
+      ]
+    },
+    {
+      "id": "stage-0-router-schema-to-implementation",
+      "prompt": "Here is my schema.json for my web app. Help me implement these tools in React.",
+      "expected_output": "The agent routes directly to Stage 6 (Application Implementation) without re-opening conversational design, recommending use-webmcp-tool (useWebMCP), stable schema literals, and RTL mocking.",
+      "assertions": [
+        "The agent read evals/fixtures/hotel-app/schema.json",
+        "The output routes directly to Stage 6 (Application Implementation) without re-opening conversational design.",
+        "The output uses use-webmcp-tool (useWebMCP), stable/hoisted schema literals, and RTL mocking.",
+        "The agent read references/react-patterns.md",
+        "The agent did NOT read references/angular-patterns.md"
+      ],
+      "files": ["evals/fixtures/hotel-app/schema.json"]
+    },
+    {
+      "id": "stage-0-router-live-site-url",
+      "prompt": "I want to add WebMCP tools to example.com. Where do we start?",
+      "expected_output": "The agent clarifies that WebMCP runs client-side in the browser tab on document.modelContext rather than external headless scraping, recommends using browser capabilities (such as the browser or page inspection or checking /llms.txt) to explore workflows, routes to Stage 1 (User Goals Portfolio) proposing candidate user journeys with autonomous boundaries, and avoids premature code dumping.",
+      "assertions": [
+        "The agent read references/live-site-discovery.md",
+        "The output clarifies that WebMCP runs client-side in the browser tab on document.modelContext (requiring first-party site code or extension/content script execution).",
+        "The output does NOT confuse WebMCP with external headless scraping (Puppeteer, Playwright, or DOM clicking).",
+        "The output recommends using browser capabilities (e.g., browsing or inspecting the live pages, or checking /llms.txt) to explore the site's workflows.",
+        "The output routes to Stage 1 (User Goals Portfolio) by proposing or offering to inspect candidate user journeys with autonomous boundaries.",
+        "The output does NOT immediately output frontend code before defining goals."
+      ]
+    },
+    {
+      "id": "stage-0-router-live-site-audit",
+      "prompt": "Can you give feedback on the tools on example.com?",
+      "expected_output": "The agent references inspecting live tools via document.modelContext.getTools(), the Chrome DevTools Application > WebMCP pane, or using browser inspection to inspect the live page, routes to the Stage 6 audit/review checklist rather than restarting Stage 1 ideation, audits annotations and character budgets without jargon, and suggests running the Lighthouse 'Agentic browsing' audit or DevTools manual execution.",
+      "assertions": [
+        "The agent read references/audit-checklist.md",
+        "The output references inspecting live tools via document.modelContext.getTools(), the Chrome DevTools Application > WebMCP pane, or browsing/inspecting the live page.",
+        "The output routes to the Stage 6 audit/review checklist rather than restarting Stage 1 ideation from scratch.",
+        "The output mentions auditing tool annotations (specifically readOnlyHint, consequentialHint for irreversible actions, or untrustedContentHint for UGC).",
+        "The output mentions character budgets (names <= 30 chars, descriptions <= 500 chars) or removing implementation jargon.",
+        "The output suggests running the Lighthouse \"Agentic browsing\" audit or checking DevTools manual execution."
+      ]
+    },
+    {
+      "id": "stage-0-router-local-codebase-audit",
+      "prompt": "Can you audit our existing WebMCP tools in src/tools/ for best practices and security?",
+      "expected_output": "The agent routes directly to Stage 6 Review Checklist & Auditing, reads references/audit-checklist.md and references/agent-security.md (plus references/error-handling.md as needed) before auditing, and systematically checks against character budgets, unhandled rejections, UI view navigation missing consequentialHint, UGC missing untrustedContentHint, and DevTools/Lighthouse readiness.",
+      "assertions": [
+        "The output routes directly to Stage 6 Review Checklist & Auditing.",
+        "The agent read evals/fixtures/project-app/src/tools/project-tools.ts",
+        "The agent read references/audit-checklist.md",
+        "The agent read references/agent-security.md",
+        "The output systematically checks against character budgets (names <= 30 chars, descriptions <= 500 chars) and removing internal implementation jargon.",
+        "The output audits that tools return actionable error guidance rather than unhandled Promise rejections.",
+        "The output flags that the tab-switching tool must not declare readOnlyHint: true (it mutates UI state) and does NOT require consequentialHint: true for it.",
+        "The output audits that tools returning user-generated text declare untrustedContentHint: true.",
+        "The output verifies live inspection in the Chrome DevTools Application > WebMCP pane and running the Lighthouse \"Agentic browsing\" audit."
+      ],
+      "files": ["evals/fixtures/project-app/src/tools/project-tools.ts"]
+    },
+    {
+      "id": "skill-discovery-mcp-disambiguation",
+      "prompt": "Create a Python stdio MCP server for Claude Desktop to query my Postgres database.",
+      "expected_output": "The agent clarifies that WebMCP is specifically for client-side in-browser tools on document.modelContext, whereas backend MCP runs over stdio or SSE in Node/Python, and redirects or clarifies the protocol boundary rather than attempting to use document.modelContext in a backend environment.",
+      "assertions": [
+        "The output clarifies that WebMCP is specifically for client-side in-browser tools on document.modelContext, whereas backend MCP runs over stdio or SSE in Node/Python.",
+        "The agent either redirects or clarifies the protocol boundary rather than incorrectly attempting to use document.modelContext in a Node/Python backend."
+      ]
+    },
+    {
+      "id": "stage-1-journey-prioritization",
+      "prompt": "I am building an airline ticketing website. Help me create my portfolio of user goals for WebMCP.",
+      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal.",
+      "assertions": [
+        "The agent proposes prioritized candidate user goals (such as flight search, seat selection, booking, or check-in)",
+        "The agent defines outcomes, required context, or boundaries for each proposed goal"
+      ]
+    },
+    {
+      "id": "stage-1-goal-iteration-and-critique",
+      "prompt": "We identified 5 user goals for our app (search products, view cart, checkout, apply coupon, track order). Can you simulate and role-play all 5 goals in bulk in a single turn right now?",
+      "expected_output": "The agent enforces the \"One Goal Per Iteration\" rule, refusing to generate role-plays for all 5 goals in bulk. It explains that the full design cycle (Stages 2–4: starting states, turn-by-turn simulation, variations, and active user critique) must be completed for one single goal at a time to explore conversational ambiguity, verify agent demeanor, and establish autonomous confirmation boundaries with the developer.",
+      "assertions": [
+        "The agent enforces completing one goal per iteration (or refuses generating multiple goals in bulk in a single turn)",
+        "The agent explains that each goal requires state modeling, role-play simulation, variations, or user critique before moving to the next",
+        "The agent mentions soliciting user critique on agent demeanor, clarifying questions, or autonomous confirmation boundaries"
+      ]
+    },
+    {
+      "id": "stage-2-context-pruning",
+      "prompt": "The user wants to search for shoes on an e-commerce site. The application state is: current_url=/products, device_battery=87%, gpu_temp=68C, screen_dpi=2.0, cart_items=[]. Establish the starting state.",
+      "expected_output": "Relevant application state is retained while irrelevant hardware diagnostics are pruned.",
+      "assertions": [
+        "The agent retains relevant application state such as URL and cart items",
+        "The agent explicitly prunes or excludes irrelevant diagnostics like device_battery, gpu_temp, and screen_dpi"
+      ]
+    },
+    {
+      "id": "stage-3-roleplay-structure",
+      "prompt": "Role-play the first turn where a user asks for available hotel rooms in Paris next Friday.",
+      "expected_output": "A complete role-play turn documenting 6 turn elements including pagination in tool response.",
+      "assertions": [
+        "The role-play turn documents user utterance, agent intent, tool invocation, structured JSON tool response with pagination (page_size, total_count), site UI reaction, and agent response"
+      ]
+    },
+    {
+      "id": "stage-4-hitl-boundaries",
+      "prompt": "Design the roleplay turn where the user confirms payment for a $500 hotel booking.",
+      "expected_output": "The roleplay or tool design explicitly requires human confirmation on dedicated UI (e.g. requires_user_action status or confirmation hand-off) rather than autonomously executing payment without user action.",
+      "assertions": [
+        "The roleplay or tool design explicitly requires human confirmation on dedicated UI (e.g. requires_user_action status or confirmation hand-off) rather than autonomously executing payment without user action."
+      ]
+    },
+    {
+      "id": "stage-4-prerequisite-violations",
+      "prompt": "In an e-commerce store, the user says 'Apply coupon SAVE20'. However, the cart is currently empty and no order has been initiated. How should the apply_coupon tool handle this situation, and what should the agent do?",
+      "expected_output": "The tool throws an actionable error indicating that an order or cart must first be created before a coupon can be applied. The agent receives the error guidance and informs the user or initiates cart creation, rather than failing silently or assuming the action succeeded.",
+      "assertions": [
+        "The agent explains that the tool returns or throws an actionable prerequisite error",
+        "The error message guides the agent to the preliminary step (e.g. creating an active cart or order first)",
+        "The agent explains how the model recovers and prompts the user or initiates the missing flow"
+      ]
+    },
+    {
+      "id": "stage-4-overconstrained-queries",
+      "prompt": "A user searches for 'vegan gluten-free pepperoni pizza with pineapple in Tokyo under $5', returning 0 matching menu items. How should the search tool format its response to help the AI agent recover gracefully?",
+      "expected_output": "The tool returns a structured payload that explicitly reports zero direct matches and provides suggested filter relaxations (e.g. 'broaden search', 'try without pineapple or price filter', or closest matching alternatives) rather than an empty list or dead-end error, enabling the agent to proactively suggest alternatives to the user.",
+      "assertions": [
+        "The agent explains that the tool response provides suggested filter relaxations or closest alternatives",
+        "The agent explains that this prevents dead-end responses and guides the user toward available options"
+      ]
+    },
+    {
+      "id": "stage-4-missing-required-parameters",
+      "prompt": "In Stage 4 variation design, how should the conversational flow handle a user asking 'Book me a flight to Chicago' when departure city, date, and cabin class are missing?",
+      "expected_output": "The agent either initiates conversational clarification to solicit the missing required parameters (origin airport and travel dates) before executing a booking tool, or invokes initiate_booking to navigate the user to the booking wizard form where remaining details can be specified.",
+      "assertions": [
+        "The agent clarifies missing required fields (e.g. origin city and departure date)",
+        "The agent avoids hallucinating or guessing critical booking parameters"
+      ]
+    },
+    {
+      "id": "stage-5-evals-cli",
+      "prompt": "I have finalized our roleplay conversations. How do I test them automatically?",
+      "expected_output": "The agent guides developer to test tools locally using webmcp-evals CLI with schema.json and evals.json.",
+      "assertions": [
+        "The output references the webmcp-evals CLI",
+        "The output references schema.json",
+        "The output references evals.json"
+      ]
+    },
+    {
+      "id": "stage-5-polymorphic-consolidation",
+      "prompt": "In our project tracker with issues, bug reports, and sprints, the user wants to \"Find all issues and bug reports about checkout and move them to Sprint 12\". How should we design the WebMCP tools to avoid multi-turn roundtrips and tool bloat?",
+      "expected_output": "The agent recommends a consolidated polymorphic tool design supporting querying multiple entity types (e.g. list_items with types array) and batch moving items in a single turn (e.g. move_items with an array of items [{ type, id }]), rather than single-item move_item or granular tools that require sequential turns.",
+      "assertions": [
+        "The agent recommends a polymorphic tool design such as move_items for batch mutation",
+        "The agent recommends querying multiple entity types via types array or list_items",
+        "The agent explains avoiding granular single-item tools that require sequential roundtrips"
+      ]
+    },
+    {
+      "id": "stage-5-clean-descriptions-audit",
+      "prompt": "During Stage 5 tool consolidation, how should we audit tool and parameter descriptions to ensure they are clean and free of developer implementation jargon?",
+      "expected_output": "The agent explains that descriptions must be audited to strip internal software engineering jargon (such as state management stores like Redux or Pinia, backend frameworks like Express, transport mechanisms like REST or gRPC, and internal patterns like mutation handlers), ensuring descriptions strictly articulate user/agent capabilities within the 500-character budget.",
+      "assertions": [
+        "The agent explains auditing descriptions to eliminate internal implementation jargon (e.g. Redux, Pinia, Express, REST, GraphQL, gRPC)",
+        "The agent emphasizes describing what capability the tool provides to the agent and user within the character budget"
+      ]
+    },
+    {
+      "id": "stage-5-untrusted-content-annotation",
+      "prompt": "During Stage 5 tool specification, we are defining tools for a collaborative task management app: `get_project_config` (returns application workspace settings and feature flags) and `search_tasks` (returns task titles, descriptions, and user comments). How should `annotations` be configured for each tool, and why?",
+      "expected_output": "The agent configures `get_project_config` with `readOnlyHint: true` (system/application configuration data without user-authored text) and `search_tasks` with both `readOnlyHint: true` and `untrustedContentHint: true`. It explains that user-generated content (task titles, descriptions, comments) carries indirect prompt injection risk and must be flagged with `untrustedContentHint: true` so the agent framework isolates or spotlights the content, whereas trusted application configuration does not.",
+      "assertions": [
+        "The agent specifies readOnlyHint: true for both query tools",
+        "The agent mandates untrustedContentHint: true for search_tasks because it contains user-generated content",
+        "The agent distinguishes user-generated content from trusted application configuration (get_project_config does not require untrustedContentHint)"
+      ]
+    },
+    {
+      "id": "stage-5-ordered-unordered-chains",
+      "prompt": "We want to write an automated evaluation in `evals.json` for a user request: 'Find black running shoes and red water bottles, and show details for both'. Navigating to the catalog must happen first, but looking up shoes and water bottles can happen in any order. How do we structure the `expectedCall` array in `evals.json`?",
+      "expected_output": "The agent shows the `evals.json` structure using nested `ordered` and `unordered` blocks within `expectedCall`, where the root array has the navigation tool call followed by an `unordered` object containing two `ordered` sub-chains for each product search and detail lookup.",
+      "assertions": [
+        "The output includes '\"unordered\":'",
+        "The output includes '\"ordered\":'",
+        "The agent explains how ordered vs unordered constraints enforce multi-turn trajectory validation"
+      ]
+    },
+    {
+      "id": "stage-5-midchain-failure-testing",
+      "prompt": "In our WebMCP evals suite, how do we write a test in `evals.json` to verify that an agent recovers gracefully when a mid-chain tool call fails (for example, when `apply_coupon` returns an expired discount error) rather than aborting the entire conversation?",
+      "expected_output": "The agent explains that mid-chain failure tests simulate intermediate failure states in evals.json messages (pre-seeding the user message, prior tool call, and a mock tool error response with actionable guidance) and assert that the subsequent agent expectedCall validates graceful recovery (e.g. asking the user for a replacement code or invoking an alternative fallback tool).",
+      "assertions": [
+        "The agent demonstrates structuring the mid-chain failure in evals.json messages with a simulated tool failure response",
+        "The agent asserts that the expected trajectory validates graceful recovery or alternative tool invocation",
+        "The agent explains that simulated error payloads must provide actionable guidance to enable agent self-correction"
+      ]
+    },
+    {
+      "id": "stage-5-strictly-goal-driven-tools",
+      "prompt": "We only role-played and approved Goal 1 (search flights) in Stages 1–4. When consolidating Stage 5 `schema.json` and `evals.json`, should we also invent tool schemas for cancel_flight, change_seat, and refund_ticket so our schema is complete?",
+      "expected_output": "The agent strictly forbids inventing tools or evals in Stage 5 for un-modeled goals. Tools are discovered interfaces and must be strictly goal-driven. The agent explains the two valid pathways: either the Iterative Incremental Pathway (schema/evals include only Goal 1 tools) or the Portfolio-First Pathway (role-play and approve remaining goals in Stages 2–4 before entering Stage 5).",
+      "assertions": [
+        "The agent forbids inventing tools or evals in Stage 5 for un-modeled or un-approved goals",
+        "The agent explains that tools must be strictly goal-driven and discovered through conversational role-play",
+        "The agent explains the Iterative Incremental Pathway or Portfolio-First Pathway"
+      ]
+    },
+    {
+      "id": "stage-5-eval-gate-user-choice",
+      "prompt": "We just finished generating `schema.json` and `evals.json` in Stage 5. Should the agent immediately start implementing the React code in Stage 6, or what should happen next?",
+      "expected_output": "The agent proactively asks the user whether they want to run the local schema evaluations (`npx webmcp-evals local -t schema.json -e evals.json`) now or proceed directly to Stage 6 application implementation. It does not silently skip evaluations, and explains that if running evals, it checks for `the provider key (GOOGLE_AI for Gemini)` and suggests using a fast model like `-m gemini-3.5-flash-lite`.",
+      "assertions": [
+        "The agent proactively asks the user whether to run evaluations (npx webmcp-evals local) or proceed to Stage 6 application implementation",
+        "The agent emphasizes that running evaluations is an explicit choice for the user rather than an unmentioned afterthought or silent skip",
+        "The agent says to check that the webmcp-evals provider key is set, naming GOOGLE_AI for Gemini (or OPENAI_API_KEY / ANTHROPIC_API_KEY), and does not tell the user to set GEMINI_API_KEY"
+      ]
+    },
+    {
+      "id": "stage-5-evals-format-constraints-and-mock-output",
+      "prompt": "In `evals.json`, how do we test string arguments with regex patterns, pass mock data to downstream steps in multi-step trajectories, and format mid-chain failure messages?",
+      "expected_output": "The agent explains that regex matching requires the `$pattern` constraint object (e.g. `{ \"field\": { \"$pattern\": \"...\" } }`) rather than slash string literals, multi-step trajectories provide `mockOutput` in `expectedCall` so downstream steps receive mock IDs instead of empty objects `{}`, and mid-chain failure messages use lowercase `\"type\": \"functioncall\"` and `\"type\": \"functionresponse\"` with payload nested in `\"response\": { \"result\": ... }`.",
+      "assertions": [
+        "The agent specifies using the $pattern constraint object for regex matching (rather than regex slash strings)",
+        "The agent explains using mockOutput in expectedCall for multi-step trajectories so subsequent steps receive mock state",
+        "The agent specifies lowercase functioncall and functionresponse message types with nested response payload"
+      ]
+    },
+    {
+      "id": "stage-6-react-implementation",
+      "prompt": "Write the implementation code for search_hotels tool in a React component.",
+      "expected_output": "React implementation using useWebMCP from use-webmcp-tool with readOnlyHint: true and no deprecated APIs.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output includes readOnlyHint: true",
+        "The output does NOT include navigator.modelContext",
+        "The output does NOT include unregisterTool"
+      ]
+    },
+    {
+      "id": "stage-6-angular-implementation",
+      "prompt": "Write the implementation code for search_hotels tool in an Angular application config.",
+      "expected_output": "Angular implementation using provideExperimentalWebMcpTools without deprecated navigator.modelContext.",
+      "assertions": [
+        "The output uses provideExperimentalWebMcpTools",
+        "The output does NOT include navigator.modelContext",
+        "The agent read references/angular-patterns.md",
+        "The agent did NOT read references/react-patterns.md",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "stage-6-angular-route-auto-cleanup",
+      "prompt": "How do we configure WebMCP tools in Angular so they are only available on the `/dashboard` route and automatically clean up when the user navigates away?",
+      "expected_output": "The agent shows configuring `provideRouter(routes, withExperimentalAutoCleanupInjectors())` in `appConfig`, and declaring `providers: [provideExperimentalWebMcpTools([...])]` on the `/dashboard` route in `app.routes.ts`.",
+      "assertions": [
+        "The output uses withExperimentalAutoCleanupInjectors with provideRouter",
+        "The output declares provideExperimentalWebMcpTools in route providers",
+        "The agent explains that this automatically cleans up tools upon route navigation"
+      ]
+    },
+    {
+      "id": "stage-6-angular-signal-forms",
+      "prompt": "How do we expose an Angular Signal Form as an AI-callable WebMCP tool without manually authoring a JSON Schema?",
+      "expected_output": "The agent provides `provideExperimentalWebMcpForms()` in root providers, and adds `experimentalWebMcpTool: { name: '...', description: '...' }` to the `form()` configuration, noting that types are inferred from the initial model signals.",
+      "assertions": [
+        "The output includes provideExperimentalWebMcpForms",
+        "The output configures experimentalWebMcpTool in the form() setup",
+        "The agent notes that parameter types are inferred automatically from initial signal values"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-abortcontroller",
+      "prompt": "Write the implementation code for search_hotels tool in vanilla JavaScript.",
+      "expected_output": "Vanilla JS implementation registering on document.modelContext with AbortController/signal lifecycle management.",
+      "assertions": [
+        "The output registers tools on document.modelContext using registerTool",
+        "The output includes AbortController or signal lifecycle management"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-cancellation-signal",
+      "prompt": "When authoring a native WebMCP tool on `document.modelContext.registerTool`, how should the `execute` callback handle cancellation when the user or agent aborts the call midway through a long fetch?",
+      "expected_output": "The agent explains that `execute(input, { signal })` receives an `AbortSignal` in its second argument, and code must forward `{ signal }` to `fetch()` or async operations so in-flight HTTP requests abort immediately upon cancellation.",
+      "assertions": [
+        "The agent explains that the execute callback receives { signal } in its second argument",
+        "The agent demonstrates forwarding the signal to fetch() or abortable async operations"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-consumer-discovery",
+      "prompt": "We are building an in-browser assistant panel. How do we discover available WebMCP tools on the current page, execute one programmatically, and listen for dynamic tool additions or removals?",
+      "expected_output": "The agent shows calling `document.modelContext.getTools()` to list tools, `document.modelContext.executeTool(tool, jsonPayload, { signal })` to run a tool, and listening to `document.modelContext.addEventListener('toolchange', ...)` for catalog changes.",
+      "assertions": [
+        "The output uses document.modelContext.getTools()",
+        "The output uses document.modelContext.executeTool()",
+        "The output listens to the toolchange event on document.modelContext",
+        "The output passes executeTool arguments as a plain object, not as a JSON.stringify string (JSON-string arguments are deprecated from Chrome 155)"
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-structured-errors",
+      "prompt": "In native `document.modelContext.registerTool`, what happens if the `execute` function rejects or throws an unhandled error, and how should recoverable errors be returned so the agent can self-correct?",
+      "expected_output": "The agent explains that unhandled throws/rejections in native WebMCP are converted by the browser into a generic `DOMException: UnknownError`, discarding error details. To allow the agent to self-correct, the tool should resolve with a structured error payload (e.g. `{ error, code, retryable }`).",
+      "assertions": [
+        "The agent explains that unhandled rejections map to a generic UnknownError in native WebMCP",
+        "The agent instructs resolving with a structured error payload rather than rejecting"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-forms",
+      "prompt": "How do I expose a search tool using declarative HTML forms?",
+      "expected_output": "Declarative HTML form using standard toolname and toolautosubmit attributes, handling submission with event.respondWith.",
+      "assertions": [
+        "The output includes the toolname attribute on the form",
+        "The output includes the toolautosubmit attribute",
+        "The output uses event.respondWith to return the tool result",
+        "The tool description says when the agent should use the tool (What + When), not only what it does"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-structured-validation",
+      "prompt": "In a declarative WebMCP `<form>`, how should our submit event listener return field validation errors back to the AI agent when required form fields are missing or invalid?",
+      "expected_output": "The agent explains checking `event.agentInvoked`, collecting field-level errors (e.g. `[{ field, message }]`), and resolving them via `event.respondWith(Promise.resolve(errors))` rather than calling `Promise.reject()`, ensuring the model receives specific field correction guidance.",
+      "assertions": [
+        "The output checks event.agentInvoked",
+        "The output resolves structured field validation errors via event.respondWith",
+        "The agent explains that resolving errors prevents them from being swallowed as generic DOMException errors"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-lifecycle-and-styling",
+      "prompt": "How can a web application provide visual feedback to users when an AI agent is actively populating and submitting a declarative WebMCP form?",
+      "expected_output": "The agent explains listening to lifecycle events `toolactivated` and `toolcancel` on `document.modelContext` to toggle UI banners or indicators, and styling `:tool-form-active` and `:tool-submit-active` pseudo-classes to highlight the form and submit buttons.",
+      "assertions": [
+        "The output references document.modelContext lifecycle events toolactivated and toolcancel",
+        "The output references CSS pseudo-classes :tool-form-active or :tool-submit-active"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-autosubmit-policy",
+      "prompt": "When should the `toolautosubmit` attribute be omitted from a declarative WebMCP `<form>` element, and what behavior does omitting it trigger?",
+      "expected_output": "The agent explains that `toolautosubmit` must be omitted for financial transactions, deletions, or high-risk actions to keep the human in the loop. Omitting it causes the browser to pre-fill the form fields and highlight the submit button (`:tool-submit-active`), leaving the final submit click to the user.",
+      "assertions": [
+        "The agent specifies omitting toolautosubmit for financial, destructive, or high-risk actions",
+        "The agent explains that omitting toolautosubmit pre-fills the form and requires the human user to confirm submission"
+      ]
+    },
+    {
+      "id": "stage-6-react-error-handling",
+      "prompt": "In useWebMCP, how should I handle a validation error when the user provides an invalid flight date?",
+      "expected_output": "Instructs throwing an Error instance (throw new Error) so the tool result receives isError: true, and advises against returning error objects.",
+      "assertions": [
+        "The agent instructs throwing an Error (e.g. throw new Error) so the tool result receives isError: true",
+        "The agent advises against returning error objects as successful responses"
+      ]
+    },
+    {
+      "id": "stage-6-react-polymorphic",
+      "prompt": "Write the implementation code for a polymorphic tool list_items in a React component that queries across multiple entity types (issues and bug reports).",
+      "expected_output": "React implementation using useWebMCP and Promise.all for concurrent fetching with readOnlyHint: true.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output uses Promise.all for concurrent entity fetching",
+        "The output includes readOnlyHint: true"
+      ]
+    },
+    {
+      "id": "stage-6-react-enabled-gating",
+      "prompt": "In a multi-step checkout wizard React component that handles 'cart', 'shipping', and 'payment' steps, how do we expose the `apply_coupon` tool only during the 'payment' step without unmounting the wizard component?",
+      "expected_output": "The agent uses the `enabled` option of `useWebMCP` (e.g. `enabled: currentStep === 'payment'`), explaining that this conditionally registers the tool with the browser model context only during the valid wizard step and unregisters it when leaving that step.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The output configures the enabled property (e.g. enabled: currentStep === 'payment')",
+        "The agent explains that enabled conditionally registers and unregisters the tool based on component state"
+      ]
+    },
+    {
+      "id": "stage-6-react-schema-stability",
+      "prompt": "A developer notices that their React component re-registers its WebMCP tool on every re-render even though the tool name didn't change. Why does `useWebMCP` do this, and how can the developer prevent registration churn?",
+      "expected_output": "The agent explains that `useWebMCP` checks registration dependencies using `JSON.stringify()` for `inputSchema` and `annotations`. If inline schema objects are recreated with different key ordering or dynamically constructed on each render, it triggers unnecessary unregister and re-register cycles. The fix is to hoist schema objects outside the component or ensure stable object literal key ordering.",
+      "assertions": [
+        "The output includes 'JSON.stringify'",
+        "The agent identifies key-order sensitivity or inline object recreation as the cause of re-registration churn",
+        "The agent recommends hoisting schema definitions outside the component to keep them stable"
+      ]
+    },
+    {
+      "id": "stage-6-react-unit-testing",
+      "prompt": "How do we write a deterministic unit test in Vitest and React Testing Library to verify that our React component's WebMCP tool executes and updates component state, without calling any AI models?",
+      "expected_output": "The agent writes a test that mocks `document.modelContext.registerTool`, renders the component, captures the registered tool definition and options from the mock, executes `tool.execute(...)` directly, and asserts expected return values and DOM/state updates.",
+      "assertions": [
+        "The test mocks document.modelContext.registerTool",
+        "The test renders the React component and inspects mock calls to registerTool",
+        "The test directly invokes tool.execute with test parameters and asserts the result or state update"
+      ]
+    },
+    {
+      "id": "stage-6-declarative-api-failure",
+      "prompt": "Write a declarative WebMCP <form> for reserving a restaurant table. Its submit handler posts to our /api/reservations endpoint. How should the handler report a failed API call (for example, no availability or a 500 error) back to the AI agent?",
+      "expected_output": "A <form toolname tooldescription> whose submit listener checks event.agentInvoked and passes a promise to event.respondWith. When the API call fails, that promise resolves with a structured error payload (e.g. { error, code, retryable, suggestion }) instead of throwing, rethrowing in .catch, or rejecting, because a rejected respondWith promise reaches the agent only as a generic DOMException: UnknownError.",
+      "assertions": [
+        "The output uses event.respondWith to return the result to the agent",
+        "When the API call fails, the promise passed to event.respondWith resolves with a structured error payload (e.g. { error, code, retryable }) rather than throwing, rethrowing inside .catch, or rejecting",
+        "The agent explains that a rejected event.respondWith promise reaches the agent only as a generic DOMException: UnknownError"
+      ]
+    },
+    {
+      "id": "stage-6-react-polymorphic-roundtrip",
+      "prompt": "Write React useWebMCP tools for our project tracker: list_items, which searches across issues and bug reports, and move_items, which moves a batch of items to a sprint.",
+      "expected_output": "Two useWebMCP tools from use-webmcp-tool. list_items tags each result with a type value, and move_items accepts items: [{ type, id }] whose type enum uses exactly the same values as list_items (either both singular or both plural), so list_items output is valid move_items input. list_items fetches entity types concurrently with Promise.all.",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "move_items accepts an array of { type, id } items",
+        "The type values list_items returns for each item are the same set of strings move_items accepts for items[].type (either both singular or both plural). It is a failure only if they differ, e.g. list_items returns 'issues' while move_items accepts 'issue'."
+      ]
+    },
+    {
+      "id": "stage-6-vanilla-store-errors",
+      "prompt": "Write a Vue 3 composable that registers an add_to_cart WebMCP tool with document.modelContext.registerTool, backed by a Pinia cart store whose addItem() can throw (for example, when an item is out of stock).",
+      "expected_output": "A composable that registers add_to_cart on document.modelContext with an AbortController signal and returns a cleanup that aborts it. The execute callback wraps cartStore.addItem in try/catch and resolves a structured error payload (e.g. { error, code, retryable }) on failure, because an unhandled throw in native registerTool reaches the agent only as a generic DOMException: UnknownError.",
+      "assertions": [
+        "The output registers the tool with document.modelContext.registerTool and unregisters it via AbortController",
+        "The execute callback catches failures from cartStore.addItem and resolves a structured error payload (e.g. { error, code, retryable }) instead of letting the error propagate as a rejection"
+      ]
+    },
+    {
+      "id": "stage-6-typescript-webmcp-types",
+      "prompt": "We're adding WebMCP tools to our existing TypeScript app. We already wrote our own types for it in src/webmcp.d.ts:\n\n```ts\ninterface WebMCPTool {\n  name: string;\n  description: string;\n  inputSchema: object;\n  execute: (args: Record<string, unknown>) => string | Promise<string>;\n}\n\ninterface ModelContext {\n  registerTool(tool: WebMCPTool, options?: { signal?: AbortSignal }): void;\n}\n\ndeclare global {\n  interface Document {\n    modelContext?: ModelContext;\n  }\n}\n```\n\nIs this a good setup for our WebMCP types?",
+      "expected_output": "The agent recommends replacing the hand-written declarations with the webmcp-types package (npm install -D webmcp-types), which is maintained with the WebMCP spec and augments the global DOM types, and shows how to enable it: add \"webmcp-types\" to compilerOptions.types in tsconfig.json (adding to any existing types array, since listing types restricts which @types packages are included) or use /// <reference types=\"webmcp-types\" />. It explains that hand-written types drift from the spec and miss parts of the API, e.g. this execute signature has no second argument, so the execution cancellation signal is never available, and annotations are missing.",
+      "assertions": [
+        "The agent recommends replacing the hand-written WebMCP declarations with the webmcp-types package",
+        "The agent explains at least one way to enable webmcp-types (either compilerOptions.types in tsconfig.json, or a /// <reference types=\"webmcp-types\" /> directive; one is enough)",
+        "The agent explains that hand-written types drift from the spec or miss parts of the API, such as the execute callback's second argument with the cancellation signal, or annotations"
+      ]
+    }
+  ]
+}

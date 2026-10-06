@@ -1,0 +1,29 @@
+{
+  "tools": [
+    {
+      "name": "search_hotels",
+      "description": "Finds available hotel rooms for a stay. Use when the user wants to see hotel options, prices, or availability before choosing one.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "destination": { "type": "string", "description": "City or area as the user said it" },
+          "check_in": { "type": "string", "description": "Check-in date as the user expressed it" },
+          "nights": { "type": "integer", "description": "Number of nights" }
+        },
+        "required": ["destination", "check_in"]
+      },
+      "annotations": { "readOnlyHint": true }
+    },
+    {
+      "name": "initiate_booking",
+      "description": "Opens the booking confirmation screen for a chosen room. Use when the user has picked a room and wants to book it.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "room_id": { "type": "string", "description": "Room identifier from search results" }
+        },
+        "required": ["room_id"]
+      }
+    }
+  ]
+}
