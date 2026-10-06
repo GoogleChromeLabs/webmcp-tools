@@ -21,6 +21,7 @@ describe("CLI backend option scope", () => {
     assert.match(help("browser", "--help"), /--backend/);
     assert.doesNotMatch(help("smoke", "--help"), /--backend/);
     assert.doesNotMatch(help("simulate", "--help"), /--backend/);
+    assert.match(help("simulate", "--help"), /--open/);
   });
 
   it("rejects --backend instead of accepting it for simulate", () => {

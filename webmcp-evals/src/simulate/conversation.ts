@@ -15,7 +15,7 @@ import {
   UserTurnResult,
   UserVisibleMessage,
 } from "./userSimulator.js";
-import { withTimeout } from "./toolSequence.js";
+import { TimeoutError, withTimeout } from "./toolSequence.js";
 
 /** One exchange: what the user said, and everything the agent did in reply. */
 export type ConversationTurn = {
@@ -208,7 +208,11 @@ export async function runConversation(
 
       if (agentResult.error) {
         // An abort we asked for is the budget expiring, not the agent failing.
-        if (remainingMs() <= 0) {
+        if (
+          controller.signal.aborted ||
+          agentResult.error instanceof TimeoutError ||
+          remainingMs() <= 0
+        ) {
           endedBy = "timeout";
         } else {
           endedBy = "error";
@@ -226,7 +230,7 @@ export async function runConversation(
       history.push(...agentResult.responseMessages);
     }
   } catch (thrown) {
-    if (remainingMs() <= 0) {
+    if (thrown instanceof TimeoutError || remainingMs() <= 0) {
       endedBy = "timeout";
     } else {
       endedBy = "error";

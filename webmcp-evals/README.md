@@ -192,6 +192,7 @@ npx webmcp-evals simulate \
 | `--judge-model <model>`         | No       | Analyzer model | Model used for cases that define prose success criteria      |
 | `--max-duration <milliseconds>` | No       | `300000`       | Fallback wall-clock budget when a case omits `maxDurationMs` |
 | `--timeout <milliseconds>`      | No       | `30000`        | Timeout per navigation, setup tool call, or judge request    |
+| `--open`                        | No       | `false`        | Automatically open the HTML report in the browser            |
 | `-v, --verbose`                 | No       | `false`        | Print live page and conversation logs                        |
 
 The global `--runs`, `--max-steps`, `--reporter`, `--output-dir`, and `--chrome-channel`

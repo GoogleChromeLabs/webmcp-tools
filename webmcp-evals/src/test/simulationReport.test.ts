@@ -285,6 +285,8 @@ describe("renderSimulationReport", () => {
     assert.ok(!cardOf(passing).includes("open"), "a passing card stays collapsed");
     assert.ok(cardOf(failing).includes("open"), "a failing card opens by default");
     assert.ok(cardOf(errored).includes("open"), "an errored card opens by default");
+    assert.match(errored, /border-amber-200/);
+    assert.doesNotMatch(errored, /border-rose-200/);
   });
 
   it("explains an errored run instead of implying a verdict", () => {

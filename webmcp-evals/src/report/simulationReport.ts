@@ -32,16 +32,18 @@ type SimulationGroup = {
   name: string;
   runs: SimulationResult[];
   passCount: number;
+  failCount: number;
 };
 
 function groupBySimulation(results: SimulationResult[]): SimulationGroup[] {
   const groups = new Map<string, SimulationGroup>();
   for (const result of results) {
     const name = result.simulation.name;
-    if (!groups.has(name)) groups.set(name, { name, runs: [], passCount: 0 });
+    if (!groups.has(name)) groups.set(name, { name, runs: [], passCount: 0, failCount: 0 });
     const group = groups.get(name)!;
     group.runs.push(result);
     if (result.outcome === "pass") group.passCount++;
+    if (result.outcome === "fail") group.failCount++;
   }
   return [...groups.values()];
 }
@@ -123,8 +125,8 @@ function renderSetupCalls(setupCalls?: ToolCallOutcome[]): string {
                   : ""
               }
             </div>
-            <pre class="whitespace-pre-wrap text-xs text-slate-600 font-mono m-0">${escapeHtml(JSON.stringify(call.arguments, null, 2))}</pre>
-            <pre class="whitespace-pre-wrap text-xs ${call.outcome === "error" ? "text-amber-800" : "text-slate-500"} font-mono m-0">${escapeHtml(
+            <pre class="whitespace-pre-wrap break-words text-xs text-slate-600 font-mono m-0">${escapeHtml(JSON.stringify(call.arguments, null, 2))}</pre>
+            <pre class="whitespace-pre-wrap break-words text-xs ${call.outcome === "error" ? "text-amber-800" : "text-slate-500"} font-mono m-0">${escapeHtml(
               call.outcome === "error" ? call.error || "" : JSON.stringify(call.result ?? null),
             )}</pre>
           </li>`,
@@ -220,11 +222,11 @@ function renderVerdict(verdict: SimulationVerdict, criteria: string): string {
     <div class="space-y-3">
       <div class="bg-white rounded-lg border border-slate-200 p-3">
         <h5 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Success criteria, as authored</h5>
-        <p class="text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(criteria)}</p>
+        <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(criteria)}</p>
       </div>
       <div class="bg-white rounded-lg border border-slate-200 p-3">
         <h5 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Judge's reasoning</h5>
-        <p class="text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(verdict.reasoning)}</p>
+        <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(verdict.reasoning)}</p>
       </div>
       <div class="bg-white rounded-lg border border-slate-200 p-3">
         <h5 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Evidence the judge cited</h5>
@@ -232,7 +234,7 @@ function renderVerdict(verdict: SimulationVerdict, criteria: string): string {
           ${verdict.evidence
             .map(
               (item) =>
-                `<li class="border-l-2 border-blue-300 pl-3 text-xs text-slate-700 font-mono whitespace-pre-wrap">${escapeHtml(item)}</li>`,
+                `<li class="border-l-2 border-blue-300 pl-3 text-xs text-slate-700 font-mono whitespace-pre-wrap break-words">${escapeHtml(item)}</li>`,
             )
             .join("")}
         </ul>
@@ -249,7 +251,7 @@ function renderTurn(turn: ConversationTurn, userLabel: string): string {
       <div class="p-3 space-y-3">
         <div>
           <span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-purple-100 text-purple-800 border-purple-200">${userLabel}</span>
-          <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(turn.userMessage)}</p>
+          <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(turn.userMessage)}</p>
         </div>
         ${
           turn.toolCalls.length > 0
@@ -263,7 +265,7 @@ function renderTurn(turn: ConversationTurn, userLabel: string): string {
         }
         <div>
           <span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-blue-100 text-blue-800 border-blue-200">Agent</span>
-          <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap">${
+          <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap break-words">${
             turn.agentText.trim()
               ? escapeHtml(turn.agentText)
               : '<em class="text-slate-400">Said nothing.</em>'
@@ -312,7 +314,7 @@ function renderRun(result: SimulationResult, totalRuns: number): string {
             result.error
               ? `<div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
                    <h5 class="text-xs font-semibold text-amber-900 uppercase tracking-wider mb-1">Run error</h5>
-                   <pre class="whitespace-pre-wrap text-xs text-amber-900 font-mono m-0">${escapeHtml(result.error)}</pre>
+                   <pre class="whitespace-pre-wrap break-words text-xs text-amber-900 font-mono m-0">${escapeHtml(result.error)}</pre>
                  </div>`
               : ""
           }
@@ -322,7 +324,7 @@ function renderRun(result: SimulationResult, totalRuns: number): string {
               : result.simulation.successCriteria
                 ? `<div class="bg-white rounded-lg border border-slate-200 p-3">
                    <h5 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Success criteria, as authored</h5>
-                   <p class="text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(result.simulation.successCriteria)}</p>
+                   <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(result.simulation.successCriteria)}</p>
                  </div>`
                 : ""
           }
@@ -330,7 +332,7 @@ function renderRun(result: SimulationResult, totalRuns: number): string {
           ${renderSetupCalls(result.setupCalls)}
           <div class="bg-white rounded-lg border border-slate-200 p-3">
             <h5 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">${directMessage !== undefined ? "Direct user message" : "The user's brief"}</h5>
-            <p class="text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(directMessage ?? result.simulation.userScenario)}</p>
+            <p class="text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(directMessage ?? result.simulation.userScenario)}</p>
           </div>
           <div class="space-y-3">
             <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Conversation</h4>
@@ -347,7 +349,7 @@ function renderRun(result: SimulationResult, totalRuns: number): string {
               result.conversation?.closingMessage
                 ? `<div class="bg-white rounded-lg border border-slate-200 p-3">
                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-purple-100 text-purple-800 border-purple-200">Simulated user closed</span>
-                     <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap">${escapeHtml(result.conversation.closingMessage)}</p>
+                     <p class="mt-1 text-sm text-slate-700 whitespace-pre-wrap break-words">${escapeHtml(result.conversation.closingMessage)}</p>
                    </div>`
                 : ""
             }
@@ -360,6 +362,7 @@ function renderRun(result: SimulationResult, totalRuns: number): string {
 
 function renderSimulationCard(group: SimulationGroup, index: number, total: number): string {
   const allPassed = group.passCount === group.runs.length;
+  const hasFailures = group.failCount > 0;
   const isOpen = allPassed ? "" : "open";
   const onlyRun = group.runs.length === 1 ? group.runs[0] : undefined;
   const turnsUsed = onlyRun?.verdict?.turnsUsed ?? onlyRun?.conversation?.turnsUsed;
@@ -367,16 +370,26 @@ function renderSimulationCard(group: SimulationGroup, index: number, total: numb
 
   const containerClass = allPassed
     ? "border border-emerald-200 rounded-xl bg-white shadow-sm overflow-hidden"
-    : "border border-rose-200 rounded-xl bg-white shadow-sm overflow-hidden";
+    : hasFailures
+      ? "border border-rose-200 rounded-xl bg-white shadow-sm overflow-hidden"
+      : "border border-amber-200 rounded-xl bg-white shadow-sm overflow-hidden";
   const headerBgClass = allPassed
     ? "bg-emerald-50/40 hover:bg-emerald-50/70"
-    : "bg-rose-50/40 hover:bg-rose-50/70";
-  const titleColorClass = allPassed ? "text-emerald-900" : "text-rose-900";
+    : hasFailures
+      ? "bg-rose-50/40 hover:bg-rose-50/70"
+      : "bg-amber-50/40 hover:bg-amber-50/70";
+  const titleColorClass = allPassed
+    ? "text-emerald-900"
+    : hasFailures
+      ? "text-rose-900"
+      : "text-amber-900";
   const badgeClass = onlyRun
     ? OUTCOME_BADGES[onlyRun.outcome]
     : allPassed
       ? OUTCOME_BADGES.pass
-      : OUTCOME_BADGES.fail;
+      : hasFailures
+        ? OUTCOME_BADGES.fail
+        : OUTCOME_BADGES.error;
   const badgeText = onlyRun
     ? onlyRun.outcome.toUpperCase()
     : `${group.passCount}/${group.runs.length} Passed`;

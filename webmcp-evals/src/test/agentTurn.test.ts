@@ -106,6 +106,7 @@ describe("runAgentTurn", () => {
 
     assert.ok(result.error instanceof Error);
     assert.strictEqual((result.error as Error).message, "aborted");
+    assert.strictEqual(result.text, "Looking for jackets");
     assert.strictEqual(result.steps.length, 1);
     assert.strictEqual(result.steps[0].text, "Looking for jackets");
     assert.deepStrictEqual(result.responseMessages, []);

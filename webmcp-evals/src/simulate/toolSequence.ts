@@ -68,6 +68,13 @@ export type ToolSequenceOptions = {
   onCallPass?: (index: number, result: unknown) => void;
 };
 
+export class TimeoutError extends Error {
+  constructor(label: string, timeoutMs: number) {
+    super(`${label} timed out after ${timeoutMs} ms.`);
+    this.name = "TimeoutError";
+  }
+}
+
 export async function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
@@ -79,10 +86,7 @@ export async function withTimeout<T>(
     return await Promise.race([
       promise,
       new Promise<T>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new Error(`${label} timed out after ${timeoutMs} ms.`)),
-          timeoutMs,
-        );
+        timer = setTimeout(() => reject(new TimeoutError(label, timeoutMs)), timeoutMs);
       }),
     ]);
   } finally {

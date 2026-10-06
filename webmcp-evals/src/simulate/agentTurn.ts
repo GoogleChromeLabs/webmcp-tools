@@ -173,7 +173,10 @@ export async function runAgentTurn(request: AgentTurnRequest): Promise<AgentTurn
     const browserConsoleErrors = consoleErrors();
 
     return {
-      text: "",
+      text: stepsHistory
+        .map((step) => step.text)
+        .filter(Boolean)
+        .join("\n"),
       steps: asTrajectory(stepsHistory),
       toolCalls: collectToolCalls(stepsHistory),
       responseMessages: [],

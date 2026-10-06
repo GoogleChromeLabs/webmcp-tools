@@ -576,7 +576,7 @@ export function renderTrajectory(trajectory?: any[]): string {
             if (thoughts) {
               html +=
                 '<div><em class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Thoughts:</em>' +
-                '<pre class="whitespace-pre-wrap bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
+                '<pre class="whitespace-pre-wrap break-words bg-slate-50 p-3 rounded-md text-sm text-slate-700 border border-slate-200 font-sans">' +
                 escapeHtml(thoughts) +
                 "</pre></div>";
             }

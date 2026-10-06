@@ -390,11 +390,6 @@ export async function runSimulateCommand(
   const url = opts.url!;
   const simulationsFile = opts.simulations!;
 
-  process.on("SIGINT", () => {
-    console.log("\nGracefully shutting down from SIGINT (Ctrl-C)");
-    process.exit(1);
-  });
-
   try {
     const config: SimulationConfig = {
       url,

@@ -69,16 +69,6 @@ function testName(test: Eval, testIndex: number): string {
   return `Test ${testIndex + 1}`;
 }
 
-function constraintKeys(value: unknown): string[] {
-  if (Array.isArray(value)) return value.flatMap(constraintKeys);
-  if (value === null || typeof value !== "object") return [];
-
-  const entries = Object.entries(value as Record<string, unknown>);
-  const dollarKeys = entries.map(([key]) => key).filter((key) => key.startsWith("$"));
-  const childKeys = entries.flatMap(([, child]) => constraintKeys(child));
-  return [...dollarKeys, ...childKeys];
-}
-
 export function resolveConcreteValue(key: string, value: unknown): any {
   if (value === null || typeof value !== "object") {
     return value;

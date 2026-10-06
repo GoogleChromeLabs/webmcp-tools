@@ -446,8 +446,14 @@ describe("loadSimulations", () => {
     assert.strictEqual(parsed[0].name, "Find and add a leather jacket to the cart");
     assert.strictEqual(parsed[1].name, "Add a leather jacket and matching gloves to the cart");
     assert.strictEqual(parsed[0].successCriteria, undefined);
-    assert.strictEqual(parsed[0].userMessage, "Find a leather jacket and add one to my shopping bag.");
-    assert.strictEqual(parsed[1].userMessage, "Add one leather jacket and one pair of leather gloves to my shopping bag. Nothing else.");
+    assert.strictEqual(
+      parsed[0].userMessage,
+      "Find a leather jacket and add one to my shopping bag.",
+    );
+    assert.strictEqual(
+      parsed[1].userMessage,
+      "Add one leather jacket and one pair of leather gloves to my shopping bag. Nothing else.",
+    );
   });
 
   it("loads the shipped Pizza Maker suite", async () => {

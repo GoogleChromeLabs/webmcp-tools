@@ -117,6 +117,7 @@ program
     positiveInteger,
     30000,
   )
+  .option("--open", "Automatically open the HTML report in browser upon completion", false)
   .option("-v, --verbose", "Print live page and turn logs", false)
   .action(runSimulateCommand);
 

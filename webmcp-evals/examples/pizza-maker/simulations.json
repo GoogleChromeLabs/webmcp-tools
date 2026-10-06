@@ -64,7 +64,7 @@
         "arguments": { "topping": "🌽", "count": 3 }
       }
     ],
-    "userScenario": "You already started a medium classic pizza with sauce, mushrooms, and corn. You changed your mind: remove all the corn, keep the mushrooms and sauce, switch the pizza to BBQ style, and give you a shareable link.",
+    "userScenario": "You already started a medium classic pizza with sauce, mushrooms, and corn. You changed your mind and want all the corn removed, the mushrooms and sauce kept, the pizza switched to BBQ style, and a shareable link.",
     "maxTurns": 6,
     "maxDurationMs": 180000,
     "successCriteria": "The existing pizza was changed to BBQ style, all corn was removed, the mushrooms and sauce from the initial state were preserved, and a share URL was produced after the changes. Resetting the pizza, removing the mushrooms or sauce, leaving any corn, or sharing the old state is not success. Tool results must corroborate the changes."
