@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useWebMCPTools } from './useWebMCPTools';
 import {
   INITIAL_DASHBOARD_COMPONENTS,
@@ -14,6 +15,10 @@ import {
 const DashboardContext = createContext();
 
 export function DashboardProvider({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const agentTimerRef = useRef(null);
+
   const [dashboardComponents, setDashboardComponents] = useState(
     INITIAL_DASHBOARD_COMPONENTS
   );
@@ -36,6 +41,25 @@ export function DashboardProvider({ children }) {
     document.body.classList.toggle('hide-dev-inline-info', !showInlineDevInfo);
   }, [showInlineDevInfo]);
 
+  useEffect(() => {
+    return () => {
+      if (agentTimerRef.current) {
+        clearTimeout(agentTimerRef.current);
+      }
+    };
+  }, []);
+
+  const triggerAgentActivity = (durationMs = 2000) => {
+    setIsAgentActive(true);
+    if (agentTimerRef.current) {
+      clearTimeout(agentTimerRef.current);
+    }
+    agentTimerRef.current = setTimeout(() => {
+      setIsAgentActive(false);
+      agentTimerRef.current = null;
+    }, durationMs);
+  };
+
   const playlistTracks = includePlaylistInjection
     ? INITIAL_PLAYLIST_TRACKS
     : INITIAL_PLAYLIST_TRACKS.filter((t) => !t.isPoisoned);
@@ -45,13 +69,12 @@ export function DashboardProvider({ children }) {
     : INITIAL_GUEST_MESSAGES.filter((m) => !m.isPoisoned);
 
   const setLivingRoomLightsState = (power, brightness) => {
-    const nextPower = power === 'off' ? 'off' : 'on';
-    const nextBrightness =
-      typeof brightness === 'number'
+    const clamped =
+      typeof brightness === 'number' && !Number.isNaN(brightness)
         ? Math.max(0, Math.min(100, brightness))
-        : nextPower === 'off'
-        ? 0
-        : 80;
+        : undefined;
+    const nextPower = power === 'off' || clamped === 0 ? 'off' : 'on';
+    const nextBrightness = nextPower === 'off' ? 0 : (clamped ?? 80);
     setLightsPower(nextPower);
     setLightsBrightness(nextBrightness);
     return { nextPower, nextBrightness };
@@ -68,24 +91,44 @@ export function DashboardProvider({ children }) {
       }
       return next;
     });
+    if (location.pathname !== '/' && location.pathname !== '/lights') {
+      navigate('/');
+    }
   };
 
   const ensureLockWidgetVisible = () => {
-    setDashboardComponents((prev) =>
-      prev.includes('lock_front_door') ? prev : ['lock_front_door', ...prev]
-    );
+    setDashboardComponents((prev) => {
+      const next = [...prev];
+      if (location.pathname === '/guestbook' && !next.includes('guest_message_board')) {
+        next.unshift('guest_message_board');
+      }
+      if (!next.includes('lock_front_door')) {
+        next.unshift('lock_front_door');
+      }
+      return next;
+    });
+    if (location.pathname !== '/' && location.pathname !== '/security') {
+      navigate('/');
+    }
+  };
+
+  const ensureDashboardVisible = () => {
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
   };
 
   useWebMCPTools({
     playlistTracks,
     guestMessages,
     setDashboardComponents,
-    setIsAgentActive,
+    triggerAgentActivity,
     setIsFrontDoorLocked,
     setLastLockStatusText,
     setLivingRoomLightsState,
     ensureMediaAndLightsVisible,
     ensureLockWidgetVisible,
+    ensureDashboardVisible,
     useReadOnlyHint,
     useConsequentialHint,
     useUntrustedContentHint,

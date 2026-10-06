@@ -4,17 +4,19 @@
  */
 
 import { useWebMCP } from 'use-webmcp-tool';
+import { AVAILABLE_COMPONENT_IDS } from './initialData';
 
 export function useWebMCPTools({
   playlistTracks,
   guestMessages,
   setDashboardComponents,
-  setIsAgentActive,
+  triggerAgentActivity,
   setIsFrontDoorLocked,
   setLastLockStatusText,
   setLivingRoomLightsState,
   ensureMediaAndLightsVisible,
   ensureLockWidgetVisible,
+  ensureDashboardVisible,
   useReadOnlyHint,
   useConsequentialHint,
   useUntrustedContentHint,
@@ -27,8 +29,8 @@ export function useWebMCPTools({
   }) => {
     return {
       readOnlyHint: useReadOnlyHint ? Boolean(readOnlyHint) : false,
-      untrustedContentHint: useUntrustedContentHint ? untrustedContentHint : false,
-      consequentialHint: useConsequentialHint ? consequentialHint : false,
+      untrustedContentHint: useUntrustedContentHint ? Boolean(untrustedContentHint) : false,
+      consequentialHint: useConsequentialHint ? Boolean(consequentialHint) : false,
     };
   };
 
@@ -45,8 +47,7 @@ export function useWebMCPTools({
       untrustedContentHint: true,
     }),
     execute: async () => {
-      setIsAgentActive(true);
-      setTimeout(() => setIsAgentActive(false), 1500);
+      triggerAgentActivity(1500);
       return JSON.stringify(
         playlistTracks.map((t, idx) => ({
           position: idx + 1,
@@ -83,14 +84,13 @@ export function useWebMCPTools({
       consequentialHint: false,
     }),
     execute: async (input) => {
-      setIsAgentActive(true);
+      triggerAgentActivity(2000);
       const { nextPower, nextBrightness } = setLivingRoomLightsState(
         input.power,
         input.brightness
       );
       ensureMediaAndLightsVisible();
 
-      setTimeout(() => setIsAgentActive(false), 2000);
       return `Living room lights set to ${nextPower.toUpperCase()} (${nextBrightness}% brightness).`;
     },
   });
@@ -104,7 +104,10 @@ export function useWebMCPTools({
       properties: {
         componentIds: {
           type: 'array',
-          items: { type: 'string' },
+          items: {
+            type: 'string',
+            enum: AVAILABLE_COMPONENT_IDS,
+          },
           description:
             "Array of component IDs to display on the dashboard. Examples: 'thermostat_control', 'camera_front_door', 'lock_front_door', 'guest_message_board', 'smart_lights_living_room', 'energy_summary', 'weather_widget', 'media_player_living_room', 'alarm_panel', 'air_quality_sensor', 'solar_grid'",
         },
@@ -115,10 +118,13 @@ export function useWebMCPTools({
       consequentialHint: false,
     }),
     execute: async (input) => {
-      setIsAgentActive(true);
-      setDashboardComponents(input.componentIds);
+      triggerAgentActivity(2000);
+      const uniqueIds = Array.isArray(input?.componentIds)
+        ? [...new Set(input.componentIds)]
+        : [];
+      setDashboardComponents(uniqueIds);
+      ensureDashboardVisible();
 
-      setTimeout(() => setIsAgentActive(false), 2000);
       return 'Dashboard successfully updated with requested components.';
     },
   });
@@ -134,12 +140,11 @@ export function useWebMCPTools({
       consequentialHint: false,
     }),
     execute: async () => {
-      setIsAgentActive(true);
+      triggerAgentActivity(2000);
       setIsFrontDoorLocked(true);
       setLastLockStatusText('Locked • Just now');
       ensureLockWidgetVisible();
 
-      setTimeout(() => setIsAgentActive(false), 2000);
       return 'Front door locked successfully.';
     },
   });
@@ -156,12 +161,11 @@ export function useWebMCPTools({
       consequentialHint: true,
     }),
     execute: async () => {
-      setIsAgentActive(true);
+      triggerAgentActivity(2000);
       setIsFrontDoorLocked(false);
       setLastLockStatusText('Unlocked • Just now');
       ensureLockWidgetVisible();
 
-      setTimeout(() => setIsAgentActive(false), 2000);
       return 'Front door unlocked successfully.';
     },
   });
@@ -180,8 +184,7 @@ export function useWebMCPTools({
       consequentialHint: false,
     }),
     execute: async () => {
-      setIsAgentActive(true);
-      setTimeout(() => setIsAgentActive(false), 1500);
+      triggerAgentActivity(1500);
       return JSON.stringify(
         guestMessages.map(({ author, timestamp, text }) => ({
           author,

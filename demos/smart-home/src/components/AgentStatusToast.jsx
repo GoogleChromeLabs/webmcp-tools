@@ -14,6 +14,8 @@ export function AgentStatusToast() {
       {isAgentActive && (
         <motion.div
           className="agent-status-toast"
+          role="status"
+          aria-live="polite"
           initial={{ opacity: 0, y: -16, x: '-50%' }}
           animate={{ opacity: 1, y: 0, x: '-50%' }}
           exit={{ opacity: 0, y: -16, x: '-50%' }}

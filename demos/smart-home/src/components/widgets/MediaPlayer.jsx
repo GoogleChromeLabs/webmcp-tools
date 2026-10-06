@@ -39,10 +39,18 @@ export const MediaPlayer = () => {
             <p className="media-current-artist">{currentTrack.artist}</p>
           </div>
           <div className="media-transport-controls">
-            <button className="glass-btn media-transport-btn">
+            <button
+              type="button"
+              className="glass-btn media-transport-btn"
+              aria-label="Play"
+            >
               <Play size={14} />
             </button>
-            <button className="glass-btn media-transport-btn">
+            <button
+              type="button"
+              className="glass-btn media-transport-btn"
+              aria-label="Skip forward"
+            >
               <SkipForward size={14} />
             </button>
           </div>

@@ -129,6 +129,7 @@
 }
 
 /* Media Player Widget */
+.bento-grid > :has(> .media-card),
 .card.media-card {
   position: relative;
   overflow: hidden;
@@ -264,6 +265,7 @@
 }
 
 /* Guest Message Board Widget */
+.bento-grid > :has(> .guestbook-card),
 .card.guestbook-card {
   position: relative;
   overflow: hidden;
@@ -273,6 +275,7 @@
   gap: 16px;
 }
 
+.bento-grid > :has(> .guestbook-card--expanded),
 .card.guestbook-card--expanded {
   grid-column: 1 / -1;
 }
@@ -327,6 +330,7 @@
   margin-bottom: 14px;
   word-break: break-word;
   font-weight: 600;
+  color: #1e293b;
 }
 
 .sticky-note__footer {

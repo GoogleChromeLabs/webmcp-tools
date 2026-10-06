@@ -221,7 +221,7 @@ background-color: #121212e3;
 /* Typography */
 h1 { font-size: 32px; font-weight: 600; margin-bottom: 8px; }
 h3 { font-size: 16px; font-weight: 500; color: var(--text-primary); }
-p { font-size: 14px; }
+p { font-size: 14px; color: var(--text-secondary); }
 
 /* Inline Developer Indicators */
 .dev-inline-badge {
@@ -259,7 +259,7 @@ body.hide-dev-inline-info .dev-inline-badge {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 0px 4px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: var(--accent);
   border: 1px solid var(--accent);

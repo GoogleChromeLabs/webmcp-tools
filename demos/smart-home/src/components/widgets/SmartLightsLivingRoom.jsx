@@ -60,6 +60,7 @@ export const SmartLightsLivingRoom = () => {
           type="range"
           min="0"
           max="100"
+          aria-label="Living room lights brightness"
           value={isOn ? lightsBrightness : 0}
           onChange={(e) => {
             const val = Number(e.target.value);
