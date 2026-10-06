@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Activity, LayoutDashboard, Music, Shield, Thermometer } from 'lucide-react';
+import { Activity, LayoutDashboard, Lightbulb, MessageSquare, Music, Shield, Thermometer } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 export function Sidebar() {
   return (
     <div className="sidebar">
-      <h2 style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <h3 style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <LayoutDashboard size={24} /> WebMCP Smart Home
-      </h2>
+      </h3>
       
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '40px' }}>
         <NavLink to="/" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
@@ -20,14 +20,20 @@ export function Sidebar() {
         <NavLink to="/security" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
           <Shield size={18} /> Security
         </NavLink>
-        <NavLink to="/climate" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
-          <Thermometer size={18} /> Climate
+        <NavLink to="/lights" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
+          <Lightbulb size={18} /> Lighting
         </NavLink>
         <NavLink to="/energy" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
           <Activity size={18} /> Energy
         </NavLink>
         <NavLink to="/media" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
-          <Music size={18} /> Media
+          <Music size={18} /> Media & Appliances
+        </NavLink>
+        <NavLink to="/guestbook" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
+          <MessageSquare size={18} /> Guest Board
+        </NavLink>
+        <NavLink to="/climate" className={({isActive}) => `glass-btn ${isActive ? 'active' : ''}`}>
+          <Thermometer size={18} /> Climate & Environment
         </NavLink>
       </nav>
     </div>

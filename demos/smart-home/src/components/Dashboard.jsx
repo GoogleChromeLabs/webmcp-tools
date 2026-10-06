@@ -9,7 +9,7 @@ import { COMPONENT_MAP } from './SmartComponents';
 
 
 export function Dashboard() {
-  const { dashboardComponents, isAgentActive } = useDashboard();
+  const { dashboardComponents } = useDashboard();
 
   return (
     <div className="main-content">
@@ -17,30 +17,6 @@ export function Dashboard() {
         <h1>Welcome Home</h1>
         <p>Everything is running smoothly.</p>
       </div>
-
-      <AnimatePresence>
-        {isAgentActive && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            style={{
-              background: 'var(--accent-glow)',
-              border: '1px solid var(--accent)',
-              borderRadius: '12px',
-              padding: '16px',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              color: 'var(--accent)'
-            }}
-          >
-            <span className="animate-spin" style={{ fontSize: '20px' }}>⚙️</span> 
-            Updating dashboard components...
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="bento-grid">
         <AnimatePresence>
