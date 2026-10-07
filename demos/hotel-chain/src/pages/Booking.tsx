@@ -74,12 +74,7 @@ export default function Booking() {
       nativeEvent.respondWith({ success: true, message: "Reservation confirmed successfully." });
     }
 
-    // Yield to the browser's macrotask queue. 
-    // This allows the native 'submit' event to finish bubbling up to the
-    // document level before React synchronously destroys the <form> DOM node.
-    setTimeout(() => {
-      setSuccess(true);
-    }, 0);
+    setSuccess(true);
   };
 
   if (success) {
