@@ -256,7 +256,7 @@ const onToolActivated = ({ toolName }) => {
   validateForm();
 };
 
-if ('ontoolactivated' in document.modelContext) {
+if ('ontoolactivated' in (document.modelContext ?? {})) {
   document.modelContext.addEventListener('toolactivated', onToolActivated);
 } else {
   window.addEventListener('toolactivated', onToolActivated);
