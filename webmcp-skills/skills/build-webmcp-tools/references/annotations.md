@@ -17,7 +17,6 @@ In WebMCP and the underlying Model Context Protocol specification, tool annotati
 
 - Routine mutating tools that do not return untrusted content (e.g. `add_to_cart`, `set_filters`, `update_quantity`) do **not** need an `annotations` property at all.
 - Do not add `annotations: { readOnlyHint: false, consequentialHint: false }` boilerplate. Omitting hints is the standard, canonical representation.
-- In libraries like `use-webmcp-tool` v0.2.0, `consequentialHint` is omitted from the `ToolAnnotations` type, so specifying redundant `: false` properties also triggers unnecessary TypeScript typing friction.
 
 ---
 

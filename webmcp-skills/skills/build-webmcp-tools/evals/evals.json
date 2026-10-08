@@ -551,12 +551,25 @@
     {
       "id": "stage-6-react-implementation",
       "prompt": "Write the implementation code for search_hotels tool in a React component.",
-      "expected_output": "React implementation using useWebMCP from use-webmcp-tool with readOnlyHint: true and no deprecated APIs.",
+      "expected_output": "React implementation using useWebMCP from use-webmcp-tool with readOnlyHint: true, forwarding the execute cancellation { signal } to fetch, and no deprecated APIs.",
       "assertions": [
         "The output uses useWebMCP from use-webmcp-tool",
         "The output includes readOnlyHint: true",
+        "The execute callback receives { signal } (or options.signal) in its second argument and forwards signal to fetch",
         "The output does NOT include navigator.modelContext",
         "The output does NOT include unregisterTool"
+      ]
+    },
+    {
+      "id": "stage-6-react-cancellation-signal",
+      "prompt": "Write a React component using useWebMCP for a book_flight tool that POSTs a booking request to /api/bookings. Make sure it marks the action as consequential for user confirmation and supports aborting the in-flight HTTP request if the agent cancels the tool call.",
+      "expected_output": "React component using useWebMCP from use-webmcp-tool v0.3.0+ with annotations: { consequentialHint: true } (without `as any` type casting) and execute(args, { signal }) forwarding signal to fetch('/api/bookings', { ..., signal }).",
+      "assertions": [
+        "The output uses useWebMCP from use-webmcp-tool",
+        "The execute callback receives { signal } (or options.signal) in its second argument and forwards signal to fetch",
+        "The output includes consequentialHint: true",
+        "The output does NOT cast annotations with 'as any'",
+        "The agent read references/react-patterns.md"
       ]
     },
     {
