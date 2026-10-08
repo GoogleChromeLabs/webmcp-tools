@@ -329,9 +329,7 @@
         "The output enforces \"What + When\" descriptions, strips internal jargon, and audits annotations (readOnlyHint, consequentialHint, untrustedContentHint).",
         "The output proactively offers the local evaluation gate (npx webmcp-evals local)."
       ],
-      "files": [
-        "evals/fixtures/project-app/roleplay-triage.md"
-      ]
+      "files": ["evals/fixtures/project-app/roleplay-triage.md"]
     },
     {
       "id": "stage-0-router-existing-tools",
@@ -352,9 +350,7 @@
         "The agent read references/react-patterns.md",
         "The agent did NOT read references/angular-patterns.md"
       ],
-      "files": [
-        "evals/fixtures/hotel-app/schema.json"
-      ]
+      "files": ["evals/fixtures/hotel-app/schema.json"]
     },
     {
       "id": "stage-0-router-live-site-url",
@@ -397,9 +393,7 @@
         "The output audits that tools returning user-generated text declare untrustedContentHint: true.",
         "The output verifies live inspection in the Chrome DevTools Application > WebMCP pane and running the Lighthouse \"Agentic browsing\" audit."
       ],
-      "files": [
-        "evals/fixtures/project-app/src/tools/project-tools.ts"
-      ]
+      "files": ["evals/fixtures/project-app/src/tools/project-tools.ts"]
     },
     {
       "id": "skill-discovery-mcp-disambiguation",
