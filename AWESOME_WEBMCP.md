@@ -116,6 +116,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Read the first 8 measures and tell me the chord progression, then play them." In the editor: "Add a simple bass line to measures 5–12."
 - [1 Million Emojis](https://chriswijnia.com/lab/emoji) - A shared 1,000 x 1,000 emoji canvas. The page registers WebMCP tools (`emoji_paint`, `emoji_latest`, `emoji_space`, `emoji_jev`), so an agent paints on the same live canvas people paint, and Jev answers each stroke with an emoji of its own.
   - **Example Prompt:** "Find the largest empty area of the canvas, paint a 🌊 there, then let Jev paint next to it."
+- [Agio Digital](https://www.agiodigital.com/) - A live fund administration and digital asset services site. Every page registers seven WebMCP tools through `document.modelContext`: `search_site`, `list_services_products`, `read_page_markdown`, `read_faq`, `quote_ibc_bundle`, `read_gold_fund_latest` and `start_contact_flow`. All tools are read-only except `start_contact_flow`, which only opens a page and never submits a form. [Agent guide](https://www.agiodigital.com/AGENTS.md)
+  - **Example Prompt:** "What does it cost to set up a Bahamas holding company with a corporate director, and what is the latest NAV of the gold fund?"
 
 ## Libraries & Tools
 
