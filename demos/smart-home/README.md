@@ -35,7 +35,7 @@ This demo uses the **Imperative WebMCP API** (`useWebMCP` / `document.modelConte
     * `Use consequentialHint: TRUE where relevant`: Dynamically toggles `consequentialHint: true` on high-impact physical security tools (`unlockFrontDoor`), re-registering the tool definition in real time.
     * `Use untrustedContentHint: TRUE where relevant`: Dynamically toggles `untrustedContentHint: true` on tools that ingest third-party or multi-user content (`getPlaylistQueue`, `getGuestMessages`), enabling agent **spotlighting** defenses when checked (if the agent has implemented spotlighting).
   * **Prompt injection** (defined in `src/context/initialData.js`):
-    * `Include prompt injection in playlist`: Adds/removes the poisoned track in the collaorative party queue.
+    * `Include prompt injection in playlist`: Adds/removes the poisoned track in the collaborative party queue.
     * `Include prompt injection in guest message board`: Adds/removes the poisoned sticky note on the digital guest message board.
   * **UI**:
     * `Display inline developer info`: Shows or hides all inline `💀 Untrusted ...` and `💀 Prompt injection payload` developer badges (`.dev-inline-badge`) across the UI.
