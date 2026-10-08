@@ -285,6 +285,7 @@ describe('WebMCP Smart Home Security Playground', () => {
         'lock_front_door',
         'smart_lights_living_room',
         'media_player_living_room',
+        'guest_message_board',
       ]);
 
       // Navigate to Climate subpage first

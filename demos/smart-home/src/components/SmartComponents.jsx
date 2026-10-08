@@ -12,7 +12,7 @@ import {
   AirQuality,
   AlarmPanel,
   CameraFrontDoor,
-  SolarGrid,
+  EnergySummary,
   ThermostatControl,
   Weather,
 } from './widgets/StaticWidgets';
@@ -21,11 +21,11 @@ export {
   AirQuality,
   AlarmPanel,
   CameraFrontDoor,
+  EnergySummary,
   GuestMessageBoard,
   LockFrontDoor,
   MediaPlayer,
   SmartLightsLivingRoom,
-  SolarGrid,
   ThermostatControl,
   Weather,
 };
@@ -41,6 +41,5 @@ export const COMPONENT_MAP = {
   'media_player_living_room': MediaPlayer,
   'alarm_panel': AlarmPanel,
   'air_quality_sensor': AirQuality,
-  'solar_grid': SolarGrid,
-  'energy_summary': SolarGrid,
+  'energy_summary': EnergySummary,
 };

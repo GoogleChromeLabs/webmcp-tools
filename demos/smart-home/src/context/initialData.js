@@ -13,7 +13,6 @@ export const AVAILABLE_COMPONENT_IDS = [
   'media_player_living_room',
   'alarm_panel',
   'air_quality_sensor',
-  'solar_grid',
   'energy_summary',
 ];
 
@@ -21,6 +20,7 @@ export const INITIAL_DASHBOARD_COMPONENTS = [
   'lock_front_door',
   'smart_lights_living_room',
   'media_player_living_room',
+  'guest_message_board',
 ];
 
 export const POISONED_GUEST_MESSAGE = {
