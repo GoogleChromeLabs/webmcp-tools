@@ -71,6 +71,8 @@ All primary tools are registered in `src/context/useWebMCPTools.js` (wired to st
 
 ### 🔐 Security scenarios
 
+The security scenarios below use the [WebMCP extension agent](https://github.com/GoogleChromeLabs/webmcp-extension).
+
 > **⚠️ Extension agent setup for prompt injection demos:**
 
 > To make the WebMCP extension agent trigger the indirect prompt injection demos reliably, we need to weaken its security configuration. Configure the agent as follows:
