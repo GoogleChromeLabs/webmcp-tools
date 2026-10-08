@@ -245,13 +245,30 @@
     {
       "id": "stage-0-router-local-codebase-greenfield",
       "prompt": "Add WebMCP tools to this project.",
-      "expected_output": "The agent reads the project files (package.json, routes in App.tsx, and the store) before responding, recognizes a React recipe and meal-planning app, and routes to Stage 1 by proposing 3 candidate user journeys specific to recipes and meal planning (e.g. finding recipes by ingredient or dietary tag, organizing recipes into collections or a weekly meal plan, sharing a recipe, deleting a recipe), each with an ideal outcome and autonomous boundary (e.g. public sharing or permanent deletion requires confirmation). It invites the user to pick one goal and writes no code or schemas.",
+      "expected_output": "The agent reads the project files (package.json, routes in App.tsx, and the store) before responding, recognizes a React recipe and meal-planning app, and routes to Stage 1 by proposing 3 candidate user journeys specific to recipes and meal planning (e.g. finding recipes by ingredient or dietary tag, organizing recipes into collections or a weekly meal plan, sharing a recipe, deleting a recipe), each with an ideal outcome and autonomous boundary (e.g. public sharing or permanent deletion requires confirmation). It asks whether the developer wants Interactive Mode (one goal at a time with developer checkpoints) or Autonomous Mode (working through Stages 2–6 end-to-end without stopping), and writes no code or schemas in this initial turn.",
       "assertions": [
         "The agent read evals/fixtures/recipe-app/src/App.tsx",
         "The output proposes candidate user journeys specific to a recipe or meal-planning app (such as finding recipes, organizing into collections or meal plans, sharing, or deleting recipes) and does not propose shopping cart or checkout journeys.",
         "The output explicitly defines or highlights autonomous boundaries for the proposed journeys, such as requiring confirmation before publicly sharing or permanently deleting a recipe.",
-        "The output invites the user to select or focus on ONE goal first (enforcing the \"One Goal Per Iteration\" rule).",
+        "The output offers the developer a choice between Interactive Mode (picking ONE goal to step through Stages 2–4 with developer checkpoints) and Autonomous Mode (having the agent work through Stages 2–6 end-to-end without intermediate stops).",
         "The output does NOT write or modify application code (e.g., no useWebMCP, registerTool, or final schema generation) in this initial turn."
+      ],
+      "files": [
+        "evals/fixtures/recipe-app/package.json",
+        "evals/fixtures/recipe-app/src/App.tsx",
+        "evals/fixtures/recipe-app/src/store.ts"
+      ]
+    },
+    {
+      "id": "stage-0-router-autonomous-end-to-end",
+      "prompt": "Add WebMCP tools to this project. Work through the design stages autonomously without stopping for questions, and give me the starter schema, evals, and React code.",
+      "expected_output": "The agent reads the project files (package.json, App.tsx, store.ts) and references/react-patterns.md, and executes Autonomous Mode across Stages 1–6 end-to-end without stopping for developer questions. It works through candidate journeys, starting states, turn-by-turn role-play, variations, and self-critique of confirmation boundaries for the recipe app, then delivers consolidated schema.json, evals.json test cases, and React useWebMCP code enforcing all Non-Negotiables (What + When descriptions without jargon, readOnlyHint: true and untrustedContentHint: true on community recipe queries, and consequentialHint: true or an initiate_* UI hand-off for permanent deletion or sharing).",
+      "assertions": [
+        "The agent read evals/fixtures/recipe-app/src/store.ts",
+        "The agent read references/react-patterns.md",
+        "The output works through the design stages (candidate goals/starting states, role-play or variations, and autonomous boundaries) rather than skipping straight to raw CRUD wrappers",
+        "The output delivers consolidated schema.json, evals.json test cases, and React useWebMCP code for the recipe app without stopping early to wait for user input",
+        "The output enforces WebMCP Non-Negotiables, including What + When descriptions, readOnlyHint: true and untrustedContentHint: true on tools returning community-authored recipe content, and consequentialHint: true or an initiate_* UI hand-off for permanent deletion or sharing"
       ],
       "files": [
         "evals/fixtures/recipe-app/package.json",
@@ -312,7 +329,9 @@
         "The output enforces \"What + When\" descriptions, strips internal jargon, and audits annotations (readOnlyHint, consequentialHint, untrustedContentHint).",
         "The output proactively offers the local evaluation gate (npx webmcp-evals local)."
       ],
-      "files": ["evals/fixtures/project-app/roleplay-triage.md"]
+      "files": [
+        "evals/fixtures/project-app/roleplay-triage.md"
+      ]
     },
     {
       "id": "stage-0-router-existing-tools",
@@ -333,7 +352,9 @@
         "The agent read references/react-patterns.md",
         "The agent did NOT read references/angular-patterns.md"
       ],
-      "files": ["evals/fixtures/hotel-app/schema.json"]
+      "files": [
+        "evals/fixtures/hotel-app/schema.json"
+      ]
     },
     {
       "id": "stage-0-router-live-site-url",
@@ -376,7 +397,9 @@
         "The output audits that tools returning user-generated text declare untrustedContentHint: true.",
         "The output verifies live inspection in the Chrome DevTools Application > WebMCP pane and running the Lighthouse \"Agentic browsing\" audit."
       ],
-      "files": ["evals/fixtures/project-app/src/tools/project-tools.ts"]
+      "files": [
+        "evals/fixtures/project-app/src/tools/project-tools.ts"
+      ]
     },
     {
       "id": "skill-discovery-mcp-disambiguation",
@@ -390,20 +413,21 @@
     {
       "id": "stage-1-journey-prioritization",
       "prompt": "I am building an airline ticketing website. Help me create my portfolio of user goals for WebMCP.",
-      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal.",
+      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal, followed by offering the developer a choice between Interactive Mode (stepping through Stages 2–4 one goal at a time with developer checkpoints) and Autonomous Mode (the agent working through Stages 2–6 end-to-end without intermediate stops).",
       "assertions": [
         "The agent proposes prioritized candidate user goals (such as flight search, seat selection, booking, or check-in)",
-        "The agent defines outcomes, required context, or boundaries for each proposed goal"
+        "The agent defines outcomes, required context, or boundaries for each proposed goal",
+        "The agent offers the developer a choice between Interactive Mode (stepping through Stages 2–4 one goal at a time with developer checkpoints) and Autonomous Mode (having the agent work through Stages 2–6 end-to-end without intermediate stops)"
       ]
     },
     {
       "id": "stage-1-goal-iteration-and-critique",
       "prompt": "We identified 5 user goals for our app (search products, view cart, checkout, apply coupon, track order). Can you simulate and role-play all 5 goals in bulk in a single turn right now?",
-      "expected_output": "The agent enforces the \"One Goal Per Iteration\" rule, refusing to generate role-plays for all 5 goals in bulk. It explains that the full design cycle (Stages 2–4: starting states, turn-by-turn simulation, variations, and active user critique) must be completed for one single goal at a time to explore conversational ambiguity, verify agent demeanor, and establish autonomous confirmation boundaries with the developer.",
+      "expected_output": "The agent explains that each goal must be isolated and go through its full Stages 2–4 cycle (starting states, turn-by-turn role-play, variations, and critique of agent demeanor, clarifying questions, and autonomous confirmation boundaries) rather than mashing all 5 goals into a single superficial bulk turn. It offers Interactive Mode (stepping through one goal at a time with developer critique) or Autonomous Mode (where the agent works through each isolated goal's Stages 2–4 and self-critique sequentially without stopping for developer questions).",
       "assertions": [
-        "The agent enforces completing one goal per iteration (or refuses generating multiple goals in bulk in a single turn)",
-        "The agent explains that each goal requires state modeling, role-play simulation, variations, or user critique before moving to the next",
-        "The agent mentions soliciting user critique on agent demeanor, clarifying questions, or autonomous confirmation boundaries"
+        "The agent explains that each goal must be isolated and go through its full Stages 2–4 cycle (starting states, turn-by-turn role-play, variations, and critique) rather than mashing all 5 goals into a single superficial bulk simulation",
+        "The agent mentions evaluating agent demeanor/tone, clarifying questions, and autonomous confirmation boundaries for each goal",
+        "The agent offers the choice between Interactive Mode (reviewing one goal at a time with developer critique) and Autonomous Mode (having the agent work through each isolated goal's Stages 2–4 and self-critique sequentially without intermediate stops)"
       ]
     },
     {

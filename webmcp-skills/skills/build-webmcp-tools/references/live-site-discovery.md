@@ -32,5 +32,5 @@ Always inspect the live site's workflows before proposing goals:
 
 - Based on what you observed in the live site (or, if no browser tool is available, offering to inspect the site and outlining candidate workflows), propose 3 prioritized candidate user journeys that fit what the site actually does. For a store, for example: search the catalog, manage the cart, check out.
 - For each journey, state the ideal outcome, required context, and autonomous boundary (what the agent must not do without user confirmation).
-- Invite the user to choose ONE journey to take through Stages 2–4.
-- Do not output frontend code before goals are defined and role-played.
+- Offer the developer a choice between **Interactive Mode** (pick ONE journey to step through Stages 2–4 with developer checkpoints) and **Autonomous Mode** (have the agent work through Stages 2–6 end-to-end without intermediate stops).
+- Do not output frontend code before goals are defined and role-played through Stages 2–4.
