@@ -33,7 +33,7 @@ describe("Eval Runner - Loader", () => {
   it("loads modular suites for build-webmcp-tools", () => {
     const skill = loadSkillEvals(path.resolve("skills/build-webmcp-tools"));
     expect(skill.name).toBe("build-webmcp-tools");
-    expect(skill.evals.length).toBe(74);
+    expect(skill.evals.length).toBe(75);
     expect(skill.suites).toContain("stage-0-router");
     expect(skill.suites).toContain("stage-6-frameworks");
     expect(skill.suites).toContain("core-principles");

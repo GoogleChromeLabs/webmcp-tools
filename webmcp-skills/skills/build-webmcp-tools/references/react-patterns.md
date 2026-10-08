@@ -15,11 +15,10 @@ This guide explains how to expose WebMCP tools in React applications using the o
 
 ```bash
 npm install use-webmcp-tool
-npm install -D webmcp-types  # Optional: for direct TypeScript typings
 ```
 
-- **Requirements**: React 18+ peer dependency, ESM-only, bundled TypeScript types, zero runtime dependencies.
-- **Direct `document.modelContext` access** (e.g. tests, consumer code): use `webmcp-types` rather than hand-written declarations; see [vanilla-patterns.md](./vanilla-patterns.md) for setup.
+- **Requirements**: React 18+ peer dependency, ESM-only, bundled TypeScript types (`webmcp-types` is included as a dependency of `use-webmcp-tool` v0.3.0+).
+- **Direct `document.modelContext` access** (e.g. tests, consumer code): use `webmcp-types` (already installed with `use-webmcp-tool` v0.3.0+) rather than hand-written declarations; see [vanilla-patterns.md](./vanilla-patterns.md) for setup.
 - **Next.js & Server Components**: The hook uses React state and lifecycle effects, so components declaring tools must include the `"use client"` directive. During SSR, the hook gracefully feature-detects and returns `{ supported: false, registered: false, error: null }` without throwing.
 
 ---
@@ -33,8 +32,8 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
   name: 'tool_name',            // string (required, <= 30 chars)
   description: '...',           // string (required, <= 500 chars)
   inputSchema: { ... },         // JSON Schema object (optional)
-  annotations: { ... },         // { readOnlyHint?, untrustedContentHint? } (optional)
-  execute: async (args) => { }, // (args: Args) => Result | Promise<Result> (required)
+  annotations: { ... },         // { readOnlyHint?, consequentialHint?, untrustedContentHint? } (optional)
+  execute: async (args, { signal }) => { }, // (args: Args, options: { signal: AbortSignal }) => Result | Promise<Result> (required)
   enabled: true,                // boolean: register only while true (default: true)
   formatOutput: (result, args) => { }, // (result: Result, args: Args) => unknown
   onError: (error) => { },      // (error: unknown) => void (telemetry hook)
@@ -121,12 +120,13 @@ export function FlightSearch() {
     annotations: {
       readOnlyHint: true,
     },
-    async execute({ destination, date }) {
+    async execute({ destination, date }, { signal }) {
       setIsLoading(true);
       try {
         // The API resolves city names and relative dates ("next Friday") so the model never computes them
         const response = await fetch(
           `/api/flights?dest=${encodeURIComponent(destination)}&date=${encodeURIComponent(date)}`,
+          { signal },
         );
         if (!response.ok) {
           throw new Error(`Flight search failed (${response.status}). Check airport code or date.`);
@@ -176,8 +176,8 @@ export function CheckoutWizard({ currentStep, orderId }) {
       },
       required: ["code"],
     },
-    async execute({ code }) {
-      const result = await applyDiscount(orderId, code);
+    async execute({ code }, { signal }) {
+      const result = await applyDiscount(orderId, code, { signal });
       if (!result.success) {
         throw new Error(
           `Coupon "${code}" is invalid or expired. Prompt user for an alternate code.`,
@@ -209,8 +209,8 @@ useWebMCP({
     required: ["query"],
   },
   annotations: { readOnlyHint: true, untrustedContentHint: true },
-  async execute({ query }) {
-    return await searchCatalogApi(query); // returns raw database array
+  async execute({ query }, { signal }) {
+    return await searchCatalogApi(query, { signal }); // returns raw database array
   },
   formatOutput: (results) => {
     if (!results || results.length === 0) {
@@ -271,11 +271,11 @@ export function ProjectBoardView() {
       readOnlyHint: true,
       untrustedContentHint: true,
     },
-    async execute({ types = ITEM_TYPES, query = "", page = 1 }) {
+    async execute({ types = ITEM_TYPES, query = "", page = 1 }, { signal }) {
       // Execute sub-queries concurrently with Promise.all to avoid multi-turn roundtrips
       const fetchers = types.map(async (type) => {
         const params = new URLSearchParams({ q: query, page: String(page), limit: "10" });
-        const res = await fetch(`/api/${API_PATHS[type]}?${params}`);
+        const res = await fetch(`/api/${API_PATHS[type]}?${params}`, { signal });
         if (!res.ok) throw new Error(`Failed to fetch ${type} items (${res.status})`);
         const data = await res.json();
         return data.items.map((item: any) => ({ ...item, type }));
@@ -328,12 +328,13 @@ export function ProjectBoardView() {
     },
     annotations: {
       consequentialHint: true,
-    } as any,
-    async execute({ items, target_sprint_id }) {
+    },
+    async execute({ items, target_sprint_id }, { signal }) {
       const response = await fetch("/api/batch-move", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, targetSprintId: target_sprint_id }),
+        signal,
       });
 
       if (!response.ok) {
@@ -352,17 +353,12 @@ export function ProjectBoardView() {
 
 ---
 
-## 6. `use-webmcp-tool` v0.2.0 Gotchas
+## 6. `use-webmcp-tool` v0.3.0 Notes & Gotchas
 
-1. **`execute` Receives Only Arguments**:
-   The hook wrapper does not forward the second `{ signal }` parameter from the underlying browser `registerTool` call. Keep execution logic concise, or manage your own `AbortController` in the component if aborting background fetches on unmount is required.
+1. **Forward the Cancellation `{ signal }` in `execute`**:
+   `use-webmcp-tool` v0.3.0+ forwards the second `{ signal }` argument (`options: { signal: AbortSignal }`) from `document.modelContext.registerTool` to `execute(args, { signal })`. Always forward `{ signal }` to `fetch()` and abortable async operations so agent or user cancellations abort in-flight requests immediately.
 2. **`consequentialHint` TypeScript Typing**:
-   In `use-webmcp-tool` v0.2.0, the `ToolAnnotations` type includes `readOnlyHint` and `untrustedContentHint`, but omits `consequentialHint`. The browser receives the property at runtime, so cast in TypeScript when needed:
-   ```typescript
-   annotations: {
-     consequentialHint: true,
-   } as any,
-   ```
+   `use-webmcp-tool` v0.3.0+ includes `webmcp-types@^0.1.7` as a dependency, whose `WebMCP.ToolAnnotations` includes `consequentialHint?: boolean`—do **not** cast `annotations` with `as any`. If `consequentialHint` fails to typecheck, the project likely has an older `webmcp-types` (`< 0.1.7`), `use-webmcp-tool` (`< 0.3.0`), or a custom global `WebMCP` declaration shadowing it; upgrade dependencies or remove the custom declaration rather than casting.
 3. **`title` and `exposedTo`**:
    The hook currently does not expose `title` or cross-origin `exposedTo` options. For tools requiring cross-origin exposure, register them directly with `document.modelContext.registerTool` inside a custom `useEffect`.
 
@@ -404,8 +400,9 @@ describe("FlightSearch WebMCP Integration", () => {
     expect(tool.name).toBe("search_flights");
     expect(options.signal).toBeInstanceOf(AbortSignal);
 
-    // Test tool execution directly
-    const result = await tool.execute({ destination: "JFK", date: "2026-10-15" });
+    // Test tool execution directly (pass an AbortSignal in the second argument)
+    const { signal } = new AbortController();
+    const result = await tool.execute({ destination: "JFK", date: "2026-10-15" }, { signal });
     expect(result).toHaveProperty("content");
     expect(result.isError).toBeFalsy();
   });
@@ -417,7 +414,8 @@ describe("FlightSearch WebMCP Integration", () => {
     render(<FlightSearch />);
     const [tool] = (document.modelContext.registerTool as any).mock.calls[0];
 
-    const result = await tool.execute({ destination: "INVALID", date: "2026-10-15" });
+    const { signal } = new AbortController();
+    const result = await tool.execute({ destination: "INVALID", date: "2026-10-15" }, { signal });
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Flight search failed");
   });

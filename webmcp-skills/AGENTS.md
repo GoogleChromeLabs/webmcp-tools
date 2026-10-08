@@ -143,7 +143,7 @@ Skills in this repository follow the open standard ([agentskills.io](https://age
    - **Execution phase**: The agent follows the instructions, loading reference files in `references/` on demand.
 3. **Instruction Design Patterns**:
    - **Defaults Over Menus**: Pick a clear default recommendation with an escape hatch, rather than presenting multiple equal options that induce model choice paralysis.
-   - **Gotchas Sections**: Document non-obvious traps and environment-specific constraints (e.g. `useWebMCP` v0.2.0 gotchas). Agents learn more from concrete gotchas than from generic advice.
+   - **Gotchas Sections**: Document non-obvious traps and environment-specific constraints (e.g. `useWebMCP` gotchas). Agents learn more from concrete gotchas than from generic advice.
    - **Decision Trees & Stage Routing**: For multi-stage workflows, include an explicit router (such as Stage 0 Router) so agents jump directly to the relevant stage without linear friction.
    - **Checklists & Self-Validation Loops**: Provide structured checklists (like Stage 6 Review Checklist) and instruct the agent to validate outputs before concluding.
    - **Prescriptive Guidance**: Use direct, imperative rules and clear guardrails that models can evaluate deterministically.
