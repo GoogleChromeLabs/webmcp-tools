@@ -366,10 +366,6 @@ if (document.modelContext) {
   document.modelContext.registerTool({
     name: 'share_pizza',
     description: 'Get a shareable URL for the current pizza creation',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
     execute: () => {
       const url = sharePizza();
       return `Share URL: ${url}`;
