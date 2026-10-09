@@ -123,22 +123,9 @@ function initSharedWorker(apiKey) {
           agentSendBtn.textContent = 'Abort';
           agentSendBtn.disabled = false;
 
-          const inputObject = typeof payload.args === 'string' ? JSON.parse(payload.args) : payload.args;
-          let result;
-          try {
-            result = await document.modelContext.executeTool(tool, inputObject, {
-              signal: abortController.signal,
-            });
-          } catch (e) {
-            // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
-            if (e.message.startsWith('Failed to parse input')) {
-              result = await document.modelContext.executeTool(tool, JSON.stringify(inputObject), {
-                signal: abortController.signal,
-              });
-            } else {
-              throw e;
-            }
-          }
+          const result = await document.modelContext.executeTool(tool, payload.args, {
+            signal: abortController.signal,
+          });
           worker.port.postMessage({ type: 'TOOL_RESPONSE', payload: { result }, id });
         } catch (error) {
           const aborted = abortController?.signal.aborted;
@@ -270,21 +257,9 @@ async function handleUserSubmit() {
             agentSendBtn.textContent = 'Abort';
             agentSendBtn.disabled = false;
 
-            let result;
-            try {
-              result = await document.modelContext.executeTool(tool, args, {
-                signal: abortController.signal,
-              });
-            } catch (e) {
-              // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
-              if (e.message.startsWith('Failed to parse input')) {
-                result = await document.modelContext.executeTool(tool, JSON.stringify(args), {
-                  signal: abortController.signal,
-                });
-              } else {
-                throw e;
-              }
-            }
+            const result = await document.modelContext.executeTool(tool, args, {
+              signal: abortController.signal,
+            });
             toolResponses.push({ functionResponse: { name, response: { result } } });
           } catch (error) {
             if (abortController?.signal.aborted) {
