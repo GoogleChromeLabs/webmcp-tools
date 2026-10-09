@@ -38,7 +38,7 @@ export class WebmcpService {
           }
         }
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const product = findMatchingProduct(this.productService.getProducts(), params);
         if (!product) {
           return { success: false, message: "Product not found. Please provide a valid productId, or productName." };
@@ -65,7 +65,7 @@ export class WebmcpService {
           }
         }
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const product = findMatchingProduct(this.productService.getProducts(), params);
         if (!product) {
           return { success: false, message: "Product not found. Please provide a valid productId, or productName." };
@@ -106,7 +106,7 @@ export class WebmcpService {
           }
         }
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const searchParams: any = {
           q: (params && params.query) ? params.query : ''
         };
