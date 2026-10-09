@@ -6,20 +6,21 @@
     {
       "id": "stage-1-journey-prioritization",
       "prompt": "I am building an airline ticketing website. Help me create my portfolio of user goals for WebMCP.",
-      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal.",
+      "expected_output": "Prioritized candidate user goals with defined outcomes, required context, and boundaries for each goal, followed by offering the developer a choice between Interactive Mode (stepping through Stages 2–4 one goal at a time with developer checkpoints) and Autonomous Mode (the agent working through Stages 2–6 end-to-end without intermediate stops).",
       "assertions": [
         "The agent proposes prioritized candidate user goals (such as flight search, seat selection, booking, or check-in)",
-        "The agent defines outcomes, required context, or boundaries for each proposed goal"
+        "The agent defines outcomes, required context, or boundaries for each proposed goal",
+        "The agent offers the developer a choice between Interactive Mode (stepping through Stages 2–4 one goal at a time with developer checkpoints) and Autonomous Mode (having the agent work through Stages 2–6 end-to-end without intermediate stops)"
       ]
     },
     {
       "id": "stage-1-goal-iteration-and-critique",
       "prompt": "We identified 5 user goals for our app (search products, view cart, checkout, apply coupon, track order). Can you simulate and role-play all 5 goals in bulk in a single turn right now?",
-      "expected_output": "The agent enforces the \"One Goal Per Iteration\" rule, refusing to generate role-plays for all 5 goals in bulk. It explains that the full design cycle (Stages 2–4: starting states, turn-by-turn simulation, variations, and active user critique) must be completed for one single goal at a time to explore conversational ambiguity, verify agent demeanor, and establish autonomous confirmation boundaries with the developer.",
+      "expected_output": "The agent explains that each goal must be isolated and go through its full Stages 2–4 cycle (starting states, turn-by-turn role-play, variations, and critique of agent demeanor, clarifying questions, and autonomous confirmation boundaries) rather than mashing all 5 goals into a single superficial bulk turn. It offers Interactive Mode (stepping through one goal at a time with developer critique) or Autonomous Mode (where the agent works through each isolated goal's Stages 2–4 and self-critique sequentially without stopping for developer questions).",
       "assertions": [
-        "The agent enforces completing one goal per iteration (or refuses generating multiple goals in bulk in a single turn)",
-        "The agent explains that each goal requires state modeling, role-play simulation, variations, or user critique before moving to the next",
-        "The agent mentions soliciting user critique on agent demeanor, clarifying questions, or autonomous confirmation boundaries"
+        "The agent explains that each goal must be isolated and go through its full Stages 2–4 cycle (starting states, turn-by-turn role-play, variations, and critique) rather than mashing all 5 goals into a single superficial bulk simulation",
+        "The agent mentions evaluating agent demeanor/tone, clarifying questions, and autonomous confirmation boundaries for each goal",
+        "The agent offers the choice between Interactive Mode (reviewing one goal at a time with developer critique) and Autonomous Mode (having the agent work through each isolated goal's Stages 2–4 and self-critique sequentially without intermediate stops)"
       ]
     }
   ]
