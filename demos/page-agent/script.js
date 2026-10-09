@@ -194,17 +194,7 @@ async function handleUserSubmit() {
             appendMessage('System', `⚙️ Executing tool: ${name}...`, 'tool-indicator');
             const tools = await getTools();
             const tool = tools.find((t) => t.name == name);
-            let result;
-            try {
-              result = await document.modelContext.executeTool(tool, args);
-            } catch (e) {
-              // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
-              if (e.message.startsWith('Failed to parse input')) {
-                result = await document.modelContext.executeTool(tool, JSON.stringify(args));
-              } else {
-                throw e;
-              }
-            }
+            const result = await document.modelContext.executeTool(tool, args);
 
             if (codeModeCheckbox.checked && name === 'execute_batch' && result && Array.isArray(result.outputs)) {
               for (const out of result.outputs) {

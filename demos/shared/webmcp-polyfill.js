@@ -322,10 +322,7 @@
       return filteredTools;
     }
 
-    async executeTool(tool, inputObject, options = {}) {
-      if (inputObject === undefined) {
-        throw new TypeError('inputObject is undefined');
-      }
+    async executeTool(tool, inputObject = {}, options = {}) {
       try {
         const serialized = JSON.stringify(inputObject);
         if (serialized === undefined) {
@@ -362,29 +359,13 @@
       }
 
       if (win !== window && win.document && win.document.modelContext && win.document.modelContext.executeTool) {
-        try {
-          return await win.document.modelContext.executeTool(tool, inputObject, options);
-        } catch (e) {
-          // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
-          if (e.message.startsWith('Failed to parse input')) {
-            return await win.document.modelContext.executeTool(tool, JSON.stringify(inputObject), options);
-          } else {
-            throw e;
-          }
-        }
-      }
-
-      let parsedArgs = inputObject;
-      if (typeof inputObject === 'string') {
-        try {
-          parsedArgs = JSON.parse(inputObject);
-        } catch (e) { }
+        return await win.document.modelContext.executeTool(tool, inputObject, options);
       }
 
       // 1. Check if it's an imperative tool registered here
       if (win.__webmcp_registered_tools && win.__webmcp_registered_tools.has(tool.name)) {
         const registeredTool = win.__webmcp_registered_tools.get(tool.name);
-        return registeredTool._execute(parsedArgs, options);
+        return registeredTool._execute(inputObject, options);
       }
 
       // 2. Check if it's a declarative tool
@@ -401,7 +382,7 @@
       }
 
       // Fill form fields
-      for (const [key, value] of Object.entries(parsedArgs)) {
+      for (const [key, value] of Object.entries(inputObject)) {
         const input = form.elements[key] || form.querySelector(`[name="${key}"]`);
         if (input) {
           if (input.tagName === 'SELECT') {
@@ -622,25 +603,14 @@
     }
 
     if (data.type === 'WEBMCP_EXECUTE_TOOL_REQUEST') {
-      const { name, args, inputObject, requestId } = data;
+      const { name, inputObject, requestId } = data;
       try {
         const localTools = getLocalTools(window);
         const tool = localTools.find((t) => t.name === name);
         if (!tool) {
           throw new Error(`Tool ${name} not found`);
         }
-        const resolvedInput = inputObject !== undefined ? inputObject : args;
-        let result;
-        try {
-          result = await modelContext.executeTool(tool, resolvedInput);
-        } catch (e) {
-          // TODO: Remove when executeTool doesn't accept JSON stringified inputArgs in Chrome Stable.
-          if (e.message.startsWith('Failed to parse input')) {
-            result = await modelContext.executeTool(tool, JSON.stringify(resolvedInput));
-          } else {
-            throw e;
-          }
-        }
+        const result = await modelContext.executeTool(tool, inputObject);
         source.postMessage(
           {
             type: 'WEBMCP_EXECUTE_TOOL_RESPONSE',
