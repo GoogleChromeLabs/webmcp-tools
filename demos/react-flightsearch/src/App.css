@@ -22,6 +22,11 @@ body {
   padding: 15px 20px;
   border-radius: 8px;
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .search-inputs {
@@ -32,7 +37,99 @@ body {
   padding: 10px 15px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  flex-wrap: wrap;
 }
+
+.header-right-actions {
+  display: flex;
+  align-items: center;
+}
+
+.header-edit-search {
+  text-decoration: none;
+  color: #007bff;
+  font-size: 13px;
+  font-weight: 600;
+  padding-right: 12px;
+  border-right: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.header-edit-search:hover {
+  text-decoration: underline;
+}
+
+.header-tickets-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.header-tickets-btn:hover {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.search-top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 500px;
+  margin: 0 auto 16px auto;
+  padding: 12px 18px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.search-brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.nav-tickets-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eef5ff;
+  color: #007bff;
+  border: 1px solid #cce5ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.nav-tickets-btn:hover {
+  background-color: #007bff;
+  color: #ffffff;
+  border-color: #007bff;
+}
+
+.nav-badge {
+  background-color: #dc3545;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  line-height: 1;
+}
+
 
 .search-field {
   display: flex;
@@ -343,3 +440,379 @@ button {
     transform: translateX(-50%) translateY(20px);
   }
 }
+
+/* Support Tickets Page */
+.tickets-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.tickets-header {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.tickets-header-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.back-link {
+  display: inline-block;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.tickets-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.tickets-title-wrap h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #1a202c;
+}
+
+.tickets-badge {
+  background-color: #eef5ff;
+  color: #007bff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #cce5ff;
+}
+
+.tickets-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tickets-subtitle code {
+  background-color: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.tickets-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.btn-refresh:hover {
+  background-color: #0056b3;
+}
+
+.btn-refresh.refreshed {
+  background-color: #28a745;
+}
+
+.btn-clear-all {
+  background-color: #ffffff;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+.btn-clear-all:hover {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.btn-sample {
+  background-color: #007bff;
+  color: #ffffff;
+  padding: 10px 20px;
+  margin-top: 16px;
+}
+
+.btn-sample:hover {
+  background-color: #0056b3;
+}
+
+.tickets-empty-state {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.tickets-empty-state h2 {
+  margin: 0 0 10px 0;
+  color: #1a202c;
+}
+
+.tickets-empty-state p {
+  color: #666;
+  max-width: 580px;
+  margin: 0 auto 12px auto;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.empty-hint {
+  font-size: 13px !important;
+  color: #888 !important;
+}
+
+.tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticket-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #007bff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ticket-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #edf2f7;
+  padding-bottom: 12px;
+}
+
+.ticket-card-meta {
+  flex: 1;
+}
+
+.ticket-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.ticket-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.ticket-id-tag {
+  font-size: 12px;
+  font-family: monospace;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.ticket-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ticket-agent-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b6cb0;
+  background-color: #ebf8ff;
+  border: 1px solid #bee3f8;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.ticket-date {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.ticket-privacy-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2f855a;
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.btn-delete-ticket {
+  background-color: transparent;
+  color: #dc3545;
+  border: 1px solid #f5c6cb;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-delete-ticket:hover {
+  background-color: #dc3545;
+  color: #ffffff;
+  border-color: #dc3545;
+}
+
+.ticket-body {
+  margin-bottom: 14px;
+}
+
+.ticket-body h3 {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #718096;
+}
+
+.ticket-body-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #2d3748;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid #edf2f7;
+}
+
+.ticket-context-section {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 10px;
+}
+
+.btn-toggle-context {
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-toggle-context:hover {
+  text-decoration: underline;
+}
+
+.ticket-context-details {
+  margin-top: 10px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.context-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.context-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.context-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #718096;
+}
+
+.context-value {
+  font-size: 12px;
+  color: #2d3748;
+  word-break: break-all;
+}
+
+.context-ua {
+  font-size: 11px;
+  font-family: monospace;
+  color: #4a5568;
+}
+
+.context-json {
+  margin: 4px 0 0 0;
+  padding: 8px;
+  background-color: #edf2f7;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+  overflow-x: auto;
+}
+
