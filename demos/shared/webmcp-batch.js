@@ -146,11 +146,7 @@ export function registerExecuteBatchTool(options) {
 export function getSystemInstruction(tools) {
   const formattedTools = tools
     .filter((tool) => tool.name !== 'execute_batch')
-    .map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-    }));
+    .map(({ name, description, inputSchema }) => ({ name, description, inputSchema }));
 
   return [
     'You are an assistant embedded in a web page.',
