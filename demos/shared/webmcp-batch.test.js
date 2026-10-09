@@ -152,15 +152,15 @@ test('getSystemInstructions formats tool schemas and filters execute_batch', () 
     {
       name: 'execute_batch',
       description: 'Execute batch',
-      inputSchema: '{"type":"object"}'
+      inputSchema: { type: 'object' }
     },
     {
       name: 'search',
       description: 'Search products',
-      inputSchema: JSON.stringify({
+      inputSchema: {
         type: 'object',
         properties: { query: { type: 'string' } }
-      })
+      }
     }
   ];
 

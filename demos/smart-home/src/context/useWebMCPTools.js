@@ -38,10 +38,6 @@ export function useWebMCPTools({
     name: 'getPlaylistQueue',
     description:
       'Returns the list of songs and artist metadata currently queued in the Living Room Soniq collaborative party playlist.',
-    inputSchema: {
-      type: 'object',
-      properties: {},
-    },
     annotations: getToolAnnotations({
       readOnlyHint: true,
       untrustedContentHint: true,
