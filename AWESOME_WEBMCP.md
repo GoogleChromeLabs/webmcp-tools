@@ -119,6 +119,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [Agio Digital](https://www.agiodigital.com/) - A live fund administration and digital asset services site. Every page registers seven WebMCP tools through `document.modelContext`: `search_site`, `list_services_products`, `read_page_markdown`, `read_faq`, `quote_ibc_bundle`, `read_gold_fund_latest` and `start_contact_flow`. All tools are read-only except `start_contact_flow`, which only opens a page and never submits a form. [Agent guide](https://www.agiodigital.com/AGENTS.md)
   - **Example Prompt:** "What does it cost to set up a Bahamas holding company with a corporate director, and what is the latest NAV of the gold fund?"
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
