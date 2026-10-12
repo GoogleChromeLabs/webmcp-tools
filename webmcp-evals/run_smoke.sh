@@ -25,11 +25,11 @@ if [ -n "$CHROME_CHANNEL" ]; then
   CHROME_CHANNEL_FLAG="--chrome-channel $CHROME_CHANNEL"
 fi
 
-ALL_TARGETS=("doors" "bistro" "pizza" "sport-shop" "hotel-chain" "smart-home")
+ALL_TARGETS=("doors" "bistro" "pizza" "sport-shop" "hotel-chain" "smart-home" "pixel-art-studio")
 
 if [ -z "$TARGET" ]; then
   echo "Error: Missing target parameter."
-  echo "Usage: $0 <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|all> [-v|--verbose]"
+  echo "Usage: $0 <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|pixel-art-studio|all> [-v|--verbose]"
   exit 1
 fi
 
@@ -121,9 +121,18 @@ run_single_smoke() {
         $VERBOSE_FLAG \
         $CHROME_CHANNEL_FLAG
       ;;
+    "pixel-art-studio")
+      # 7. Pixel Art Studio Demo
+      echo "🎨 Running Pixel Art Studio Smoke Test..."
+      node dist/bin/webmcp-evals.js smoke \
+        -u "$(get_target_url "pixel-art-studio/" "https://googlechromelabs.github.io/webmcp-tools/demos/pixel-art-studio/")" \
+        -e examples/pixel-art-studio/evals.json \
+        $VERBOSE_FLAG \
+        $CHROME_CHANNEL_FLAG
+      ;;
     *)
       echo "Error: Invalid target '$t'."
-      echo "Supported targets: doors, bistro, pizza, sport-shop, hotel-chain, smart-home, all"
+      echo "Supported targets: doors, bistro, pizza, sport-shop, hotel-chain, smart-home, pixel-art-studio, all"
       exit 1
       ;;
   esac

@@ -35,7 +35,7 @@ npx oxfmt --check
 
 - **Deterministic Smoke Tests** (no API key required; runs in CI via [../.github/workflows/smoke-tests.yml](../.github/workflows/smoke-tests.yml)):
   ```bash
-  URL=http://localhost:3000 ./run_smoke.sh <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|all> -v
+  URL=http://localhost:3000 ./run_smoke.sh <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|pixel-art-studio|all> -v
   ```
 - **Authoring `evals.json`**: Keep required `expectedCall` entries compatible with `webmcp-evals smoke`, which resolves matcher operators (`$pattern`, `$contains`, `$lte`, etc.) into concrete sample arguments.
 - **Authoring `simulations.json`**:

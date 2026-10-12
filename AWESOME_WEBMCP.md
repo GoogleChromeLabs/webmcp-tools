@@ -118,6 +118,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Find the largest empty area of the canvas, paint a 🌊 there, then let Jev paint next to it."
 - [Agio Digital](https://www.agiodigital.com/) - A live fund administration and digital asset services site. Every page registers seven WebMCP tools through `document.modelContext`: `search_site`, `list_services_products`, `read_page_markdown`, `read_faq`, `quote_ibc_bundle`, `read_gold_fund_latest` and `start_contact_flow`. All tools are read-only except `start_contact_flow`, which only opens a page and never submits a form. [Agent guide](https://www.agiodigital.com/AGENTS.md)
   - **Example Prompt:** "What does it cost to set up a Bahamas holding company with a corporate director, and what is the latest NAV of the gold fund?"
+- [Pixel Art Studio](https://googlechromelabs.github.io/webmcp-tools/demos/pixel-art-studio/) - A pixel-art drawing board where people and AI agents share the same WebMCP tools. Agents compose scenes in SVG that the studio turns into crisp, palette-matched pixel art, and every tool call animates onto the canvas with an agent cursor and an activity feed.
+  - **Example Prompt:** "Paint a beach sunset with a palm tree."
 
 ## Libraries & Tools
 

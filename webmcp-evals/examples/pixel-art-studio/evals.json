@@ -1,0 +1,455 @@
+[
+  {
+    "name": "Pixel Art Studio: Read canvas info",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "What canvas size and color palette am I working with?"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "get_canvas_info",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Resize the canvas and show the grid",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Make the canvas 128 by 128 pixels, then fit it to the screen and turn on the pixel grid."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_canvas_size",
+        "arguments": {
+          "size": 128
+        }
+      },
+      {
+        "functionName": "set_view",
+        "arguments": {
+          "fit": true,
+          "grid": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Sunset sky with a sun",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Fill the canvas with a vertical sunset gradient from #2d1457 through #e23a6e to #ffc145 using Bayer 4x4 dithering, then draw a 16-pixel sun at (32, 20) in #ffe066 with #ff9f4a rays."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "gradient_fill",
+        "arguments": {
+          "colors": ["#2d1457", "#e23a6e", "#ffc145"],
+          "direction": "vertical",
+          "dither": "bayer4"
+        }
+      },
+      {
+        "functionName": "draw_shape_preset",
+        "arguments": {
+          "shape": "sun",
+          "x": 32,
+          "y": 20,
+          "size": 16,
+          "color": "#ffe066",
+          "color2": "#ff9f4a"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Draw a scene from SVG",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Draw this SVG with a #0b0723 outline: <svg viewBox='0 0 64 64'><rect y='44' width='64' height='20' fill='#1f9eb8'/><circle cx='32' cy='40' r='10' fill='#ffe066'/></svg>"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_svg",
+        "arguments": {
+          "svg": "<svg viewBox='0 0 64 64'><rect y='44' width='64' height='20' fill='#1f9eb8'/><circle cx='32' cy='40' r='10' fill='#ffe066'/></svg>",
+          "outline": "#0b0723"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Outlined rectangle with a bucket fill",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Draw an outlined #5ee0e6 rectangle at (4, 4) that is 20 pixels wide and 12 pixels tall, then bucket-fill its inside at (10, 10) with #ff7b5c."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_rect",
+        "arguments": {
+          "x": 4,
+          "y": 4,
+          "width": 20,
+          "height": 12,
+          "color": "#5ee0e6",
+          "filled": false
+        }
+      },
+      {
+        "functionName": "flood_fill",
+        "arguments": {
+          "x": 10,
+          "y": 10,
+          "color": "#ff7b5c"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Circle and thick line",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Draw a filled #ffc145 circle in the 16 by 16 box at (40, 8), then draw a 2-pixel-thick #fff3b0 line from (4, 48) to (60, 48)."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_ellipse",
+        "arguments": {
+          "x": 40,
+          "y": 8,
+          "width": 16,
+          "height": 16,
+          "color": "#ffc145"
+        }
+      },
+      {
+        "functionName": "draw_line",
+        "arguments": {
+          "x0": 4,
+          "y0": 48,
+          "x1": 60,
+          "y1": 48,
+          "color": "#fff3b0",
+          "thickness": 2
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Paint single pixels",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Paint three #ffffff pixels at (10, 30), (12, 30), and (14, 30)."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_pixels",
+        "arguments": {
+          "pixels": [
+            { "x": 10, "y": 30 },
+            { "x": 12, "y": 30 },
+            { "x": 14, "y": 30 }
+          ],
+          "color": "#ffffff"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Paint a heart from rows and read it back",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Paint this heart with its top-left corner at (24, 24), where P is #ff4d8d: '.PP.PP.', 'PPPPPPP', 'PPPPPPP', '.PPPPP.', '..PPP..', '...P...'. Then read back that 7 by 6 area to check it."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "paint_rows",
+        "arguments": {
+          "x": 24,
+          "y": 24,
+          "rows": [".PP.PP.", "PPPPPPP", "PPPPPPP", ".PPPPP.", "..PPP..", "...P..."],
+          "legend": {
+            "P": "#ff4d8d"
+          }
+        }
+      },
+      {
+        "functionName": "get_region_pixels",
+        "arguments": {
+          "x": 24,
+          "y": 24,
+          "width": 7,
+          "height": 6
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Check the current selection",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "What area do I have selected right now?"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "get_selection",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Replace a selected area with art",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Select the 6 by 6 area at (29, 29) and replace it with a white cross, where W is #ffffff: '..WW..', '..WW..', 'WWWWWW', 'WWWWWW', '..WW..', '..WW..'."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_selection",
+        "arguments": {
+          "x": 29,
+          "y": 29,
+          "width": 6,
+          "height": 6
+        }
+      },
+      {
+        "functionName": "replace_selection",
+        "arguments": {
+          "mode": "rows",
+          "rows": ["..WW..", "..WW..", "WWWWWW", "WWWWWW", "..WW..", "..WW.."],
+          "legend": {
+            "W": "#ffffff"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Replace a selected area with SVG",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Select the 16 by 16 area at (24, 24) and replace it with this SVG: <svg viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='#ff004d'/></svg>"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_selection",
+        "arguments": {
+          "x": 24,
+          "y": 24,
+          "width": 16,
+          "height": 16
+        }
+      },
+      {
+        "functionName": "replace_selection",
+        "arguments": {
+          "mode": "svg",
+          "svg": "<svg viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='#ff004d'/></svg>"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Fill a lasso selection with noise",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Lasso-select the area with corners (30, 40), (58, 38), (54, 60), and (34, 58), and fill it with random grass noise using #2b8a3e and #40c057."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_selection",
+        "arguments": {
+          "polygon": [
+            [30, 40],
+            [58, 38],
+            [54, 60],
+            [34, 58]
+          ]
+        }
+      },
+      {
+        "functionName": "replace_selection",
+        "arguments": {
+          "mode": "noise",
+          "colors": ["#2b8a3e", "#40c057"]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Add a layer and change its opacity",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Add a new layer called Clouds and set its opacity to 50%."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "add_layer",
+        "arguments": {
+          "name": "Clouds"
+        }
+      },
+      {
+        "functionName": "update_layer",
+        "arguments": {
+          "layer": "Clouds",
+          "opacity": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Add and delete a layer",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Add a layer called Scratch, then delete it."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "add_layer",
+        "arguments": {
+          "name": "Scratch"
+        }
+      },
+      {
+        "functionName": "delete_layer",
+        "arguments": {
+          "layer": "Scratch"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Switch palette and drawing colors",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Switch to the PICO-8 palette, add #2b8a3e to it, and set my primary color to #ff004d and my secondary color to #1d2b53."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_palette",
+        "arguments": {
+          "preset": "pico8"
+        }
+      },
+      {
+        "functionName": "add_color",
+        "arguments": {
+          "color": "#2b8a3e"
+        }
+      },
+      {
+        "functionName": "set_colors",
+        "arguments": {
+          "primary": "#ff004d",
+          "secondary": "#1d2b53"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Undo and redo a change",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Draw a filled #ff7b5c 8 by 8 square at (4, 4), undo it, and then redo it."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_rect",
+        "arguments": {
+          "x": 4,
+          "y": 4,
+          "width": 8,
+          "height": 8,
+          "color": "#ff7b5c"
+        }
+      },
+      {
+        "functionName": "undo",
+        "arguments": {}
+      },
+      {
+        "functionName": "redo",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "Pixel Art Studio: Clear the canvas",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Draw a #5ee0e6 line from (0, 0) to (63, 63), then clear the whole canvas."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draw_line",
+        "arguments": {
+          "x0": 0,
+          "y0": 0,
+          "x1": 63,
+          "y1": 63,
+          "color": "#5ee0e6"
+        }
+      },
+      {
+        "functionName": "clear_canvas",
+        "arguments": {
+          "scope": "all"
+        }
+      }
+    ]
+  }
+]
