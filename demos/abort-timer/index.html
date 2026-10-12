@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebMCP AbortSignal Explorer — Chrome 153 Execution Cancellation</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="../shared/webmcp-polyfill.js"></script>
+</head>
+
+<body>
+
+  <!-- Isolated Hidden A11y Announcer for Screen Readers (WCAG 2.2 AAA speech isolation) -->
+  <div id="a11y-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="app-shell">
+
+    <!-- TOP CYBER HUD HEADER -->
+    <header class="hud-header">
+      <div class="hud-title-group">
+        <div class="hud-icon">
+          ⚡
+        </div>
+        <div>
+          <div class="flex-row">
+            <h1 class="hud-title">WEBMCP::ABORT_TIMER</h1>
+            <span class="badge badge-cyan">Chrome 153</span>
+            <span id="runtime-badge" class="badge badge-mint">Detecting...</span>
+          </div>
+          <p class="hud-subtitle">WebMCP Execution Cancellation with Native DOM AbortSignal</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- SINGLE TIMER HERO CARD -->
+    <section id="timer-card" class="engine-card" data-state="idle" aria-labelledby="timer-title">
+      <!-- Card Header -->
+      <div class="engine-header">
+        <span class="status-dot"></span>
+        <h2 id="timer-title">CHRONO VECTOR — WEBMCP EXECUTION ENGINE</h2>
+      </div>
+
+      <!-- Two-Column Engine Grid -->
+      <div class="timer-grid">
+        <!-- Left Column: The Timer Display -->
+        <div class="timer-display-col">
+          <div class="readout-bay">
+            <div class="readout-label">
+              STOPWATCH TELEMETRY
+            </div>
+            <div role="timer" aria-live="off" class="readout-timer">
+              <span id="timer-sec">00:00</span>.<span id="timer-ms" class="ms-mint">00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Status of the thread, Promise inspector, and Reset button -->
+        <div class="timer-status-col">
+          <!-- Thread Status -->
+          <div class="status-panel">
+            <span class="panel-label">THREAD EXECUTION STATE</span>
+            <div class="badge-group">
+              <span class="state-badge badge-idle">
+                IDLE (0% CPU)
+              </span>
+              <span class="state-badge badge-running">
+                <span class="badge-dot badge-dot-pulse"></span>
+                <span>RUNNING (~60 FPS LOOP)</span>
+              </span>
+              <span class="state-badge badge-paused">
+                <span class="badge-dot"></span>
+                <span>CANCELLED BY AGENT (Thread Released 0% CPU)</span>
+              </span>
+              <span class="state-badge badge-completed">
+                COMPLETED (60s Limit)
+              </span>
+            </div>
+          </div>
+
+          <!-- Visual Promise Lifecycle Inspector -->
+          <div class="inspector-box">
+            <span class="inspector-label">start_timer() Promise:</span>
+            <code id="promise-state" class="inspector-code">&lt;UNINVOKED&gt;</code>
+          </div>
+
+          <!-- Controls Toolbar: Only Reset Button (No start/stop buttons) -->
+          <div class="timer-reset-row">
+            <button id="btn-reset" class="btn btn-subtle" aria-label="Reset timer to zero" title="Reset Timer">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+              </svg>
+              Reset Timer
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AGENT TOOL ACTUATION DECK -->
+    <section class="toolkit-section" aria-labelledby="agent-deck-title">
+      <div class="toolkit-header">
+        <div class="flex-row">
+          <span class="agent-avatar">🤖</span>
+          <div>
+            <div class="flex-row">
+              <h2 class="toolkit-title" id="agent-deck-title">SIMULATE AGENT ACTIONS</h2>
+            </div>
+            <p class="toolkit-desc">
+              Simulates an external AI assistant discovering and invoking page tools via
+              <code>document.modelContext</code>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-columns">
+        <!-- Column 1: Agent Action Controls & Execution Pipeline -->
+        <div class="agent-col-card agent-controls-card">
+          <div class="agent-card-header">
+            <span class="agent-badge-pill">AGENT ACTUATION</span>
+            <span class="agent-subtext">Dispatches tool via WebMCP</span>
+          </div>
+
+          <div class="agent-code-preview">
+            <span class="code-comment">// Agent dispatches with AbortSignal:</span>
+            <code>document.modelContext.executeTool(tool, { duration: 60 }, { signal })</code>
+          </div>
+
+          <div class="agent-action-buttons">
+            <button id="btn-agent-execute" class="btn btn-mint" aria-label="Simulate agent executing start_timer tool">
+              <svg viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Execute as Agent</span>
+            </button>
+            <button id="btn-agent-abort" class="btn btn-amber"
+              aria-label="Simulate agent aborting tool via AbortSignal">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+              </svg>
+              <span>Abort Signal</span>
+            </button>
+          </div>
+
+          <p class="agent-hint">
+            <strong>Execute</strong> simulates the AI agent starting <code>start_timer</code>. <strong>Abort</strong>
+            triggers <code>activeController.abort()</code> to test cancellation.
+          </p>
+        </div>
+
+        <!-- Column 2: Registered Tool Contract & Schema -->
+        <div class="agent-col-card agent-schema-card">
+          <div class="agent-card-header">
+            <span class="agent-badge-pill agent-pill-cyan">REGISTERED TOOL SCHEMA</span>
+            <span class="agent-subtext">Discovered by Agent</span>
+          </div>
+
+          <div class="tool-meta">
+            <span class="tool-fn-name"><code>start_timer({ duration })</code></span>
+            <span class="tool-target-desc">Registered on <code>document.modelContext</code>. Cooperatively halts via
+              <code>options.signal</code>.</span>
+          </div>
+
+          <div class="schema-viewer">
+            <pre class="tool-schema-code"><code id="tool-schema-display">Loading schema from document.modelContext...</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE CYBER HUD EVENT TERMINAL LOG -->
+    <div class="log-section">
+      <div class="log-header">
+        <span class="log-title">
+          <span class="log-title-dot">●</span>
+          LIVE_EVENT_TELEMETRY (document.modelContext)
+        </span>
+        <button id="btn-clear-log" class="log-clear-btn">
+          CLEAR_LOG
+        </button>
+      </div>
+      <div id="hud-log-stream" class="log-stream" role="log" aria-live="polite">
+        <div class="log-entry">
+          <span class="log-time">[INIT]</span>
+          <span class="log-tag log-tag-sys">[SYS]</span>
+          <span>WebMCP AbortSignal Engine initialized. Ready for actuation.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script src="app.js"></script>
+</body>
+
+</html>
