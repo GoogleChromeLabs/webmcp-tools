@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: "npm"
@@ -65,6 +65,11 @@ jobs:
             dir: demos/smart-home
             command: npm run dev -- --port 3000
             url: http://localhost:3000
+          - target: pixel-art-studio
+            name: Pixel Art Studio
+            dir: demos/pixel-art-studio
+            command: npm run dev -- --port 3000
+            url: http://localhost:3000
 
     steps:
       - name: Checkout code
@@ -73,7 +78,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: lts/*
           cache: "npm"
