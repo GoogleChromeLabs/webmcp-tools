@@ -105,14 +105,13 @@ async function handleUserSubmit(text, port, requestId) {
         `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
       ];
       const tools = await requestTools(port);
-      const functionDeclarations = tools.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parametersJsonSchema:
-          typeof tool.inputSchema === 'string'
-            ? JSON.parse(tool.inputSchema)
-            : tool.inputSchema || { type: 'object', properties: {} },
-      }));
+      const functionDeclarations = tools.map(
+        ({ name, description, inputSchema: parametersJsonSchema }) => ({
+          name,
+          description,
+          parametersJsonSchema,
+        }),
+      );
       return { systemInstruction, tools: [{ functionDeclarations }] };
     };
 

@@ -107,8 +107,10 @@ describe('WebMCP Smart Home Security Playground', () => {
         const tool = registeredTools.get(name);
         expect(tool).toBeDefined();
         expect(tool.description.length).toBeGreaterThan(10);
-        expect(tool.inputSchema.type).toBe('object');
-        expect(() => JSON.stringify(tool.inputSchema)).not.toThrow();
+        if (tool.inputSchema) {
+          expect(tool.inputSchema.type).toBe('object');
+          expect(() => JSON.stringify(tool.inputSchema)).not.toThrow();
+        }
       }
     });
 

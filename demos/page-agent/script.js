@@ -63,13 +63,10 @@ async function getConfig() {
 
     const functionDeclarations = tools
       .filter((tool) => tool.name === 'execute_batch')
-      .map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        parametersJsonSchema:
-          typeof tool.inputSchema === 'string'
-            ? JSON.parse(tool.inputSchema)
-            : tool.inputSchema || { type: 'object', properties: {} },
+      .map(({ name, description, inputSchema: parametersJsonSchema }) => ({
+        name,
+        description,
+        parametersJsonSchema,
       }));
 
     return { systemInstruction, tools: [{ functionDeclarations }] };
@@ -82,14 +79,13 @@ async function getConfig() {
     `ADDITIONAL CONTEXT: Today's date is: ${new Date().toDateString()}.`,
   ];
 
-  const functionDeclarations = tools.map((tool) => ({
-    name: tool.name,
-    description: tool.description,
-    parametersJsonSchema:
-      typeof tool.inputSchema === 'string'
-        ? JSON.parse(tool.inputSchema)
-        : tool.inputSchema || { type: 'object', properties: {} },
-  }));
+  const functionDeclarations = tools.map(
+    ({ name, description, inputSchema: parametersJsonSchema }) => ({
+      name,
+      description,
+      parametersJsonSchema,
+    }),
+  );
 
   return { systemInstruction, tools: [{ functionDeclarations }] };
 }

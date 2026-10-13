@@ -49,9 +49,7 @@ if (isImperative) {
   document.modelContext.registerTool({
     name: tool.name,
     description: tool.description,
-    // Chrome hands back a JSON string today; the spec and the polyfill use an object.
-    inputSchema:
-      typeof tool.inputSchema === "string" ? JSON.parse(tool.inputSchema) : tool.inputSchema,
+    inputSchema: tool.inputSchema,
     execute: async (args = {}, options) => {
       for (const [key, value] of Object.entries(args)) {
         form.elements[key].value = value;
