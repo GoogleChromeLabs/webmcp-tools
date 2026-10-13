@@ -55,7 +55,8 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
               'Optional 1-px outline color around the drawn shapes (classic pixel-art look), e.g. "#1b0f3b".',
           },
           snap_to_palette: bool(
-            "Snap colors to the current palette (default true). False keeps the exact SVG colors.",
+            "Snap colors to the current palette. False keeps the exact SVG colors.",
+            true,
           ),
           layer: LAYER,
         },
@@ -172,7 +173,7 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
           x1: int("End x."),
           y1: int("End y."),
           color: COLOR,
-          thickness: int("Line thickness in pixels (1–8). Default 1.", 1, 8),
+          thickness: int("Line thickness in pixels.", 1, 8, 1),
           layer: LAYER,
         },
         required: ["x0", "y0", "x1", "y1"],
@@ -198,7 +199,7 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
 
     {
       name: "draw_rect",
-      description: "Draw a rectangle, filled (default) or outlined.",
+      description: "Draw a rectangle, filled or outlined.",
       inputSchema: {
         type: "object",
         properties: { ...RECT, color: COLOR, filled: FILLED, layer: LAYER },
@@ -230,7 +231,7 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
     {
       name: "draw_ellipse",
       description:
-        "Draw an ellipse/circle inscribed in the given bounding box, filled (default) or outlined.",
+        "Draw an ellipse/circle inscribed in the given bounding box, filled or outlined.",
       inputSchema: {
         type: "object",
         properties: { ...RECT, color: COLOR, filled: FILLED, layer: LAYER },
@@ -269,7 +270,7 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
           x: int("Seed x."),
           y: int("Seed y."),
           color: COLOR,
-          clip_to_selection: bool("Restrict the fill to the user selection. Default false."),
+          clip_to_selection: bool("Restrict the fill to the user selection.", false),
           layer: LAYER,
         },
         required: ["x", "y"],
@@ -398,15 +399,12 @@ export function drawTools({ studio }: ToolContext, helpers: Helpers): ToolSpec[]
       inputSchema: {
         type: "object",
         properties: {
-          x: int("Left of row 0 (default 0)."),
-          y: int("Top row (default 0)."),
+          x: { ...int("Left edge of the rows."), default: 0 },
+          y: { ...int("Top of the first row."), default: 0 },
           rows: ROWS,
           legend: LEGEND,
-          clip_to_selection: bool("Only paint inside the user selection. Default false."),
-          animate: oneOf(
-            ["scan", "random", "radial"],
-            "Materialize animation order. Default scan.",
-          ),
+          clip_to_selection: bool("Only paint inside the user selection.", false),
+          animate: oneOf(["scan", "random", "radial"], "Materialize animation order.", "scan"),
           layer: LAYER,
         },
         required: ["rows"],

@@ -65,12 +65,11 @@ jobs:
             dir: demos/smart-home
             command: npm run dev -- --port 3000
             url: http://localhost:3000
-          # The dev script binds to 127.0.0.1 only, so use the IPv4 address.
           - target: pixel-art-studio
             name: Pixel Art Studio
             dir: demos/pixel-art-studio
             command: npm run dev -- --port 3000
-            url: http://127.0.0.1:3000
+            url: http://localhost:3000
 
     steps:
       - name: Checkout code

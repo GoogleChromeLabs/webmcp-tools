@@ -10,11 +10,12 @@ import puppeteer from "puppeteer-core";
 // Screenshots are test output, so they go to the git-ignored test-results/ folder.
 const shots = fileURLToPath(new URL("../test-results", import.meta.url));
 mkdirSync(shots, { recursive: true });
+// The dev server to test: the URL that `npm run dev` prints.
+const url = process.env.URL ?? "http://localhost:5173";
 const b = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null });
-let p =
-  (await b.pages()).find((x) => x.url().startsWith("http://127.0.0.1:8810")) ?? (await b.newPage());
+let p = (await b.pages()).find((x) => x.url().startsWith(url)) ?? (await b.newPage());
 p.on("pageerror", (e) => console.log("PAGEERR", e.message));
-await p.goto("http://127.0.0.1:8810", { waitUntil: "load" });
+await p.goto(url, { waitUntil: "load" });
 await p.bringToFront();
 await new Promise((r) => setTimeout(r, 1000));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -204,7 +205,7 @@ await log("set_colors", { primary: "#ff7b5c", secondary: "#1b0f3b" });
 const missing = tools.map((t) => t.name).filter((n) => !used.has(n));
 console.log("unexercised:", missing.join(",") || "none");
 await sleep(500);
-await p.goto("http://127.0.0.1:8810", { waitUntil: "load" });
+await p.goto(url, { waitUntil: "load" });
 await sleep(1200);
 const after = await p.evaluate(async () => ({
   tools: (await document.modelContext.getTools()).length,

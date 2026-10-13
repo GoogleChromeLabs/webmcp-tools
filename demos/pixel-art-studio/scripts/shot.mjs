@@ -5,15 +5,17 @@
 
 // Diagnostics: report WebMCP registration and optionally save a screenshot (node scripts/shot.mjs out.png).
 import puppeteer from "puppeteer-core";
+// The dev server to inspect: the URL that `npm run dev` prints.
+const url = process.env.URL ?? "http://localhost:5173";
 const b = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null });
 const pages = await b.pages();
-let p = pages.find((x) => x.url().startsWith("http://127.0.0.1:8810"));
+let p = pages.find((x) => x.url().startsWith(url));
 if (!p) {
   p = await b.newPage();
 }
 p.on("console", (m) => m.type() === "error" && console.log("CONSOLE", m.text()));
 p.on("pageerror", (e) => console.log("PAGEERR", e.message));
-await p.goto("http://127.0.0.1:8810", { waitUntil: "networkidle0" });
+await p.goto(url, { waitUntil: "networkidle0" });
 await p.bringToFront();
 await new Promise((r) => setTimeout(r, 800));
 const info = await p.evaluate(() => ({

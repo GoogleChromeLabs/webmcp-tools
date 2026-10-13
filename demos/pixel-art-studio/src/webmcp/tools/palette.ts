@@ -14,7 +14,7 @@ export function paletteTools({ studio }: ToolContext, helpers: Helpers): ToolSpe
   return [
     {
       name: "set_palette",
-      description: `Replace the working palette with a curated preset (${PALETTES.map((palette) => palette.id).join(", ")}) or a custom list of colors (max ${MAX_PALETTE}). Palette order defines the paint chars (0-9, a-z, A-Z, …). Existing pixels are not recolored.`,
+      description: `Replace the working palette with a curated preset or a custom list of colors (max ${MAX_PALETTE}). Palette order defines the paint chars (0-9, a-z, A-Z, …). Existing pixels are not recolored.`,
       inputSchema: {
         type: "object",
         properties: {
@@ -25,7 +25,7 @@ export function paletteTools({ studio }: ToolContext, helpers: Helpers): ToolSpe
           colors: COLOR_LIST(
             'Custom colors, e.g. ["#0b0723","#ff7b5c"]. Used when preset is omitted.',
           ),
-          name: str('Display name for a custom palette. Default "Custom".'),
+          name: str("Display name for a custom palette.", "Custom"),
         },
       },
       execute: (input) => {
@@ -70,9 +70,11 @@ export function paletteTools({ studio }: ToolContext, helpers: Helpers): ToolSpe
     {
       name: "set_colors",
       description:
-        "Set the primary and/or secondary drawing color shown in the UI (the primary is also the default color for draw tools).",
+        "Set the primary and/or secondary drawing color shown in the UI (the primary is also the default color for draw tools). Pass at least one of them.",
       inputSchema: { type: "object", properties: { primary: COLOR, secondary: COLOR } },
       execute: (input) => {
+        if (input.primary === undefined && input.secondary === undefined)
+          throw new Error("Pass primary, secondary, or both.");
         if (input.primary !== undefined) studio.primary = u32ToHex(studio.color(input.primary));
         if (input.secondary !== undefined)
           studio.secondary = u32ToHex(studio.color(input.secondary));

@@ -4,19 +4,10 @@
  */
 
 /** Wraps tool specs with user-visible feedback and registers them with WebMCP. */
-import type { ChangeThumbs, ToolContext, ToolInput, ToolOutcome, ToolSpec } from "./types";
+import { checkEnums } from "./schema";
+import type { ChangeThumbs, ToolContext, ToolOutcome, ToolSpec } from "./types";
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
-
-/** Accept the input object (Chrome 155+) or a JSON string (older builds). */
-function normalizeInput(raw: unknown): ToolInput {
-  if (raw && typeof raw === "object") return raw as ToolInput;
-  if (typeof raw === "string" && raw.trim()) {
-    const parsed: unknown = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") return parsed as ToolInput;
-  }
-  return {};
-}
 
 /**
  * Turn a spec into a WebMCP tool. Every call is logged in the activity feed, painted changes
@@ -61,15 +52,12 @@ function wrap(spec: ToolSpec, ctx: ToolContext): WebMCP.ModelContextTool {
     name: spec.name,
     description: spec.description,
     inputSchema: spec.inputSchema,
-    async execute(rawInput, options) {
-      // Builds that pass a JSON string (see normalizeInput) do not pass options either.
-      const signal = options?.signal ?? new AbortController().signal;
-      let input: ToolInput = {};
+    async execute(input, { signal }) {
       let entry: unknown;
       try {
-        input = normalizeInput(rawInput);
         entry = feed.start(spec.name, input);
         signal.throwIfAborted();
+        checkEnums(spec.inputSchema, input);
         const before = studio.composite.slice();
         const outcome = await spec.execute(input, { signal });
         feed.done(entry, outcome.summary ?? "ok", present(outcome, before));
@@ -83,9 +71,7 @@ function wrap(spec: ToolSpec, ctx: ToolContext): WebMCP.ModelContextTool {
         ctx.refresh();
       }
     },
-    // Always an object (even with no hints set), so getTools() reports every hint as false
-    // instead of leaving `annotations` undefined.
-    annotations: spec.annotations ?? {},
+    annotations: spec.annotations,
   };
 }
 

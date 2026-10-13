@@ -59,7 +59,8 @@ export interface JsonSchema {
 export interface ToolSpec {
   name: string;
   description: string;
-  inputSchema: JsonSchema;
+  /** Omitted by tools that take no input. */
+  inputSchema?: JsonSchema;
   /**
    * Called with the agent's `input` and `{ signal }`, like WebMCP's `execute`. `signal`
    * aborts when the agent cancels the call: check it after every await, before painting.

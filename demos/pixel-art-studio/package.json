@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 8810 --host 127.0.0.1",
+    "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --port 8810 --host 127.0.0.1",
+    "preview": "vite preview",
     "lint": "oxlint",
     "format": "oxfmt --write"
   },

@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Open `http://127.0.0.1:8810` and connect a WebMCP agent, such as the [WebMCP extension](https://github.com/GoogleChromeLabs/webmcp-extension).
+Open the local URL that Vite prints (`http://localhost:5173` by default) and connect a WebMCP agent, such as the [WebMCP extension](https://github.com/GoogleChromeLabs/webmcp-extension).
 
 ## 🛠️ How It Works
 
@@ -22,7 +22,7 @@ The demo registers 25 tools with `document.modelContext.registerTool`. People an
 - **SVG for composition**: Models write SVG much better than they type pixel grids, so `draw_svg` (and `replace_selection` with `mode: "svg"`) takes SVG in canvas coordinates. The studio renders it with crisp edges, matches each color to the palette, and can add a 1-px outline.
 - **A drawing workflow in the tools**: `get_canvas_info` tells agents to block in big shapes with `draw_svg`, add small details with `paint_rows`, then check the result with `get_region_pixels`.
 - **Exporting stays with the user**: There is no export tool on purpose. Saving a file is the user's decision, made with the **Export PNG** button.
-- **Errors the agent can act on**: Invalid SVG, missing coordinates, and similar problems come back as `{ ok: false, error }`, so the agent can fix its call.
+- **Errors the agent can act on**: Invalid SVG, missing coordinates, unknown option values, and similar problems come back as `{ ok: false, error }`, so the agent can fix its call.
 - **Security**: Agent SVG is parsed without running scripts, and `<script>`, `<foreignObject>`, and `on*` attributes are removed before rendering. Agent text is HTML-escaped in the activity feed.
 - **Official WebMCP types**: The tools use [`webmcp-types`](https://www.npmjs.com/package/webmcp-types), and each call gets the agent's cancel `signal`. If the agent cancels while an SVG is still rendering, nothing is painted.
 
@@ -129,9 +129,9 @@ Drag a selection on the canvas, click **Regenerate with agent** in the selection
 - **Lint and format** (checked in CI): `npm run lint` and `npm run format`.
 - **WebMCP smoke test** (runs in CI): with the dev server running, run every case in [`webmcp-evals/examples/pixel-art-studio/evals.json`](../../webmcp-evals/examples/pixel-art-studio/evals.json) from the `webmcp-evals/` folder:
   ```bash
-  URL=http://127.0.0.1:8810 ./run_smoke.sh pixel-art-studio -v
+  URL=http://localhost:5173 ./run_smoke.sh pixel-art-studio -v
   ```
-- **End-to-end script**: `node scripts/smoke.mjs` connects to a Chrome debugging endpoint on `127.0.0.1:9222`, calls every tool through `document.modelContext`, and saves screenshots to `test-results/`, which git ignores. It also checks that a cancelled call paints nothing and that a mouse-drawn selection is visible to agents. It prints `PASS: 25/25 tools ok`.
+- **End-to-end script**: with the dev server running, `node scripts/smoke.mjs` connects to a Chrome debugging endpoint on `127.0.0.1:9222`, opens the demo (`URL`, default `http://localhost:5173`), calls every tool through `document.modelContext`, and saves screenshots to `test-results/`, which git ignores. It also checks that a cancelled call paints nothing and that a mouse-drawn selection is visible to agents. It prints `PASS: 25/25 tools ok`.
 
 ## 📂 Project Structure
 

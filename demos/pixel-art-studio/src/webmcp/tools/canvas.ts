@@ -15,7 +15,6 @@ export function canvasTools(ctx: ToolContext, helpers: Helpers): ToolSpec[] {
       name: "get_canvas_info",
       description:
         "Read the studio state: canvas size, palette (index, paint char, hex), primary/secondary colors, layers and the user's selection. Call this first. To draw a picture, block in big shapes with draw_svg, add small details with paint_rows, then check the result with get_region_pixels.",
-      inputSchema: { type: "object", properties: {} },
       execute: () => ({
         result: helpers.canvasInfo(),
         summary: `${studio.w}×${studio.h}, ${studio.palette.length} colors, ${studio.layers.length} layers`,
@@ -26,14 +25,14 @@ export function canvasTools(ctx: ToolContext, helpers: Helpers): ToolSpec[] {
     {
       name: "set_canvas_size",
       description:
-        "Resize the canvas. Common sizes are 32, 64 (default) and 128. Existing artwork is kept, anchored at the center (or top-left). Clears the selection. Undoable.",
+        "Resize the canvas. Common sizes are 32, 64 and 128. Existing artwork is kept, anchored at the center (or top-left). Clears the selection. Undoable.",
       inputSchema: {
         type: "object",
         properties: {
-          size: oneOf([32, 64, 128], "Square size shortcut."),
+          size: oneOf([32, 64, 128], "Square size shortcut.", 64),
           width: int("Custom width (8–256).", 8, 256),
           height: int("Custom height (8–256).", 8, 256),
-          anchor: oneOf(["center", "top-left"], "Where existing art is anchored. Default center."),
+          anchor: oneOf(["center", "top-left"], "Where existing art is anchored.", "center"),
         },
       },
       execute: (input) => {
@@ -52,11 +51,11 @@ export function canvasTools(ctx: ToolContext, helpers: Helpers): ToolSpec[] {
     {
       name: "clear_canvas",
       description:
-        'Erase pixels. scope "all" (default) clears every layer, "layer" only the target layer, "selection" only inside the selection on the target layer. Undoable.',
+        'Erase pixels. scope "all" clears every layer, "layer" only the target layer, "selection" only inside the selection on the target layer. Undoable.',
       inputSchema: {
         type: "object",
         properties: {
-          scope: oneOf(["all", "layer", "selection"], "What to erase. Default all."),
+          scope: oneOf(["all", "layer", "selection"], "What to erase.", "all"),
           layer: LAYER,
           reset_layers: bool('With scope "all": also collapse to a single Background layer.'),
         },

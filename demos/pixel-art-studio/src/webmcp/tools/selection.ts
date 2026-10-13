@@ -31,7 +31,6 @@ export function selectionTools({ studio, view }: ToolContext, helpers: Helpers):
       name: "get_selection",
       description:
         'Return the rectangular or lasso selection the user drew with the mouse (bounds, pixel count; lasso also returns mask_rows). Use this when the user says "the selected area". Returns null when nothing is selected.',
-      inputSchema: { type: "object", properties: {} },
       execute: () => ({
         result: { selection: helpers.selectionInfo() },
         summary: studio.selection
@@ -101,14 +100,14 @@ export function selectionTools({ studio, view }: ToolContext, helpers: Helpers):
             ...COLOR,
             description: 'mode "svg": optional 1-px outline color around the drawn shapes.',
           },
-          snap_to_palette: bool('mode "svg": snap colors to the palette (default true).'),
+          snap_to_palette: bool('mode "svg": snap colors to the palette.', true),
           rows: ROWS,
           legend: LEGEND,
           color: COLOR,
           colors: COLOR_LIST("Stops for gradient / colors for noise. Default primary + secondary."),
           direction: DIRECTION,
           dither: DITHER,
-          clear_first: bool("svg/rows mode: erase the selection before painting (default true)."),
+          clear_first: bool("svg/rows mode: erase the selection before painting.", true),
           layer: LAYER,
         },
         required: ["mode"],
@@ -236,7 +235,8 @@ export function selectionTools({ studio, view }: ToolContext, helpers: Helpers):
           ...RECT,
           source: oneOf(
             ["composite", "layer"],
-            "Read the flattened image (default) or a single layer.",
+            "Read the flattened image or a single layer.",
+            "composite",
           ),
           layer: LAYER,
         },
