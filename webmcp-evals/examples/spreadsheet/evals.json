@@ -1,0 +1,510 @@
+[
+  {
+    "name": "Spreadsheet: Read the workbook",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Which sheets does this workbook have, and which cells do I have selected?"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "get_workbook_info",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Enter a table with a total formula",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter a table with the headers Item and Price, the rows Pens $3.50, Paper $12 and Ink $24.99, and a Total row that sums the prices with a formula."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Item", "Price"],
+            ["Pens", "$3.50"],
+            ["Paper", "$12"],
+            ["Ink", "$24.99"],
+            ["Total", "=SUM(B2:B4)"]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Format a header row",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Put Region, Q1 and Q2 in A1:C1, then make that header bold with a #e8e6ff background."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["Region", "Q1", "Q2"]]
+        }
+      },
+      {
+        "functionName": "format_cells",
+        "arguments": {
+          "range": "A1:C1",
+          "bold": true,
+          "fill_color": "#e8e6ff"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Show numbers as euros",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at B2, type 1200, 950.5 and 3100 down the column, then show B2:B4 as euros with no decimals."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "B2",
+          "values": [["1200"], ["950.5"], ["3100"]]
+        }
+      },
+      {
+        "functionName": "format_cells",
+        "arguments": {
+          "range": "B2:B4",
+          "currency": "EUR",
+          "decimals": 0
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Sort a table by score",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter the headers Name and Score, then the rows Ana 72, Ben 91 and Cy 85. Sort A1:B4 by score from highest to lowest and keep the header on top."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Name", "Score"],
+            ["Ana", "72"],
+            ["Ben", "91"],
+            ["Cy", "85"]
+          ]
+        }
+      },
+      {
+        "functionName": "sort_range",
+        "arguments": {
+          "range": "A1:B4",
+          "by": [{ "column": "B", "descending": true }],
+          "has_header": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Fill in the months",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Type Jan in A1, then fill the month names down to A12."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["Jan"]]
+        }
+      },
+      {
+        "functionName": "autofill",
+        "arguments": {
+          "source": "A1",
+          "target": "A1:A12"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Highlight negative balances",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter Balance, 120, -45, 300 and -8 down column A. Then add a conditional format that makes the negative balances in A2:A5 red text (#b42318)."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["Balance"], ["120"], ["-45"], ["300"], ["-8"]]
+        }
+      },
+      {
+        "functionName": "add_conditional_format",
+        "arguments": {
+          "range": "A2:A5",
+          "condition": "less_than",
+          "value": "0",
+          "text_color": "#b42318"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Chart spending as a pie",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter the headers Category and Amount, then Rent 1800, Food 650 and Travel 300. Add a pie chart of A1:B4 titled Spending."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Category", "Amount"],
+            ["Rent", "1800"],
+            ["Food", "650"],
+            ["Travel", "300"]
+          ]
+        }
+      },
+      {
+        "functionName": "add_chart",
+        "arguments": {
+          "range": "A1:B4",
+          "type": "pie",
+          "title": "Spending"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Change a chart",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter the headers Month and Sales, then Jan 10, Feb 12 and Mar 9. Add a line chart of A1:B4, then change chart1 to a column chart titled Monthly sales."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Month", "Sales"],
+            ["Jan", "10"],
+            ["Feb", "12"],
+            ["Mar", "9"]
+          ]
+        }
+      },
+      {
+        "functionName": "add_chart",
+        "arguments": {
+          "range": "A1:B4",
+          "type": "line"
+        }
+      },
+      {
+        "functionName": "update_chart",
+        "arguments": {
+          "id": "chart1",
+          "type": "column",
+          "title": "Monthly sales"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Add a summary sheet with a cross-sheet formula",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Add a sheet named Summary, and in its A1 put a formula that doubles Sheet1!B2."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "add_sheet",
+        "arguments": {
+          "name": "Summary"
+        }
+      },
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "Summary!A1",
+          "values": [["=Sheet1!B2*2"]]
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Rename a sheet and freeze its header",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Rename Sheet1 to Budget and freeze its first row."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "update_sheet",
+        "arguments": {
+          "sheet": "Sheet1",
+          "name": "Budget",
+          "frozen_rows": 1
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Insert a row",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter the headers Item and Cost and the row Pens 3, then insert an empty row above row 2."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Item", "Cost"],
+            ["Pens", "3"]
+          ]
+        }
+      },
+      {
+        "functionName": "insert_rows",
+        "arguments": {
+          "row": 2
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Delete a column and fit the widths",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Starting at A1, enter the headers Name, Notes and Total and the row Ana, call back, 12. Then delete column B and fit columns A:B to their content."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [
+            ["Name", "Notes", "Total"],
+            ["Ana", "call back", "12"]
+          ]
+        }
+      },
+      {
+        "functionName": "delete_columns",
+        "arguments": {
+          "column": "B"
+        }
+      },
+      {
+        "functionName": "resize_columns",
+        "arguments": {
+          "columns": "A:B",
+          "fit_to_content": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Find and replace",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Enter Paper, Pens and Paper clips in A1:A3, then replace Paper with Card everywhere."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["Paper"], ["Pens"], ["Paper clips"]]
+        }
+      },
+      {
+        "functionName": "replace_text",
+        "arguments": {
+          "find": "Paper",
+          "replacement": "Card"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Find cells",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Enter North, South and East in A1:A3, then find the cells that contain th."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["North"], ["South"], ["East"]]
+        }
+      },
+      {
+        "functionName": "find_cells",
+        "arguments": {
+          "query": "th"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Copy results as values",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Put 2 in A1 and the formula =A1*10 in B1, then copy A1:B1 to D1 as values only."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["2", "=A1*10"]]
+        }
+      },
+      {
+        "functionName": "copy_range",
+        "arguments": {
+          "source": "A1:B1",
+          "destination": "D1",
+          "paste": "values"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Read a range",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Put 5, 7 and the formula =A1*B1 in A1:C1, then read back A1:C1."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["5", "7", "=A1*B1"]]
+        }
+      },
+      {
+        "functionName": "read_range",
+        "arguments": {
+          "range": "A1:C1"
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Point at cells and read the selection",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Select B2:B4 for me, then tell me what is selected."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "select_range",
+        "arguments": {
+          "range": "B2:B4"
+        }
+      },
+      {
+        "functionName": "get_selection",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "Spreadsheet: Undo the last change",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Type Draft in A1, then undo that."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "set_values",
+        "arguments": {
+          "range": "A1",
+          "values": [["Draft"]]
+        }
+      },
+      {
+        "functionName": "undo",
+        "arguments": {}
+      }
+    ]
+  }
+]

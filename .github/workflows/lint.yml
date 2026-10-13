@@ -58,3 +58,15 @@ jobs:
       - name: Run Format Check (pixel-art-studio)
         working-directory: ./demos/pixel-art-studio
         run: npx oxfmt --check
+
+      - name: Install dependencies (spreadsheet)
+        working-directory: ./demos/spreadsheet
+        run: npm ci
+
+      - name: Run Lint (spreadsheet)
+        working-directory: ./demos/spreadsheet
+        run: npm run lint
+
+      - name: Run Format Check (spreadsheet)
+        working-directory: ./demos/spreadsheet
+        run: npx oxfmt --check

@@ -29,6 +29,7 @@ This repository contains a suite of developer utilities and demos designed to su
 - [**WebMCP Smart Home (Imperative)**](demos/smart-home/): A sleek, interactive dashboard where an AI agent can dynamically reconfigure home control components (e.g., front door cameras, thermostats, smart lights, energy distribution) based on user intents.
 - [**WebMCP Page Agent (Imperative)**](demos/page-agent/): A Gemini-powered meta-demo that lets you control any WebMCP-enabled website using simple natural language commands.
 - [**Pixel Art Studio (Imperative)**](demos/pixel-art-studio/): A pixel-art drawing board where people and AI agents share the same tools. Agents compose whole scenes in SVG that the studio turns into crisp, palette-matched pixel art, and can manage palettes and layers or replace a selected area with new art.
+- [**Spreadsheet (Imperative)**](demos/spreadsheet/): A full spreadsheet where people and AI agents share 27 tools. Agents type values and formulas like a person, format cells, sort, add conditional formats and charts, and manage sheets, and every change is one undo step that lights up on the sheet.
 
 Check out our curated list of WebMCP demos in the [Awesome WebMCP List](AWESOME_WEBMCP.md).
 
