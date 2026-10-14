@@ -1,0 +1,639 @@
+<!--
+  Copyright 2026 Google LLC
+  SPDX-License-Identifier: Apache-2.0
+-->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="origin-trial"
+      content="AkSy8NN0hHVbV1Tcto9+K2cDotMP5NcgNobK+M8bhWqrxefn6KOq0cpv/Glx1A+/1EmTU4KmfdLhdcrIA7L8EwwAAABaeyJvcmlnaW4iOiJodHRwczovL2dvb2dsZWNocm9tZWxhYnMuZ2l0aHViLmlvOjQ0MyIsImZlYXR1cmUiOiJXZWJNQ1AiLCJleHBpcnkiOjE3OTQ4NzM2MDB9"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Spreadsheet — a WebMCP demo</title>
+    <meta
+      name="description"
+      content="A spreadsheet where people and AI agents share the same tools through WebMCP."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='7' fill='%234d48d8'/%3E%3Cpath d='M6 12.5h7M6 17h4.5' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M17 4c.3 2.3 1.2 3.2 3.5 3.5-2.3.3-3.2 1.2-3.5 3.5-.3-2.3-1.2-3.2-3.5-3.5 2.3-.3 3.2-1.2 3.5-3.5Z' fill='%23ffb35c'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <!-- Icons drawn for this demo on a 24px grid. -->
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="i-undo" viewBox="0 0 24 24">
+        <path d="M20 15.5a7 7 0 0 0-14 0" />
+        <path d="m3 12.5 3 3 3-3" />
+      </symbol>
+      <symbol id="i-redo" viewBox="0 0 24 24">
+        <path d="M4 15.5a7 7 0 0 1 14 0" />
+        <path d="m15 12.5 3 3 3-3" />
+      </symbol>
+      <symbol id="i-text-color" viewBox="0 0 24 24">
+        <path d="M6 16 10.5 4h3L18 16M7.7 11.5h8.6" />
+      </symbol>
+      <symbol id="i-fill" viewBox="0 0 24 24">
+        <path d="M12 3.5c3 3.6 6 7 6 10.5a6 6 0 0 1-12 0c0-3.5 3-6.9 6-10.5Z" />
+        <path d="M9 14.5a3 3 0 0 0 3 3" />
+      </symbol>
+      <symbol id="i-align-left" viewBox="0 0 24 24">
+        <path d="M4 6h16M4 10h10M4 14h16M4 18h10" />
+      </symbol>
+      <symbol id="i-align-center" viewBox="0 0 24 24">
+        <path d="M4 6h16M7 10h10M4 14h16M7 18h10" />
+      </symbol>
+      <symbol id="i-align-right" viewBox="0 0 24 24">
+        <path d="M4 6h16M10 10h10M4 14h16M10 18h10" />
+      </symbol>
+      <symbol id="i-clear-format" viewBox="0 0 24 24">
+        <path d="M5 5h11M10.5 5v14M15 15l5 5m0-5-5 5" />
+      </symbol>
+      <symbol id="i-freeze" viewBox="0 0 24 24">
+        <path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" />
+        <path
+          d="m10 4.5 2 2 2-2m-4 15 2-2 2 2M17.5 6.6l-.7 2.6 2.7.8m0 4-2.7.8.7 2.6M4.5 14l2.7.8-.7 2.6m0-10.8.7 2.6-2.7.8"
+        />
+      </symbol>
+      <symbol id="i-sort-asc" viewBox="0 0 24 24">
+        <path d="M7 4v16m-3.5-3.5L7 20l3.5-3.5" />
+        <path d="M14 6h3M14 12h5M14 18h7" />
+      </symbol>
+      <symbol id="i-sort-desc" viewBox="0 0 24 24">
+        <path d="M7 4v16m-3.5-3.5L7 20l3.5-3.5" />
+        <path d="M14 6h7M14 12h5M14 18h3" />
+      </symbol>
+      <symbol id="i-sigma" viewBox="0 0 24 24"><path d="M17 5H7l5.5 7L7 19h10" /></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24">
+        <rect x="4" y="12" width="4" height="8" rx="1" />
+        <rect x="10" y="5" width="4" height="15" rx="1" />
+        <rect x="16" y="9" width="4" height="11" rx="1" />
+      </symbol>
+      <symbol id="i-rules" viewBox="0 0 24 24">
+        <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+        <path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15" />
+        <path d="M9.5 9.5h11v5h-11Z" fill="currentColor" stroke="none" opacity=".4" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <circle cx="10.5" cy="10.5" r="6" />
+        <path d="m15 15 5 5" />
+      </symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24">
+        <path d="M4 13v6.5h16V13M12 4v11M8 8l4-4 4 4" />
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path d="M4 13v6.5h16V13M12 4v11m-4-4 4 4 4-4" />
+      </symbol>
+      <symbol id="i-keyboard" viewBox="0 0 24 24">
+        <rect x="2.5" y="6" width="19" height="12" rx="2.5" />
+        <path d="M6 10h1.5m2 0H11m2 0h1.5m2 0H18M7.5 14h9" />
+      </symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24">
+        <path d="m16.5 3.5 4 4-12 12-4.5.5.5-4.5ZM14 6l4 4" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12" /></symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></symbol>
+      <symbol id="i-panel" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2.5" />
+        <path d="M15 5v14" />
+      </symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24">
+        <path
+          d="M12 5c.6 4.6 2.4 6.4 7 7-4.6.6-6.4 2.4-7 7-.6-4.6-2.4-6.4-7-7 4.6-.6 6.4-2.4 7-7Z"
+        />
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24">
+        <path
+          d="M4 7h16M9.5 7V4.5h5V7M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7M10 11v6M14 11v6"
+        />
+      </symbol>
+    </svg>
+
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <svg class="logo" viewBox="0 0 24 24" aria-hidden="true">
+            <rect width="24" height="24" rx="7" />
+            <path class="bars" d="M6 12.5h7M6 17h4.5" />
+            <path
+              class="spark"
+              d="M17 4c.3 2.3 1.2 3.2 3.5 3.5-2.3.3-3.2 1.2-3.5 3.5-.3-2.3-1.2-3.2-3.5-3.5 2.3-.3 3.2-1.2 3.5-3.5Z"
+            />
+          </svg>
+          <div>
+            <h1>Spreadsheet</h1>
+            <p>People and agents, one sheet. Every action is a WebMCP tool.</p>
+          </div>
+        </div>
+        <p id="webmcp-status" class="webmcp-status" role="status"></p>
+        <button
+          id="toggle-activity"
+          class="icon-btn"
+          type="button"
+          aria-controls="activity"
+          aria-expanded="true"
+          aria-label="Agent activity"
+        >
+          <svg><use href="#i-panel" /></svg>
+        </button>
+      </header>
+
+      <div id="toolbar" class="toolbar" role="toolbar" aria-label="Formatting" aria-controls="grid">
+        <div class="group" role="group" aria-label="History">
+          <button type="button" data-cmd="undo" aria-label="Undo (Ctrl+Z)">
+            <svg><use href="#i-undo" /></svg>
+          </button>
+          <button type="button" data-cmd="redo" aria-label="Redo (Ctrl+Y)">
+            <svg><use href="#i-redo" /></svg>
+          </button>
+        </div>
+        <div class="group" role="group" aria-label="Numbers">
+          <button type="button" popovertarget="numfmt-menu" class="format-btn">
+            <span class="visually-hidden">Number format:</span>
+            <span id="numfmt-label">Auto</span>
+            <svg class="chev"><use href="#i-chevron" /></svg>
+          </button>
+          <button
+            type="button"
+            data-cmd="decimals-down"
+            aria-label="Fewer decimal places"
+            class="glyph small"
+          >
+            −.0
+          </button>
+          <button
+            type="button"
+            data-cmd="decimals-up"
+            aria-label="More decimal places"
+            class="glyph small"
+          >
+            +.0
+          </button>
+        </div>
+        <div class="group" role="group" aria-label="Text">
+          <button
+            type="button"
+            data-cmd="bold"
+            aria-label="Bold (Ctrl+B)"
+            aria-pressed="false"
+            class="glyph"
+          >
+            <b>B</b>
+          </button>
+          <button
+            type="button"
+            data-cmd="italic"
+            aria-label="Italic (Ctrl+I)"
+            aria-pressed="false"
+            class="glyph"
+          >
+            <i>I</i>
+          </button>
+          <button
+            type="button"
+            data-cmd="underline"
+            aria-label="Underline (Ctrl+U)"
+            aria-pressed="false"
+            class="glyph"
+          >
+            <u>U</u>
+          </button>
+          <button
+            type="button"
+            data-cmd="strike"
+            aria-label="Strikethrough (Alt+Shift+5)"
+            aria-pressed="false"
+            class="glyph"
+          >
+            <s>S</s>
+          </button>
+          <button
+            type="button"
+            popovertarget="text-color-menu"
+            aria-label="Text color"
+            class="swatch-btn"
+          >
+            <svg><use href="#i-text-color" /></svg><span id="text-color-bar" class="bar"></span>
+          </button>
+          <button
+            type="button"
+            popovertarget="fill-color-menu"
+            aria-label="Fill color"
+            class="swatch-btn"
+          >
+            <svg><use href="#i-fill" /></svg><span id="fill-color-bar" class="bar"></span>
+          </button>
+          <button type="button" data-cmd="clear-format" aria-label="Clear formatting (Ctrl+\)">
+            <svg><use href="#i-clear-format" /></svg>
+          </button>
+        </div>
+        <div class="group" role="group" aria-label="Alignment">
+          <button type="button" data-cmd="align-left" aria-label="Align left" aria-pressed="false">
+            <svg><use href="#i-align-left" /></svg>
+          </button>
+          <button
+            type="button"
+            data-cmd="align-center"
+            aria-label="Align center"
+            aria-pressed="false"
+          >
+            <svg><use href="#i-align-center" /></svg>
+          </button>
+          <button
+            type="button"
+            data-cmd="align-right"
+            aria-label="Align right"
+            aria-pressed="false"
+          >
+            <svg><use href="#i-align-right" /></svg>
+          </button>
+        </div>
+        <div class="group" role="group" aria-label="Data">
+          <button type="button" data-cmd="sort-asc" aria-label="Sort A to Z by the selected column">
+            <svg><use href="#i-sort-asc" /></svg>
+          </button>
+          <button
+            type="button"
+            data-cmd="sort-desc"
+            aria-label="Sort Z to A by the selected column"
+          >
+            <svg><use href="#i-sort-desc" /></svg>
+          </button>
+          <button type="button" data-cmd="autosum" aria-label="Sum (Alt+=)">
+            <svg><use href="#i-sigma" /></svg>
+          </button>
+          <button type="button" popovertarget="freeze-menu" aria-label="Freeze rows and columns">
+            <svg><use href="#i-freeze" /></svg>
+          </button>
+        </div>
+        <div class="group" role="group" aria-label="Tools">
+          <button
+            type="button"
+            data-cmd="insert-chart"
+            aria-label="Insert chart from the selection"
+          >
+            <svg><use href="#i-chart" /></svg>
+          </button>
+          <button
+            type="button"
+            commandfor="cf-dialog"
+            command="show-modal"
+            aria-label="Conditional formatting"
+          >
+            <svg><use href="#i-rules" /></svg>
+          </button>
+          <button
+            type="button"
+            commandfor="find-dialog"
+            command="show-modal"
+            aria-label="Find and replace (Ctrl+H)"
+          >
+            <svg><use href="#i-search" /></svg>
+          </button>
+        </div>
+        <span class="spacer"></span>
+        <div class="group" role="group" aria-label="File">
+          <button type="button" data-cmd="import-csv" aria-label="Import CSV">
+            <svg><use href="#i-upload" /></svg>
+          </button>
+          <button type="button" data-cmd="export-csv" aria-label="Export sheet as CSV">
+            <svg><use href="#i-download" /></svg>
+          </button>
+          <button
+            type="button"
+            commandfor="help-dialog"
+            command="show-modal"
+            aria-label="Keyboard shortcuts"
+          >
+            <svg><use href="#i-keyboard" /></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="formula-bar">
+        <input
+          id="name-box"
+          class="name-box"
+          aria-label="Go to cell or range"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <svg class="formula-icon" aria-hidden="true"><use href="#i-edit" /></svg>
+        <input
+          id="formula"
+          class="formula"
+          aria-label="Cell contents"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <output id="cell-error" class="cell-error" for="formula"></output>
+      </div>
+
+      <div class="workspace">
+        <main id="sheet-area" class="sheet-area">
+          <div id="grid-scroll" class="grid-scroll">
+            <div id="grid" class="grid" role="grid" aria-multiselectable="true"></div>
+            <div id="charts" class="layer"></div>
+            <div id="overlays" class="layer overlays" aria-hidden="true"></div>
+          </div>
+          <dialog
+            id="welcome"
+            class="welcome"
+            aria-labelledby="welcome-title"
+            closedby="closerequest"
+          >
+            <h2 id="welcome-title">Start a spreadsheet</h2>
+            <p>Type or paste into any cell, import a CSV file, or ask your agent to build one.</p>
+            <div class="dialog-actions">
+              <button id="load-sample" class="primary" type="button">Load sample sales data</button>
+              <button type="button" commandfor="welcome" command="close">Start blank</button>
+            </div>
+          </dialog>
+        </main>
+
+        <aside id="activity" class="activity" aria-labelledby="activity-title">
+          <div class="activity-head">
+            <h2 id="activity-title">
+              <svg aria-hidden="true"><use href="#i-spark" /></svg>Agent activity
+            </h2>
+            <label class="follow"><input id="follow" type="checkbox" checked /> Follow agent</label>
+          </div>
+          <ol id="feed" class="feed"></ol>
+          <div id="feed-empty" class="feed-empty">
+            <p><strong>Waiting for an agent…</strong></p>
+            <p>
+              Tool calls appear here, and the cells an agent changes light up on the sheet. Try
+              asking:
+            </p>
+            <ul class="prompts">
+              <li>“Build a monthly budget for a family of four with totals and a chart.”</li>
+              <li>“Load my sales numbers, then highlight regions with negative growth in red.”</li>
+              <li>“Sort the table by total, highest first, and freeze the header row.”</li>
+              <li>“Add a Summary sheet that looks up each region's total.”</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="statusbar">
+        <button id="add-sheet" class="icon-btn" type="button" aria-label="Add sheet">
+          <svg><use href="#i-plus" /></svg>
+        </button>
+        <div id="tabs" class="tabs" role="tablist" aria-label="Sheets"></div>
+        <output id="stats" class="stats"></output>
+      </footer>
+    </div>
+
+    <div id="numfmt-menu" class="menu" popover role="menu" aria-label="Number format">
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="general">
+        Auto<samp>1234.5</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="number">
+        Number<samp>1,234.50</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="currency">
+        Currency<samp>$1,234.50</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="percent">
+        Percent<samp>12.50%</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="date">
+        Date<samp>2026-10-13</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="time">
+        Time<samp>14:30</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="datetime">
+        Date &amp; time<samp>2026-10-13 14:30</samp>
+      </button>
+      <button type="button" role="menuitem" data-cmd="numfmt" data-value="text">
+        Text<samp>007</samp>
+      </button>
+    </div>
+    <div
+      id="text-color-menu"
+      class="menu swatches"
+      popover
+      role="menu"
+      aria-label="Text color"
+    ></div>
+    <div
+      id="fill-color-menu"
+      class="menu swatches"
+      popover
+      role="menu"
+      aria-label="Fill color"
+    ></div>
+    <div id="freeze-menu" class="menu" popover role="menu" aria-label="Freeze">
+      <button type="button" role="menuitem" data-cmd="freeze-rows" data-value="0">
+        No frozen rows
+      </button>
+      <button type="button" role="menuitem" data-cmd="freeze-rows" data-value="1">1 row</button>
+      <button type="button" role="menuitem" data-cmd="freeze-rows" data-value="2">2 rows</button>
+      <button type="button" role="menuitem" data-cmd="freeze-rows" data-value="current">
+        Up to the selected row
+      </button>
+      <hr />
+      <button type="button" role="menuitem" data-cmd="freeze-cols" data-value="0">
+        No frozen columns
+      </button>
+      <button type="button" role="menuitem" data-cmd="freeze-cols" data-value="1">1 column</button>
+      <button type="button" role="menuitem" data-cmd="freeze-cols" data-value="current">
+        Up to the selected column
+      </button>
+    </div>
+    <div id="context-menu" class="menu" popover role="menu" aria-label="Cell actions">
+      <button type="button" role="menuitem" data-cmd="cut">Cut<kbd>Ctrl+X</kbd></button>
+      <button type="button" role="menuitem" data-cmd="copy">Copy<kbd>Ctrl+C</kbd></button>
+      <button type="button" role="menuitem" data-cmd="paste">Paste<kbd>Ctrl+V</kbd></button>
+      <button type="button" role="menuitem" data-cmd="paste-values">
+        Paste values only<kbd>Ctrl+Shift+V</kbd>
+      </button>
+      <hr />
+      <button type="button" role="menuitem" data-cmd="insert-row-above">Insert row above</button>
+      <button type="button" role="menuitem" data-cmd="insert-row-below">Insert row below</button>
+      <button type="button" role="menuitem" data-cmd="insert-col-left">Insert column left</button>
+      <button type="button" role="menuitem" data-cmd="insert-col-right">Insert column right</button>
+      <button type="button" role="menuitem" data-cmd="delete-rows">Delete row</button>
+      <button type="button" role="menuitem" data-cmd="delete-cols">Delete column</button>
+      <hr />
+      <button type="button" role="menuitem" data-cmd="clear">
+        Clear contents<kbd>Delete</kbd>
+      </button>
+      <button type="button" role="menuitem" data-cmd="sort-asc">Sort A to Z</button>
+      <button type="button" role="menuitem" data-cmd="sort-desc">Sort Z to A</button>
+      <button type="button" role="menuitem" data-cmd="insert-chart">Insert chart</button>
+    </div>
+    <div id="tab-menu" class="menu" popover role="menu" aria-label="Sheet actions">
+      <button type="button" role="menuitem" data-tab-cmd="rename">Rename</button>
+      <button type="button" role="menuitem" data-tab-cmd="left">Move left</button>
+      <button type="button" role="menuitem" data-tab-cmd="right">Move right</button>
+      <button type="button" role="menuitem" data-tab-cmd="delete">Delete</button>
+    </div>
+    <div
+      id="autocomplete"
+      class="autocomplete"
+      popover="manual"
+      role="listbox"
+      aria-label="Functions"
+    ></div>
+    <div id="toast" class="toast" popover="manual" role="status"></div>
+    <div id="pointer-anchor" class="pointer-anchor"></div>
+    <input id="csv-file" type="file" accept=".csv,.tsv,text/csv,text/tab-separated-values" hidden />
+
+    <dialog id="find-dialog" class="dialog" aria-labelledby="find-title" closedby="any">
+      <form id="find-form" method="dialog">
+        <h2 id="find-title">Find and replace</h2>
+        <label>Find <input name="find" autocomplete="off" required /></label>
+        <label>Replace with <input name="replace" autocomplete="off" /></label>
+        <fieldset>
+          <legend>Search</legend>
+          <label><input type="radio" name="scope" value="sheet" checked /> This sheet</label>
+          <label><input type="radio" name="scope" value="all" /> All sheets</label>
+        </fieldset>
+        <label class="check"><input type="checkbox" name="matchCase" /> Match case</label>
+        <label class="check"
+          ><input type="checkbox" name="entireCell" /> Match entire cell contents</label
+        >
+        <label class="check"
+          ><input type="checkbox" name="formulas" /> Also search within formulas</label
+        >
+        <p id="find-status" class="find-status" role="status"></p>
+        <div class="dialog-actions">
+          <button type="button" data-find="next">Find next</button>
+          <button type="button" data-find="replace">Replace</button>
+          <button type="button" data-find="all">Replace all</button>
+          <button type="button" class="primary" commandfor="find-dialog" command="close">
+            Done
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="cf-dialog" class="dialog" aria-labelledby="cf-title" closedby="any">
+      <form id="cf-form" method="dialog">
+        <h2 id="cf-title">Conditional formatting</h2>
+        <ul id="cf-rules" class="cf-rules" aria-label="Rules on this sheet"></ul>
+        <fieldset>
+          <legend>New rule</legend>
+          <label
+            >Apply to range <input name="range" autocomplete="off" spellcheck="false" required
+          /></label>
+          <label
+            >Format cells if
+            <select name="condition">
+              <option value="greater_than">Greater than</option>
+              <option value="less_than">Less than</option>
+              <option value="between">Between</option>
+              <option value="equal_to">Equal to</option>
+              <option value="not_equal_to">Not equal to</option>
+              <option value="text_contains">Text contains</option>
+              <option value="is_empty">Is empty</option>
+              <option value="not_empty">Is not empty</option>
+              <option value="formula">Custom formula is</option>
+              <option value="color_scale">Color scale</option>
+            </select>
+          </label>
+          <label data-for="value">Value <input name="value" autocomplete="off" /></label>
+          <label data-for="value2">and <input name="value2" autocomplete="off" /></label>
+          <label data-for="formula"
+            >Formula
+            <input name="formula" placeholder="=$C2>100" autocomplete="off" spellcheck="false"
+          /></label>
+          <div class="cf-style" data-for="style">
+            <label>Text <input type="color" name="color" value="#b42318" /></label>
+            <label>Fill <input type="color" name="fill" value="#fde3df" /></label>
+            <label class="check"><input type="checkbox" name="bold" /> Bold</label>
+          </div>
+          <div class="cf-style" data-for="scale">
+            <label>Lowest <input type="color" name="min" value="#ffffff" /></label>
+            <label>Highest <input type="color" name="max" value="#8c88f2" /></label>
+          </div>
+        </fieldset>
+        <p id="cf-status" class="find-status" role="status"></p>
+        <div class="dialog-actions">
+          <button type="button" commandfor="cf-dialog" command="close">Done</button>
+          <button type="submit" class="primary" value="add">Add rule</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="help-dialog" class="dialog" aria-labelledby="help-title" closedby="any">
+      <h2 id="help-title">Keyboard shortcuts</h2>
+      <table class="shortcuts">
+        <tbody>
+          <tr>
+            <th scope="row">Edit cell</th>
+            <td><kbd>Enter</kbd> / <kbd>F2</kbd> or start typing</td>
+          </tr>
+          <tr>
+            <th scope="row">Confirm and move</th>
+            <td><kbd>Enter</kbd> <kbd>Tab</kbd> <kbd>Shift</kbd>+either</td>
+          </tr>
+          <tr>
+            <th scope="row">Cancel editing</th>
+            <td><kbd>Esc</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Extend selection</th>
+            <td><kbd>Shift</kbd>+arrows, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+arrows</td>
+          </tr>
+          <tr>
+            <th scope="row">Jump to data edge</th>
+            <td><kbd>Ctrl</kbd>+arrows</td>
+          </tr>
+          <tr>
+            <th scope="row">Select column / row / all</th>
+            <td>
+              <kbd>Ctrl</kbd>+<kbd>Space</kbd> / <kbd>Shift</kbd>+<kbd>Space</kbd> /
+              <kbd>Ctrl</kbd>+<kbd>A</kbd>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Copy, cut, paste</th>
+            <td>
+              <kbd>Ctrl</kbd>+<kbd>C</kbd> <kbd>X</kbd> <kbd>V</kbd>, values only
+              <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd>
+            </td>
+          </tr>
+          <tr>
+            <th scope="row">Fill down / right</th>
+            <td><kbd>Ctrl</kbd>+<kbd>D</kbd> / <kbd>Ctrl</kbd>+<kbd>R</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Bold, italic, underline</th>
+            <td><kbd>Ctrl</kbd>+<kbd>B</kbd> <kbd>I</kbd> <kbd>U</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Undo / redo</th>
+            <td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Sum</th>
+            <td><kbd>Alt</kbd>+<kbd>=</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Find and replace</th>
+            <td><kbd>Ctrl</kbd>+<kbd>F</kbd> / <kbd>Ctrl</kbd>+<kbd>H</kbd></td>
+          </tr>
+          <tr>
+            <th scope="row">Cell menu</th>
+            <td><kbd>Shift</kbd>+<kbd>F10</kbd></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="dialog-actions">
+        <button type="button" class="primary" commandfor="help-dialog" command="close">
+          Close
+        </button>
+      </div>
+    </dialog>
+
+    <div id="announcer" class="visually-hidden" aria-live="polite"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

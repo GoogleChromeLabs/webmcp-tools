@@ -48,6 +48,7 @@ jobs:
           cp -r demos/page-agent deployment-root/demos/page-agent
           cp -r demos/explainer deployment-root/demos/explainer
           cp -r demos/pixel-art-studio/dist deployment-root/demos/pixel-art-studio
+          cp -r demos/spreadsheet/dist deployment-root/demos/spreadsheet
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6

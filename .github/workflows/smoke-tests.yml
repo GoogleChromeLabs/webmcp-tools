@@ -70,6 +70,11 @@ jobs:
             dir: demos/pixel-art-studio
             command: npm run dev -- --port 3000
             url: http://localhost:3000
+          - target: spreadsheet
+            name: Spreadsheet
+            dir: demos/spreadsheet
+            command: npm run dev -- --port 3000
+            url: http://localhost:3000
 
     steps:
       - name: Checkout code

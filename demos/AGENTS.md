@@ -6,7 +6,7 @@ Instructions for building and modifying WebMCP demo applications in `demos/`.
 
 - **Build all bundled demos** (React/Vite & Angular): `../build-demos.sh` (from repo root: `./build-demos.sh`).
 - **Static demos** (`coffee-shop`, `doors`, `explainer`, `french-bistro`, `order-tracking`, `page-agent`, `pizza-maker`, `real-estate-map`, `ticket-booking`): No build step; serve from the repository root so `../shared/webmcp-polyfill.js` resolves (e.g., `npx serve .`).
-- **Bundled demos** (`analytics-dashboard`, `hotel-chain`, `leather-bag`, `pixel-art-studio`, `react-flightsearch`, `smart-home`, `sport-shop-angular`, `webmcp-maze`): Run `npm ci && npm run dev` (or `npm start` for Angular demos) inside `demos/<demo-name>`.
+- **Bundled demos** (`analytics-dashboard`, `hotel-chain`, `leather-bag`, `pixel-art-studio`, `react-flightsearch`, `smart-home`, `sport-shop-angular`, `spreadsheet`, `webmcp-maze`): Run `npm ci && npm run dev` (or `npm start` for Angular demos) inside `demos/<demo-name>`.
 
 ## Web & WebMCP Guidance (`modern-web-guidance`)
 
