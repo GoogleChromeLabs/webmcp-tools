@@ -6,7 +6,7 @@
 /** Tools that change a sheet's grid: insert and delete rows and columns, and resize columns. */
 import { columnName, MAX_COLS, MAX_ROWS, quoteSheet, type Range } from "../../engine/address.ts";
 import { DEFAULT_WIDTH, SpreadsheetError, type Sheet } from "../../model/workbook.ts";
-import { plural, readColumn, readColumns } from "../refs.ts";
+import { plural, readColumn, readColumns, RETURNS_CONTENT } from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
 import { bool, int, object, str } from "../schema.ts";
 
@@ -60,6 +60,7 @@ export function structureTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: wholeRows(sheet, r1, r2) },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "insert_columns",
@@ -90,6 +91,7 @@ export function structureTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: wholeCols(sheet, c1, c2) },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "delete_rows",
@@ -119,6 +121,7 @@ export function structureTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: wholeRows(sheet, at, at) },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "delete_columns",
@@ -148,6 +151,7 @@ export function structureTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: wholeCols(sheet, at, at) },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "resize_columns",
@@ -176,6 +180,7 @@ export function structureTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: wholeCols(sheet, range.c1, range.c2) },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
   ];
 }

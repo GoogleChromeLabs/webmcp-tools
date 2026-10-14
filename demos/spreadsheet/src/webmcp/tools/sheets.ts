@@ -5,6 +5,7 @@
 
 /** Tools for sheets: add, rename, reorder, freeze rows and columns, and delete. */
 import { SpreadsheetError, type Sheet } from "../../model/workbook.ts";
+import { RETURNS_CONTENT } from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
 import { int, object, str } from "../schema.ts";
 
@@ -35,6 +36,7 @@ export function sheetTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: { r1: 0, c1: 0, r2: 0, c2: 0 } },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "update_sheet",
@@ -74,6 +76,7 @@ export function sheetTools(host: ToolHost): ToolSpec[] {
             : undefined;
         return { result: info(sheet), summary: `Updated sheet ${sheet.name}`, target };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "delete_sheet",
@@ -90,6 +93,7 @@ export function sheetTools(host: ToolHost): ToolSpec[] {
           summary: `Deleted sheet ${sheet.name}`,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
   ];
 }

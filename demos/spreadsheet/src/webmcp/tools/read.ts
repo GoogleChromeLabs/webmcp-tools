@@ -11,16 +11,28 @@ import {
   rangeRows,
   type Range,
 } from "../../engine/address.ts";
+import type { Scalar } from "../../engine/values.ts";
 import { rangeStats } from "../../model/stats.ts";
 import { SpreadsheetError, type Sheet, type Workbook } from "../../model/workbook.ts";
-import { chartInfo, plainValue, plural, readCells, readRange, ruleInfo, where } from "../refs.ts";
+import {
+  chartInfo,
+  jsonLength,
+  OUTPUT_BUDGET,
+  plainValue,
+  plural,
+  readPage,
+  readRange,
+  RETURNS_CONTENT,
+  ruleInfo,
+  where,
+} from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
-import { bool, object, str } from "../schema.ts";
+import { bool, int, object, str } from "../schema.ts";
 
-const MAX_READ = 5000;
-const MAX_MATCHES = 100;
-/** For tools that return what cells hold: text a person typed, pasted or imported from anywhere. */
-const READS_CELLS: WebMCP.ToolAnnotations = { readOnlyHint: true, untrustedContentHint: true };
+/** Reading changes nothing, and what the workbook holds can come from anywhere. */
+const READS: WebMCP.ToolAnnotations = { readOnlyHint: true, ...RETURNS_CONTENT };
+
+const cellsIn = (range: Range) => rangeRows(range) * rangeCols(range);
 
 /** Leaves out the empty rows and columns after the sheet's last value; null when nothing is left. */
 function trimmed(wb: Workbook, sheet: Sheet, range: Range): Range | null {
@@ -62,7 +74,7 @@ export function readTools(host: ToolHost): ToolSpec[] {
           summary: `Looked at ${plural(wb.sheets.length, "sheet")}`,
         };
       },
-      annotations: { readOnlyHint: true },
+      annotations: READS,
     }),
     defineTool({
       name: "get_selection",
@@ -72,34 +84,33 @@ export function readTools(host: ToolHost): ToolSpec[] {
         const { sheet, range, active } = host.selection();
         const stats = rangeStats(wb, sheet, range);
         const data = trimmed(wb, sheet, range);
-        const small = data && rangeRows(data) * rangeCols(data) <= MAX_READ;
+        const about = {
+          selection: where({ sheet, range }),
+          active_cell: qualifiedName(sheet.name, {
+            r1: active.row,
+            c1: active.col,
+            r2: active.row,
+            c2: active.col,
+          }),
+        };
+        // The count, sum and average cover the whole selection, even when the cells don't fit.
+        const totals = {
+          count: stats.filled,
+          ...(stats.numbers > 0 && { sum: stats.sum, average: stats.average }),
+        };
+        const budget = OUTPUT_BUDGET - jsonLength({ ...about, ...totals });
+        const page = data && readPage(wb, { sheet, range: data }, false, budget);
         return {
-          result: {
-            selection: where({ sheet, range }),
-            active_cell: qualifiedName(sheet.name, {
-              r1: active.row,
-              c1: active.col,
-              r2: active.row,
-              c2: active.col,
-            }),
-            ...(data &&
-              small && { range: where({ sheet, range: data }), ...readCells(wb, sheet, data) }),
-            ...(data &&
-              !small && {
-                note: "The selection is too large to return. Read parts of it with read_range.",
-              }),
-            count: stats.filled,
-            ...(stats.numbers > 0 && { sum: stats.sum, average: stats.average }),
-          },
+          result: { ...about, ...page?.result, ...totals },
           summary: `Read the selection ${rangeName(range)}`,
         };
       },
-      annotations: READS_CELLS,
+      annotations: READS,
     }),
     defineTool({
       name: "read_range",
       description:
-        "Reads cell values, formulas and formula errors. Values are row by row from the range's top-left cell; empty rows and columns after the sheet's data are left out. Dates read as text like 2026-10-13.",
+        "Reads cell values, formulas and formula errors, row by row from the top-left cell. Empty rows and columns after the sheet's data are left out. Dates read as text like 2026-10-13. Long ranges come back a page at a time; read next_range to continue.",
       inputSchema: object({
         range: str(
           "Cells to read, like A1:G20, Sales!A:C or B2, or a sheet name to read all of it. Leave out to read all of the sheet on screen.",
@@ -118,29 +129,25 @@ export function readTools(host: ToolHost): ToolSpec[] {
             summary: `Read ${where(target)} (empty)`,
             target,
           };
-        const cells = rangeRows(data) * rangeCols(data);
-        if (cells > MAX_READ) {
-          const part = {
-            ...data,
-            r2: data.r1 + Math.max(1, Math.floor(MAX_READ / rangeCols(data))) - 1,
-          };
-          throw new SpreadsheetError(
-            `${where({ ...target, range: data })} has ${cells} cells. Read up to ${MAX_READ} at a time, like ${rangeName(part)}.`,
-          );
-        }
-        const read = { sheet: target.sheet, range: data };
+        const { result, read } = readPage(
+          wb,
+          { sheet: target.sheet, range: data },
+          include_formats,
+        );
+        const [got, all] = [cellsIn(read.range), cellsIn(data)];
         return {
-          result: { range: where(read), ...readCells(wb, read.sheet, data, include_formats) },
-          summary: `Read ${plural(cells, "cell")}`,
+          result,
+          summary:
+            got < all ? `Read ${got} of ${plural(all, "cell")}` : `Read ${plural(got, "cell")}`,
           target: read,
         };
       },
-      annotations: READS_CELLS,
+      annotations: READS,
     }),
     defineTool({
       name: "find_cells",
       description:
-        "Finds cells whose text contains the query, on one sheet or all of them. Returns up to 100 matches.",
+        "Finds cells that contain some text, on one sheet or all of them. Returns the matches with their values and how many match in all. Many matches come back a page at a time, with next_start to continue.",
       inputSchema: object(
         {
           query: str("Text to look for.", { minLength: 1 }),
@@ -148,10 +155,14 @@ export function readTools(host: ToolHost): ToolSpec[] {
           match_case: bool("Match upper and lower case exactly.", { default: false }),
           entire_cell: bool("Match only cells whose whole text is the query.", { default: false }),
           search_formulas: bool("Also look inside formulas.", { default: false }),
+          start: int(
+            "Number of the first match to return, 1 for the first. Use next_start from the previous result.",
+            { default: 1, minimum: 1 },
+          ),
         },
         ["query"],
       ),
-      execute: ({ query, sheet, match_case, entire_cell, search_formulas }) => {
+      execute: ({ query, sheet, match_case, entire_cell, search_formulas, start }) => {
         const options = {
           matchCase: match_case,
           entireCell: entire_cell,
@@ -160,21 +171,36 @@ export function readTools(host: ToolHost): ToolSpec[] {
         const hits = (sheet === undefined ? wb.sheets : [wb.sheet(sheet)]).flatMap((s) =>
           wb.search(s, query, options).map(({ row, col }) => ({ sheet: s, row, col })),
         );
-        const matches = hits.slice(0, MAX_MATCHES).map(({ sheet: s, row, col }) => ({
-          cell: qualifiedName(s.name, { r1: row, c1: col, r2: row, c2: col }),
-          value: plainValue(wb, s, row, col),
-          formula: wb.cell(s, row, col)?.f,
-        }));
-        return {
-          result: {
+        if (hits.length && start > hits.length)
+          throw new SpreadsheetError(
+            `There ${hits.length === 1 ? "is" : "are"} only ${plural(hits.length, "match", "matches")}, so start can be at most ${hits.length}.`,
+          );
+        type Match = { cell: string; value: Scalar; formula?: string };
+        const result = (listed: Match[]) => {
+          const next = start + listed.length;
+          return {
             count: hits.length,
-            matches,
-            ...(hits.length > MAX_MATCHES && { note: `Showing the first ${MAX_MATCHES}.` }),
-          },
+            matches: listed,
+            ...(next <= hits.length && { truncated: true, next_start: next }),
+          };
+        };
+        // As many matches as fit in the output budget, and at least one.
+        const matches: Match[] = [];
+        for (const { sheet: s, row, col } of hits.slice(start - 1)) {
+          const match = {
+            cell: qualifiedName(s.name, { r1: row, c1: col, r2: row, c2: col }),
+            value: plainValue(wb, s, row, col),
+            formula: wb.cell(s, row, col)?.f,
+          };
+          if (matches.length && jsonLength(result([...matches, match])) > OUTPUT_BUDGET) break;
+          matches.push(match);
+        }
+        return {
+          result: result(matches),
           summary: `Found ${plural(hits.length, "match", "matches")} for "${query}"`,
         };
       },
-      annotations: READS_CELLS,
+      annotations: READS,
     }),
   ];
 }

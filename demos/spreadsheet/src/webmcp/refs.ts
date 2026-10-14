@@ -77,6 +77,17 @@ export const where = ({ sheet, range }: Target): string => qualifiedName(sheet.n
 export const plural = (n: number, one: string, many = `${one}s`): string =>
   `${n} ${n === 1 ? one : many}`;
 
+/** The most characters a result should take as JSON, about 400 tokens (tool-design.md §1). */
+export const OUTPUT_BUDGET = 1500;
+export const jsonLength = (value: object): number => JSON.stringify(value).length;
+
+/**
+ * For tools whose results can hold text that people typed, pasted or imported: cell values, chart
+ * titles, rule criteria, and sheet names, which people also choose (or an imported file's name
+ * sets). Every tool except undo and redo can return a sheet name, so every other tool sets it.
+ */
+export const RETURNS_CONTENT: WebMCP.ToolAnnotations = { untrustedContentHint: true };
+
 /** A chart with the same names add_chart takes. */
 export const chartInfo = (chart: Chart) => ({
   id: chart.id,
@@ -106,8 +117,6 @@ export const ruleInfo = (rule: ConditionalRule) => ({
   min_color: rule.scale?.min,
   max_color: rule.scale?.max,
 });
-const filled = <T extends object>(record: T): T | undefined =>
-  Object.keys(record).length ? record : undefined;
 
 /** A cell's value for agents: errors as their code, dates and times as the text they show, numbers to 15 digits. */
 export function plainValue(wb: Workbook, sheet: Sheet, row: number, col: number): Scalar {
@@ -137,6 +146,36 @@ export function formatInfo(fmt: CellFormat): Record<string, unknown> {
   return Object.fromEntries(Object.entries(info).filter(([, value]) => value !== undefined));
 }
 
+/** One row of a range: values left to right, plus formulas, formula errors and formats by cell. */
+interface RowRead {
+  values: Scalar[];
+  formulas: [string, string][];
+  errors: [string, string][];
+  formats: [string, Record<string, unknown>][];
+}
+
+function readRow(wb: Workbook, sheet: Sheet, r: number, range: Range, withFormats: boolean) {
+  const row: RowRead = { values: [], formulas: [], errors: [], formats: [] };
+  for (let c = range.c1; c <= range.c2; c++) {
+    const [cell, value, name] = [wb.cell(sheet, r, c), wb.value(sheet, r, c), cellName(r, c)];
+    row.values.push(plainValue(wb, sheet, r, c));
+    if (cell?.f) row.formulas.push([name, cell.f]);
+    if (isError(value)) row.errors.push([name, value.message]);
+    if (withFormats && cell?.fmt) row.formats.push([name, formatInfo(cell.fmt)]);
+  }
+  return row;
+}
+
+const byCell = <T>(entries: [string, T][]) =>
+  entries.length ? Object.fromEntries(entries) : undefined;
+
+const joinRows = (rows: readonly RowRead[]) => ({
+  values: rows.map((row) => row.values),
+  formulas: byCell(rows.flatMap((row) => row.formulas)),
+  formula_errors: byCell(rows.flatMap((row) => row.errors)),
+  formats: byCell(rows.flatMap((row) => row.formats)),
+});
+
 /** Values row by row, plus formulas, formula errors and (when asked) formats by cell. */
 export function readCells(
   wb: Workbook,
@@ -144,27 +183,46 @@ export function readCells(
   range: Range,
   withFormats = false,
 ): Record<string, unknown> {
-  const values: Scalar[][] = [];
-  const formulas: Record<string, string> = {};
-  const errors: Record<string, string> = {};
-  const formats: Record<string, Record<string, unknown>> = {};
-  for (let r = range.r1; r <= range.r2; r++) {
-    const row: Scalar[] = [];
-    for (let c = range.c1; c <= range.c2; c++) {
-      const [cell, value, name] = [wb.cell(sheet, r, c), wb.value(sheet, r, c), cellName(r, c)];
-      row.push(plainValue(wb, sheet, r, c));
-      if (cell?.f) formulas[name] = cell.f;
-      if (isError(value)) errors[name] = value.message;
-      if (withFormats && cell?.fmt) formats[name] = formatInfo(cell.fmt);
-    }
-    values.push(row);
-  }
-  return {
-    values,
-    formulas: filled(formulas),
-    formula_errors: filled(errors),
-    formats: filled(formats),
+  const rows: RowRead[] = [];
+  for (let r = range.r1; r <= range.r2; r++) rows.push(readRow(wb, sheet, r, range, withFormats));
+  return joinRows(rows);
+}
+
+/** A read's result for the agent, and the cells it holds. */
+export interface Page {
+  result: Record<string, unknown>;
+  read: Target;
+}
+
+/**
+ * Reads whole rows from the top of a range, as many as fit in `budget` characters and at least
+ * one. When rows are left, the result says `truncated: true` and gives `next_range` to read next.
+ */
+export function readPage(
+  wb: Workbook,
+  { sheet, range }: Target,
+  withFormats = false,
+  budget = OUTPUT_BUDGET,
+): Page {
+  const rows: RowRead[] = [];
+  /** The page of the rows read so far, which end at row r2. */
+  const page = (r2: number): Page => {
+    const read = { sheet, range: { ...range, r2 } };
+    const more = r2 < range.r2 && {
+      truncated: true,
+      next_range: where({ sheet, range: { ...range, r1: r2 + 1 } }),
+    };
+    return { result: { range: where(read), ...joinRows(rows), ...more }, read };
   };
+  rows.push(readRow(wb, sheet, range.r1, range, withFormats));
+  let fits = page(range.r1);
+  for (let r = range.r1 + 1; r <= range.r2; r++) {
+    rows.push(readRow(wb, sheet, r, range, withFormats));
+    const next = page(r);
+    if (jsonLength(next.result) > budget) break;
+    fits = next;
+  }
+  return fits;
 }
 
 /** What a write returns: where it landed, the values when there are few, and any formula errors. */

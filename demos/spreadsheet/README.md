@@ -27,16 +27,16 @@ Open the URL that Vite prints and connect a WebMCP agent, such as the [WebMCP ex
 
 ## 📦 Registered Tools
 
-Tools are defined in `src/webmcp/tools/` with `defineTool()`: `name`, `description`, `inputSchema`, `execute(input)` and `annotations`. Tools run synchronously, so a call can't be cancelled partway through. The four read tools set `readOnlyHint`, and the three that return cell contents also set `untrustedContentHint`, because cells can hold text pasted or imported from anywhere.
+Tools are defined in `src/webmcp/tools/` with `defineTool()`: `name`, `description`, `inputSchema`, `execute(input)` and `annotations`. Tools run synchronously, so a call can't be cancelled partway through. The four read tools set `readOnlyHint`. Every tool except `undo` and `redo` sets `untrustedContentHint`, because its result can hold text that people typed, pasted or imported: cell values, chart titles, rule criteria, or at least a sheet name. Reads stay within about 1,500 characters: long results come back a page at a time, with `truncated: true` and where to continue (`next_range`, or `next_start` for `find_cells`).
 
 ### Reading (`read.ts`)
 
-| Tool Name                         | Description                                                                                                               | Parameters                                                       |
-| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------- |
-| `get_workbook_info` _(read-only)_ | Lists every sheet with its used range, size, frozen rows and columns, charts and conditional formats, plus the selection. | (none)                                                           |
-| `get_selection` _(read-only)_     | Returns the cells the person selected, with values, formulas, count, sum and average.                                     | (none)                                                           |
-| `read_range` _(read-only)_        | Reads values, formulas and formula errors. Empty rows and columns after the data are left out.                            | `range`, `include_formats`                                       |
-| `find_cells` _(read-only)_        | Finds cells whose text contains the query, on one sheet or all of them.                                                   | `query`, `sheet`, `match_case`, `entire_cell`, `search_formulas` |
+| Tool Name                         | Description                                                                                                               | Parameters                                                                |
+| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------ |
+| `get_workbook_info` _(read-only)_ | Lists every sheet with its used range, size, frozen rows and columns, charts and conditional formats, plus the selection. | (none)                                                                    |
+| `get_selection` _(read-only)_     | Returns the cells the person selected, with values, formulas, count, sum and average.                                     | (none)                                                                    |
+| `read_range` _(read-only)_        | Reads values, formulas and formula errors, a page at a time. Empty rows and columns after the data are left out.          | `range`, `include_formats`                                                |
+| `find_cells` _(read-only)_        | Finds cells that contain some text, on one sheet or all of them, a page at a time, with the total count.                  | `query`, `sheet`, `match_case`, `entire_cell`, `search_formulas`, `start` |
 
 ### Cells (`cells.ts`)
 

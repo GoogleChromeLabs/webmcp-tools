@@ -84,10 +84,37 @@ test("the tool surface: 27 described tools, annotation hints, no schema without 
   assert.deepEqual(noInput, ["get_workbook_info", "get_selection"]);
   const readOnly = tools.filter((tool) => tool.annotations?.readOnlyHint).map((tool) => tool.name);
   assert.deepEqual(readOnly, ["get_workbook_info", "get_selection", "read_range", "find_cells"]);
-  const untrusted = tools
-    .filter((tool) => tool.annotations?.untrustedContentHint)
+  // Results can hold text people wrote, if only a sheet name; undo and redo return app labels.
+  const trusted = tools
+    .filter((tool) => !tool.annotations?.untrustedContentHint)
     .map((tool) => tool.name);
-  assert.deepEqual(untrusted, ["get_selection", "read_range", "find_cells"]);
+  assert.deepEqual(trusted, ["undo", "redo"]);
+});
+
+test("names and descriptions fit the budgets in tool-design.md", () => {
+  const { tools } = setup();
+  type Schema = { description?: string; items?: Schema; properties?: Record<string, Schema> };
+  const over: string[] = [];
+  const fit = (what: string, text = "", limit: number) => {
+    if (text.length > limit) over.push(`${what}: ${text.length} > ${limit}`);
+  };
+  const walk = (schema: Schema, path: string) => {
+    for (const [name, property] of Object.entries(schema.properties ?? {})) {
+      fit(`${path}.${name} name`, name, 30);
+      fit(`${path}.${name}`, property.description, 150);
+      walk(property, `${path}.${name}`);
+    }
+    if (schema.items) {
+      fit(`${path}[]`, schema.items.description, 150);
+      walk(schema.items, `${path}[]`);
+    }
+  };
+  for (const tool of tools) {
+    fit(`${tool.name} name`, tool.name, 30);
+    fit(tool.name, tool.description, 500);
+    walk((tool.inputSchema ?? {}) as Schema, tool.name);
+  }
+  assert.deepEqual(over, []);
 });
 
 test("input is checked against the schema before a tool runs", () => {
@@ -142,6 +169,14 @@ test("set_values fills a range from one value and refuses mismatched sizes", () 
     call("set_values", { range: "C1:C3", values: [["a", "b"]] }).error,
     /values has 1 row of up to 2 cells, but C1:C3 is 3 rows by 1 column/,
   );
+  assert.match(
+    call("set_values", { range: "A1", values: Array.from({ length: 200_000 }, () => ["x"]) }).error,
+    /"values" takes at most 1000 items/,
+  );
+  assert.match(
+    call("set_values", { range: "A1", values: [Array.from({ length: 53 }, () => "x")] }).error,
+    /"values\[0\]" takes at most 52 items/,
+  );
 });
 
 test("a failing call changes nothing", () => {
@@ -164,6 +199,71 @@ test("read_range trims empty rows and columns after the data, and reads whole sh
   assert.deepEqual(call("read_range", { range: "B2", include_formats: true }).formats, {
     B2: { bold: true, number_format: "currency" },
   });
+});
+
+test("reads return pages within the output budget, with the range to read next", () => {
+  const { call, wb, select } = setup();
+  const rows = Array.from({ length: 120 }, (_, i) => [
+    `Item ${i + 1}`,
+    String(i * 10),
+    `=B${i + 1}*2`,
+  ]);
+  call("set_values", { range: "A1", values: rows });
+  const size = (result: Result) => JSON.stringify(result).length;
+
+  const seen: unknown[][] = [];
+  let next: string | undefined = "A1:C200";
+  let pages = 0;
+  while (next !== undefined) {
+    const page = call("read_range", { range: next });
+    assert.ok(size(page) <= 1500, `${page.range} is ${size(page)} characters`);
+    assert.equal(
+      Object.keys(page.formulas).length,
+      page.values.length,
+      "formulas of this page only",
+    );
+    assert.equal(page.truncated, page.next_range === undefined ? undefined : true);
+    seen.push(...page.values);
+    next = page.next_range;
+    pages++;
+  }
+  assert.ok(pages > 1);
+  assert.deepEqual(
+    seen,
+    rows.map((_, i) => [`Item ${i + 1}`, i * 10, i * 20]),
+  );
+
+  select({ sheet: wb.active, range: { r1: 0, c1: 0, r2: 119, c2: 2 }, active: { row: 0, col: 0 } });
+  const selection = call("get_selection");
+  assert.ok(size(selection) <= 1500);
+  assert.equal(selection.next_range, `Sheet1!A${selection.values.length + 1}:C120`);
+  assert.deepEqual([selection.count, selection.sum], [360, 214200]);
+
+  const first = call("find_cells", { query: "item" });
+  assert.deepEqual(first.matches[0], { cell: "Sheet1!A1", value: "Item 1" });
+  assert.equal(first.next_start, first.matches.length + 1);
+  const cells: string[] = [];
+  let start: number | undefined = 1;
+  while (start !== undefined) {
+    const found = call("find_cells", { query: "item", start });
+    assert.ok(size(found) <= 1500, `find_cells from ${start} is ${size(found)} characters`);
+    assert.equal(found.count, 120);
+    cells.push(...found.matches.map((match: Result) => match.cell));
+    start = found.next_start;
+  }
+  assert.deepEqual(
+    cells,
+    rows.map((_, i) => `Sheet1!A${i + 1}`),
+  );
+  assert.match(
+    call("find_cells", { query: "item", start: 121 }).error,
+    /There are only 120 matches, so start can be at most 120/,
+  );
+
+  // A row is never split, so one row longer than the budget still comes back.
+  call("set_values", { range: "E1", values: [["x".repeat(2000)]] });
+  const long = call("read_range", { range: "E1:E2" });
+  assert.deepEqual([long.values.length, long.next_range], [1, "Sheet1!E2"]);
 });
 
 test("empty calls are refused instead of quietly doing nothing", () => {

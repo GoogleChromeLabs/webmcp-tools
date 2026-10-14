@@ -13,7 +13,7 @@ import {
   type FormatPatch,
   type RuleCondition,
 } from "../../model/workbook.ts";
-import { readColor, readRange, ruleInfo, where } from "../refs.ts";
+import { readColor, readRange, RETURNS_CONTENT, ruleInfo, where } from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
 import { bool, int, num, object, oneOf, str } from "../schema.ts";
 
@@ -108,11 +108,12 @@ export function formatTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "add_conditional_format",
       description:
-        "Adds a rule that styles cells by their values, like red text for negative numbers, and keeps applying as values change. color_scale shades numbers from min_color (lowest) to max_color (highest) instead.",
+        "Adds a rule that styles cells by their values, like red text for negative numbers, and keeps applying as values change. It can also shade numbers across a color range instead of styling the cells that match.",
       inputSchema: object(
         {
           range: str("Cells the rule applies to, like G2:G20 or Sales!B2:E6."),
@@ -186,6 +187,7 @@ export function formatTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "delete_conditional_format",
@@ -225,6 +227,7 @@ export function formatTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
   ];
 }

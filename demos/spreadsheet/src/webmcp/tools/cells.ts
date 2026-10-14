@@ -4,9 +4,16 @@
  */
 
 /** Tools that change what cells hold: write, clear, fill, copy, replace and sort; and select cells. */
-import { qualifiedName, rangeCols, rangeName, rangeRows } from "../../engine/address.ts";
+import {
+  MAX_COLS,
+  MAX_ROWS,
+  qualifiedName,
+  rangeCols,
+  rangeName,
+  rangeRows,
+} from "../../engine/address.ts";
 import { SpreadsheetError } from "../../model/workbook.ts";
-import { plural, readColumn, readRange, where, written } from "../refs.ts";
+import { plural, readColumn, readRange, RETURNS_CONTENT, where, written } from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
 import { bool, list, object, oneOf, str } from "../schema.ts";
 
@@ -20,21 +27,19 @@ export function cellTools(host: ToolHost): ToolSpec[] {
       inputSchema: object(
         {
           range: str(
-            "Where to write: the top-left cell, like B2 or Sales!B2, or a range the same size as values. With one value, a larger range gets it in every cell, with formulas adjusted like a fill.",
+            "Where to write: the top-left cell, like B2 or Sales!B2, or a range the same size as values.",
           ),
           values: list(
-            list(str("What to type in one cell."), "One row of cells."),
-            "Rows of cells, top to bottom. Start text with ' to keep it exactly as typed. An empty string clears a cell.",
-            {
-              minItems: 1,
-            },
+            list(str("What to type in one cell."), "One row of cells.", { maxItems: MAX_COLS }),
+            'Rows of cells. One value fills a larger range, with formulas adjusted like a fill. Start text with \' to keep it as typed. "" clears a cell.',
+            { minItems: 1, maxItems: MAX_ROWS },
           ),
         },
         ["range", "values"],
       ),
       execute: ({ range: at, values }) => {
         const { sheet, range } = readRange(wb, at);
-        const width = Math.max(...values.map((row) => row.length));
+        const width = values.reduce((most, row) => Math.max(most, row.length), 0);
         if (width === 0)
           throw new SpreadsheetError('values has no cells. Pass rows like [["Name", "Total"]].');
         const single = rangeRows(range) === 1 && rangeCols(range) === 1;
@@ -53,6 +58,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           : values.reduce((n, row) => n + row.length, 0);
         return { result: written(wb, target), summary: `Wrote ${plural(count, "cell")}`, target };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "clear_range",
@@ -76,11 +82,12 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "autofill",
       description:
-        "Continues the pattern in source across target, like dragging the fill handle: 1, 2 goes on 3, 4; Jan goes on Feb; Item 1 goes on Item 2; formulas adjust their references; other values repeat.",
+        "Continues a pattern into more cells, like dragging the fill handle: 1, 2 goes on 3, 4; Jan goes on Feb; Item 1 goes on Item 2; formulas adjust their references; other values repeat.",
       inputSchema: object(
         {
           source: str("Cells with the pattern, like A2:A3 or Sales!B1:C1."),
@@ -98,6 +105,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
         wb.autofill(from.sheet, from.range, to.range);
         return { result: written(wb, to), summary: `Filled ${rangeName(to.range)}`, target: to };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "copy_range",
@@ -135,6 +143,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "replace_text",
@@ -175,15 +184,19 @@ export function cellTools(host: ToolHost): ToolSpec[] {
         );
         // The feed outlines the changes on the first sheet that has any.
         const first = changed[0];
-        const onFirst = changed.filter((cell) => cell.sheet === first?.sheet);
         const target = first && {
           sheet: first.sheet,
-          range: {
-            r1: Math.min(...onFirst.map((cell) => cell.row)),
-            c1: Math.min(...onFirst.map((cell) => cell.col)),
-            r2: Math.max(...onFirst.map((cell) => cell.row)),
-            c2: Math.max(...onFirst.map((cell) => cell.col)),
-          },
+          range: changed
+            .filter((cell) => cell.sheet === first.sheet)
+            .reduce(
+              (box, { row, col }) => ({
+                r1: Math.min(box.r1, row),
+                c1: Math.min(box.c1, col),
+                r2: Math.max(box.r2, row),
+                c2: Math.max(box.c2, col),
+              }),
+              { r1: first.row, c1: first.col, r2: first.row, c2: first.col },
+            ),
         };
         return {
           result: {
@@ -198,6 +211,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "sort_range",
@@ -251,6 +265,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           target,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "select_range",
@@ -266,6 +281,7 @@ export function cellTools(host: ToolHost): ToolSpec[] {
           select: true,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
   ];
 }

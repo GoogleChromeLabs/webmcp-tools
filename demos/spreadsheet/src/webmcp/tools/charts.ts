@@ -7,7 +7,7 @@
 import { cellName, rangeName } from "../../engine/address.ts";
 import { CHART_LIMITS, chartData, detectLayout } from "../../model/charts.ts";
 import { CHART_TYPES, SpreadsheetError, type Chart, type Sheet } from "../../model/workbook.ts";
-import { chartInfo, readRange, where } from "../refs.ts";
+import { chartInfo, readRange, RETURNS_CONTENT, where } from "../refs.ts";
 import { defineTool, type ToolHost, type ToolSpec } from "../runtime.ts";
 import { bool, int, object, oneOf, str } from "../schema.ts";
 
@@ -99,6 +99,7 @@ export function chartTools(host: ToolHost): ToolSpec[] {
           target: data,
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "update_chart",
@@ -141,6 +142,7 @@ export function chartTools(host: ToolHost): ToolSpec[] {
           target: { sheet, range: updated.range },
         };
       },
+      annotations: RETURNS_CONTENT,
     }),
     defineTool({
       name: "delete_chart",
@@ -156,6 +158,7 @@ export function chartTools(host: ToolHost): ToolSpec[] {
         wb.deleteChart(sheet, id);
         return { result: { deleted: id, sheet: sheet.name }, summary: `Deleted chart ${id}` };
       },
+      annotations: RETURNS_CONTENT,
     }),
   ];
 }
