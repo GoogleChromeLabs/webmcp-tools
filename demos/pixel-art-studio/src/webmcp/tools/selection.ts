@@ -28,7 +28,7 @@ const REPLACE_MODES = ["svg", "rows", "clear", "fill", "gradient", "noise"];
 export function selectionTools({ studio, view }: ToolContext, helpers: Helpers): ToolSpec[] {
   return [
     {
-      name: "get_selection",
+      name: "get_pixel_art_selection",
       description:
         'Return the rectangular or lasso selection the user drew with the mouse (bounds, pixel count; lasso also returns mask_rows). Use this when the user says "the selected area". Returns null when nothing is selected.',
       execute: () => ({
@@ -94,7 +94,7 @@ export function selectionTools({ studio, view }: ToolContext, helpers: Helpers):
             "svg = draw SVG fitted into the selection; rows = paint char rows; clear = erase; fill = solid color; gradient/noise = from colors.",
           ),
           svg: str(
-            'mode "svg": SVG markup; its viewBox is fitted into the selection bounds (width/height from get_selection).',
+            'mode "svg": SVG markup; its viewBox is fitted into the selection bounds (width/height from get_pixel_art_selection).',
           ),
           outline: {
             ...COLOR,

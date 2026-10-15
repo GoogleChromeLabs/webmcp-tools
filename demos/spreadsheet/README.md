@@ -27,16 +27,16 @@ Open the URL that Vite prints and connect a WebMCP agent, such as the [WebMCP ex
 
 ## 📦 Registered Tools
 
-Tools are defined in `src/webmcp/tools/` with `defineTool()`: `name`, `description`, `inputSchema`, `execute(input)` and `annotations`. Tools run synchronously, so a call can't be cancelled partway through. The four read tools set `readOnlyHint`. Every tool except `undo` and `redo` sets `untrustedContentHint`, because its result can hold text that people typed, pasted or imported: cell values, chart titles, rule criteria, or at least a sheet name. Reads stay within about 1,500 characters: long results come back a page at a time, with `truncated: true` and where to continue (`next_range`, or `next_start` for `find_cells`).
+Tools are defined in `src/webmcp/tools/` with `defineTool()`: `name`, `description`, `inputSchema`, `execute(input)` and `annotations`. Tools run synchronously, so a call can't be cancelled partway through. The four read tools set `readOnlyHint`. Every tool except `undo_spreadsheet_action` and `redo_spreadsheet_action` sets `untrustedContentHint`, because its result can hold text that people typed, pasted or imported: cell values, chart titles, rule criteria, or at least a sheet name. Reads stay within about 1,500 characters: long results come back a page at a time, with `truncated: true` and where to continue (`next_range`, or `next_start` for `find_cells`).
 
 ### Reading (`read.ts`)
 
-| Tool Name                         | Description                                                                                                               | Parameters                                                                |
-| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------ |
-| `get_workbook_info` _(read-only)_ | Lists every sheet with its used range, size, frozen rows and columns, charts and conditional formats, plus the selection. | (none)                                                                    |
-| `get_selection` _(read-only)_     | Returns the cells the person selected, with values, formulas, count, sum and average.                                     | (none)                                                                    |
-| `read_range` _(read-only)_        | Reads values, formulas and formula errors, a page at a time. Empty rows and columns after the data are left out.          | `range`, `include_formats`                                                |
-| `find_cells` _(read-only)_        | Finds cells that contain some text, on one sheet or all of them, a page at a time, with the total count.                  | `query`, `sheet`, `match_case`, `entire_cell`, `search_formulas`, `start` |
+| Tool Name                                 | Description                                                                                                               | Parameters                                                                |
+| :---------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------ |
+| `get_workbook_info` _(read-only)_         | Lists every sheet with its used range, size, frozen rows and columns, charts and conditional formats, plus the selection. | (none)                                                                    |
+| `get_spreadsheet_selection` _(read-only)_ | Returns the cells the person selected, with values, formulas, count, sum and average.                                     | (none)                                                                    |
+| `read_range` _(read-only)_                | Reads values, formulas and formula errors, a page at a time. Empty rows and columns after the data are left out.          | `range`, `include_formats`                                                |
+| `find_cells` _(read-only)_                | Finds cells that contain some text, on one sheet or all of them, a page at a time, with the total count.                  | `query`, `sheet`, `match_case`, `entire_cell`, `search_formulas`, `start` |
 
 ### Cells (`cells.ts`)
 
@@ -73,13 +73,13 @@ Tools are defined in `src/webmcp/tools/` with `defineTool()`: `name`, `descripti
 
 ### Charts and history (`charts.ts`, `history.ts`)
 
-| Tool Name      | Description                                                                                      | Parameters                                                                                  |
-| :------------- | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
-| `add_chart`    | Adds a column, bar, line, area, pie or scatter chart. Finds the header row and labels by itself. | `range`, `type`, `title`, `position`, `width`, `height`, `header_row`, `label_column`       |
-| `update_chart` | Changes a chart's type, title, data, position or size.                                           | `id`, `type`, `title`, `range`, `position`, `width`, `height`, `header_row`, `label_column` |
-| `delete_chart` | Deletes a chart. Its data stays.                                                                 | `id`                                                                                        |
-| `undo`         | Undoes the latest changes, made by a person or an agent.                                         | `steps` (1–20)                                                                              |
-| `redo`         | Redoes undone changes.                                                                           | `steps` (1–20)                                                                              |
+| Tool Name                 | Description                                                                                      | Parameters                                                                                  |
+| :------------------------ | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| `add_chart`               | Adds a column, bar, line, area, pie or scatter chart. Finds the header row and labels by itself. | `range`, `type`, `title`, `position`, `width`, `height`, `header_row`, `label_column`       |
+| `update_chart`            | Changes a chart's type, title, data, position or size.                                           | `id`, `type`, `title`, `range`, `position`, `width`, `height`, `header_row`, `label_column` |
+| `delete_chart`            | Deletes a chart. Its data stays.                                                                 | `id`                                                                                        |
+| `undo_spreadsheet_action` | Undoes the latest changes, made by a person or an agent.                                         | `steps` (1–20)                                                                              |
+| `redo_spreadsheet_action` | Redoes undone changes.                                                                           | `steps` (1–20)                                                                              |
 
 ## 🤖 Example Prompts
 
@@ -95,7 +95,7 @@ Select some cells, then ask:
 
 > "What is the average of these cells? Make the biggest one bold."
 
-- **Trajectory**: Agent calls `get_selection` → `format_cells` on the cell with the largest value.
+- **Trajectory**: Agent calls `get_spreadsheet_selection` → `format_cells` on the cell with the largest value.
 
 #### **Clean up the sample data**
 

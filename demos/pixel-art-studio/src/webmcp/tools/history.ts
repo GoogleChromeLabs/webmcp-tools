@@ -11,7 +11,7 @@ import type { ToolContext, ToolSpec } from "../types";
 export function historyTools({ studio }: ToolContext): ToolSpec[] {
   return [
     {
-      name: "undo",
+      name: "undo_pixel_art_action",
       description: "Undo the last change(s), human or agent.",
       inputSchema: { type: "object", properties: { steps: STEPS } },
       execute: (input) => {
@@ -20,7 +20,7 @@ export function historyTools({ studio }: ToolContext): ToolSpec[] {
       },
     },
     {
-      name: "redo",
+      name: "redo_pixel_art_action",
       description: "Redo previously undone change(s).",
       inputSchema: { type: "object", properties: { steps: STEPS } },
       execute: (input) => {

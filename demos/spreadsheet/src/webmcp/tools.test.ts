@@ -81,14 +81,19 @@ test("the tool surface: 27 described tools, annotation hints, no schema without 
       assert.ok(schema.description, `${tool.name}.${name} has a description`);
   }
   const noInput = tools.filter((tool) => !tool.inputSchema).map((tool) => tool.name);
-  assert.deepEqual(noInput, ["get_workbook_info", "get_selection"]);
+  assert.deepEqual(noInput, ["get_workbook_info", "get_spreadsheet_selection"]);
   const readOnly = tools.filter((tool) => tool.annotations?.readOnlyHint).map((tool) => tool.name);
-  assert.deepEqual(readOnly, ["get_workbook_info", "get_selection", "read_range", "find_cells"]);
+  assert.deepEqual(readOnly, [
+    "get_workbook_info",
+    "get_spreadsheet_selection",
+    "read_range",
+    "find_cells",
+  ]);
   // Results can hold text people wrote, if only a sheet name; undo and redo return app labels.
   const trusted = tools
     .filter((tool) => !tool.annotations?.untrustedContentHint)
     .map((tool) => tool.name);
-  assert.deepEqual(trusted, ["undo", "redo"]);
+  assert.deepEqual(trusted, ["undo_spreadsheet_action", "redo_spreadsheet_action"]);
 });
 
 test("names and descriptions fit the budgets in tool-design.md", () => {
@@ -152,7 +157,7 @@ test("set_values types like a person, reports results and formula errors, and is
   assert.deepEqual(result.values[2], ["Total", 1200, "#DIV/0!", 7]);
   assert.deepEqual(result.formula_errors, { C3: "Division by zero." });
   assert.equal(wb.cell(wb.active, 1, 1)?.fmt?.numFmt, "currency");
-  call("undo");
+  call("undo_spreadsheet_action");
   assert.equal(wb.usedRange(wb.active), null);
 });
 
@@ -234,7 +239,7 @@ test("reads return pages within the output budget, with the range to read next",
   );
 
   select({ sheet: wb.active, range: { r1: 0, c1: 0, r2: 119, c2: 2 }, active: { row: 0, col: 0 } });
-  const selection = call("get_selection");
+  const selection = call("get_spreadsheet_selection");
   assert.ok(size(selection) <= 1500);
   assert.equal(selection.next_range, `Sheet1!A${selection.values.length + 1}:C120`);
   assert.deepEqual([selection.count, selection.sum], [360, 214200]);
@@ -268,8 +273,8 @@ test("reads return pages within the output budget, with the range to read next",
 
 test("empty calls are refused instead of quietly doing nothing", () => {
   const { call } = setup();
-  assert.match(call("undo").error, /There is nothing to undo/);
-  assert.match(call("redo").error, /There is nothing to redo/);
+  assert.match(call("undo_spreadsheet_action").error, /There is nothing to undo/);
+  assert.match(call("redo_spreadsheet_action").error, /There is nothing to redo/);
   call("set_values", { range: "A1", values: SALES });
   assert.match(call("format_cells", { range: "A1" }).error, /Pass at least one format/);
   assert.match(call("update_sheet", { sheet: "Sheet1" }).error, /Pass what to change/);
@@ -430,13 +435,13 @@ test("selection tools share what the person sees", () => {
   const { call, wb, select } = setup();
   call("set_values", { range: "A1", values: SALES });
   select({ sheet: wb.active, range: { r1: 1, c1: 1, r2: 3, c2: 2 }, active: { row: 1, col: 1 } });
-  const selection = call("get_selection");
+  const selection = call("get_spreadsheet_selection");
   assert.deepEqual(
     [selection.selection, selection.active_cell, selection.count, selection.sum],
     ["Sheet1!B2:C4", "Sheet1!B2", 6, 600],
   );
   assert.equal(call("select_range", { range: "A1:A4" }).selected, "Sheet1!A1:A4");
-  assert.equal(call("get_selection").selection, "Sheet1!A1:A4");
+  assert.equal(call("get_spreadsheet_selection").selection, "Sheet1!A1:A4");
   assert.deepEqual(call("find_cells", { query: "th" }).matches, [
     { cell: "Sheet1!A2", value: "North" },
     { cell: "Sheet1!A3", value: "South" },
@@ -448,8 +453,11 @@ test("undo and redo step through agent changes, and the workbook info tells what
   call("set_values", { range: "A1", values: SALES });
   call("format_cells", { range: "A1:C1", bold: true });
   assert.equal(call("get_workbook_info").next_undo, "Format cells");
-  assert.deepEqual(call("undo", { steps: 5 }).undone, ["Format cells", "Set values"]);
-  assert.deepEqual(call("redo").redone, ["Set values"]);
+  assert.deepEqual(call("undo_spreadsheet_action", { steps: 5 }).undone, [
+    "Format cells",
+    "Set values",
+  ]);
+  assert.deepEqual(call("redo_spreadsheet_action").redone, ["Set values"]);
   const info = call("get_workbook_info");
   assert.deepEqual(
     [info.sheets[0].used_range, info.next_undo, info.next_redo],

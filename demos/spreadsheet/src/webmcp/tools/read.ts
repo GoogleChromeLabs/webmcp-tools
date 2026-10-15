@@ -77,7 +77,7 @@ export function readTools(host: ToolHost): ToolSpec[] {
       annotations: READS,
     }),
     defineTool({
-      name: "get_selection",
+      name: "get_spreadsheet_selection",
       description:
         'Returns the cells the person has selected, with their values, formulas and the count, sum and average of the numbers. Use it when the person refers to "these cells" or "the selection".',
       execute: () => {

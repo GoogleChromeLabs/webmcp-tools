@@ -23,7 +23,7 @@ export function historyTools(host: ToolHost): ToolSpec[] {
   };
   return [
     defineTool({
-      name: "undo",
+      name: "undo_spreadsheet_action",
       description: "Undoes the latest changes, whether a person or an agent made them.",
       inputSchema: object({ steps: steps("undo") }),
       execute: ({ steps: count }) => {
@@ -36,7 +36,7 @@ export function historyTools(host: ToolHost): ToolSpec[] {
       },
     }),
     defineTool({
-      name: "redo",
+      name: "redo_spreadsheet_action",
       description: "Redoes changes that were just undone.",
       inputSchema: object({ steps: steps("redo") }),
       execute: ({ steps: count }) => {
