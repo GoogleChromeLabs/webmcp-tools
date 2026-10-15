@@ -28,7 +28,7 @@ When designing, implementing, or auditing WebMCP tools in a demo, follow the [`b
 
 - Load only the reference guides relevant to the task (e.g., [tool-design.md](../webmcp-skills/skills/build-webmcp-tools/references/tool-design.md), [annotations.md](../webmcp-skills/skills/build-webmcp-tools/references/annotations.md), [error-handling.md](../webmcp-skills/skills/build-webmcp-tools/references/error-handling.md), and the matching [React](../webmcp-skills/skills/build-webmcp-tools/references/react-patterns.md) / [Angular](../webmcp-skills/skills/build-webmcp-tools/references/angular-patterns.md) / [Vanilla JS](../webmcp-skills/skills/build-webmcp-tools/references/vanilla-patterns.md) / [Declarative HTML](../webmcp-skills/skills/build-webmcp-tools/references/declarative-patterns.md) pattern guide).
 - Verify new or changed tools against the [audit checklist](../webmcp-skills/skills/build-webmcp-tools/references/audit-checklist.md) (character/token budgets, annotations, actionable errors, prompt-injection defenses).
-- Write `schema.json` / `evals.json` per [evals-format.md](../webmcp-skills/skills/build-webmcp-tools/references/evals-format.md) when adding evals under `webmcp-evals/examples/<demo-name>/`.
+- Write `schema.json` / `evals.json` per [evals-format.md](../webmcp-skills/skills/build-webmcp-tools/references/evals-format.md) when adding evals under [`webmcp-evals/examples/<demo-name>/`](../webmcp-evals/examples/).
 
 ## Demo Conventions & Gotchas
 
