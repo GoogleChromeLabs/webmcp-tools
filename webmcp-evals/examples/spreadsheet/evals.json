@@ -479,7 +479,7 @@
         }
       },
       {
-        "functionName": "get_selection",
+        "functionName": "get_spreadsheet_selection",
         "arguments": {}
       }
     ]
@@ -502,7 +502,7 @@
         }
       },
       {
-        "functionName": "undo",
+        "functionName": "undo_spreadsheet_action",
         "arguments": {}
       }
     ]

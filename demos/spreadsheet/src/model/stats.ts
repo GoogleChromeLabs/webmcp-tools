@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/** Sum, average and counts of a range: the status bar and the get_selection tool show them. */
+/** Sum, average and counts of a range: the status bar and the get_spreadsheet_selection tool show them. */
 import type { Range } from "../engine/address.ts";
 import type { Sheet, Workbook } from "./workbook.ts";
 

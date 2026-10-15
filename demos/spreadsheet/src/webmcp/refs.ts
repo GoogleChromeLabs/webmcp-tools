@@ -84,7 +84,7 @@ export const jsonLength = (value: object): number => JSON.stringify(value).lengt
 /**
  * For tools whose results can hold text that people typed, pasted or imported: cell values, chart
  * titles, rule criteria, and sheet names, which people also choose (or an imported file's name
- * sets). Every tool except undo and redo can return a sheet name, so every other tool sets it.
+ * sets). Every tool except undo_spreadsheet_action and redo_spreadsheet_action can return a sheet name, so every other tool sets it.
  */
 export const RETURNS_CONTENT: WebMCP.ToolAnnotations = { untrustedContentHint: true };
 

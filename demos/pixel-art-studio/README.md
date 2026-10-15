@@ -63,12 +63,12 @@ Tools are defined in `src/webmcp/tools/` as plain objects in the WebMCP tool sha
 
 ### Selection (`selection.ts`)
 
-| Tool Name                         | Description                                                                                                                                     | Parameters                                                                                                                                                                |
-| :-------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `get_selection` _(read-only)_     | Returns the selection the user drew: bounds, pixel count, and `mask_rows` for a lasso. Returns `null` when nothing is selected.                 | (none)                                                                                                                                                                    |
-| `set_selection`                   | Selects a rectangle, a lasso polygon, or the whole canvas, or clears the selection.                                                             | `x`, `y`, `width`, `height`, `polygon`, `all`, `clear`                                                                                                                    |
-| `replace_selection`               | Replaces what is inside the selection: SVG fitted into the selection, char rows, clear, fill, gradient, or noise. Never paints outside a lasso. | `mode` (svg, rows, clear, fill, gradient, noise), `svg`, `outline`, `snap_to_palette`, `rows`, `legend`, `color`, `colors`, `direction`, `dither`, `clear_first`, `layer` |
-| `get_region_pixels` _(read-only)_ | Reads an area (by default the selection) as rows of palette chars plus a `legend`.                                                              | `x`, `y`, `width`, `height`, `source`, `layer`                                                                                                                            |
+| Tool Name                               | Description                                                                                                                                     | Parameters                                                                                                                                                                |
+| :-------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get_pixel_art_selection` _(read-only)_ | Returns the selection the user drew: bounds, pixel count, and `mask_rows` for a lasso. Returns `null` when nothing is selected.                 | (none)                                                                                                                                                                    |
+| `set_selection`                         | Selects a rectangle, a lasso polygon, or the whole canvas, or clears the selection.                                                             | `x`, `y`, `width`, `height`, `polygon`, `all`, `clear`                                                                                                                    |
+| `replace_selection`                     | Replaces what is inside the selection: SVG fitted into the selection, char rows, clear, fill, gradient, or noise. Never paints outside a lasso. | `mode` (svg, rows, clear, fill, gradient, noise), `svg`, `outline`, `snap_to_palette`, `rows`, `legend`, `color`, `colors`, `direction`, `dither`, `clear_first`, `layer` |
+| `get_region_pixels` _(read-only)_       | Reads an area (by default the selection) as rows of palette chars plus a `legend`.                                                              | `x`, `y`, `width`, `height`, `source`, `layer`                                                                                                                            |
 
 ### Layers (`layers.ts`)
 
@@ -80,10 +80,10 @@ Tools are defined in `src/webmcp/tools/` as plain objects in the WebMCP tool sha
 
 ### History (`history.ts`)
 
-| Tool Name | Description                                                      | Parameters     |
-| :-------- | :--------------------------------------------------------------- | :------------- |
-| `undo`    | Undoes the last change or changes, made by a person or an agent. | `steps` (1–50) |
-| `redo`    | Redoes undone changes.                                           | `steps` (1–50) |
+| Tool Name               | Description                                                      | Parameters     |
+| :---------------------- | :--------------------------------------------------------------- | :------------- |
+| `undo_pixel_art_action` | Undoes the last change or changes, made by a person or an agent. | `steps` (1–50) |
+| `redo_pixel_art_action` | Redoes undone changes.                                           | `steps` (1–50) |
 
 ### `paint_rows` format
 
@@ -107,7 +107,7 @@ Drag a selection on the canvas, click **Regenerate with agent** in the selection
 
 > "Replace the selected area with a palm tree."
 
-- **Trajectory**: Agent calls `get_selection` → `replace_selection` with `mode: "svg"`. The art stays inside the selection (even a lasso), and a before/after ghost is shown.
+- **Trajectory**: Agent calls `get_pixel_art_selection` → `replace_selection` with `mode: "svg"`. The art stays inside the selection (even a lasso), and a before/after ghost is shown.
 
 #### **Set up a bigger canvas**
 

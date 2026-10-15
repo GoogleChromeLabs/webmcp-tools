@@ -220,7 +220,7 @@
     ],
     "expectedCall": [
       {
-        "functionName": "get_selection",
+        "functionName": "get_pixel_art_selection",
         "arguments": {}
       }
     ]
@@ -415,11 +415,11 @@
         }
       },
       {
-        "functionName": "undo",
+        "functionName": "undo_pixel_art_action",
         "arguments": {}
       },
       {
-        "functionName": "redo",
+        "functionName": "redo_pixel_art_action",
         "arguments": {}
       }
     ]

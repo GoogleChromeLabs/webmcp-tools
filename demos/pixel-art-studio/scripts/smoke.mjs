@@ -67,7 +67,7 @@ await log("set_palette", { preset: "sunset" });
 await log("add_color", { color: "#2b8a3e" });
 await log("set_colors", { primary: "#ff7b5c", secondary: 3 });
 await log("set_selection", { x: 4, y: 4, width: 24, height: 18 });
-await log("get_selection");
+await log("get_pixel_art_selection");
 await log(
   "gradient_fill",
   { colors: ["#2d1457", "#e23a6e", "#ffc145"], direction: "vertical", dither: "bayer4" },
@@ -153,7 +153,10 @@ await p.mouse.down();
 [mx, my] = at(61, 17);
 await p.mouse.move(mx, my, { steps: 8 });
 await p.mouse.up();
-console.log("human selection seen by agent:", JSON.stringify(await call("get_selection")));
+console.log(
+  "human selection seen by agent:",
+  JSON.stringify(await call("get_pixel_art_selection")),
+);
 await p.click('[data-tool="pencil"]');
 [mx, my] = at(2, 60);
 await p.mouse.move(mx, my);
@@ -171,8 +174,8 @@ await log("get_region_pixels", { x: 6, y: 34, width: 11, height: 7 });
 await log("set_view", { grid: true, bloom: true, fit: true });
 await sleep(800);
 await p.screenshot({ path: `${shots}/02-smoke-test.png` });
-await log("undo", { steps: 2 });
-await log("redo", { steps: 1 });
+await log("undo_pixel_art_action", { steps: 2 });
+await log("redo_pixel_art_action", { steps: 1 });
 await log("delete_layer", { layer: "Smoke layer ✓" });
 await log("set_selection", { clear: true });
 await log("clear_canvas", { scope: "all", reset_layers: true }, 600);
