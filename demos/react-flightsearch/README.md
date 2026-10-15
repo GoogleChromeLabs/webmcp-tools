@@ -4,6 +4,8 @@
 
 A React-based flight search application designed to demonstrate **WebMCP** integration. This project showcases how a web application can expose structured tools to an AI agent or automation layer, allowing it to programmatically interact with the UI (searching flights, applying filters, reading results) via a standardized interface.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🚀 Key Features
 
 - **Flight Search**: Search for flights by origin, destination, dates, and passengers.

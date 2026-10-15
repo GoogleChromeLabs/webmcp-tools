@@ -6,6 +6,8 @@ This project demonstrates a **WebMCP** implementation for a restaurant reservati
 
 It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 The form in `index.html` is tagged with a `toolname` and a `tooldescription`. Each input field provides a `toolparamdescription` which acts as a prompt for the AI agent to know what data to collect.

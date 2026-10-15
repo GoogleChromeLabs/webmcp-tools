@@ -6,6 +6,8 @@ This project demonstrates a **WebMCP** implementation for an interactive real-es
 
 ![UrbanEstates Screenshot Placeholder](screenshot-placeholder.png)
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 Unlike declarative forms, this demo uses the `document.modelContext.registerTool` API in `mcp.js` to expose fine-grained control over the map and filtering state to an AI agent.

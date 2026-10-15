@@ -4,14 +4,14 @@
 
 A React + Vite demo of **WebMCP** — a browser API (`document.modelContext`) that lets AI agents call semantic tools registered by the frontend, enabling bidirectional control of a web app without DOM scraping.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## Getting started
 
 ```bash
 npm install
 npm run dev
 ```
-
-Requires Chrome Canary 140+ or a WebMCP-capable browser (HTTPS or localhost).
 
 ## How it works
 

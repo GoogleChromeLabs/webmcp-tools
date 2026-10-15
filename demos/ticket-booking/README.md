@@ -4,6 +4,8 @@
 
 This project demonstrates a **WebMCP** implementation for a movie ticket purchase flow. It allows an AI agent to browse movies, filter by genre, update the user's location, and select showtimes to initiate the checkout process.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 This demo uses the `document.modelContext.registerTool` API in `script.js` to expose movie catalog interactions and booking capabilities to an AI agent.

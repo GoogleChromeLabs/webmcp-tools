@@ -4,6 +4,8 @@
 
 A premium, modern e-commerce storefront for hand-crafted leather products, built with Angular and WebMCP (Web Model Context Protocol). This project demonstrates how an AI agent can interact with an e-commerce site to search products, check policies, and manage a shopping cart using both **declarative** and **imperative** tool definitions.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🌟 Key Features
 
 - **WebMCP Tools**:

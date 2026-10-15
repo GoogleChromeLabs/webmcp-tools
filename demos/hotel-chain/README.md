@@ -4,6 +4,8 @@
 
 A premium, high-fidelity hotel booking application designed to showcase the power of **WebMCP** (Web Model Context Protocol). This demo illustrates how AI agents can interact with a modern web application through both imperative and declarative tools.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🌟 Overview
 
 L'Atelier is a luxury hospitality group offering curated stays in Tokyo, Paris, and New York. The application features:
@@ -57,9 +59,6 @@ The final confirmation step uses a **Declarative Tool**, where the agent can pop
    ```bash
    npm run dev
    ```
-
-3. **Verify WebMCP**:
-   Open the browser console and check `document.modelContext`. If you are using a WebMCP-enabled browser or extension, you can see the registered tools.
 
 ---
 *Note: This is a demo application for the WebMCP standard. All hotel data and payment methods are mocked.*

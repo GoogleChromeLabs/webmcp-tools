@@ -6,14 +6,14 @@ A full spreadsheet with formulas, formatting, charts and sheets, built with Type
 
 ![The spreadsheet with sample sales data, a chart, and agent tool calls in the activity panel](docs/screenshots/spreadsheet.png)
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🚀 Getting Started
 
 ```bash
 npm install
 npm run dev
 ```
-
-Open the URL that Vite prints and connect a WebMCP agent, such as the [WebMCP extension](https://github.com/GoogleChromeLabs/webmcp-extension). WebMCP needs Chrome 146 or later with `chrome://flags/#enable-webmcp-testing` turned on.
 
 ## 🛠️ How It Works
 
