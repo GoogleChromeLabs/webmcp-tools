@@ -15,6 +15,8 @@ You can feel free to fork this demo as a learning tool, and you're also encourag
 follow the links on the site for further resources to build your own sites, apps and
 experiences, or participate in the origin trial.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## Running locally
 
 This is a single static page — no build step.

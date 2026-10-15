@@ -4,6 +4,8 @@
 
 This project demonstrates a **WebMCP** implementation for a simulated e-commerce order tracking and returns system. It allows an AI agent to query a user's order history based on timeframes and initiate product returns on their behalf using declarative tool definitions.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 This demo uses **Declarative WebMCP** (`toolname`, `tooldescription`, and `toolautosubmit` attributes on `<form>` elements) to expose its functionalities to an AI agent. 

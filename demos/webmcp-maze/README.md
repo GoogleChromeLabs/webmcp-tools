@@ -4,6 +4,8 @@
 
 A maze escape game where the player navigates entirely by prompting an AI agent in the browser — no keyboard or mouse input. The game registers tools via the [WebMCP](https://webmachinelearning.github.io/webmcp/) browser API so the agent can interact with the game world.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## How It Works
 
 The game exposes tools to the browser's built-in AI agent through `document.modelContext`. The agent can:
@@ -30,7 +32,7 @@ The player starts in a randomly generated maze and must reach the exit by instru
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) installed
-- A WebMCP-capable browser (one that exposes `document.modelContext`)
+- A browser that meets the WebMCP [requirements](../README.md#requirements)
 
 ### Install and Run
 
@@ -38,8 +40,6 @@ The player starts in a randomly generated maze and must reach the exit by instru
 npm install
 npm run dev
 ```
-
-Open the local URL printed by Vite in a WebMCP-capable browser and start prompting the AI agent to navigate the maze.
 
 ### Other Commands
 

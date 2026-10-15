@@ -4,6 +4,8 @@
 
 A multi-page static site demo of **WebMCP** implementation for a specialty coffee shop. This project demonstrates how an AI agent can navigate a multi-page site, retrieve personal order history, and perform actions that are visually synchronized with the UI.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ### 🛠️ How It Works
 
 This demo uses the **Imperative WebMCP API** (`document.modelContext.registerTool`) to expose site-wide navigation and product-specific capabilities. 

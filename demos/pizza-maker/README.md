@@ -6,6 +6,8 @@ This project demonstrates a **WebMCP** implementation for an interactive pizza b
 
 It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 Unlike declarative forms, this demo uses the `document.modelContext.registerTool` API in `script.js` to expose fine-grained control over the application state to an AI agent.

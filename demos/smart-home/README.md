@@ -4,23 +4,20 @@
 
 A React-based smart home dashboard designed to showcase **WebMCP** (`document.modelContext.registerTool`) and security defenses to mitigate **Indirect Prompt Injection**.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ---
 
 ### 🚀 Quickstart
 
-1. **Enable the WebMCP Chrome Flag:**
-   * In Chrome (version `150.0.7861.0` or higher, such as Chrome Canary/Dev), navigate to `chrome://flags`.
-   * Search for **"WebMCP for testing"** (`chrome://flags/#enable-webmcp-testing`), set it to **Enabled**, and relaunch Chrome.
-2. **Install dependencies:**
+1. **Install dependencies:**
    ```bash
    npm install
    ```
-3. **Start the development server:**
+2. **Start the development server:**
    ```bash
    npm run dev
    ```
-4. **Open in your browser:**
-   Visit the local URL shown in the terminal (default: `http://localhost:5173`) in your WebMCP-enabled Chrome browser alongside a compatible WebMCP AI agent extension (e.g., Model Context Tool Inspector).
 
 ---
 

@@ -4,6 +4,8 @@
 
 An e-commerce storefront for sports equipment, built with Angular and WebMCP. This project demonstrates how an integrated **On-Site AI Assistant** and browser-level AI agents interact with an e-commerce site to search catalog items, check promotions and store policies, manage a shopping cart, and complete checkouts.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🌟 Key Features
 
 - **On-Site AI Assistant (Gemini 3.1 Flash Lite)**: An embedded, slide-out agent drawer powered by Google GenAI (`@google/genai`). The assistant discovers and executes WebMCP tools directly in-browser (`document.modelContext`), featuring:

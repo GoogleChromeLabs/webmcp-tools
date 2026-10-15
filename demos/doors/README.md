@@ -5,6 +5,8 @@
 A simple multi-page demo showcasing WebMCP capabilities. 
 It demonstrates both **declarative** (HTML attributes) and **imperative** (JavaScript API) ways to expose tools to an AI model.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## Features
 
 - **The Hallway (`index.html`)**:

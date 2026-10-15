@@ -6,6 +6,8 @@ A pixel-art drawing board built with TypeScript and Vite. Every drawing tool wor
 
 ![Pixel Art Studio with a beach sunset painted by an agent](docs/screenshots/04-beach-sunset.png)
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🚀 Getting Started
 
 ```bash

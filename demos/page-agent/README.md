@@ -8,6 +8,8 @@ The **WebMCP Page Agent** is a "meta-demo" that demonstrates how to get tools fr
 
 It imports the [WebMCP Polyfill](../shared/webmcp-polyfill.js) so that WebMCP is fully simulated in browsers that do not support it yet natively.
 
+To try this demo, check the [requirements](../README.md#requirements).
+
 ## 🛠️ How It Works
 
 This demo uses the `document.modelContext` API to discover and execute tools provided by the site loaded in the iframe.
