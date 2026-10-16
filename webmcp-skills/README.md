@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # WebMCP Agent Skills
 
-A collection of AI agent skills designed to help developers design, role-play, evaluate, audit, and implement [WebMCP (Web Model Context Protocol)](https://github.com/webmachinelearning/webmcp) tools into their web applications following official Chrome recommendations.
+A collection of AI agent skills designed to help developers design, role-play, evaluate, audit, and implement [WebMCP](https://github.com/webmachinelearning/webmcp) tools into their web applications following official Chrome recommendations.
 
 ---
 
