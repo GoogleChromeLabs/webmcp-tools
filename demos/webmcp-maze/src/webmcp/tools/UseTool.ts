@@ -21,26 +21,28 @@ const VALID_DIRECTIONS = new Set(Object.values(Direction));
  * @param game - The game orchestrator instance.
  * @returns A {@link WebMCP.ModelContextTool} for using items on blockers.
  */
-export function createUseTool(game: Game): WebMCP.ModelContextTool {
+export function createUseTool(game: Game) {
+  const inputSchema = {
+    type: "object",
+    properties: {
+      direction: {
+        type: "string",
+        enum: ["north", "south", "east", "west"],
+        description: "The direction where the blocker is located.",
+      },
+    },
+    required: ["direction"],
+  } as const;
+
   return {
     name: "use",
     description:
       "Use your held item on a blocker in the specified direction. " +
       "Keys open matching colored doors. Dynamite destroys rocks. " +
       "The item is consumed on success.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        direction: {
-          type: "string",
-          enum: ["north", "south", "east", "west"],
-          description: "The direction where the blocker is located.",
-        },
-      },
-      required: ["direction"],
-    },
-    async execute(input: Record<string, unknown>) {
-      const dir = input.direction as string;
+    inputSchema,
+    async execute(input) {
+      const dir = input.direction;
 
       if (!VALID_DIRECTIONS.has(dir as Direction)) {
         return {
@@ -102,5 +104,5 @@ export function createUseTool(game: Game): WebMCP.ModelContextTool {
         direction: dir,
       };
     },
-  };
+  } satisfies WebMCP.ModelContextToolFromSchema<typeof inputSchema>;
 }
