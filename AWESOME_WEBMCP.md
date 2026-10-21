@@ -122,6 +122,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Paint a beach sunset with a palm tree."
 - [Spreadsheet](https://googlechromelabs.github.io/webmcp-tools/demos/spreadsheet/) - A full spreadsheet with 27 WebMCP tools for values, formulas, formatting, sorting, conditional formats, charts and sheets. People and agents share one undo history, and each tool call shows up in an activity panel and lights up the cells it changed.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
+- [Fox Davidson](https://www.foxdavidson.co.uk/) - A live UK mortgage broker site with seven WebMCP tools. Six calculation and lookup tools cover stamp duty, high net worth mortgage qualification, bridging loan costs, lender comparison, contractor day rate and lender criteria, and a seventh fills the enquiry form without ever submitting it.
+  - **Example Prompt:** "I earn 400,000 a year with a 150,000 bonus and want to buy a 2.5m home in London. What stamp duty do I pay, and which lenders would use my bonus income?"
+ 
 
 ## Libraries & Tools
 
