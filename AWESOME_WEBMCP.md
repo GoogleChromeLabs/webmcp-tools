@@ -123,6 +123,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [Spreadsheet](https://googlechromelabs.github.io/webmcp-tools/demos/spreadsheet/) - A full spreadsheet with 27 WebMCP tools for values, formulas, formatting, sorting, conditional formats, charts and sheets. People and agents share one undo history, and each tool call shows up in an activity panel and lights up the cells it changed.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
