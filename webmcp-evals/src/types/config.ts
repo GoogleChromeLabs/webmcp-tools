@@ -5,7 +5,25 @@
 
 import type { ChromeReleaseChannel } from "puppeteer-core";
 
-export type Config = {
+export const OPENAI_REASONING_EFFORTS = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+export type OpenAIReasoningEffort = (typeof OPENAI_REASONING_EFFORTS)[number];
+
+export type EvalRequestOptions = {
+  /** Explicit OpenAI Chat reasoning effort; omitted preserves provider defaults. */
+  openaiReasoningEffort?: OpenAIReasoningEffort;
+  /** Per-model-call output token cap, not a total evaluation budget. */
+  maxOutputTokens?: number;
+};
+
+export type Config = EvalRequestOptions & {
   toolSchemaFile: string;
   evalsFile: string;
   backend: string;
@@ -23,7 +41,7 @@ export type Config = {
   chromeChannel?: ChromeReleaseChannel;
 };
 
-export type WebmcpConfig = {
+export type WebmcpConfig = EvalRequestOptions & {
   url: string;
   evalsFile: string;
   backend: string;
