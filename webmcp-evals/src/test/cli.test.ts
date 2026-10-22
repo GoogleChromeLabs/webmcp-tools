@@ -15,6 +15,42 @@ function help(...args: string[]): string {
 }
 
 describe("CLI backend option scope", () => {
+  it("offers request options only on local and browser eval commands", () => {
+    for (const command of ["local", "browser"]) {
+      assert.match(help(command, "--help"), /--openai-reasoning-effort/);
+      assert.match(help(command, "--help"), /--max-output-tokens/);
+    }
+    for (const command of ["smoke", "simulate", "analyze"]) {
+      assert.doesNotMatch(help(command, "--help"), /--openai-reasoning-effort/);
+      assert.doesNotMatch(help(command, "--help"), /--max-output-tokens/);
+    }
+  });
+
+  it("rejects malformed request options before reading fixtures or contacting a provider", () => {
+    const base = [CLI, "local", "-t", "missing-tools.json", "-e", "missing-evals.json"];
+    for (const value of ["0", "-1", "1.5", "NaN", "Infinity", "9007199254740992"]) {
+      const result = spawnSync(process.execPath, [...base, "--max-output-tokens", value], {
+        encoding: "utf-8",
+      });
+      assert.notStrictEqual(result.status, 0);
+      assert.match(result.stderr, /positive safe integer/);
+      assert.doesNotMatch(result.stderr, /ENOENT/);
+    }
+    const effort = spawnSync(process.execPath, [...base, "--openai-reasoning-effort", "invalid"], {
+      encoding: "utf-8",
+    });
+    assert.notStrictEqual(effort.status, 0);
+    assert.match(effort.stderr, /Allowed choices/);
+    const backend = spawnSync(
+      process.execPath,
+      [...base, "--backend", "gemini", "--max-output-tokens", "256"],
+      { encoding: "utf-8" },
+    );
+    assert.notStrictEqual(backend.status, 0);
+    assert.match(backend.stderr, /require the vercel backend/);
+    assert.doesNotMatch(backend.stderr, /ENOENT/);
+  });
+
   it("offers --backend on local and browser eval commands", () => {
     assert.doesNotMatch(help("--help"), /--backend/);
     assert.match(help("local", "--help"), /--backend/);

@@ -4,7 +4,12 @@
  */
 
 import { generateText, stepCountIs, ToolLoopAgent } from "ai";
-import { Config, WebmcpConfig } from "../types/config.js";
+import {
+  Config,
+  WebmcpConfig,
+  OPENAI_REASONING_EFFORTS,
+  OpenAIReasoningEffort,
+} from "../types/config.js";
 import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 
@@ -26,11 +31,37 @@ export class VercelBackend implements Backend {
   private modelName: string;
   private debug: boolean;
   private maxSteps: number;
+  private readonly modelCallOptions: {
+    maxOutputTokens?: number;
+    providerOptions?: { openai: { reasoningEffort: OpenAIReasoningEffort } };
+  };
 
   private logger: ConsoleLogger;
 
   constructor(config: Config | WebmcpConfig) {
     this.modelName = config.model || "gemini-3-flash-preview";
+    if (
+      config.maxOutputTokens !== undefined &&
+      (!Number.isSafeInteger(config.maxOutputTokens) || config.maxOutputTokens <= 0)
+    ) {
+      throw new Error("maxOutputTokens must be a positive safe integer.");
+    }
+    if (config.openaiReasoningEffort !== undefined) {
+      if (!OPENAI_REASONING_EFFORTS.includes(config.openaiReasoningEffort)) {
+        throw new Error("Invalid OpenAI reasoning effort.");
+      }
+      if (config.provider !== "openai" && !this.modelName.startsWith("openai:")) {
+        throw new Error("openaiReasoningEffort requires an OpenAI model.");
+      }
+    }
+    this.modelCallOptions = {
+      ...(config.maxOutputTokens === undefined ? {} : { maxOutputTokens: config.maxOutputTokens }),
+      ...(config.openaiReasoningEffort === undefined
+        ? {}
+        : {
+            providerOptions: { openai: { reasoningEffort: config.openaiReasoningEffort } },
+          }),
+    };
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
     this.maxSteps = config.maxSteps ?? DEFAULT_MAX_STEPS;
@@ -47,6 +78,7 @@ export class VercelBackend implements Backend {
 
     const aiResult = await generateText({
       model: this.aiModel,
+      ...this.modelCallOptions,
       system: SYSTEM_PROMPT,
       messages: aiMessages,
       tools: executableTools,
@@ -154,6 +186,7 @@ export class VercelBackend implements Backend {
 
       const agentWithExec = new ToolLoopAgent({
         model: this.aiModel,
+        ...this.modelCallOptions,
         tools: aiToolsWithExecution,
         instructions: SYSTEM_PROMPT,
         onToolExecutionStart: (event) => {

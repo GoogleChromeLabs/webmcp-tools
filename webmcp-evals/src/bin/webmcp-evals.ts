@@ -6,7 +6,8 @@
  */
 
 import { createRequire } from "node:module";
-import { Command, InvalidArgumentError } from "commander";
+import { Command, InvalidArgumentError, Option } from "commander";
+import { OPENAI_REASONING_EFFORTS } from "../types/config.js";
 import dotenv from "dotenv";
 import {
   runLocalCommand,
@@ -29,6 +30,21 @@ function positiveInteger(value: string): number {
     throw new InvalidArgumentError("Expected a positive integer.");
   }
   return parsed;
+}
+
+function positiveSafeInteger(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new InvalidArgumentError("Expected a positive safe integer.");
+  }
+  return parsed;
+}
+
+function openAIReasoningOption(): Option {
+  return new Option(
+    "--openai-reasoning-effort <effort>",
+    "Explicit OpenAI reasoning effort (vercel backend only)",
+  ).choices([...OPENAI_REASONING_EFFORTS]);
 }
 
 program
@@ -65,6 +81,12 @@ program
   .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
   .requiredOption("-t, --tools <path>", "Path to tool schema JSON file")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+  .addOption(openAIReasoningOption())
+  .option(
+    "--max-output-tokens <number>",
+    "Per-call output token cap (vercel backend only)",
+    positiveSafeInteger,
+  )
   .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runLocalCommand);
 
@@ -75,6 +97,12 @@ program
   .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
   .requiredOption("-u, --url <url>", "Target web page URL")
   .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+  .addOption(openAIReasoningOption())
+  .option(
+    "--max-output-tokens <number>",
+    "Per-call output token cap (vercel backend only)",
+    positiveSafeInteger,
+  )
   .option("--open", "Automatically open the HTML report in browser upon completion", false)
   .option("--analyze", "Automatically run LLM report analysis upon completion", false)
   .action(runWebCommand);
