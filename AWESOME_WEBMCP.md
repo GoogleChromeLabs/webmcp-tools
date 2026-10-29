@@ -122,6 +122,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Paint a beach sunset with a palm tree."
 - [Spreadsheet](https://googlechromelabs.github.io/webmcp-tools/demos/spreadsheet/) - A full spreadsheet with 27 WebMCP tools for values, formulas, formatting, sorting, conditional formats, charts and sheets. People and agents share one undo history, and each tool call shows up in an activity panel and lights up the cells it changed.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
+- [YubHub](https://yubhub.co/) - A live jobs board with 41,000+ enriched roles that registers eight WebMCP tools through `document.modelContext`: free-text and faceted job search, single-job fetch as markdown, and a ranked shortlist builder, plus `yubhub_current_job` on job pages. The same data is also served as a REST API and a standalone MCP server.
+  - **Example Prompt:** "Find remote product manager jobs and shortlist the best five."
 
 ## Libraries & Tools
 
