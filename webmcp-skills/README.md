@@ -9,9 +9,14 @@ A collection of AI agent skills designed to help developers design, role-play, e
 
 ---
 
-## Installing the Skill
+## Installing the Skills
 
-You can install the `build-webmcp-tools` skill into your AI coding assistant (e.g., Antigravity, Gemini CLI, Claude Code, Cursor, VS Code):
+This package contains these skills:
+
+- **`build-webmcp-tools`**: design, implement, and audit WebMCP tools in a web app.
+- **`evaluate-webmcp-tools-with-extension`**: run `webmcp-evals` to evaluate a website's WebMCP tools against a Chrome extension agent.
+
+You can install them into your AI coding assistant (e.g., Antigravity, Gemini CLI, Claude Code, Cursor, VS Code):
 
 ### Using the Skills CLI
 
@@ -21,31 +26,33 @@ npx skills add GoogleChromeLabs/webmcp-tools --path webmcp-skills
 
 ### Manual Installation
 
-From the `webmcp-skills/` directory, copy [`skills/build-webmcp-tools`](skills/build-webmcp-tools) into your project's workspace skill folder:
+From the `webmcp-skills/` directory, copy [`skills/build-webmcp-tools`](skills/build-webmcp-tools) and [`skills/evaluate-webmcp-tools-with-extension`](skills/evaluate-webmcp-tools-with-extension) (or only the one you need) into your project's workspace skill folder:
 
 ```bash
 # Antigravity / Gemini CLI / Agent Skills standard (.agents/skills/)
 mkdir -p <your-project>/.agents/skills
-cp -r skills/build-webmcp-tools <your-project>/.agents/skills/
+cp -r skills/build-webmcp-tools skills/evaluate-webmcp-tools-with-extension <your-project>/.agents/skills/
 
 # Claude Code (.claude/skills/)
 mkdir -p <your-project>/.claude/skills
-cp -r skills/build-webmcp-tools <your-project>/.claude/skills/
+cp -r skills/build-webmcp-tools skills/evaluate-webmcp-tools-with-extension <your-project>/.claude/skills/
 
 # Cursor (.cursor/skills/)
 mkdir -p <your-project>/.cursor/skills
-cp -r skills/build-webmcp-tools <your-project>/.cursor/skills/
+cp -r skills/build-webmcp-tools skills/evaluate-webmcp-tools-with-extension <your-project>/.cursor/skills/
 ```
 
 ---
 
-## Using the Skill
+## Using the Skills
+
+### `build-webmcp-tools`
 
 Once installed, your coding agent automatically activates **`build-webmcp-tools`** when your prompt mentions WebMCP, `document.modelContext`, making a web app agent-ready, or auditing WebMCP tools. You can also invoke it explicitly in agents that support skill commands (e.g., `/build-webmcp-tools` or `@build-webmcp-tools`).
 
 The skill includes a built-in **Stage Router** that inspects your request and jumps directly to the appropriate workflow stage, loading only the reference guides needed for that task:
 
-### Example Prompts by Workflow
+#### Example Prompts by Workflow
 
 | What you want to do                                | Example prompt                                                                                | What the skill does                                                                                                                                                                                                                                                                                         |
 | :------------------------------------------------- | :-------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,13 +64,26 @@ The skill includes a built-in **Stage Router** that inspects your request and ju
 | **Implement tools from an existing design**        | _"Implement the approved tools from `schema.json` in our React / Angular / Vanilla JS app"_   | Writes framework-idiomatic tool registrations (`useWebMCP`, `provideExperimentalWebMcpTools`, `document.modelContext.registerTool` with `AbortController`, or `<form toolname tooldescription>`) plus unit tests.                                                                                           |
 | **Audit or debug existing WebMCP tools**           | _"Audit the WebMCP tools in this repo"_ or _"Fix our Lighthouse 'Agentic browsing' warnings"_ | Audits tools against the 16-point review checklist (character/token budgets, opt-in annotations, actionable errors, UGC prompt-injection defenses) and provides concrete fixes plus Chrome DevTools (`Application > WebMCP`) verification steps.                                                            |
 
+### `evaluate-webmcp-tools-with-extension`
+
+Your coding agent activates **`evaluate-webmcp-tools-with-extension`** when your prompt is about running `webmcp-evals` with `--extension`: setting up a Chrome profile (`--user-data-dir`), attaching to a running Chrome (`--browser-url`), installing an unpacked extension folder in CI, answering tool permission prompts (`--confirm-policy`), or adding the `window.__AGENT_AUTOMATION__` bridge to a custom extension. You can also invoke it explicitly (e.g., `/evaluate-webmcp-tools-with-extension` or `@evaluate-webmcp-tools-with-extension`).
+
+| What you want to do                                           | Example prompt                                                                                   | What the skill does                                                                                                                                                    |
+| :------------------------------------------------------------ | :----------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Evaluate your site's tools against an installed extension** | _"Run our `evals.json` against GoogleChromeLabs/webmcp-extension instead of the built-in agent"_ | Sets up a dedicated Chrome profile with the extension (including its consent screen) and gives the `webmcp-evals browser --extension ... --user-data-dir ...` command. |
+| **Watch the extension while evals run**                       | _"Attach webmcp-evals to my open Chrome on port 9222"_                                           | Starts Chrome with `--remote-debugging-port` and runs `webmcp-evals` with `--browser-url`, which leaves Chrome open.                                                   |
+| **Run extension evals in CI**                                 | _"Run our evals in CI against the unpacked webmcp-extension build in `./dist`"_                  | Gives the `webmcp-evals browser --extension ./dist --headless` command, which installs the unpacked extension in a temporary Chrome profile.                           |
+| **Make a custom extension work with `webmcp-evals`**          | _"What does our side panel need to expose for webmcp-evals?"_                                    | Explains the `window.__AGENT_AUTOMATION__` bridge, its turn completion rules, and an example bridge.                                                                   |
+| **Debug a failing extension run**                             | _"Every webmcp-evals case fails because the extension's consent screen is showing"_              | Goes through troubleshooting: consent screen, Chrome channel, 0 tools, permission prompts, and turn timeouts.                                                          |
+
 ---
 
 ## Skills Catalog
 
-| Skill Name               | Description                                                                                                                                                                                                                                                                                                                                                                                                                 | Link                                           |
-| :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------- |
-| **`build-webmcp-tools`** | Comprehensive guide and workflow for the complete WebMCP lifecycle: user goals portfolio, starting states matrix, turn-by-turn roleplay, edge-case variations, schema & evals generation, and framework integration (React, Angular, Vanilla JS, Declarative HTML). Enforces official Chrome character budgets, annotations, agent security guardrails, DevTools/Lighthouse inspection, and an exhaustive review checklist. | [SKILL.md](skills/build-webmcp-tools/SKILL.md) |
+| Skill Name                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                 | Link                                                             |
+| :----------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| **`build-webmcp-tools`**                   | Comprehensive guide and workflow for the complete WebMCP lifecycle: user goals portfolio, starting states matrix, turn-by-turn roleplay, edge-case variations, schema & evals generation, and framework integration (React, Angular, Vanilla JS, Declarative HTML). Enforces official Chrome character budgets, annotations, agent security guardrails, DevTools/Lighthouse inspection, and an exhaustive review checklist. | [SKILL.md](skills/build-webmcp-tools/SKILL.md)                   |
+| **`evaluate-webmcp-tools-with-extension`** | Configures Chrome (`--user-data-dir` persistent profiles, `--browser-url` attachment, or an unpacked extension folder) and runs `webmcp-evals` `browser` and `simulate` suites to evaluate a website's WebMCP tools against Chrome extension agents (such as [`GoogleChromeLabs/webmcp-extension`](https://github.com/GoogleChromeLabs/webmcp-extension) or custom extensions implementing `window.__AGENT_AUTOMATION__`).  | [SKILL.md](skills/evaluate-webmcp-tools-with-extension/SKILL.md) |
 
 ### Technical References in `build-webmcp-tools`
 
@@ -83,6 +103,10 @@ The skill includes a built-in **Stage Router** that inspects your request and ju
 - **[Agent Security & Prompt Injection Defense](skills/build-webmcp-tools/references/agent-security.md)**: Threat models, the Lethal Trifecta, spotlighting (tags vs. Base64), classifiers, and user-alignment critics.
 - **[Official Chrome Sources & Spec Index](skills/build-webmcp-tools/references/sources.md)**: Complete index of official Chrome docs, W3C WebMCP specification, blog posts, and Google Chrome Labs repositories.
 
+### Technical References in `evaluate-webmcp-tools-with-extension`
+
+- **[WebMCP Extension Automation Contract Reference](skills/evaluate-webmcp-tools-with-extension/references/extension-contract.md)**: A copy of the custom-extension part of the `webmcp-evals` contract: the side-panel path order, the `window.__AGENT_AUTOMATION__` interface, behavior and turn completion rules, and an example bridge.
+
 ---
 
 ## Skill Authoring, Validation & Packaging
@@ -92,10 +116,10 @@ This package includes built-in TypeScript utilities for validating and packaging
 ```bash
 cd webmcp-skills
 
-# Validate skill frontmatter and directory structure
+# Validate frontmatter and directory structure of each skill
 npm run skill:validate
 
-# Package skill into a distributable .skill zip archive
+# Package each skill into a distributable .skill zip archive
 npm run skill:package
 ```
 

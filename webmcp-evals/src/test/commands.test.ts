@@ -4,11 +4,13 @@
  */
 
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
 import {
   getProgressBar,
   generateConsoleSummaryTable,
   generateSimulationSummaryTable,
+  resolveExtensionCliOptions,
+  warnIgnoredExtensionFlags,
 } from "../commands/index.js";
 import type { SimulationResult, SimulationResults } from "../evaluator/simulationEvaluator.js";
 
@@ -86,6 +88,14 @@ describe("generateConsoleSummaryTable", () => {
           response: { functionName: "func4" }, // Mismatch
           outcome: "fail",
         },
+        {
+          runIndex: 1,
+          stepIndex: 2,
+          test: { name: "Test B", expectedCall: [{ functionName: "func5" }] },
+          response: null,
+          outcome: "error",
+          error: "Extension agent turn timed out after 120000 ms.",
+        },
       ],
       passCount: 3,
     };
@@ -119,7 +129,7 @@ describe("generateConsoleSummaryTable", () => {
 
     // Check content inside rows (excluding the headers)
     const stepRows = rows.filter((r) => r.length > 1) as string[][];
-    assert.strictEqual(stepRows.length, 4);
+    assert.strictEqual(stepRows.length, 5);
 
     // Row 1: Step 1 of Test A, Run 1
     assert.strictEqual(stepRows[0][0], "1"); // stepIndex
@@ -133,6 +143,157 @@ describe("generateConsoleSummaryTable", () => {
     assert.strictEqual(stepRows[3][2], "func3");
     assert.strictEqual(stepRows[3][3], "func4");
     assert.match(stepRows[3][4], /Function mismatch/);
+
+    // Row 5: Step 2 of Test B, Run 1 (error with response: null)
+    assert.strictEqual(stepRows[4][0], "2");
+    assert.strictEqual(stepRows[4][1], "ERROR");
+    assert.strictEqual(stepRows[4][2], "func5");
+    assert.strictEqual(stepRows[4][3], "-");
+    assert.match(stepRows[4][4], /Extension agent turn timed out after 120000 ms/);
+  });
+
+  it("shortens long error messages to their first line and falls back when there is none", () => {
+    const errorRow = (name: string, error?: string) => ({
+      runIndex: 1,
+      stepIndex: 1,
+      test: { name, expectedCall: [{ functionName: "func1" }] },
+      response: null,
+      outcome: "error",
+      ...(error !== undefined ? { error } : {}),
+    });
+    const table = generateConsoleSummaryTable({
+      results: [errorRow("Long error", `${"x".repeat(100)}\nsecond line`), errorRow("No message")],
+      passCount: 0,
+    });
+
+    const details = Array.from(table as any)
+      .filter((row: any) => Array.isArray(row) && row.length > 1)
+      .map((row: any) => cleanAnsi(row[4]));
+    assert.deepStrictEqual(details, [`${"x".repeat(57)}...`, "Execution error"]);
+  });
+
+  it("says no tool was called when the agent only replied with text or never reached a step", () => {
+    const failedRow = (name: string, response: unknown) => ({
+      runIndex: 1,
+      stepIndex: 1,
+      test: { name, expectedCall: [{ functionName: "func1" }] },
+      response,
+      outcome: "fail",
+    });
+    const table = generateConsoleSummaryTable({
+      results: [
+        failedRow("Text only", { text: "Done!" }),
+        failedRow("Step not reached", { missing: "Did not execute this step" }),
+      ],
+      passCount: 0,
+    });
+
+    const cells = Array.from(table as any)
+      .filter((row: any) => Array.isArray(row) && row.length > 1)
+      .map((row: any) => [cleanAnsi(row[3]), cleanAnsi(row[4])]);
+    assert.deepStrictEqual(cells, [
+      ["-", "No tool called"],
+      ["-", "No tool called"],
+    ]);
+  });
+});
+
+describe("resolveExtensionCliOptions", () => {
+  it("returns no extension options without --extension, and defaults the confirm policy", () => {
+    assert.deepStrictEqual(resolveExtensionCliOptions({}), {});
+    assert.deepStrictEqual(
+      resolveExtensionCliOptions({
+        extension: "WebMCP Agent",
+        userDataDir: "/tmp/chrome-profile",
+        headless: true,
+      }),
+      {
+        extension: "WebMCP Agent",
+        userDataDir: "/tmp/chrome-profile",
+        headless: true,
+        confirmPolicy: "allow-once",
+      },
+    );
+  });
+
+  it("rejects extension-only flags without --extension and conflicting combinations", () => {
+    for (const opts of [
+      { browserUrl: "http://127.0.0.1:9222" },
+      { confirmPolicy: "deny" as const },
+      { turnTimeout: 60_000 },
+    ]) {
+      assert.throws(
+        () => resolveExtensionCliOptions(opts),
+        /--extension <id-or-name-or-path> is required/,
+      );
+    }
+    assert.throws(
+      () =>
+        resolveExtensionCliOptions({
+          extension: "WebMCP Agent",
+          browserUrl: "http://127.0.0.1:9222",
+          userDataDir: "/tmp/profile",
+        }),
+      /Cannot specify both --browser-url and --user-data-dir/,
+    );
+    assert.throws(
+      () =>
+        resolveExtensionCliOptions({
+          extension: "WebMCP Agent",
+          browserUrl: "http://127.0.0.1:9222",
+          headless: true,
+        }),
+      /only applies when launching Chrome/,
+    );
+  });
+
+  it("rejects an empty --extension value instead of falling back to the built-in agent", () => {
+    for (const extension of ["", "   "]) {
+      assert.throws(() => resolveExtensionCliOptions({ extension }), /--extension needs a value/);
+    }
+  });
+});
+
+describe("warnIgnoredExtensionFlags", () => {
+  const warningsFor = (
+    extOptions: Parameters<typeof warnIgnoredExtensionFlags>[0],
+    cliKeys: string[],
+    extraIgnored: Parameters<typeof warnIgnoredExtensionFlags>[2] = [],
+  ): string[] => {
+    const warn = mock.method(console, "warn", () => undefined);
+    try {
+      warnIgnoredExtensionFlags(
+        extOptions,
+        {
+          getOptionValueSourceWithGlobals: (key: string) =>
+            cliKeys.includes(key) ? "cli" : "default",
+        },
+        extraIgnored,
+      );
+      return warn.mock.calls.map((call) => cleanAnsi(call.arguments[0]));
+    } finally {
+      warn.mock.restore();
+    }
+  };
+
+  it("names the global flags that an extension run ignores", () => {
+    assert.deepStrictEqual(
+      warningsFor(
+        { extension: "WebMCP Agent", browserUrl: "http://127.0.0.1:9222" },
+        ["model", "maxSteps", "chromeChannel"],
+        [{ key: "model", flag: "--model" }],
+      ),
+      [
+        "⚠ Warning: --model, --max-steps are ignored when --extension is set.",
+        "⚠ Warning: --chrome-channel is ignored with --browser-url, because webmcp-evals attaches to the running Chrome instead of launching one.",
+      ],
+    );
+  });
+
+  it("stays quiet without --extension, for defaults, and for --chrome-channel when Chrome is launched", () => {
+    assert.deepStrictEqual(warningsFor({}, ["maxSteps"]), []);
+    assert.deepStrictEqual(warningsFor({ extension: "WebMCP Agent" }, []), []);
+    assert.deepStrictEqual(warningsFor({ extension: "WebMCP Agent" }, ["chromeChannel"]), []);
   });
 });
 

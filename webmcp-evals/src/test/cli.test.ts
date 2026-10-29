@@ -34,4 +34,40 @@ describe("CLI backend option scope", () => {
     assert.notStrictEqual(result.status, 0);
     assert.match(result.stderr, /unknown option '--backend'/);
   });
+
+  it("offers extension flags on browser and simulate commands only", () => {
+    assert.doesNotMatch(help("--help"), /--extension/);
+    assert.doesNotMatch(help("local", "--help"), /--extension/);
+    assert.doesNotMatch(help("smoke", "--help"), /--extension/);
+
+    for (const subcommand of ["browser", "simulate"]) {
+      const subHelp = help(subcommand, "--help");
+      assert.match(subHelp, /--extension <id-or-name-or-path>/);
+      assert.match(subHelp, /--browser-url <url>/);
+      assert.match(subHelp, /--user-data-dir <path>/);
+      assert.match(subHelp, /--confirm-policy <policy>/);
+    }
+  });
+
+  it("rejects invalid --confirm-policy values", () => {
+    const result = spawnSync(
+      process.execPath,
+      [
+        CLI,
+        "browser",
+        "-u",
+        "https://example.test",
+        "-e",
+        "x.json",
+        "--extension",
+        "WebMCP Agent",
+        "--confirm-policy",
+        "yolo",
+      ],
+      { encoding: "utf-8" },
+    );
+
+    assert.notStrictEqual(result.status, 0);
+    assert.match(result.stderr, /Expected one of: "allow-once", "always-allow", "deny", "none"/);
+  });
 });

@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-const skillDir = path.resolve("skills/build-webmcp-tools");
+const skillsRoot = path.resolve("skills");
 
 /**
  * Computes a GitHub-style heading anchor: lowercase, drop punctuation except hyphens and
@@ -31,11 +31,20 @@ function headingSlugs(file: string): Set<string> {
 }
 
 function markdownFiles(): string[] {
-  const refsDir = path.join(skillDir, "references");
-  return [
-    path.join(skillDir, "SKILL.md"),
-    ...fs.readdirSync(refsDir).map((f) => path.join(refsDir, f)),
-  ].filter((f) => f.endsWith(".md"));
+  const files: string[] = [];
+  for (const entry of fs.readdirSync(skillsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const dir = path.join(skillsRoot, entry.name);
+    const skillMd = path.join(dir, "SKILL.md");
+    if (fs.existsSync(skillMd)) files.push(skillMd);
+    const refsDir = path.join(dir, "references");
+    if (fs.existsSync(refsDir)) {
+      for (const f of fs.readdirSync(refsDir)) {
+        if (f.endsWith(".md")) files.push(path.join(refsDir, f));
+      }
+    }
+  }
+  return files;
 }
 
 describe("Skill Authoring - Internal Links", () => {
@@ -50,7 +59,7 @@ describe("Skill Authoring - Internal Links", () => {
   });
 
   for (const file of markdownFiles()) {
-    it(`resolves every relative link and anchor in ${path.relative(skillDir, file)}`, () => {
+    it(`resolves every relative link and anchor in ${path.relative(skillsRoot, file)}`, () => {
       const content = fs.readFileSync(file, "utf8").replace(/```[\s\S]*?```/g, "");
       const broken: string[] = [];
 

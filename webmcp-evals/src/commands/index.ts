@@ -13,12 +13,19 @@ import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
 import type { ChromeReleaseChannel } from "puppeteer-core";
-import { Config, SimulationConfig, WebmcpConfig } from "../types/config.js";
+import {
+  type ConfirmPolicy,
+  Config,
+  type ExtensionConfigOptions,
+  SimulationConfig,
+  WebmcpConfig,
+} from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import {
   executeLocalEvals,
   executeInBrowserEvals,
+  executeExtensionBrowserEvals,
   executeSimulations,
   executeSmokeEvals,
 } from "../evaluator/index.js";
@@ -26,8 +33,9 @@ import type { SimulationResult, SimulationResults } from "../evaluator/simulatio
 import { loadSimulations } from "../simulate/loadSimulations.js";
 import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { renderSimulationReport } from "../report/simulationReport.js";
-import { createBackend } from "../backends/index.js";
+import { createBackend, type RunEvent } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
+import { DEFAULT_CONFIRM_POLICY } from "../extension/index.js";
 
 export interface CommandOptions {
   model: string;
@@ -45,11 +53,63 @@ export interface CommandOptions {
   openAnalysis?: boolean;
   chromeChannel?: ChromeReleaseChannel;
   timeout?: number;
+  turnTimeout?: number;
   verbose?: boolean;
   simulations?: string;
   judgeModel?: string;
   userModel?: string;
   maxDuration?: number;
+  extension?: string;
+  browserUrl?: string;
+  userDataDir?: string;
+  headless?: boolean;
+  extensionPanelPath?: string;
+  confirmPolicy?: ConfirmPolicy;
+}
+
+export function resolveExtensionCliOptions(opts: Partial<CommandOptions>): ExtensionConfigOptions {
+  // An empty value (for example `--extension "$EXT"` with EXT unset) would otherwise
+  // fall back to the built-in agent, which calls a model and can cost money.
+  if (opts.extension !== undefined && !opts.extension.trim()) {
+    throw new Error(
+      "--extension needs a value: a 32-character extension ID, a manifest name, or an unpacked extension directory.",
+    );
+  }
+  if (opts.browserUrl && opts.userDataDir) {
+    throw new Error(
+      "Cannot specify both --browser-url and --user-data-dir. Use --browser-url to attach to a running Chrome or --user-data-dir to launch Chrome with a persistent profile.",
+    );
+  }
+  if (
+    !opts.extension &&
+    (opts.browserUrl ||
+      opts.userDataDir ||
+      opts.extensionPanelPath ||
+      opts.headless ||
+      opts.confirmPolicy ||
+      opts.turnTimeout)
+  ) {
+    throw new Error(
+      "--extension <id-or-name-or-path> is required when passing extension browser options (--browser-url, --user-data-dir, --headless, --extension-panel-path, --confirm-policy, --turn-timeout).",
+    );
+  }
+  if (opts.browserUrl && opts.headless) {
+    throw new Error(
+      "--headless only applies when launching Chrome, not when attaching via --browser-url.",
+    );
+  }
+  if (!opts.extension) {
+    return {};
+  }
+
+  return {
+    extension: opts.extension,
+    ...(opts.browserUrl ? { browserUrl: opts.browserUrl } : {}),
+    ...(opts.userDataDir ? { userDataDir: opts.userDataDir } : {}),
+    ...(opts.headless ? { headless: true } : {}),
+    ...(opts.extensionPanelPath ? { extensionPanelPath: opts.extensionPanelPath } : {}),
+    confirmPolicy: opts.confirmPolicy ?? DEFAULT_CONFIRM_POLICY,
+  };
 }
 
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
@@ -142,6 +202,35 @@ export function getProgressBar(ratio: number, size = 10): string {
   return `${filledPart}${emptyPart}`;
 }
 
+/** Warns about global flags that `--extension` runs ignore, so a silent no-op is not mistaken for a setting. */
+export function warnIgnoredExtensionFlags(
+  extOptions: ExtensionConfigOptions,
+  command: Pick<Command, "getOptionValueSourceWithGlobals"> | undefined,
+  extraIgnored: Array<{ key: string; flag: string }>,
+): void {
+  if (!extOptions.extension) return;
+  const getSource = (key: string) => command?.getOptionValueSourceWithGlobals(key);
+  const ignored: string[] = [];
+  for (const { key, flag } of extraIgnored) {
+    if (getSource(key) === "cli") ignored.push(flag);
+  }
+  if (getSource("maxSteps") === "cli") ignored.push("--max-steps");
+  if (ignored.length > 0) {
+    console.warn(
+      chalk.yellow(
+        `⚠ Warning: ${ignored.join(", ")} ${ignored.length === 1 ? "is" : "are"} ignored when --extension is set.`,
+      ),
+    );
+  }
+  if (extOptions.browserUrl && getSource("chromeChannel") === "cli") {
+    console.warn(
+      chalk.yellow(
+        "⚠ Warning: --chrome-channel is ignored with --browser-url, because webmcp-evals attaches to the running Chrome instead of launching one.",
+      ),
+    );
+  }
+}
+
 export async function runWebCommand(options: CommandOptions, command?: Command): Promise<void> {
   const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
 
@@ -154,16 +243,26 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
   });
 
   try {
+    const extOptions = resolveExtensionCliOptions(opts);
+    warnIgnoredExtensionFlags(extOptions, command, [
+      { key: "model", flag: "--model" },
+      { key: "backend", flag: "--backend" },
+    ]);
+
     const config: WebmcpConfig = {
       url,
       evalsFile,
-      backend: opts.backend || "vercel",
-      model: opts.model,
+      backend: extOptions.extension ? "extension" : opts.backend || "vercel",
+      model: extOptions.extension ? `extension:${extOptions.extension}` : opts.model,
       runs: opts.runs,
       maxSteps: opts.maxSteps,
+      timeoutMs: opts.timeout,
+      ...(opts.turnTimeout ? { turnTimeoutMs: opts.turnTimeout } : {}),
+      verbose: opts.verbose,
       outputDir: opts.outputDir,
       reporter: opts.reporter,
       chromeChannel: opts.chromeChannel || "chrome-canary",
+      ...extOptions,
     };
 
     const tests: Array<Eval> = JSON.parse(
@@ -186,8 +285,7 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       spinner = ora({ discardStdin: false });
     }
 
-    const backend = createBackend(config);
-    const finalResults = await executeInBrowserEvals(tests, backend, config, (event) => {
+    const onRunEvent = (event: RunEvent) => {
       if (useConsole && spinner) {
         if (event.type === "start") {
           console.log("\nRunning evals...");
@@ -208,7 +306,11 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
           spinner.text = `${bar} ${coloredPercentage}  [Run ${currentRun}/${config.runs || 1}] Test Case ${caseIndex}/${tests.length}`;
         }
       }
-    });
+    };
+
+    const finalResults = config.extension
+      ? await executeExtensionBrowserEvals(tests, config, onRunEvent)
+      : await executeInBrowserEvals(tests, createBackend(config), config, onRunEvent);
 
     if (useConsole && spinner) {
       const finalBar = getProgressBar(1);
@@ -233,6 +335,9 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
     } else {
       await outputReports(config, finalResults, finalReporters, opts.outputDir, opts.open, "web");
     }
+
+    // As in `simulate`, failed or errored cases set exit code 1 so CI can gate on the run.
+    if (finalResults.failCount > 0 || finalResults.errorCount > 0) process.exitCode = 1;
   } catch (error: any) {
     console.error(`\n${chalk.red.bold("❌ Error:")} ${error.message || error}\n`);
     process.exit(1);
@@ -391,6 +496,7 @@ export async function runSimulateCommand(
   const simulationsFile = opts.simulations!;
 
   try {
+    const extOptions = resolveExtensionCliOptions(opts);
     const config: SimulationConfig = {
       url,
       simulationsFile,
@@ -405,11 +511,21 @@ export async function runSimulateCommand(
       outputDir: opts.outputDir,
       reporter: opts.reporter,
       chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
+      ...extOptions,
     };
 
     // Validate the whole file before launching a browser, as `smoke` does: a
     // typo in the last case should not cost a full run of the earlier ones.
     const simulations = await loadSimulations(simulationsFile);
+
+    // With --extension, --model is only the default for the simulated user's model.
+    const modelUnused =
+      Boolean(opts.userModel) || !simulations.some((s) => s.userScenario !== undefined);
+    warnIgnoredExtensionFlags(
+      extOptions,
+      command,
+      modelUnused ? [{ key: "model", flag: "--model" }] : [],
+    );
 
     const reporters = opts.reporter || ["console", "html"];
     const useConsole = reporters.includes("console");
@@ -450,7 +566,13 @@ export async function runSimulateCommand(
 
 function getFailureDetail(res: any): string {
   if (res.outcome === "pass") return "-";
-  if (!res.response) return "No tool called";
+  if (res.outcome === "error") {
+    const firstLine = typeof res.error === "string" ? res.error.split("\n")[0].trim() : "";
+    if (!firstLine) return "Execution error";
+    return firstLine.length > 60 ? `${firstLine.slice(0, 57)}...` : firstLine;
+  }
+  // A step without a call has a `{ text }` or `{ missing }` response, not `null`.
+  if (!res.response?.functionName) return "No tool called";
 
   const expected = res.test.expectedCall?.[0] as FunctionCall | undefined;
   if (!expected) return "Unexpected tool call";
@@ -476,7 +598,7 @@ function getFailureDetail(res: any): string {
     return `Result mismatch: expected "${expStr}", got "${truncatedAct}"`;
   }
 
-  return res.outcome === "error" ? "Execution error" : "Failed";
+  return "Failed";
 }
 
 export function generateConsoleSummaryTable(finalResults: any): Table.Table {

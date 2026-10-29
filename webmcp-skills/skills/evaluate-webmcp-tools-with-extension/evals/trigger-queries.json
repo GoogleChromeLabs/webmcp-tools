@@ -1,0 +1,54 @@
+[
+  {
+    "query": "How do I evaluate my website's WebMCP tools against my Chrome extension instead of the built-in agent?",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up a persistent Chrome profile so webmcp-evals browser can evaluate our site's tools against GoogleChromeLabs/webmcp-extension.",
+    "should_trigger": true
+  },
+  {
+    "query": "Attach webmcp-evals to an already-running Chrome on port 9222 to run simulations with our side-panel extension.",
+    "should_trigger": true
+  },
+  {
+    "query": "What contract does our custom MV3 extension side panel need to implement so webmcp-evals can drive it?",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I implement window.__AGENT_AUTOMATION__ in my WebMCP browser extension?",
+    "should_trigger": true
+  },
+  {
+    "query": "webmcp-evals browser --extension says no installed extension matching \"WebMCP Extension\" was found. How do I fix it?",
+    "should_trigger": true
+  },
+  {
+    "query": "My webmcp-evals --extension run keeps timing out on a tool permission prompt in the side panel. What should I change?",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a React useWebMCP hook for a shopping cart checkout page.",
+    "should_trigger": false
+  },
+  {
+    "query": "Should my switch_tab WebMCP tool declare readOnlyHint: true?",
+    "should_trigger": false
+  },
+  {
+    "query": "Add toolname and tooldescription attributes to this HTML form.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run webmcp-evals browser against http://localhost:3000 with the built-in agent and google:gemini-3.5-flash.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a Chrome extension that registers WebMCP tools on its own options page.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate evals.json test cases for the WebMCP tools on our checkout page.",
+    "should_trigger": false
+  }
+]

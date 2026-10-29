@@ -30,6 +30,9 @@ export async function launchBrowser(
   });
 }
 
+/** Result of a declarative form tool that is still waiting for a human to submit it. */
+export const PENDING_FORM_RESULT = "pending form submission";
+
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
   private browserConsoleErrors: BrowserConsoleError[] = [];
@@ -89,16 +92,9 @@ export class BrowserToolRegistry implements ToolRegistry {
     if (typeof eventPage.on !== "function" || typeof eventPage.off !== "function") return undefined;
     const onConsole = (entry: ConsoleMessage) => {
       if (entry.type() !== "error") return;
-      const location = entry.location();
-      const error: BrowserConsoleError = {
-        kind: "console",
-        message: entry.text(),
-        toolCalls: [...this.activeToolCalls.values()],
-      };
-      if (location.url) error.url = location.url;
-      if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
-      if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
-      this.browserConsoleErrors.push(error);
+      this.browserConsoleErrors.push(
+        consoleErrorFromMessage(entry, [...this.activeToolCalls.values()]),
+      );
     };
     const onPageError = (error: Error) => {
       this.browserConsoleErrors.push({
@@ -139,7 +135,7 @@ export class BrowserToolRegistry implements ToolRegistry {
             const onToolInvoked = (call: WebMCPToolCall) => {
               if (!call.tool || call.tool.name === name) {
                 timer = setTimeout(() => {
-                  resolve({ success: true, data: "pending form submission" });
+                  resolve({ success: true, data: PENDING_FORM_RESULT });
                 }, 1000);
               }
             };
@@ -184,44 +180,14 @@ export class BrowserToolRegistry implements ToolRegistry {
           };
         }
       } else {
-        const res = await tool.execute(args);
-        if (res.status === "Completed") {
-          executionResult.result = res.output !== undefined ? res.output : "Success";
-        } else if (res.status === "Error") {
-          return {
-            success: false,
-            error: res.errorText || `Error executing tool "${name}"`,
-          };
-        } else {
-          return { success: false, error: `Tool execution status: ${res.status}` };
-        }
+        return interpretToolResponse(name, await tool.execute(args));
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       return { success: false, error: `Tool execution error: ${message}` };
     }
 
-    let r = executionResult.result;
-    if (typeof r === "string") {
-      try {
-        r = JSON.parse(r);
-      } catch {}
-    }
-
-    // Attempt to drill down into structured responses
-    if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
-      if (r.isError) {
-        return { success: false, error: r.content[0].text };
-      }
-      return { success: true, result: r.content[0].text };
-    }
-    if (r?.isError) {
-      return {
-        success: false,
-        error: typeof r.error === "string" ? r.error : JSON.stringify(r),
-      };
-    }
-    return { success: true, result: r };
+    return interpretToolOutput(executionResult.result);
   }
 
   async executeTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
@@ -229,4 +195,58 @@ export class BrowserToolRegistry implements ToolRegistry {
     if (!outcome.success) return { error: outcome.error };
     return outcome.result !== undefined ? outcome.result : "Success";
   }
+}
+
+/**
+ * Reads a completed tool's output the same way for every agent: parses JSON
+ * strings, unwraps MCP-style `{ content: [{ text }] }`, and turns `isError`
+ * results into failures.
+ */
+export function interpretToolOutput(
+  output: unknown,
+): { success: true; result: any } | { success: false; error: string } {
+  let r: any = output;
+  if (typeof r === "string") {
+    try {
+      r = JSON.parse(r);
+    } catch {
+      // Not JSON; keep the raw string.
+    }
+  }
+  if (r?.content && Array.isArray(r.content) && r.content[0]?.text) {
+    return r.isError
+      ? { success: false, error: r.content[0].text }
+      : { success: true, result: r.content[0].text };
+  }
+  if (r?.isError) {
+    return { success: false, error: typeof r.error === "string" ? r.error : JSON.stringify(r) };
+  }
+  return { success: true, result: r };
+}
+
+/** Maps a WebMCP tool response to a registry outcome. Shared with `PageToolCallRecorder`. */
+export function interpretToolResponse(
+  name: string,
+  res: Pick<WebMCPToolCallResult, "status" | "output" | "errorText">,
+): { success: true; result: any } | { success: false; error: string } {
+  if (res.status === "Error") {
+    return { success: false, error: res.errorText || `Error executing tool "${name}"` };
+  }
+  if (res.status !== "Completed") {
+    return { success: false, error: `Tool execution status: ${res.status}` };
+  }
+  return interpretToolOutput(res.output !== undefined ? res.output : "Success");
+}
+
+/** Report entry for a `console.error` seen while the given tool calls were running. */
+export function consoleErrorFromMessage(
+  entry: ConsoleMessage,
+  toolCalls: BrowserConsoleError["toolCalls"],
+): BrowserConsoleError {
+  const location = entry.location();
+  const error: BrowserConsoleError = { kind: "console", message: entry.text(), toolCalls };
+  if (location.url) error.url = location.url;
+  if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
+  if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
+  return error;
 }

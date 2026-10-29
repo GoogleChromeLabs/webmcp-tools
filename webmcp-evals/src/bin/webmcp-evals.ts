@@ -15,6 +15,7 @@ import {
   runSmokeCommand,
   runAnalyzeCommand,
 } from "../commands/index.js";
+import type { ConfirmPolicy } from "../types/config.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json");
@@ -29,6 +30,52 @@ function positiveInteger(value: string): number {
     throw new InvalidArgumentError("Expected a positive integer.");
   }
   return parsed;
+}
+
+const VALID_CONFIRM_POLICIES: ReadonlySet<ConfirmPolicy> = new Set([
+  "allow-once",
+  "always-allow",
+  "deny",
+  "none",
+]);
+
+function parseConfirmPolicy(value: string): ConfirmPolicy {
+  const normalized = value.trim().toLowerCase() as ConfirmPolicy;
+  if (!VALID_CONFIRM_POLICIES.has(normalized)) {
+    throw new InvalidArgumentError(
+      'Expected one of: "allow-once", "always-allow", "deny", "none".',
+    );
+  }
+  return normalized;
+}
+
+function addExtensionOptions(command: Command): Command {
+  return command
+    .option(
+      "--extension <id-or-name-or-path>",
+      "Evaluate WebMCP tools against an installed Chrome extension (by 32-char ID or manifest name) or unpacked directory instead of the built-in agent",
+    )
+    .option(
+      "--browser-url <url>",
+      "Attach to an already-running Chrome remote debugging HTTP URL or WebSocket endpoint (leaves Chrome open on exit)",
+    )
+    .option(
+      "--user-data-dir <path>",
+      "Persistent Chrome profile directory where the target extension is pre-installed and configured",
+    )
+    .option(
+      "--headless",
+      "Force headless Chrome when launching with --extension (default: headless only on Linux without a display)",
+    )
+    .option(
+      "--extension-panel-path <path>",
+      "Relative HTML path inside chrome-extension://<id>/ for the extension side panel (default: the manifest's side_panel.default_path, then sidepanel/index.html)",
+    )
+    .option(
+      "--confirm-policy <policy>",
+      "How to answer tool permission prompts in the extension: allow-once (default), always-allow, deny, or none (leave prompts for a human to answer, up to the turn timeout)",
+      parseConfirmPolicy,
+    );
 }
 
 program
@@ -69,15 +116,28 @@ program
   .action(runLocalCommand);
 
 // Command: run live browser evals
-program
-  .command("browser")
-  .description("Run evals live against WebMCP tools exposed on a web page via Puppeteer")
-  .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
-  .requiredOption("-u, --url <url>", "Target web page URL")
-  .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
-  .option("--open", "Automatically open the HTML report in browser upon completion", false)
-  .option("--analyze", "Automatically run LLM report analysis upon completion", false)
-  .action(runWebCommand);
+addExtensionOptions(
+  program
+    .command("browser")
+    .description("Run evals live against WebMCP tools exposed on a web page via Puppeteer")
+    .option("-b, --backend <backend>", "Model backend (vercel, gemini, ollama)", "vercel")
+    .requiredOption("-u, --url <url>", "Target web page URL")
+    .requiredOption("-e, --evals <path>", "Path to evals test suite JSON file")
+    .option(
+      "--timeout <milliseconds>",
+      "Timeout per page navigation, extension panel readiness, or setup step",
+      positiveInteger,
+      30000,
+    )
+    .option(
+      "--turn-timeout <milliseconds>",
+      "Maximum time to wait for the extension to finish one turn (with --extension; default: 120000)",
+      positiveInteger,
+    )
+    .option("-v, --verbose", "Print live page and turn logs", false)
+    .option("--open", "Automatically open the HTML report in browser upon completion", false)
+    .option("--analyze", "Automatically run LLM report analysis upon completion", false),
+).action(runWebCommand);
 
 // Command: run deterministic browser smoke tests without an LLM
 program
@@ -90,36 +150,34 @@ program
   .action(runSmokeCommand);
 
 // Command: run goal-oriented simulations against a live WebMCP page
-program
-  .command("simulate")
-  .description(
-    "Run goal-oriented simulations and check the final state with DOM assertions, an LLM judge, or both",
-  )
-  .requiredOption("-u, --url <url>", "Target web page URL")
-  .requiredOption("-s, --simulations <path>", "Path to simulations JSON file")
-  .option(
-    "--judge-model <model>",
-    "Model identifier for the judge (defaults to the analyzer model, so the agent does not grade itself)",
-  )
-  .option(
-    "--user-model <model>",
-    "Model identifier for the simulated user (defaults to the agent's model)",
-  )
-  .option(
-    "--max-duration <milliseconds>",
-    "Total wall-clock budget for whole simulation",
-    positiveInteger,
-    300000,
-  )
-  .option(
-    "--timeout <milliseconds>",
-    "Timeout per-operation limit for navigation, setup tool calls, and the judge request",
-    positiveInteger,
-    30000,
-  )
-  .option("--open", "Automatically open the HTML report in browser upon completion", false)
-  .option("-v, --verbose", "Print live page and turn logs", false)
-  .action(runSimulateCommand);
+addExtensionOptions(
+  program
+    .command("simulate")
+    .description(
+      "Run goal-oriented simulations and check the final state with DOM assertions, an LLM judge, or both",
+    )
+    .requiredOption("-u, --url <url>", "Target web page URL")
+    .requiredOption("-s, --simulations <path>", "Path to simulations JSON file")
+    .option(
+      "--judge-model <model>",
+      "Model identifier for the judge (defaults to the analyzer model, so the agent does not grade itself)",
+    )
+    .option("--user-model <model>", "Model identifier for the simulated user (defaults to --model)")
+    .option(
+      "--max-duration <milliseconds>",
+      "Wall-clock budget for the conversation of a case that omits maxDurationMs (including extension turns)",
+      positiveInteger,
+      300000,
+    )
+    .option(
+      "--timeout <milliseconds>",
+      "Timeout per-operation limit for navigation, extension panel readiness, setup tool calls, and the judge request",
+      positiveInteger,
+      30000,
+    )
+    .option("--open", "Automatically open the HTML report in browser upon completion", false)
+    .option("-v, --verbose", "Print live page and turn logs", false),
+).action(runSimulateCommand);
 
 // Command: analyze evaluation report using an LLM
 program

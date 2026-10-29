@@ -3,16 +3,16 @@
 > [!WARNING]
 > `webmcp-evals` is experimental tooling for evaluating WebMCP schema definitions, tool calling, and agentic workflows.
 
-A TypeScript evaluation framework and CLI for testing the tool-calling capabilities of Large Language Models (LLMs) against WebMCP tools and browser sessions.
+A TypeScript evaluation framework and CLI for testing a website's WebMCP tools (`document.modelContext` and declarative `<form toolname>`) with LLM agents: a built-in agent or a Chrome extension agent.
 
 ## Features
 
 - **CLI Interface**: Built with `commander` providing `local`, `browser`, `smoke`, `simulate`, and `analyze` commands.
 - **Execution Modes**:
   - **`local`**: Runs evaluations against static JSON tool schema definition files.
-  - **`browser`**: Runs live evaluations against WebMCP tools exposed on web pages via Puppeteer.
+  - **`browser`**: Runs live evaluations against WebMCP tools exposed on web pages via Puppeteer, with the built-in agent or a Chrome extension agent (`--extension`).
   - **`smoke`**: Executes concrete expected tool calls against a live page without an LLM or API key.
-  - **`simulate`**: Lets a simulated user converse with an agent on a live page, then checks the final DOM, an optional LLM judge, or both.
+  - **`simulate`**: Lets a simulated user converse with an agent (built-in or `--extension`) on a live page, then checks the final DOM, an optional LLM judge, or both.
 - **Model Backends**: Supports `@google/genai` (`gemini`), Ollama (`ollama`), and Vercel AI SDK (`vercel`).
 - **Reporters**: Supports `console`, `json`, and `html` output to the `.evals` directory.
 - **Constraint-Based Matching**: Matches expected tool calls using regex patterns, numerical ranges, type checks, and orderings (`ordered` and `unordered`).
@@ -27,6 +27,7 @@ src/
 │   └── index.ts             # Command handlers (local and browser)
 ├── backends/                # LLM execution backends (Gemini, Vercel AI SDK, Ollama)
 ├── evaluator/               # Core evaluation orchestration and browser automation
+├── extension/               # Chrome extension agent support (--extension)
 ├── matcher.ts               # Argument matching and trajectory evaluation engine
 ├── report/                  # HTML report templates and rendering
 └── types/                   # TypeScript definitions
@@ -113,19 +114,26 @@ npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/pizza-maker/sch
 Evaluates live WebMCP tools on a web page using Puppeteer.
 The `vercel` backend supports browser evals and lets the model prefix select a provider, for example
 `--model google:gemini-3.5-flash` or `--model openai:gpt-5`. The `gemini` and `ollama` adapters keep
-the same CLI contract but do not yet implement browser execution.
+the same CLI contract but do not yet implement browser execution. To evaluate the tools against a
+Chrome extension agent instead of the built-in agent, pass `--extension` (see
+[Evaluating Tools Against a Browser Extension Agent](#evaluating-tools-against-a-browser-extension-agent---extension)).
 
 ```bash
 npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/evals.json --open
 ```
 
-| Option                    | Required | Default  | Description                                         |
-| ------------------------- | -------- | -------- | --------------------------------------------------- |
-| `-b, --backend <backend>` | No       | `vercel` | Model backend (`vercel`, `gemini`, or `ollama`)     |
-| `-u, --url <url>`         | Yes      | —        | Target web page URL                                 |
-| `-e, --evals <path>`      | Yes      | —        | Path to evals test suite JSON file                  |
-| `--open`                  | No       | `false`  | Opens the HTML report in browser upon completion    |
-| `--analyze`               | No       | `false`  | Automatically run LLM report analysis on completion |
+| Option                             | Required | Default  | Description                                                                                              |
+| ---------------------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `-b, --backend <backend>`          | No       | `vercel` | Model backend (`vercel`, `gemini`, or `ollama`)                                                          |
+| `-u, --url <url>`                  | Yes      | —        | Target web page URL                                                                                      |
+| `-e, --evals <path>`               | Yes      | —        | Path to evals test suite JSON file                                                                       |
+| `--extension <id-or-name-or-path>` | No       | —        | Evaluate against a Chrome extension agent ([extension options](#extension-options-browser-and-simulate)) |
+| `--timeout <milliseconds>`         | No       | `30000`  | Timeout for page navigation, extension panel readiness, and setup tool calls                             |
+| `-v, --verbose`                    | No       | `false`  | Print live page and turn logs                                                                            |
+| `--open`                           | No       | `false`  | Opens the HTML report in browser upon completion                                                         |
+| `--analyze`                        | No       | `false`  | Automatically run LLM report analysis on completion                                                      |
+
+Like `simulate`, `browser` exits with code 1 when any case fails or errors, so CI jobs and scripts can check the exit code.
 
 ---
 
@@ -155,7 +163,7 @@ resolved to concrete sample arguments so standard evaluation suites can be reuse
 ### Command: `simulate`
 
 Runs goal-oriented evaluations against a live WebMCP page. A case either sends one exact user
-message or lets a simulated user converse with the agent under test until the user finishes or a
+message or lets a simulated user converse with the agent until the user finishes or a
 budget is exhausted. The outcome is then checked using deterministic DOM assertions against the
 final page state, a judge model that evaluates the complete transcript against prose success
 criteria, or both (with DOM assertions acting as a hard gate before the judge is called).
@@ -184,28 +192,29 @@ npx webmcp-evals simulate \
   --judge-model google:gemini-3.5-flash
 ```
 
-| Option                          | Required | Default        | Description                                                  |
-| ------------------------------- | -------- | -------------- | ------------------------------------------------------------ |
-| `-u, --url <url>`               | Yes      | —              | Target WebMCP page URL                                       |
-| `-s, --simulations <path>`      | Yes      | —              | Path to a `simulations.json` file                            |
-| `--user-model <model>`          | No       | Agent model    | Model used by cases that define `userScenario`               |
-| `--judge-model <model>`         | No       | Analyzer model | Model used for cases that define prose success criteria      |
-| `--max-duration <milliseconds>` | No       | `300000`       | Fallback wall-clock budget when a case omits `maxDurationMs` |
-| `--timeout <milliseconds>`      | No       | `30000`        | Timeout per navigation, setup tool call, or judge request    |
-| `--open`                        | No       | `false`        | Automatically open the HTML report in the browser            |
-| `-v, --verbose`                 | No       | `false`        | Print live page and conversation logs                        |
+| Option                             | Required | Default        | Description                                                                                              |
+| ---------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------- |
+| `-u, --url <url>`                  | Yes      | —              | Target WebMCP page URL                                                                                   |
+| `-s, --simulations <path>`         | Yes      | —              | Path to a `simulations.json` file                                                                        |
+| `--user-model <model>`             | No       | `--model`      | Model used by cases that define `userScenario`                                                           |
+| `--judge-model <model>`            | No       | Analyzer model | Model used for cases that define prose success criteria                                                  |
+| `--extension <id-or-name-or-path>` | No       | —              | Evaluate against a Chrome extension agent ([extension options](#extension-options-browser-and-simulate)) |
+| `--max-duration <milliseconds>`    | No       | `300000`       | Wall-clock budget for the conversation when a case omits `maxDurationMs` (including extension turns)     |
+| `--timeout <milliseconds>`         | No       | `30000`        | Timeout per navigation, extension panel readiness, setup tool call, or judge request                     |
+| `--open`                           | No       | `false`        | Automatically open the HTML report in the browser                                                        |
+| `-v, --verbose`                    | No       | `false`        | Print live page and conversation logs                                                                    |
 
 The global `--runs`, `--max-steps`, `--reporter`, `--output-dir`, and `--chrome-channel`
 options also apply. There is no `--max-turns` option: `maxTurns` is an optional, case-specific limit
 for `userScenario` cases and defaults to `1` when omitted. Cases with `userMessage` always run one
 turn and cannot set `maxTurns`.
 
-A simulation always uses the agent under test. Cases with `userScenario` also use a simulated user;
-cases with `userMessage` send that exact message directly to the agent and use no user model. A
-third model is used only for cases with `successCriteria`; assertion-only cases stop after
-deterministic final-DOM checks. Conversations driven by `userScenario` remain non-deterministic, so
-keep `smoke` as the fully deterministic, API-key-free CI signal. `simulate` complements it rather
-than replacing it.
+A simulation always uses the agent: the built-in agent or, with `--extension`, the extension. Cases
+with `userScenario` also use a simulated user; cases with `userMessage` send that exact message
+directly to the agent and use no user model. A third model is used only for cases with
+`successCriteria`; assertion-only cases stop after deterministic final-DOM checks. Conversations
+driven by `userScenario` remain non-deterministic, so keep `smoke` as the fully deterministic,
+API-key-free CI signal. `simulate` complements it rather than replacing it.
 
 ---
 
@@ -222,6 +231,56 @@ npx webmcp-evals analyze .evals/report-1784621327799.json --open
 | `<report-path>`       | Yes      | —                  | Path to the JSON or HTML report file (e.g. `.evals/report-*.json`) |
 | `-m, --model <model>` | No       | `gemini-3.5-flash` | Model identifier to run the report analysis                        |
 | `--open`              | No       | `false`            | Automatically open the analysis markdown report in the browser     |
+
+---
+
+### Evaluating Tools Against a Browser Extension Agent (`--extension`)
+
+By default, `browser` and `simulate` call the page's WebMCP tools with a built-in agent. With `--extension`, they evaluate the same tools **against a Chrome extension agent** instead, such as [`GoogleChromeLabs/webmcp-extension`](https://github.com/GoogleChromeLabs/webmcp-extension) or a custom extension that implements the [WebMCP Extension Automation Contract](docs/extension-contract.md). `webmcp-evals` sends each prompt through the extension's side panel and records every tool call on the page. Extension authors can also use this mode to test their agent on WebMCP pages.
+
+With `--extension`, `webmcp-evals` does **not** need an agent API key, because the extension uses its own model and credentials. In `simulate`, you need an API key only if your suite uses `userScenario` or `successCriteria`.
+
+#### Option A: Launch Chrome with a Persistent Profile (`--user-data-dir`)
+
+1. Launch Chrome Canary once with a dedicated profile directory (Chrome 136+ requires a non-default `--user-data-dir` for automation). Install and set up your extension, open its side panel, and accept any first-run consent screen. Then close Chrome.
+2. Run `browser` or `simulate` with the extension name (or 32-character ID) and the profile directory:
+
+```bash
+npx webmcp-evals browser \
+  -u http://localhost:5173 \
+  -e examples/pizza-maker/evals.json \
+  --extension "WebMCP Extension" \
+  --user-data-dir ~/.chrome-webmcp-evals
+
+npx webmcp-evals simulate \
+  -u https://googlechromelabs.github.io/webmcp-tools/demos/pizza-maker/ \
+  -s examples/pizza-maker/simulations.json \
+  --extension "WebMCP Extension" \
+  --user-data-dir ~/.chrome-webmcp-evals \
+  --judge-model google:gemini-3.5-flash
+```
+
+#### Option B: Attach to an Already-Running Chrome (`--browser-url`)
+
+Start Chrome yourself with `--remote-debugging-port=9222 --user-data-dir="$HOME/.chrome-webmcp-evals" --enable-features=WebMCP` and set up your extension in it. Then pass `--browser-url http://127.0.0.1:9222` instead of `--user-data-dir`. `webmcp-evals` leaves Chrome open and does not clear site data, so logins survive but state can carry over from one case to the next.
+
+#### Option C: Install an Unpacked Extension (`--extension ./dir`)
+
+Pass the directory that contains the extension's `manifest.json`, for example `--extension ./dist --headless`. `webmcp-evals` launches Chrome with a temporary profile and installs the extension. Use this in CI when the extension needs no manual setup, such as an API key. It accepts the first-run consent screen only for [`GoogleChromeLabs/webmcp-extension`](https://github.com/GoogleChromeLabs/webmcp-extension); for other extensions, use Option A. A failed or errored case makes the command exit with code 1, so the CI job fails too.
+
+#### Extension Options (`browser` and `simulate`)
+
+| Option                             | Default           | Description                                                                                                                                 |
+| ---------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--extension <id-or-name-or-path>` | —                 | 32-character extension ID, `manifest.json` name, or unpacked extension directory                                                            |
+| `--user-data-dir <path>`           | Temporary profile | Chrome profile where the extension is installed and set up (not with `--browser-url`)                                                       |
+| `--browser-url <url>`              | —                 | Remote debugging URL (`http://` or `ws://`) of a running Chrome                                                                             |
+| `--headless`                       | Auto              | Launch Chrome headless (by default, only on Linux without a display); not with `--browser-url`                                              |
+| `--extension-panel-path <path>`    | From manifest     | Side-panel HTML path inside `chrome-extension://<id>/` (default: the manifest's `side_panel.default_path`, then `sidepanel/index.html`)     |
+| `--confirm-policy <policy>`        | `allow-once`      | `allow-once`, `always-allow`, `deny`, or `none` ([permission prompts](docs/extension-contract.md#tool-permission-prompts---confirm-policy)) |
+| `--turn-timeout <milliseconds>`    | `120000`          | `browser` only: maximum time for one extension turn (`simulate` uses `--max-duration`)                                                      |
+
+When `webmcp-evals` launches Chrome (Options A and C), it uses the `--chrome-channel` browser (Chrome Canary by default) and does not fall back to another installed Chrome. See [docs/extension-contract.md](docs/extension-contract.md) for what happens in each case: site data, consent screens, timeouts, permission prompts, conversation history in `evals.json`, extension error messages, and the `window.__AGENT_AUTOMATION__` bridge for custom extensions.
 
 ---
 
@@ -405,7 +464,8 @@ You can run evaluations or deterministic smoke tests across all deployed WebMCP 
 `run_evals.sh` intentionally remains limited to trajectory-based `browser` evaluations. It does
 not run simulations implicitly because simulations use two or three model roles and case-specific
 budgets. Run `simulate` explicitly with the command shown above when that additional cost and
-non-determinism are intended.
+non-determinism are intended. `./run_evals.sh all` runs every target even when one has failed or
+errored cases, then lists those targets and exits with code 1.
 
 ## License
 

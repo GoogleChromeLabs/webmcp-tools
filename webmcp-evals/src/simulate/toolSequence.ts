@@ -20,6 +20,7 @@
  * merge unchanged.
  */
 
+import type { ToolCallOutcome } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 
 // TODO(simulate): same value as `DEFAULT_SMOKE_TIMEOUT_MS`; single source of
@@ -47,19 +48,7 @@ export type ToolCallRequest = {
   arguments: Record<string, unknown>;
 };
 
-export type ToolCallOutcome = {
-  /** 1-based position in the sequence. */
-  index: number;
-  functionName: string;
-  arguments: Record<string, unknown>;
-  outcome: "pass" | "error";
-  result?: unknown;
-  /**
-   * The bare reason, with no framing: the caller knows which simulation this
-   * setup belongs to and phrases the error for its own report.
-   */
-  error?: string;
-};
+export type { ToolCallOutcome };
 
 export type ToolSequenceOptions = {
   timeoutMs?: number;

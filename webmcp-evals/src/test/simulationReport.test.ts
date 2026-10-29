@@ -338,7 +338,7 @@ describe("renderSimulationReport", () => {
   it("names all three model roles, since a reader cannot infer who graded", () => {
     const html = renderSimulationReport(config, resultsOf([result()]));
 
-    assert.match(html, /Agent under test/);
+    assert.match(html, />Agent</);
     assert.match(html, /Simulated user/);
     assert.match(html, /judge-model/);
   });

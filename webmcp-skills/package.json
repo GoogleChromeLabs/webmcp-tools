@@ -19,8 +19,8 @@
     "eval:dry-run": "vite-node src/evals/cli.ts --dry-run",
     "eval:bundle": "vite-node src/evals/cli.ts --bundle-only",
     "eval:view": "vite-node src/eval-viewer/server.ts",
-    "skill:validate": "vite-node src/evals/cli.ts --validate skills/build-webmcp-tools",
-    "skill:package": "vite-node src/evals/cli.ts --package skills/build-webmcp-tools"
+    "skill:validate": "vite-node src/evals/cli.ts --validate skills/build-webmcp-tools && vite-node src/evals/cli.ts --validate skills/evaluate-webmcp-tools-with-extension",
+    "skill:package": "vite-node src/evals/cli.ts --package skills/build-webmcp-tools && vite-node src/evals/cli.ts --package skills/evaluate-webmcp-tools-with-extension"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

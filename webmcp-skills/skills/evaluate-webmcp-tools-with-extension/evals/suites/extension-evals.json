@@ -1,0 +1,48 @@
+{
+  "skill_name": "evaluate-webmcp-tools-with-extension",
+  "suite": "extension-evals",
+  "description": "Evaluates setting up Chrome profiles, attaching via --browser-url, running webmcp-evals against Chrome extension agents, troubleshooting extension runs, and implementing window.__AGENT_AUTOMATION__",
+  "evals": [
+    {
+      "id": "ext-persistent-profile-setup",
+      "prompt": "I already built and configured my WebMCP Agent Chrome extension with my API key. How do I run webmcp-evals simulate against http://localhost:5173 using simulations.json without reconfiguring the extension on every run?",
+      "expected_output": "The agent explains setting up a dedicated Chrome profile directory (--user-data-dir, required by Chrome 136+ for remote debugging) with --enable-features=WebMCP where the extension is installed and configured (closing Chrome before launching via --user-data-dir, or attaching via --browser-url), and provides the npx webmcp-evals simulate command using --extension and --user-data-dir (or --browser-url), noting that webmcp-evals does not need an agent API key when --extension is used.",
+      "assertions": [
+        "The agent recommends a dedicated --user-data-dir profile (or attaching to a running Chrome via --browser-url) with --enable-features=WebMCP",
+        "The agent provides a webmcp-evals simulate command passing --extension with the extension name or 32-character ID",
+        "The agent notes that Chrome must be closed before webmcp-evals launches with the same --user-data-dir (or else use --browser-url to attach to an open browser)"
+      ]
+    },
+    {
+      "id": "ext-attach-running-browser",
+      "prompt": "I want to keep my Chrome Canary window open so I can watch my WebMCP extension's side panel while running evals.json against http://localhost:3000. How should I start Chrome and run webmcp-evals?",
+      "expected_output": "The agent shows starting Chrome Canary with --remote-debugging-port=9222, a dedicated --user-data-dir, and --enable-features=WebMCP, then running npx webmcp-evals browser -u http://localhost:3000 -e evals.json --extension <name-or-id> --browser-url http://127.0.0.1:9222, explaining that --browser-url disconnects without closing Chrome.",
+      "assertions": [
+        "The agent starts Chrome with --remote-debugging-port=9222, a dedicated --user-data-dir, and --enable-features=WebMCP",
+        "The agent runs webmcp-evals browser with --extension and --browser-url http://127.0.0.1:9222",
+        "The agent explains that attaching via --browser-url leaves the Chrome session open when the evaluation finishes"
+      ]
+    },
+    {
+      "id": "ext-consent-screen-error",
+      "prompt": "I ran webmcp-evals browser with --extension \"WebMCP Extension\" --user-data-dir ~/.chrome-webmcp-evals and every case failed with an error that the extension's consent screen is showing. How do I fix this?",
+      "expected_output": "The agent explains that webmcp-evals does not accept the first-run consent screen of an installed extension. It tells the user to launch Chrome with the same --user-data-dir, open the extension's side panel, accept the consent screen, quit Chrome, and run the same command again (or attach with --browser-url after accepting it). It does not suggest changing webmcp-evals or the extension.",
+      "assertions": [
+        "The agent says to open the extension's side panel in the same Chrome profile (--user-data-dir) and accept the consent screen once",
+        "The agent says to close that Chrome before running webmcp-evals again with --user-data-dir (or to attach with --browser-url instead)",
+        "The agent does not claim that webmcp-evals can accept the consent screen of an installed extension"
+      ]
+    },
+    {
+      "id": "ext-custom-automation-contract",
+      "prompt": "We built our own custom Chrome MV3 side-panel agent in Vue with obfuscated CSS classes. What JavaScript contract do we need to expose in our side panel so webmcp-evals can run browser and simulate suites against it?",
+      "expected_output": "The agent reads references/extension-contract.md and specifies exposing window.__AGENT_AUTOMATION__ (WindowAgentAutomationBridge) on the side-panel window with getSnapshot(), sendPrompt(prompt), startNewChat(), resolveConfirmation(id, decision) (required when the panel lists confirmations), and optional stopGeneration(), detailing AgentPanelSnapshot fields (composerVisible, actionVariant 'stop' vs 'send', attachedDomain, detectedToolCount, items, confirmations).",
+      "assertions": [
+        "The agent read references/extension-contract.md",
+        "The agent specifies exposing window.__AGENT_AUTOMATION__ on the extension side-panel window",
+        "The agent includes getSnapshot(), sendPrompt(prompt), and startNewChat() (plus resolveConfirmation for tool permission prompts)",
+        "The agent describes AgentPanelSnapshot fields including composerVisible, actionVariant ('stop' while busy), attachedDomain, detectedToolCount, and items"
+      ]
+    }
+  ]
+}
