@@ -91,6 +91,10 @@ updates:
       all-other-dependencies:
         patterns:
           - "*"
+    ignore:
+      # Angular 22 (@angular/compiler-cli) and typescript-eslint v8 peer-depend on TypeScript <6.1
+      - dependency-name: "typescript"
+        versions: [">= 6.1.0"]
     cooldown:
       default-days: 7
 
