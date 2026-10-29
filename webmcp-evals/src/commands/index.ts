@@ -13,7 +13,7 @@ import Table from "cli-table3";
 import open from "open";
 import ora from "ora";
 import type { ChromeReleaseChannel } from "puppeteer-core";
-import { Config, SimulationConfig, WebmcpConfig } from "../types/config.js";
+import { Config, SimulationConfig, WebmcpConfig, EvalRequestOptions } from "../types/config.js";
 import { Eval, FunctionCall } from "../types/evals.js";
 import { Tool, ToolsSchema } from "../types/tools.js";
 import {
@@ -29,7 +29,7 @@ import { renderSimulationReport } from "../report/simulationReport.js";
 import { createBackend } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
 
-export interface CommandOptions {
+export interface CommandOptions extends EvalRequestOptions {
   model: string;
   runs: number;
   reporter: string[];
@@ -52,8 +52,19 @@ export interface CommandOptions {
   maxDuration?: number;
 }
 
+function validateEvalRequestBackend(opts: CommandOptions): void {
+  if (
+    (opts.maxOutputTokens !== undefined || opts.openaiReasoningEffort !== undefined) &&
+    opts.backend &&
+    opts.backend !== "vercel"
+  ) {
+    throw new Error("Explicit eval request options require the vercel backend.");
+  }
+}
+
 export async function runLocalCommand(options: CommandOptions, command?: Command): Promise<void> {
   const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+  validateEvalRequestBackend(opts);
 
   const toolsFile = opts.tools!;
   const evalsFile = opts.evals!;
@@ -65,6 +76,8 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
     model: opts.model,
     runs: opts.runs,
     maxSteps: opts.maxSteps,
+    maxOutputTokens: opts.maxOutputTokens,
+    openaiReasoningEffort: opts.openaiReasoningEffort,
     outputDir: opts.outputDir,
     reporter: opts.reporter,
     chromeChannel: (opts.chromeChannel as ChromeReleaseChannel) || "chrome-canary",
@@ -144,6 +157,7 @@ export function getProgressBar(ratio: number, size = 10): string {
 
 export async function runWebCommand(options: CommandOptions, command?: Command): Promise<void> {
   const opts: CommandOptions = command?.optsWithGlobals ? command.optsWithGlobals() : options;
+  validateEvalRequestBackend(opts);
 
   const url = opts.url!;
   const evalsFile = opts.evals!;
@@ -161,6 +175,8 @@ export async function runWebCommand(options: CommandOptions, command?: Command):
       model: opts.model,
       runs: opts.runs,
       maxSteps: opts.maxSteps,
+      maxOutputTokens: opts.maxOutputTokens,
+      openaiReasoningEffort: opts.openaiReasoningEffort,
       outputDir: opts.outputDir,
       reporter: opts.reporter,
       chromeChannel: opts.chromeChannel || "chrome-canary",

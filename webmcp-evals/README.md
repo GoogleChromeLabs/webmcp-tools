@@ -89,6 +89,17 @@ Shared across commands:
 
 Evaluates static tool schema JSON files.
 
+The `local` and `browser` commands accept two optional request settings for the
+`vercel` backend. `--max-output-tokens <positive-integer>` caps each model call,
+not the whole evaluation. `--openai-reasoning-effort <effort>` forwards an explicit
+OpenAI effort (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`, or `max`).
+Both are omitted by default, preserving existing provider behavior. The chosen
+model must support the supplied value; these options do not change model selection,
+tool schemas, step limits, scoring, or analyzer/simulation requests. For example,
+a supported OpenAI Chat model requiring non-reasoning tool calls can be evaluated
+with `--model openai:<model-id> --openai-reasoning-effort none --max-output-tokens 4096`.
+Model-specific requirements should be checked with the provider before running.
+
 ```bash
 npx webmcp-evals local -t examples/pizza-maker/schema.json -e examples/pizza-maker/evals.json
 ```
