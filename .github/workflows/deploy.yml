@@ -48,6 +48,7 @@ jobs:
           cp -r demos/page-agent deployment-root/demos/page-agent
           cp -r demos/explainer deployment-root/demos/explainer
           cp -r demos/pixel-art-studio/dist deployment-root/demos/pixel-art-studio
+          cp -r demos/proxx-lite/dist deployment-root/demos/proxx-lite
           cp -r demos/spreadsheet/dist deployment-root/demos/spreadsheet
 
       - name: Setup Pages

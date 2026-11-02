@@ -1,0 +1,101 @@
+[
+  {
+    "name": "PROXX Lite: Read the board",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "What does the board look like right now, and how many black holes are there?"
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "proxx_get_state",
+        "arguments": {}
+      }
+    ]
+  },
+  {
+    "name": "PROXX Lite: Start a medium game",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Start a new game on medium difficulty."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "proxx_new_game",
+        "arguments": {
+          "difficulty": "medium"
+        }
+      }
+    ]
+  },
+  {
+    "name": "PROXX Lite: Start a custom game",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Set up a board that is 12 columns wide and 10 rows tall with 20 black holes."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "proxx_new_game",
+        "arguments": {
+          "rows": 10,
+          "cols": 12,
+          "blackHoles": 20
+        }
+      }
+    ]
+  },
+  {
+    "name": "PROXX Lite: Open the first cell",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "Start an easy game and open the cell at row 4, column 4."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "proxx_new_game",
+        "arguments": {
+          "difficulty": "easy"
+        }
+      },
+      {
+        "functionName": "proxx_reveal_cell",
+        "arguments": {
+          "row": 4,
+          "col": 4
+        }
+      }
+    ]
+  },
+  {
+    "name": "PROXX Lite: Flag a suspected black hole",
+    "messages": [
+      {
+        "role": "user",
+        "type": "message",
+        "content": "I think there's a black hole in the top-right corner of the 8 by 8 board. Flag row 0, column 7."
+      }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "proxx_flag_cell",
+        "arguments": {
+          "row": 0,
+          "col": 7,
+          "flagged": true
+        }
+      }
+    ]
+  }
+]
