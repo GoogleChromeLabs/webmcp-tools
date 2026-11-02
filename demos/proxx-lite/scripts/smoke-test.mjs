@@ -49,6 +49,8 @@ console.log('Status:', r.state.status, 'flags:', r.state.flagsPlaced, '\n' + r.s
 console.log('Invalid:', (await call('proxx_reveal_cell', { row: 99, col: 0 })).result.message)
 console.log('Bad type:', (await call('proxx_reveal_cell', { row: 'a', col: 0 })).result.message)
 console.log('Bad game:', (await call('proxx_new_game', { rows: 3, cols: 3, blackHoles: 9 })).result.message)
+console.log('Custom:', (await call('proxx_new_game', { difficulty: 'custom', rows: 10, cols: 12, blackHoles: 20 })).result.message)
+console.log('Custom, no size:', (await call('proxx_new_game', { difficulty: 'custom' })).result.message)
 scope.stop()
 console.log('After dispose, tools left:', tools.size)
 await server.close()

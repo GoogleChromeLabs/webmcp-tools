@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "test": "node scripts/smoke-test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

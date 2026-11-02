@@ -37,6 +37,15 @@ watch(
   },
 )
 
+// Moves like proxx_reveal_cell change the board in place, so also show the board for any agent call
+// that can change it. Otherwise a move made from the home screen stays hidden and START would discard it.
+watch(
+  () => toolLog.value[0],
+  (entry) => {
+    if (entry && entry.tool !== 'proxx_get_state') screen.value = 'game'
+  },
+)
+
 /* ---------- Home form ---------- */
 
 const form = reactive({ difficulty: 'easy' as Difficulty | 'custom', rows: 8, cols: 8, blackHoles: 10 })

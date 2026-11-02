@@ -49,7 +49,7 @@ Open the local URL that Vite prints (`http://localhost:5173` by default) and con
   ```bash
   URL=http://localhost:5173 ./run_smoke.sh proxx-lite -v
   ```
-- **Tool script**: `node scripts/smoke-test.mjs` mocks `document.modelContext`, loads the tools through Vite, and plays a game through the tools with a simple solver. It needs no browser.
+- **Tool script**: `npm test` runs `scripts/smoke-test.mjs`, which mocks `document.modelContext`, loads the tools through Vite, and plays a game through the tools with a simple solver. It needs no browser.
 
 ## 📂 Project Structure
 

@@ -78,23 +78,27 @@ const tools: ToolDef<any>[] = [
       properties: {
         difficulty: {
           type: 'string',
-          enum: DIFFICULTY_NAMES,
+          enum: [...DIFFICULTY_NAMES, 'custom'],
           default: 'easy',
           description:
-            'Preset board: easy is 8×8 with 10 black holes, medium 16×16 with 40, hard 24×24 with 99. Ignored for any custom dimension that is set.',
+            'Preset board: easy is 8×8 with 10 black holes, medium 16×16 with 40, hard 24×24 with 99. Use custom with rows, cols, and blackHoles; any dimension you set overrides the preset.',
         },
         rows: { type: 'integer', minimum: 2, maximum: 30, description: 'Custom number of rows.' },
         cols: { type: 'integer', minimum: 2, maximum: 40, description: 'Custom number of columns.' },
         blackHoles: { type: 'integer', minimum: 1, description: 'Custom number of black holes; must be fewer than rows × cols.' },
       },
     },
-    run: ({ difficulty = 'easy', rows, cols, blackHoles }: { difficulty?: Difficulty; rows?: number; cols?: number; blackHoles?: number }) => {
+    run: ({ difficulty = 'easy', rows, cols, blackHoles }: { difficulty?: Difficulty | 'custom'; rows?: number; cols?: number; blackHoles?: number }) => {
       // The browser does not validate against inputSchema or apply defaults, so do it here.
-      if (!DIFFICULTY_NAMES.includes(difficulty))
-        return { ...invalid(`Unknown difficulty "${difficulty}".`), difficulties: DIFFICULTY_NAMES }
+      const hasDimensions = rows !== undefined || cols !== undefined || blackHoles !== undefined
+      if (difficulty === 'custom' && !hasDimensions)
+        return invalid('Pass rows, cols, and blackHoles for a custom board, or pick easy, medium, or hard.')
+      if (difficulty !== 'custom' && !DIFFICULTY_NAMES.includes(difficulty))
+        return { ...invalid(`Unknown difficulty "${difficulty}".`), difficulties: [...DIFFICULTY_NAMES, 'custom'] }
       for (const [key, value] of Object.entries({ rows, cols, blackHoles }))
         if (value !== undefined && !isInt(value)) return invalid(`"${key}" must be an integer.`)
-      const preset = DIFFICULTIES[difficulty]
+      // Missing custom dimensions fall back to the easy preset.
+      const preset = DIFFICULTIES[difficulty === 'custom' ? 'easy' : difficulty]
       const r = rows ?? preset.rows
       const c = cols ?? preset.cols
       const b = blackHoles ?? preset.blackHoles
