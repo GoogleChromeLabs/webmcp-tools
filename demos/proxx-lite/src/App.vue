@@ -5,15 +5,27 @@
 <script setup lang="ts">
 import { computed, onUnmounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import { DIFFICULTIES, type Difficulty, type Cell, useGame } from './game'
+import { toolLog, useProxxTools } from './webmcp'
 
 const { state, newGame, reveal, toggleFlag, chord } = useGame()
+
+// Tools live as long as this component; useWebMCP unregisters them via AbortSignal on unmount/HMR.
+const { isRegistered: webmcpAvailable } = useProxxTools()
+
+const TOOL_NAMES = [
+  'proxx_get_state',
+  'proxx_new_game',
+  'proxx_reveal_cell',
+  'proxx_flag_cell',
+  'proxx_chord_cell',
+]
 
 /* ---------- Screens ---------- */
 
 const screen = ref<'home' | 'game'>('home')
 const flagMode = ref(false)
 
-// newGame() always replaces the board.
+// newGame() always replaces the board, whether the user pressed START or an agent called proxx_new_game.
 watch(
   () => state.board,
   () => {
@@ -140,6 +152,7 @@ function cellLabel(r: number, c: number, cell: Cell): string {
 /* ---------- Dialogs & fullscreen ---------- */
 
 const infoDialog = useTemplateRef<HTMLDialogElement>('infoDialog')
+const logDialog = useTemplateRef<HTMLDialogElement>('logDialog')
 
 // Light-dismiss fallback for browsers without <dialog closedby="any"> support.
 const supportsClosedBy = 'closedBy' in HTMLDialogElement.prototype
@@ -234,6 +247,9 @@ function toggleFullscreen() {
         <button class="icon-btn" aria-label="How to play" @click="infoDialog?.showModal()">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 11v6M12 7v.01" /></svg>
         </button>
+        <button class="webmcp" :class="{ on: webmcpAvailable }" @click="logDialog?.showModal()">
+          WebMCP {{ webmcpAvailable ? 'active' : 'unavailable' }}
+        </button>
         <button v-if="canFullscreen" class="icon-btn" aria-label="Toggle fullscreen" @click="toggleFullscreen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /></svg>
         </button>
@@ -314,6 +330,13 @@ function toggleFullscreen() {
         </div>
       </div>
 
+      <p class="ticker" aria-live="polite">
+        <template v-if="toolLog[0]">
+          <span class="ticker-tag">Agent</span>
+          <code>{{ toolLog[0].tool }}</code> → {{ toolLog[0].result }}
+        </template>
+      </p>
+
       <footer class="bar bottom">
         <button class="icon-btn" aria-label="Back to main menu" @click="screen = 'home'">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12H4M10 6l-6 6 6 6" /></svg>
@@ -330,6 +353,9 @@ function toggleFullscreen() {
           <button class="mode-label" :aria-pressed="flagMode" @click="flagMode = true">Flag</button>
         </div>
         <div class="bar-end">
+          <button class="icon-btn" :class="{ on: webmcpAvailable }" aria-label="Agent tool calls" @click="logDialog?.showModal()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9" /></svg>
+          </button>
           <button v-if="canFullscreen" class="icon-btn" aria-label="Toggle fullscreen" @click="toggleFullscreen">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /></svg>
           </button>
@@ -364,12 +390,39 @@ function toggleFullscreen() {
         <span class="legend-item"><span class="cell flagged demo" style="--t: 1"><svg class="spiral" viewBox="0 0 40 40"><use href="#spiral-flag" /></svg></span>Flagged</span>
       </div>
 
+      <h2>Play with an agent</h2>
+      <p>
+        This demo exposes the game through <strong>WebMCP</strong>, so an in-browser AI agent can play it with these
+        tools:
+      </p>
+      <ul class="tools">
+        <li v-for="name in TOOL_NAMES" :key="name"><code>{{ name }}</code></li>
+      </ul>
+
       <h2>About</h2>
       <p class="credit">
         PROXX Lite is a simplified demo inspired by
         <a href="https://github.com/GoogleChromeLabs/proxx" target="_blank" rel="noopener">PROXX</a> by Google Chrome
         Labs. It is not the original game.
       </p>
+    </dialog>
+
+    <!-- ================= AGENT TOOL LOG ================= -->
+    <dialog ref="logDialog" class="sheet" closedby="any" aria-labelledby="log-title" @click="onDialogClick">
+      <button class="close" aria-label="Close" @click="logDialog?.close()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <h2 id="log-title">Agent tool calls</h2>
+      <p class="webmcp" :class="{ on: webmcpAvailable }">WebMCP {{ webmcpAvailable ? 'active' : 'unavailable' }}</p>
+      <p v-if="!toolLog.length" class="muted">No WebMCP tool calls yet. Ask your browser agent to play!</p>
+      <ul class="log">
+        <li v-for="(entry, i) in toolLog" :key="i">
+          <span class="muted">{{ entry.time }}</span>
+          <code>{{ entry.tool }}</code>
+          <code class="muted">{{ entry.args }}</code>
+          <span>→ {{ entry.result }}</span>
+        </li>
+      </ul>
     </dialog>
   </div>
 </template>
@@ -441,7 +494,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding: 0 24px;
 }
 .game { width: 100%; height: 100dvh; padding: 0; }
-.game > .bar { width: min(100% - 48px, 712px); margin-inline: auto; }
+.game > .bar,
+.game > .ticker { width: min(100% - 48px, 712px); margin-inline: auto; }
 
 /* ---------- Top / bottom bars ---------- */
 .bar {
@@ -466,6 +520,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
   border: 0; border-radius: 50%; background: none;
 }
 .icon-btn:hover { background: rgb(255 255 255 / 0.1); }
+.icon-btn.on { color: var(--cyan); }
+
+.webmcp {
+  margin: 0;
+  padding: 4px 12px;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: 999px;
+  background: none;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.6);
+  width: fit-content;
+}
+.webmcp.on { border-color: var(--cyan); color: var(--cyan); }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -652,6 +719,23 @@ label.field::after {
 
 .lost-panel { display: flex; flex-direction: column; gap: 16px; width: min(100%, 520px); padding-inline: 16px; }
 
+.ticker {
+  min-height: 1.5em;
+  margin-block: 0 4px;
+  font-size: 12px;
+  color: rgb(255 255 255 / 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ticker-tag {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--cyan);
+  color: #000;
+  font-weight: 700;
+}
 
 /* ---------- Clear / Flag switch ---------- */
 .mode { display: flex; align-items: center; gap: 12px; font-size: clamp(16px, 4.5vw, 22px); }
@@ -764,6 +848,11 @@ label.field::after {
 .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-block: 20px; }
 .legend-item { display: flex; align-items: center; gap: 16px; }
 .cell.demo { --size: 52px; flex: none; }
+.tools, .log { padding: 0; list-style: none; }
+.tools li { padding: 2px 0; }
+.log { font-size: 13px; }
+.log li { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 8px 0; border-top: 1px solid rgb(255 255 255 / 0.15); }
+code { color: var(--cyan); word-break: break-all; }
 .credit a { color: var(--cyan); }
 
 /* ---------- Motion preferences ---------- */

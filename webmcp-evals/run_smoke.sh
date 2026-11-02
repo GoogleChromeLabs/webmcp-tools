@@ -25,11 +25,11 @@ if [ -n "$CHROME_CHANNEL" ]; then
   CHROME_CHANNEL_FLAG="--chrome-channel $CHROME_CHANNEL"
 fi
 
-ALL_TARGETS=("doors" "bistro" "pizza" "sport-shop" "hotel-chain" "smart-home" "pixel-art-studio" "spreadsheet")
+ALL_TARGETS=("doors" "bistro" "pizza" "sport-shop" "hotel-chain" "smart-home" "pixel-art-studio" "spreadsheet" "proxx-lite")
 
 if [ -z "$TARGET" ]; then
   echo "Error: Missing target parameter."
-  echo "Usage: $0 <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|pixel-art-studio|spreadsheet|all> [-v|--verbose]"
+  echo "Usage: $0 <doors|bistro|pizza|sport-shop|hotel-chain|smart-home|pixel-art-studio|spreadsheet|proxx-lite|all> [-v|--verbose]"
   exit 1
 fi
 
@@ -139,9 +139,18 @@ run_single_smoke() {
         $VERBOSE_FLAG \
         $CHROME_CHANNEL_FLAG
       ;;
+    "proxx-lite")
+      # 9. PROXX Lite Demo
+      echo "🕳️ Running PROXX Lite Smoke Test..."
+      node dist/bin/webmcp-evals.js smoke \
+        -u "$(get_target_url "proxx-lite/" "https://googlechromelabs.github.io/webmcp-tools/demos/proxx-lite/")" \
+        -e examples/proxx-lite/evals.json \
+        $VERBOSE_FLAG \
+        $CHROME_CHANNEL_FLAG
+      ;;
     *)
       echo "Error: Invalid target '$t'."
-      echo "Supported targets: doors, bistro, pizza, sport-shop, hotel-chain, smart-home, pixel-art-studio, spreadsheet, all"
+      echo "Supported targets: doors, bistro, pizza, sport-shop, hotel-chain, smart-home, pixel-art-studio, spreadsheet, proxx-lite, all"
       exit 1
       ;;
   esac
