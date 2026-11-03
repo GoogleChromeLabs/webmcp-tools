@@ -33,7 +33,8 @@ type ConversationRequestBase = {
   /** Cap on the agent's tool-calling steps within a single turn. */
   maxSteps: number;
   registry: ToolRegistry;
-  agentModel: LanguageModel;
+  /** Drives the built-in agent. Not needed when `runAgentTurn` is injected. */
+  agentModel?: LanguageModel;
 };
 
 export type ConversationRequest = ConversationRequestBase &
@@ -61,13 +62,17 @@ export type ConversationResult = {
   error?: unknown;
 };
 
+/** One agent turn as the conversation asks for it. The built-in agent adds `agentModel`. */
+export type AgentTurnInput = Omit<AgentTurnRequest, "model">;
+
 /**
- * Injection points for tests. Follows the shape `executeSmokeEvals` already
- * uses, so a conversation can be driven end to end without a model or a
- * browser.
+ * Injection points, in the shape `executeSmokeEvals` already uses. Tests replace
+ * both, so a conversation runs without a model or a browser. `simulate --extension`
+ * replaces `runAgentTurn`, so a Chrome extension takes the agent's turns (and
+ * `agentModel` is not needed).
  */
 export type ConversationDependencies = {
-  runAgentTurn?: (request: AgentTurnRequest) => Promise<AgentTurnResult>;
+  runAgentTurn?: (request: AgentTurnInput) => Promise<AgentTurnResult>;
   simulateUserTurn?: (
     request: UserTurnRequest,
     model: LanguageModel,
@@ -100,7 +105,14 @@ export async function runConversation(
   request: ConversationRequest,
   dependencies: ConversationDependencies = {},
 ): Promise<ConversationResult> {
-  const agentTurn = dependencies.runAgentTurn || runAgentTurn;
+  const agentTurn =
+    dependencies.runAgentTurn ||
+    (async (turn: AgentTurnInput): Promise<AgentTurnResult> => {
+      if (!request.agentModel) {
+        throw new Error("The conversation needs agentModel or an injected runAgentTurn.");
+      }
+      return runAgentTurn({ ...turn, model: request.agentModel });
+    });
   const userTurn = dependencies.simulateUserTurn || simulateUserTurn;
 
   const startedAt = Date.now();
@@ -170,7 +182,6 @@ export async function runConversation(
           agentTurn({
             messages: [...history, { role: "user", content: userReply.message }],
             registry: request.registry,
-            model: request.agentModel,
             maxSteps: request.maxSteps,
             abortSignal: controller.signal,
             onProgress: (progress) => {

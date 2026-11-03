@@ -22,14 +22,18 @@ WebMCP runs **client-side in the browser tab on `document.modelContext`**. It is
 ```
 webmcp-skills/
 ├── skills/
-│   └── build-webmcp-tools/          # Primary skill for the end-to-end WebMCP tool lifecycle
-│       ├── SKILL.md                 # Main workflow: 6-stage lifecycle, core principles, review checklist
-│       ├── references/              # Specialized technical guides
-│       └── evals/                   # Modular evaluations conforming to agentskills.io
-│           ├── evals.json           # Aggregated test suite (auto-generated)
-│           ├── trigger-queries.json # Skill discovery trigger evaluation queries
-│           ├── fixtures/            # Realistic sample app fixtures for file-reading evals
-│           └── suites/              # Topic/Stage-specific test suites (*.json)
+│   ├── build-webmcp-tools/          # Primary skill for the end-to-end WebMCP tool lifecycle
+│   │   ├── SKILL.md                 # Main workflow: 6-stage lifecycle, core principles, review checklist
+│   │   ├── references/              # Specialized technical guides
+│   │   └── evals/                   # Modular evaluations conforming to agentskills.io
+│   │       ├── evals.json           # Aggregated test suite (auto-generated)
+│   │       ├── trigger-queries.json # Skill discovery trigger evaluation queries
+│   │       ├── fixtures/            # Realistic sample app fixtures for file-reading evals
+│   │       └── suites/              # Topic/Stage-specific test suites (*.json)
+│   └── evaluate-webmcp-tools-with-extension/ # Runs webmcp-evals against Chrome extension agents (--extension)
+│       ├── SKILL.md                 # Rules, pre-run checklist, Chrome setup, CLI options, troubleshooting
+│       ├── references/              # Copy of the extension automation contract (window.__AGENT_AUTOMATION__)
+│       └── evals/                   # Same layout as build-webmcp-tools/evals/ (no fixtures/)
 ├── .agents/skills/
 │   └── skill-creator/               # Meta-skill for authoring, evaluating & improving skills
 ├── src/

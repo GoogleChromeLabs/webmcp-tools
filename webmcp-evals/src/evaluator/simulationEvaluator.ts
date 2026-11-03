@@ -10,23 +10,27 @@
  * came of it.
  *
  * Result types live here rather than in `src/types/` because they carry a
- * `ConversationResult` and `ToolCallOutcome`s from `src/simulate/`, and having
- * the types directory depend on implementation modules would point the
- * dependency the wrong way. `smokeEvaluator.ts` keeps `SmokeResults` locally
- * for the same reason.
+ * `ConversationResult` from `src/simulate/`, and having the types directory
+ * depend on implementation modules would point the dependency the wrong way.
+ * `smokeEvaluator.ts` keeps `SmokeResults` locally for the same reason.
  */
 
 import chalk from "chalk";
 import { LanguageModel } from "ai";
+import type { BrowserContext } from "puppeteer-core";
 import { SimulationConfig } from "../types/config.js";
-import { BrowserConsoleError } from "../types/evals.js";
+import { BrowserConsoleError, TrajectoryStep } from "../types/evals.js";
+import type { ToolCall } from "../types/tools.js";
 import { DomAssertion, LoadedSimulation, SimulationVerdict } from "../types/simulations.js";
 import { ANALYZER_MODEL_DEFAULT } from "../analyzer/index.js";
 import {
+  AgentTurnInput,
+  ConversationDependencies,
   ConversationRequest,
   ConversationResult,
   runConversation,
 } from "../simulate/conversation.js";
+import type { AgentTurnResult } from "../simulate/agentTurn.js";
 import { judgeSimulation, JudgeRequest } from "../simulate/judge.js";
 import { ToolCallOutcome, runToolCallSequence, withTimeout } from "../simulate/toolSequence.js";
 import { DomAssertionResult, evaluateDomAssertions } from "../simulate/domAssertions.js";
@@ -37,6 +41,14 @@ import {
   launchBrowser,
   PUPPETEER_FLAGS,
 } from "./browser.js";
+import { DEFAULT_TIMEOUT_MS } from "./browserEvaluator.js";
+import {
+  type AgentExtensionController,
+  connectExtensionController,
+  describeExtensionBrowser,
+  PageToolCallRecorder,
+  runRecordedExtensionTurn,
+} from "../extension/index.js";
 import { getModel } from "./models.js";
 import { logger } from "../utils/logger.js";
 
@@ -50,8 +62,9 @@ export const DEFAULT_MAX_DURATION_MS = 300_000;
  */
 export const DEFAULT_MAX_STEPS = 6;
 
-/** Per-operation ceiling for `setup`, the initial page load, and the judge. */
-export const DEFAULT_TIMEOUT_MS = 30_000;
+// Per-operation ceiling for `setup`, the initial page load, and the judge. It is
+// defined once, in browserEvaluator.ts, because `browser --timeout` has the same default.
+export { DEFAULT_TIMEOUT_MS };
 
 export type SimulationResult = {
   simulation: LoadedSimulation;
@@ -80,6 +93,8 @@ export type SimulationResults = {
   passCount: number;
   failCount: number;
   errorCount: number;
+  /** The extension the simulations ran against (`--extension` only). */
+  extension?: { id: string; name: string };
 };
 
 /**
@@ -110,8 +125,7 @@ export type SimulationModels = {
 };
 
 export type SimulationActorModels = Pick<SimulationModels, "agent" | "user">;
-type AvailableSimulationModels = Pick<SimulationModels, "agent"> &
-  Partial<Pick<SimulationModels, "user" | "judge">>;
+type AvailableSimulationModels = Partial<SimulationModels>;
 
 /**
  * Injection points for tests, following `SmokeDependencies`. `runConversation`
@@ -120,8 +134,10 @@ type AvailableSimulationModels = Pick<SimulationModels, "agent"> &
  */
 export type SimulationDependencies = {
   launchBrowser?: () => Promise<Browser>;
+  connectExtensionController?: () => Promise<AgentExtensionController>;
   createRegistry?: (page: BrowserPage) => SimulationRegistry;
   runConversation?: (request: ConversationRequest) => Promise<ConversationResult>;
+  simulateUserTurn?: ConversationDependencies["simulateUserTurn"];
   judgeSimulation?: (
     request: JudgeRequest,
     model: LanguageModel,
@@ -167,13 +183,17 @@ export function resolveSimulationModels(
 export function resolveSimulationModels(
   config: SimulationConfig,
   options: { includeJudge?: boolean; includeUser?: boolean },
+): Pick<SimulationModels, "agent"> & Partial<Pick<SimulationModels, "user" | "judge">>;
+export function resolveSimulationModels(
+  config: SimulationConfig,
+  options: { includeAgent?: boolean; includeJudge?: boolean; includeUser?: boolean },
 ): AvailableSimulationModels;
 export function resolveSimulationModels(
   config: SimulationConfig,
-  options: { includeJudge?: boolean; includeUser?: boolean } = {},
+  options: { includeAgent?: boolean; includeJudge?: boolean; includeUser?: boolean } = {},
 ): AvailableSimulationModels {
   return {
-    agent: resolveOne(config, config.model),
+    ...(options.includeAgent === false ? {} : { agent: resolveOne(config, config.model) }),
     ...(options.includeUser === false
       ? {}
       : { user: resolveOne(config, config.userModel || config.model) }),
@@ -183,50 +203,223 @@ export function resolveSimulationModels(
   };
 }
 
+/** `runConversation` always ends `messages` with the user's next message as plain text. */
+function latestUserMessage(messages: AgentTurnInput["messages"]): string {
+  const last = messages.at(-1);
+  if (last?.role !== "user" || typeof last.content !== "string") {
+    throw new Error("Expected the conversation to end with a user text message.");
+  }
+  return last.content;
+}
+
+/**
+ * What an extension turn that the budget aborted had done by the time the
+ * extension stopped. `runConversation` returns as soon as the budget runs out,
+ * with only the calls seen at that moment.
+ */
+type SettledAbortedTurn = {
+  userMessage: string;
+  /** Whether `runConversation` recorded the turn from the calls seen at the abort. */
+  recordedAtAbort: boolean;
+  text: string;
+  steps: TrajectoryStep[];
+  toolCalls: ToolCall[];
+};
+
+/**
+ * Runs the conversation's agent turns through a browser extension instead of
+ * the built-in model loop.
+ */
+function createExtensionTurnRunner(
+  controller: AgentExtensionController,
+  recorder: PageToolCallRecorder,
+  config: SimulationConfig,
+): {
+  runAgentTurn: (request: AgentTurnInput) => Promise<AgentTurnResult>;
+  /**
+   * Resolves once the last turn has settled, including stopping the extension
+   * after an abort, with what an aborted turn did in the end.
+   */
+  waitForCleanup: () => Promise<SettledAbortedTurn | undefined>;
+} {
+  let inFlightTurn: Promise<unknown> | undefined;
+  let settledAbortedTurn: SettledAbortedTurn | undefined;
+  return {
+    waitForCleanup: async () => {
+      await inFlightTurn?.catch(() => undefined);
+      return settledAbortedTurn;
+    },
+    runAgentTurn: async (turnRequest: AgentTurnInput): Promise<AgentTurnResult> => {
+      const { abortSignal, onProgress } = turnRequest;
+      const prompt = latestUserMessage(turnRequest.messages);
+      let recordedAtAbort = false;
+      // `runConversation` stops waiting as soon as its budget aborts the turn, so the
+      // tool calls made so far have to be published right then.
+      const publishPartialOnAbort = () => {
+        const partial = recorder.snapshotTurn("");
+        if (partial.toolCalls.length > 0) {
+          recordedAtAbort = true;
+          onProgress?.({ text: "", steps: partial.steps, toolCalls: partial.toolCalls });
+        }
+      };
+      abortSignal?.addEventListener("abort", publishPartialOnAbort, { once: true });
+      // Let `runConversation`'s `maxDurationMs` clock (`abortSignal`) govern the
+      // overall turn budget, so an exhausted budget ends the conversation with
+      // `endedBy: "timeout"` and the DOM assertions and the judge still run.
+      const turnPromise = runRecordedExtensionTurn({
+        controller,
+        recorder,
+        prompt,
+        config,
+        timeoutMs: Number.POSITIVE_INFINITY,
+        signal: abortSignal,
+      });
+      inFlightTurn = turnPromise;
+      try {
+        const turn = await turnPromise;
+        if (abortSignal?.aborted) {
+          settledAbortedTurn = {
+            userMessage: prompt,
+            recordedAtAbort,
+            text: turn.text,
+            steps: turn.steps,
+            toolCalls: turn.toolCalls,
+          };
+        }
+        onProgress?.({ text: turn.text, steps: turn.steps, toolCalls: turn.toolCalls });
+        return {
+          text: turn.text,
+          steps: turn.steps,
+          toolCalls: turn.toolCalls,
+          responseMessages: [{ role: "assistant", content: turn.text }],
+          ...(turn.error ? { error: turn.error } : {}),
+        };
+      } catch (turnErr) {
+        const flushed = recorder.flushTurn("");
+        if (abortSignal?.aborted) {
+          settledAbortedTurn = {
+            userMessage: prompt,
+            recordedAtAbort,
+            text: "",
+            steps: flushed.steps,
+            toolCalls: flushed.toolCalls,
+          };
+        } else if (flushed.toolCalls.length > 0) {
+          onProgress?.({ text: "", steps: flushed.steps, toolCalls: flushed.toolCalls });
+        }
+        throw turnErr;
+      } finally {
+        abortSignal?.removeEventListener("abort", publishPartialOnAbort);
+      }
+    },
+  };
+}
+
+/**
+ * Puts what an aborted extension turn did before the extension stopped into the
+ * transcript, so the DOM assertions and the judge see the same work: calls that
+ * finished or started after the abort, and the final results of calls that were
+ * still running at that moment.
+ */
+function withSettledAbortedTurn(
+  conversation: ConversationResult,
+  settled: SettledAbortedTurn | undefined,
+): ConversationResult {
+  if (!settled || (settled.toolCalls.length === 0 && !settled.text)) return conversation;
+  const turns = [...conversation.turns];
+  const last = turns.at(-1);
+  if (settled.recordedAtAbort && last) {
+    turns[turns.length - 1] = {
+      ...last,
+      agentText: settled.text || last.agentText,
+      steps: settled.steps,
+      toolCalls: settled.toolCalls,
+    };
+  } else {
+    turns.push({
+      index: turns.length + 1,
+      userMessage: settled.userMessage,
+      agentText: settled.text,
+      steps: settled.steps,
+      toolCalls: settled.toolCalls,
+    });
+  }
+  return { ...conversation, turns, turnsUsed: turns.length };
+}
+
+type SimulationTargetRuntime =
+  | { kind: "bundled"; browser: Browser }
+  | { kind: "extension"; controller: AgentExtensionController };
+
 async function runOneSimulation(
   simulation: LoadedSimulation,
   runIndex: number,
-  browser: Browser,
+  runtime: SimulationTargetRuntime,
   config: SimulationConfig,
   models: AvailableSimulationModels,
   dependencies: Required<Pick<SimulationDependencies, "createRegistry">> & SimulationDependencies,
 ): Promise<SimulationResult> {
-  const conversationOf = dependencies.runConversation || runConversation;
   const judgeOf = dependencies.judgeSimulation || judgeSimulation;
   const evaluateAssertions = dependencies.evaluateDomAssertions || evaluateDomAssertions;
   const timeoutMs = config.timeoutMs || DEFAULT_TIMEOUT_MS;
 
-  // A new page alone shares cookies and origin storage with earlier runs.
-  const context = await browser.createBrowserContext();
+  let context: BrowserContext | undefined;
   let registry: SimulationRegistry | undefined;
+  let recorder: PageToolCallRecorder | undefined;
   let setupCalls: ToolCallOutcome[] | undefined;
   let conversation: ConversationResult | undefined;
   let assertionResults: DomAssertionResult[] | undefined;
 
   const consoleErrors = () => {
-    const errors = registry?.getBrowserConsoleErrors?.() || [];
+    const errors = [
+      ...(registry?.getBrowserConsoleErrors?.() || []),
+      ...(recorder?.getBrowserConsoleErrors() || []),
+    ];
     return errors.length > 0 ? { browserConsoleErrors: errors } : {};
   };
 
   try {
-    const page = await context.newPage();
-    if (config.verbose) {
-      console.log(
-        chalk.cyan(`\n[Simulate] Opening fresh page for "${simulation.name}" at ${config.url}...`),
-      );
+    let page: BrowserPage;
+    if (runtime.kind === "bundled") {
+      // A new page alone shares cookies and origin storage with earlier runs.
+      context = await runtime.browser.createBrowserContext();
+      page = await context.newPage();
+      if (config.verbose) {
+        console.log(
+          chalk.cyan(
+            `\n[Simulate] Opening fresh page for "${simulation.name}" at ${config.url}...`,
+          ),
+        );
+      }
+      await page.goto(config.url, { waitUntil: "networkidle2", timeout: timeoutMs });
+    } else {
+      // Extensions do not run in incognito contexts, so each run gets a new tab in the
+      // default context instead; `openWebApp` clears the site's data when it can.
+      if (config.verbose) {
+        console.log(
+          chalk.cyan(
+            `\n[Simulate] Preparing tab with extension "${runtime.controller.extensionName}" for "${simulation.name}" at ${config.url}...`,
+          ),
+        );
+      }
+      page = await runtime.controller.openWebApp(config.url, timeoutMs);
     }
-    await page.goto(config.url, { waitUntil: "networkidle2", timeout: timeoutMs });
+
     registry = dependencies.createRegistry(page);
 
     const tools = await registry.getCurrentTools();
     if (!tools || tools.length === 0) {
+      const browserInfo =
+        runtime.kind === "extension"
+          ? `Browser="${describeExtensionBrowser(config)}"`
+          : `Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"`;
       return {
         simulation,
         runIndex,
         outcome: "error",
         error:
           `WebMCP tools are not available on ${config.url} (0 tools registered on page). ` +
-          `Debug info: [URL="${config.url}", Channel="${config.chromeChannel || "chrome-canary"}", Flags="${PUPPETEER_FLAGS.join(" ")}"]`,
+          `Debug info: [URL="${config.url}", ${browserInfo}]`,
         ...consoleErrors(),
       };
     }
@@ -259,6 +452,20 @@ async function runOneSimulation(
         throw new Error("the simulation requires a user model, but none is available");
       conversationInput = { userScenario: simulation.userScenario, userModel: models.user };
     }
+
+    let extensionTurns: ReturnType<typeof createExtensionTurnRunner> | undefined;
+    if (runtime.kind === "extension") {
+      // Attach telemetry AFTER setup so setup tool calls are never credited to the agent.
+      recorder = PageToolCallRecorder.attach(page);
+      extensionTurns = createExtensionTurnRunner(runtime.controller, recorder, config);
+    }
+    const conversationDependencies: ConversationDependencies = {
+      ...(extensionTurns ? { runAgentTurn: extensionTurns.runAgentTurn } : {}),
+      ...(dependencies.simulateUserTurn ? { simulateUserTurn: dependencies.simulateUserTurn } : {}),
+    };
+    const conversationOf =
+      dependencies.runConversation ||
+      ((request: ConversationRequest) => runConversation(request, conversationDependencies));
     conversation = await conversationOf({
       ...conversationInput,
       maxTurns: simulation.maxTurns,
@@ -267,6 +474,11 @@ async function runOneSimulation(
       registry: registry as any,
       agentModel: models.agent,
     });
+    // An expired budget returns before the extension has stopped. Wait for it before
+    // reading the page, and keep what it did meanwhile in the transcript.
+    if (extensionTurns) {
+      conversation = withSettledAbortedTurn(conversation, await extensionTurns.waitForCleanup());
+    }
 
     if (conversation.endedBy === "error") {
       // An exhausted budget still gets judged (ADR D6); a crash does not. The
@@ -399,8 +611,13 @@ async function runOneSimulation(
       ...consoleErrors(),
     };
   } finally {
-    // Also closes any additional pages opened by tools during the simulation.
-    await context.close();
+    recorder?.dispose();
+    if (runtime.kind === "bundled") {
+      // Also closes any additional pages opened by tools during the simulation.
+      await context?.close();
+    } else {
+      await runtime.controller.closeCurrentWebApp();
+    }
   }
 }
 
@@ -419,25 +636,44 @@ export async function executeSimulations(
   const needsUser = simulations.some((simulation) => simulation.userScenario !== undefined);
   const models =
     dependencies.models ||
-    resolveSimulationModels(config, { includeJudge: needsJudge, includeUser: needsUser });
-  const openBrowser =
-    dependencies.launchBrowser || (async () => await launchBrowser(config.chromeChannel));
+    resolveSimulationModels(config, {
+      includeAgent: !config.extension,
+      includeJudge: needsJudge,
+      includeUser: needsUser,
+    });
   const createRegistry =
     dependencies.createRegistry ||
     ((page: BrowserPage) => new BrowserToolRegistry(page) as SimulationRegistry);
 
-  onEvent?.({
-    type: "start",
-    total: simulations.length * runs,
-    message: `Running ${simulations.length} simulation(s) against ${config.url} (${runs} run(s))`,
-  });
-
   const results: SimulationResult[] = [];
-  const browser = await openBrowser();
+  let runtime: SimulationTargetRuntime;
+  if (config.extension) {
+    const connect =
+      dependencies.connectExtensionController || (() => connectExtensionController(config));
+    runtime = { kind: "extension", controller: await connect() };
+  } else {
+    const openBrowser =
+      dependencies.launchBrowser || (async () => await launchBrowser(config.chromeChannel));
+    onEvent?.({
+      type: "start",
+      total: simulations.length * runs,
+      message: `Running ${simulations.length} simulation(s) against ${config.url} (${runs} run(s))`,
+    });
+    runtime = { kind: "bundled", browser: await openBrowser() };
+  }
+
   try {
+    if (runtime.kind === "extension") {
+      // Announced only once connected, because the message names the extension found.
+      onEvent?.({
+        type: "start",
+        total: simulations.length * runs,
+        message: `Running ${simulations.length} simulation(s) against ${config.url} with extension "${runtime.controller.extensionName}" (${runtime.controller.extensionId}) (${runs} run(s))`,
+      });
+    }
     for (let run = 1; run <= runs; run++) {
       for (const simulation of simulations) {
-        const result = await runOneSimulation(simulation, run, browser, config, models, {
+        const result = await runOneSimulation(simulation, run, runtime, config, models, {
           ...dependencies,
           createRegistry,
         });
@@ -446,7 +682,11 @@ export async function executeSimulations(
       }
     }
   } finally {
-    await browser.close();
+    if (runtime.kind === "extension") {
+      await runtime.controller.dispose();
+    } else {
+      await runtime.browser.close();
+    }
   }
 
   return {
@@ -455,5 +695,10 @@ export async function executeSimulations(
     passCount: results.filter((result) => result.outcome === "pass").length,
     failCount: results.filter((result) => result.outcome === "fail").length,
     errorCount: results.filter((result) => result.outcome === "error").length,
+    ...(runtime.kind === "extension"
+      ? {
+          extension: { id: runtime.controller.extensionId, name: runtime.controller.extensionName },
+        }
+      : {}),
   };
 }

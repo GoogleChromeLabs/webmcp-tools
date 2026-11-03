@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import chalk from "chalk";
 import { WebmcpConfig } from "../types/config.js";
 import { BrowserConsoleError, Eval, TestResult, TestResults } from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
@@ -17,6 +18,12 @@ import {
   PUPPETEER_FLAGS,
 } from "./browser.js";
 import { logger } from "../utils/logger.js";
+
+/**
+ * Default `--timeout` for `browser` and `simulate`: the limit for each page navigation,
+ * extension panel readiness wait, and setup call (and for the judge in `simulate`).
+ */
+export const DEFAULT_TIMEOUT_MS = 30_000;
 
 export async function executeInBrowserEvals(
   tests: Array<Eval>,
@@ -93,7 +100,14 @@ async function runSingleBrowserTest(
   let registry: BrowserToolRegistry | undefined;
   let browserConsoleErrors: BrowserConsoleError[] = [];
   try {
-    page = await setupBrowserPage(browser, config.url);
+    if (config.verbose) {
+      console.log(
+        chalk.cyan(
+          `\n[Browser] Opening fresh page for "${test.name || "eval"}" at ${config.url}...`,
+        ),
+      );
+    }
+    page = await setupBrowserPage(browser, config.url, config.timeoutMs);
     registry = new BrowserToolRegistry(page);
     const currentTools = registry.getCurrentTools();
 
@@ -138,16 +152,20 @@ async function runSingleBrowserTest(
   }
 }
 
-async function setupBrowserPage(browser: Browser, url: string): Promise<BrowserPage> {
+async function setupBrowserPage(
+  browser: Browser,
+  url: string,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+): Promise<BrowserPage> {
   const page = await browser.newPage();
   await page.goto(url, {
     waitUntil: "networkidle2",
-    timeout: 30000,
+    timeout: timeoutMs,
   });
   return page;
 }
 
-function buildTestResults(
+export function buildTestResults(
   test: Eval,
   executedCalls: ToolCall[],
   resultPayload: { text?: string },

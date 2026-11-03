@@ -5,9 +5,9 @@
 
 import { describe, it } from "node:test";
 import * as assert from "node:assert";
-import { renderReport } from "../report/report.js";
+import { renderReport, renderWebmcpReport } from "../report/report.js";
 import { TestResults, TestResult } from "../types/evals.js";
-import { Config } from "../types/config.js";
+import { Config, WebmcpConfig } from "../types/config.js";
 
 describe("Report Grouping & Rendering", () => {
   const mockConfig: Config = {
@@ -151,6 +151,56 @@ describe("Report Grouping & Rendering", () => {
 
     const htmlDefault = renderReport(mockConfig, testResults);
     assert.match(htmlDefault, /chrome-canary/);
+  });
+
+  it("renders the extension, browser and confirm policy instead of backend and model", () => {
+    const config: WebmcpConfig = {
+      url: "http://localhost:5173",
+      evalsFile: "evals.json",
+      backend: "extension",
+      model: "extension:WebMCP Agent",
+      extension: "WebMCP Agent",
+      userDataDir: "/tmp/chrome-profile",
+      confirmPolicy: "always-allow",
+    };
+    const html = renderWebmcpReport(config, {
+      results: [
+        {
+          test: {
+            name: "Multi-turn topping addition",
+            messages: [{ role: "user", type: "message", content: "Now add pepperoni" }],
+            expectedCall: [{ functionName: "addTopping", arguments: { topping: "pepperoni" } }],
+          },
+          response: { functionName: "addTopping", args: { topping: "pepperoni" } },
+          outcome: "pass",
+          runIndex: 1,
+          stepIndex: 1,
+          setupCalls: [
+            {
+              index: 1,
+              functionName: "setCrust",
+              arguments: { crust: "thin" },
+              outcome: "pass",
+              result: { ok: true },
+            },
+          ],
+        },
+      ],
+      testCount: 1,
+      passCount: 1,
+      failCount: 0,
+      errorCount: 0,
+      extension: { id: "a".repeat(32), name: "WebMCP Agent" },
+    });
+
+    assert.match(html, /Agent extension/);
+    assert.match(html, /WebMCP Agent \(a{32}\)/);
+    assert.match(html, /Persistent profile/);
+    assert.match(html, /Confirmation policy/);
+    assert.match(html, /always-allow/);
+    assert.match(html, /World state before the conversation/);
+    assert.doesNotMatch(html, />Backend</);
+    assert.doesNotMatch(html, />Model</);
   });
 
   it("renders browser console errors once per run and escapes page content", () => {

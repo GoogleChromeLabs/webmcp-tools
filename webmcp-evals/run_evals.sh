@@ -88,13 +88,21 @@ echo
 
 if [ "$TARGET" = "all" ]; then
   echo "Running all evaluations..."
+  FAILED_TARGETS=()
   for t in "${ALL_TARGETS[@]}"; do
     echo "--------------------------------------------------------------"
     echo "Executing target: $t"
     echo "--------------------------------------------------------------"
-    run_single_eval "$t"
+    # `browser` exits with code 1 when a case fails or errors; run the other targets anyway.
+    run_single_eval "$t" || FAILED_TARGETS+=("$t")
   done
   echo "All evaluations finished!"
+  if [ "${#FAILED_TARGETS[@]}" -gt 0 ]; then
+    echo "--------------------------------------------------------------"
+    echo "❌ Targets with failed or errored cases: ${FAILED_TARGETS[*]}"
+    echo "=============================================================="
+    exit 1
+  fi
 else
   run_single_eval "$TARGET"
 fi

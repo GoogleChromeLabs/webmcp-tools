@@ -11,14 +11,15 @@
 import { SimulationConfig } from "../types/config.js";
 import { SimulationVerdict } from "../types/simulations.js";
 import { ConversationTurn } from "../simulate/conversation.js";
-import { ToolCallOutcome } from "../simulate/toolSequence.js";
 import { SimulationResult, SimulationResults } from "../evaluator/simulationEvaluator.js";
 import { ANALYZER_MODEL_DEFAULT } from "../analyzer/index.js";
+import { DEFAULT_CONFIRM_POLICY, describeExtensionBrowser } from "../extension/contract.js";
 import {
   escapeHtml,
   getCompactTimestamp,
   getDetailedTimestamp,
   renderBrowserConsoleErrors,
+  renderSetupCalls,
   renderTrajectory,
 } from "./report.js";
 
@@ -85,55 +86,27 @@ function renderConfiguration(
   config: SimulationConfig,
   usesJudge: boolean,
   usesSimulatedUser: boolean,
+  extension?: SimulationResults["extension"],
 ): string {
+  const agentLabel = extension
+    ? `${extension.name} (${extension.id})`
+    : config.extension || config.model;
+  const browserLabel = escapeHtml(
+    config.extension ? describeExtensionBrowser(config) : config.chromeChannel || "chrome-canary",
+  );
   return `
 <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">URL</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.url)}</code></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Simulations</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.simulationsFile)}</code></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Agent under test</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.model)}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">${config.extension ? "Agent extension" : "Agent"}</strong> <span class="mt-1 text-slate-800">${escapeHtml(agentLabel)}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Simulated user</strong> <span class="mt-1 text-slate-800">${usesSimulatedUser ? escapeHtml(config.userModel || config.model) : "Not used"}</span></li>
     <li class="flex flex-col"><strong class="text-slate-900 font-medium">Judge</strong> <span class="mt-1 text-slate-800">${usesJudge ? escapeHtml(config.judgeModel || ANALYZER_MODEL_DEFAULT) : "Not used"}</span></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.chromeChannel || "chrome-canary")}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">${config.extension ? "Browser" : "Chrome channel"}</strong> <span class="mt-1 text-slate-800">${browserLabel}</span></li>${
+      config.extension
+        ? `\n    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Confirmation policy</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.confirmPolicy || DEFAULT_CONFIRM_POLICY)}</span></li>`
+        : ""
+    }
 </ul>`;
-}
-
-/**
- * Under its own heading, and never among the agent's tool calls: crediting the
- * agent with work the harness did is the one misreading this report has to make
- * impossible (ADR D5).
- */
-function renderSetupCalls(setupCalls?: ToolCallOutcome[]): string {
-  if (!setupCalls?.length) return "";
-
-  return `
-    <div class="bg-white rounded-lg border border-violet-200 overflow-hidden">
-      <div class="p-3 bg-violet-50/60 border-b border-violet-200">
-        <h5 class="text-xs font-semibold text-violet-900 uppercase tracking-wider">World state before the conversation</h5>
-        <p class="text-xs text-violet-700 mt-1">Performed by the harness to set the scene. Not the agent's work.</p>
-      </div>
-      <ul class="divide-y divide-slate-100">
-        ${setupCalls
-          .map(
-            (call) => `
-          <li class="p-3 space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-semibold text-slate-400">#${call.index}</span>
-              <span class="font-mono text-xs font-semibold text-slate-800">${escapeHtml(call.functionName)}</span>
-              ${
-                call.outcome === "error"
-                  ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${OUTCOME_BADGES.error}">FAILED</span>`
-                  : ""
-              }
-            </div>
-            <pre class="whitespace-pre-wrap break-words text-xs text-slate-600 font-mono m-0">${escapeHtml(JSON.stringify(call.arguments, null, 2))}</pre>
-            <pre class="whitespace-pre-wrap break-words text-xs ${call.outcome === "error" ? "text-amber-800" : "text-slate-500"} font-mono m-0">${escapeHtml(
-              call.outcome === "error" ? call.error || "" : JSON.stringify(call.result ?? null),
-            )}</pre>
-          </li>`,
-          )
-          .join("")}
-      </ul>
-    </div>`;
 }
 
 function assertionExpected(
@@ -474,7 +447,7 @@ export function renderSimulationReport(
 
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-xl font-semibold mb-4 text-slate-800">Configuration</h2>
-            ${renderConfiguration(config, usesJudge, usesSimulatedUser)}
+            ${renderConfiguration(config, usesJudge, usesSimulatedUser, results.extension)}
         </section>
 
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

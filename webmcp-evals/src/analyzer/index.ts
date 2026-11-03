@@ -199,7 +199,7 @@ CRITICAL BEHAVIOR RULES:
 Format your response in Markdown using the following structure:
 # WebMCP Evals Analysis — Eval report ${reportTitle}
 **Analysis Model / Backend:** ${analyzerConfig.model} (via ${analyzerConfig.backend} backend)
-**Evals Execution Context:** [Describe Target App URL, and Evals execution Model/Backend parsed from the report JSON]
+**Evals Execution Context:** [Describe the Target App URL whose WebMCP tools were evaluated, and the Agent Extension (if config.extension is set) or Model/Backend used to drive them]
 
 ## 1. Summary
 Provide a natural-language paragraph summarizing the evaluation run outcomes.

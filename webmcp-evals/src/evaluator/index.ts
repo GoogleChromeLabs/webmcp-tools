@@ -4,8 +4,15 @@
  */
 
 import { executeInBrowserEvals } from "./browserEvaluator.js";
+import { executeExtensionBrowserEvals } from "./extensionBrowserEvaluator.js";
 import { executeLocalEvals } from "./localEvaluator.js";
 import { executeSmokeEvals } from "./smokeEvaluator.js";
 import { executeSimulations } from "./simulationEvaluator.js";
 
-export { executeInBrowserEvals, executeLocalEvals, executeSimulations, executeSmokeEvals };
+export {
+  executeExtensionBrowserEvals,
+  executeInBrowserEvals,
+  executeLocalEvals,
+  executeSimulations,
+  executeSmokeEvals,
+};

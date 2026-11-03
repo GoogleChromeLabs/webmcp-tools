@@ -10,7 +10,9 @@ import {
   Message,
   TestResult,
   TestResults,
+  ToolCallOutcome,
 } from "../types/evals.js";
+import { DEFAULT_CONFIRM_POLICY, describeExtensionBrowser } from "../extension/contract.js";
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
@@ -161,6 +163,8 @@ interface TestRun {
   messages: Message[];
   trajectory?: any[];
   browserConsoleErrors?: BrowserConsoleError[];
+  error?: string;
+  setupCalls?: ToolCallOutcome[];
 }
 
 interface TestCase {
@@ -211,6 +215,12 @@ function renderDetails(testResults: Array<TestResult>): string {
 
     if (result.browserConsoleErrors?.length) {
       run.browserConsoleErrors = result.browserConsoleErrors;
+    }
+    if (result.error) {
+      run.error = result.error;
+    }
+    if (result.setupCalls?.length) {
+      run.setupCalls = result.setupCalls;
     }
 
     run.steps.push({
@@ -358,6 +368,10 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
             </div>
           </details>
 
+          ${renderRunError(run.error)}
+
+          ${renderSetupCalls(run.setupCalls)}
+
           <div class="space-y-4">
             <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
             ${run.steps.map((step) => renderStepDetails(step, run.steps.length)).join("")}
@@ -370,6 +384,54 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
       </details>
     </div>
   `;
+}
+
+function renderRunError(error?: string): string {
+  if (!error) return "";
+  return `
+    <div class="bg-amber-50 rounded-lg border border-amber-200 p-3">
+      <h5 class="text-xs font-semibold text-amber-900 uppercase tracking-wider">Could not evaluate</h5>
+      <p class="mt-1 text-sm text-amber-800 whitespace-pre-wrap break-words">${escapeHtml(error)}</p>
+    </div>`;
+}
+
+/**
+ * Under its own heading, and never among the agent's tool calls: crediting the
+ * agent with work the harness did is the one misreading this report has to make
+ * impossible (ADR D5).
+ */
+export function renderSetupCalls(setupCalls?: ToolCallOutcome[]): string {
+  if (!setupCalls?.length) return "";
+
+  return `
+    <div class="bg-white rounded-lg border border-violet-200 overflow-hidden">
+      <div class="p-3 bg-violet-50/60 border-b border-violet-200">
+        <h5 class="text-xs font-semibold text-violet-900 uppercase tracking-wider">World state before the conversation</h5>
+        <p class="text-xs text-violet-700 mt-1">Performed by the harness to set the scene. Not the agent's work.</p>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        ${setupCalls
+          .map(
+            (call) => `
+          <li class="p-3 space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-semibold text-slate-400">#${call.index}</span>
+              <span class="font-mono text-xs font-semibold text-slate-800">${escapeHtml(call.functionName)}</span>
+              ${
+                call.outcome === "error"
+                  ? `<span class="px-2 py-0.5 rounded text-[10px] font-semibold border bg-amber-100 text-amber-800 border-amber-200">FAILED</span>`
+                  : ""
+              }
+            </div>
+            <pre class="whitespace-pre-wrap break-words text-xs text-slate-600 font-mono m-0">${escapeHtml(JSON.stringify(call.arguments, null, 2))}</pre>
+            <pre class="whitespace-pre-wrap break-words text-xs ${call.outcome === "error" ? "text-amber-800" : "text-slate-500"} font-mono m-0">${escapeHtml(
+              call.outcome === "error" ? call.error || "" : JSON.stringify(call.result ?? null),
+            )}</pre>
+          </li>`,
+          )
+          .join("")}
+      </ul>
+    </div>`;
 }
 
 export function renderBrowserConsoleErrors(errors?: BrowserConsoleError[]): string {
@@ -706,7 +768,7 @@ export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResult
         
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-xl font-semibold mb-4 text-slate-800">Configuration</h2>
-            ${renderWebmcpConfiguration(config)}
+            ${renderWebmcpConfiguration(config, testResults.extension)}
         </section>
 
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -723,13 +785,29 @@ export function renderWebmcpReport(config: WebmcpConfig, testResults: TestResult
 </html>`;
 }
 
-function renderWebmcpConfiguration(config: WebmcpConfig): string {
+function renderWebmcpConfiguration(
+  config: WebmcpConfig,
+  extension?: TestResults["extension"],
+): string {
+  if (config.extension) {
+    const connectionLabel = describeExtensionBrowser(config);
+    const extensionLabel = extension ? `${extension.name} (${extension.id})` : config.extension;
+    return `
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">URL</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.url)}</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.evalsFile)}</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Agent extension</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(extensionLabel)}</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Browser</strong> <span class="mt-1 text-slate-800">${escapeHtml(connectionLabel)}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Confirmation policy</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.confirmPolicy || DEFAULT_CONFIRM_POLICY)}</span></li>
+</ul>`;
+  }
+
   return `
 <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-600">
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">URL</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.url}</code></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${config.evalsFile}</code></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${config.backend}</span></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${config.model}</span></li>
-    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${config.chromeChannel || "chrome-canary"}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">URL</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.url)}</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Evals</strong> <code class="mt-1 px-2 py-1 bg-slate-100 rounded text-xs text-slate-800 font-mono break-all">${escapeHtml(config.evalsFile)}</code></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Backend</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.backend)}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Model</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.model)}</span></li>
+    <li class="flex flex-col"><strong class="text-slate-900 font-medium">Chrome channel</strong> <span class="mt-1 text-slate-800">${escapeHtml(config.chromeChannel || "chrome-canary")}</span></li>
 </ul>`;
 }

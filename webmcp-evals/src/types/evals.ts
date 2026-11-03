@@ -77,10 +77,32 @@ export type BrowserConsoleError = {
   toolCalls: Array<Pick<ToolCall, "functionName" | "args">>;
 };
 
+/**
+ * One tool call the harness ran on the page itself, such as a simulation's
+ * `setup` or a replayed `functioncall` step. Not the agent's work.
+ */
+export type ToolCallOutcome = {
+  /** 1-based position in the sequence. */
+  index: number;
+  functionName: string;
+  arguments: Record<string, unknown>;
+  outcome: "pass" | "error";
+  result?: unknown;
+  /**
+   * The bare reason, with no framing: the caller knows which case this call
+   * belongs to and phrases the error for its own report.
+   */
+  error?: string;
+};
+
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
   outcome: "pass" | "fail" | "error";
+  /** Why the case could not be evaluated, when `outcome` is `error`. */
+  error?: string;
+  /** Earlier `functioncall` steps replayed on the live page (`--extension` only). */
+  setupCalls?: ToolCallOutcome[];
   trajectory?: TrajectoryStep[];
   browserConsoleErrors?: BrowserConsoleError[];
   runIndex?: number;
@@ -93,4 +115,6 @@ export type TestResults = {
   passCount: number;
   errorCount: number;
   failCount: number;
+  /** The extension the evals ran against (`--extension` only). */
+  extension?: { id: string; name: string };
 };
