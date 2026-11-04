@@ -28,7 +28,7 @@ Enable it in `tsconfig.json`:
 ```
 
 - **Gotcha**: a `types` array makes TypeScript include _only_ the listed packages. If the project has no `types` array yet, adding one drops `@types/node` and other automatically included types; add `webmcp-types` to an existing array instead, or use `/// <reference types="webmcp-types" />` in one source file.
-- **Replace hand-written declarations**: If the project already declares its own WebMCP types (e.g. `declare global { interface Document { modelContext?: ... } }` with custom `ModelContext` or tool interfaces), recommend deleting them and using `webmcp-types`. Hand-written types drift from the spec and hide parts of the API: a custom `execute(args)` signature without the second argument means the execution `signal` is never available, and missing `annotations` fields mean tools ship without them. If an installed `webmcp-types` release (such as `0.1.10`) has not yet added `outputSchema?: object` on `WebMCP.ModelContextTool` and `WebMCP.RegisteredTool`, augment the `WebMCP` namespace via declaration merging (`declare global { namespace WebMCP { interface ModelContextTool { outputSchema?: object; } interface RegisteredTool { outputSchema?: object; } } }`) rather than replacing `webmcp-types`.
+- **Replace hand-written declarations**: If the project already declares its own WebMCP types (e.g. `declare global { interface Document { modelContext?: ... } }` with custom `ModelContext` or tool interfaces), recommend deleting them and using `webmcp-types`. Hand-written types drift from the spec and hide parts of the API: a custom `execute(args)` signature without the second argument means the execution `signal` is never available, and missing `annotations` fields mean tools ship without them. If an installed `webmcp-types` release (such as `0.1.10`) has not yet added `outputSchema`, augment the `WebMCP` namespace via declaration merging (`declare global { namespace WebMCP { interface ModelContextTool { outputSchema?: object; } interface RegisteredTool { outputSchema?: object | null; } } }`) rather than replacing `webmcp-types` (note: `ModelContextTool.outputSchema` in `registerTool()` is non-nullable `object`, whereas `tool.outputSchema` on the `Tool` / `RegisteredTool` returned by `getTools()` evaluates to `null` when omitted).
 
 ```javascript
 // 1. Feature detection
@@ -186,7 +186,8 @@ WebMCP requires an **origin-isolated document**. Pages disabling isolation (e.g.
 When building page-level agents or chat interfaces that consume WebMCP tools directly in the browser:
 
 ```javascript
-// 1. Discover available tools (alphabetical list of RegisteredTool objects)
+// 1. Discover available tools (alphabetical list of Tool objects;
+//    tool.outputSchema is a deep copy of the registered JSON Schema object, or null if omitted)
 const tools = await document.modelContext.getTools();
 for (const tool of tools) {
   console.log("Tool:", tool.name, "Input:", tool.inputSchema, "Output:", tool.outputSchema);
@@ -217,8 +218,6 @@ document.modelContext.addEventListener("toolchange", async () => {
   console.log("Tool catalog changed. Current count:", updatedTools.length);
 });
 ```
-
-- **Bridging `tool.outputSchema` to Model APIs**: Each `RegisteredTool` returned by `document.modelContext.getTools()` exposes `tool.outputSchema` (a deep copy of the JSON Schema object passed at registration, or `undefined` if omitted). When an in-page consumer harness maps WebMCP tools to a model API whose tool declaration format lacks a native output schema field, serialize or append `tool.outputSchema` into the tool declaration sent to the model so the LLM can still inspect returned property names and chaining IDs.
 
 ---
 

@@ -111,14 +111,14 @@ Never make the model **compute** a value; letting it **look up** a standard valu
 
 ## 7. Output Schemas (`outputSchema`)
 
-`ModelContextTool` (`document.modelContext.registerTool()`) and `RegisteredTool` (`document.modelContext.getTools()`) support an optional `outputSchema` member—a JSON Schema `object` describing the expected structure of a tool's return value, aligned with MCP's `outputSchema`.
+`ModelContextTool` (`document.modelContext.registerTool()`) and `Tool` / `RegisteredTool` (`document.modelContext.getTools()`) support an optional `outputSchema`—a JSON Schema `object` describing the expected structure of a tool's return value, aligned with MCP's `outputSchema`.
 
 ### Separate Intent (`description`) from Return Structure (`outputSchema`)
 
 `outputSchema` resolves the tension between polymorphic tool consolidation (§6) and short ≤ 500-character "What + When" descriptions (§1, §3):
 
-- When a consolidated read, search, or detail tool returns 10+ properties or nested objects, those fields cannot fit inside a 500-character `description`. Without `outputSchema`, the agent cannot tell which tool returns a specific attribute (or which tool produces the identifier needed by a downstream tool in a multi-step chain), causing unnecessary clarifying questions or trial-and-error calls.
-- Keep `description` focused strictly on **intent** (what the tool does and when to select it), and put **return structure** (exact property names, types, enums, and nested shapes) in `outputSchema`.
+- Keep `description` focused on **intent and high-level capability**—what the tool does, what kind of information it returns at a high level, and when to select it—without listing raw parameter or property names, types, or JSON schemas.
+- When a consolidated read, search, or detail tool returns 10+ properties or nested objects, put the **exact return structure** (property names, types, enums, and chaining identifiers) in `outputSchema` rather than overcrowding the 500-character `description`. Never serialize or append `outputSchema` into `description`.
 
 ### Use `outputSchema` Selectively (Earn the Token Budget)
 
@@ -132,13 +132,13 @@ Adding full `outputSchema` definitions across every tool in a large catalog can 
 
 ### Keep `execute()` Aligned with `outputSchema` (No Schema Drift)
 
-- **`outputSchema` must be a JSON Schema `object`**: Under the WebMCP specification, `outputSchema` is typed as WebIDL `object` and serialized with `JSON.stringify` during registration. Passing a non-object value such as `outputSchema: ""` causes `document.modelContext.registerTool()` to throw a `TypeError` during dictionary conversion (and unserializable objects reject with `TypeError`). When a tool does not need an output schema, omit the `outputSchema` property entirely (do not pass `""`, which throws `TypeError`, and do not pass an empty `{}` object, which adds useless schema noise without throwing).
+- **`outputSchema` must be a JSON Schema `object`**: Under the WebMCP specification, `outputSchema` in `ModelContextTool` is typed as non-nullable WebIDL `object` and serialized with `JSON.stringify` during registration. Passing a non-object value such as `outputSchema: ""` or `outputSchema: null` causes `document.modelContext.registerTool()` to throw a `TypeError` during dictionary conversion (and unserializable objects reject with `TypeError`). When a tool does not need an output schema, omit the `outputSchema` property entirely (do not pass `""` or `null`, which throw `TypeError`, and do not pass an empty `{}` object, which adds useless schema noise without throwing).
 - **Strict runtime conformance**: Tool output is expected to conform to `outputSchema`, and consuming agents may reject outputs that fail validation. When `outputSchema` declares a structured object, `execute()` must return matching structured data—never prose summary strings (`"Found 5 items..."`), bare arrays when `outputSchema` declares an object wrapper like `{ result: [...] }`, or formatted text produced by a React `formatOutput` callback. Also note that `useWebMCP` in `use-webmcp-tool` v0.3.0 does not yet accept or forward `outputSchema` to `document.modelContext.registerTool()` (see [react-patterns.md § Notes & Gotchas](./react-patterns.md#6-use-webmcp-tool-v030-notes--gotchas)).
 
-### Consumer Discovery & Model API Bridging
+### Diagnosing Selection Gaps in Evaluations & Runtime Inspection
 
-- Calling `await document.modelContext.getTools()` exposes `tool.outputSchema` (a deep copy of the registered JSON Schema object, or `undefined` when omitted) on each `RegisteredTool` (see [vanilla-patterns.md § Consumer & Discovery APIs](./vanilla-patterns.md#5-consumer--discovery-apis)).
-- When building an in-page consumer harness against a model API whose tool declaration format lacks a native output schema field, serialize or append `tool.outputSchema` into the tool declaration sent to the model so the model can still reason over returned fields.
+- **Use evaluations to refine `description` vs. `outputSchema`**: In Stage 5 evaluations (`webmcp-evals`), if an agent misses or misselects a tool because it cannot tell _what kind of information_ the tool returns, clarify that high-level summary in `description` (see [evals-format.md § Troubleshooting](./evals-format.md#5-failure-mode-troubleshooting-matrix)); if the agent needs exact returned field names or chaining IDs to plan multi-step calls, declare `outputSchema`.
+- **Runtime inspection (`getTools()`)**: Calling `await document.modelContext.getTools()` exposes `tool.outputSchema` on each returned `Tool` (a deep copy of the registered JSON Schema object, or `null` if omitted; see [vanilla-patterns.md § Consumer & Discovery APIs](./vanilla-patterns.md#5-consumer--discovery-apis)).
 
 ---
 
