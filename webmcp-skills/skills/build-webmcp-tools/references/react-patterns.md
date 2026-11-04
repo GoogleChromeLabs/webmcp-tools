@@ -194,7 +194,7 @@ export function CheckoutWizard({ currentStep, orderId }) {
 
 ### Pattern C: Output Shaping with `formatOutput`
 
-Enforce character budgets (≤ 1.5K characters) and structure output for LLM consumption:
+Enforce character budgets (≤ 1.5K characters) and structure output for LLM consumption (use prose-string formatting only on tools that do **not** declare a structured object `outputSchema`; see §6):
 
 ```tsx
 useWebMCP({
@@ -361,6 +361,10 @@ export function ProjectBoardView() {
    `use-webmcp-tool` v0.3.0+ includes `webmcp-types@^0.1.7` as a dependency, whose `WebMCP.ToolAnnotations` includes `consequentialHint?: boolean`—do **not** cast `annotations` with `as any`. If `consequentialHint` fails to typecheck, the project likely has an older `webmcp-types` (`< 0.1.7`), `use-webmcp-tool` (`< 0.3.0`), or a custom global `WebMCP` declaration shadowing it; upgrade dependencies or remove the custom declaration rather than casting.
 3. **`title` and `exposedTo`**:
    The hook currently does not expose `title` or cross-origin `exposedTo` options. For tools requiring cross-origin exposure, register them directly with `document.modelContext.registerTool` inside a custom `useEffect`.
+4. **`outputSchema` Support & `formatOutput` Conformance**:
+   - `use-webmcp-tool` v0.3.0 (`WebMCPOptions`) does **not** yet accept or forward `outputSchema` to `document.modelContext.registerTool` (and `webmcp-types` v0.1.10 has not yet added `outputSchema?: object` on `WebMCP.ModelContextTool` or `WebMCP.RegisteredTool`). Passing an extra `outputSchema` field to `useWebMCP(...)` is silently ignored by the hook and will never reach `document.modelContext.getTools()`.
+   - You can declare `outputSchema` in Stage 5 `schema.json` for local evaluations (`webmcp-evals local`). If a consolidated read or chaining tool in React requires runtime `outputSchema` exposure via `document.modelContext.registerTool` before `use-webmcp-tool` adds support, register that tool in a custom `useEffect` with an `AbortController` (catching errors and resolving normalized `{ content, isError: true }` payloads) and augment `WebMCP.ModelContextTool` / `WebMCP.RegisteredTool` via TypeScript declaration merging until `webmcp-types` updates.
+   - Never pair a structured object `outputSchema` with a `formatOutput` callback that converts objects into prose strings (e.g. `` `Found ${rows.length} flights` ``), or return a bare array from `execute()` when `outputSchema` declares an object wrapper like `{ result: [...] }`: agents validate outputs against `outputSchema` and may reject drifted or stringified prose payloads (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)).
 
 ---
 

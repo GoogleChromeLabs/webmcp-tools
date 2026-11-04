@@ -3,7 +3,7 @@ Copyright 2026 Google LLC
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# WebMCP Tool Design: Naming, Budgets, Descriptions & Consolidation
+# WebMCP Tool Design: Naming, Budgets, Descriptions, Consolidation & Output Schemas
 
 Rules for shaping individual tools and the overall toolset. Apply them when writing `schema.json` (Stage 5), implementing tools (Stage 6), or auditing existing tools.
 
@@ -44,12 +44,13 @@ Rules for shaping individual tools and the overall toolset. Apply them when writ
 - **When**: Explicit triggering conditions explaining when the model should select this tool over alternatives (e.g., _"Use when searching by meaning or topic rather than exact keywords"_).
 - Use positive phrasing.
 
-### Never Repeat `inputSchema` in Descriptions
+### Never Repeat `inputSchema` or `outputSchema` in Descriptions
 
-- Parameter names, data types, enum options, and structural constraints are already declared in `inputSchema.properties` and sent to the LLM.
-- Repeating them in the description wastes prompt tokens, exhausts the 500-char budget, and causes tool selection ambiguity instead of clarifying triggering intent.
-- ❌ _Don't_: `"Searches items with query string, category_id string, brand_id string, tags array, and price_range object."`
-- ✅ _Do_: `"Searches the product catalog by keyword, category, or brand attributes. Use when locating products, comparing options, or filtering inventory."`
+- Parameter names, data types, enum options, structural constraints, and returned object properties/types are already declared in `inputSchema` and `outputSchema` and sent to the LLM.
+- Repeating either input parameters or returned field lists in `description` wastes prompt tokens, exhausts the 500-char budget (especially on consolidated tools returning 10+ fields), and causes tool selection ambiguity instead of clarifying triggering intent.
+- ❌ _Don't (repeating `inputSchema`)_: `"Searches items with query string, category_id string, brand_id string, tags array, and price_range object."`
+- ❌ _Don't (repeating `outputSchema`)_: `"Gets a workspace item and returns id, type, title, status, assignee_id, sprint_id, priority, labels, estimate_points, parent_epic_id, and blocked_by_ids."`
+- ✅ _Do_: `"Retrieves full details, sprint assignment, and dependency links for a workspace item. Use when inspecting a specific issue, bug, or epic or checking its blockers."` (Declare the exact returned properties in `outputSchema`; see §7.)
 
 ### Strictly Omit Developer Implementation Jargon
 
@@ -65,7 +66,7 @@ Descriptions must describe **what** capability the tool provides to the agent an
 For every tool and parameter description:
 
 1. It states _what_ the tool does and _when_ to select it over alternatives.
-2. It omits parameter names, data types, and constraints already declared in `inputSchema.properties`.
+2. It omits parameter names, data types, constraints, and returned property lists already declared in `inputSchema` or `outputSchema`.
 3. It contains no internal implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC, "mutation handler", "controller").
 4. It fits the budgets in §1.
 
@@ -104,9 +105,43 @@ Never make the model **compute** a value; letting it **look up** a standard valu
   - **Batch Mutation Operations**: Expose `move_items` (or `delete_items`, `tag_items`) accepting an array of items `items: [{ type: string, id: string }]` and target destination, enabling the agent to relocate multiple entities across categories in a single turn without sequential roundtrips.
   - **Shared Type Values**: Use one set of `type` values across all consolidated tools (e.g. singular `issue`, `bug`), so the items `list_items` returns can be passed straight to `get_item` and `move_items`. Map them to API paths inside the handler.
   - **Concurrent Execution**: Query or mutate across entity types concurrently using `Promise.all` inside the tool handler, keeping turn latency low and returning consolidated LLM-readable payloads.
+  - **Pair Consolidated Reads with `outputSchema` (§7)**: When `list_items` or `get_item` returns multi-field objects or chaining identifiers (`id`, `type`, `sprint_id`) consumed by `move_items`, declare `outputSchema` (§7) so the agent sees the exact return fields without overcrowding the 500-character `description`.
 
 ---
 
-## 7. UI Synchronization
+## 7. Output Schemas (`outputSchema`)
+
+`ModelContextTool` (`document.modelContext.registerTool()`) and `RegisteredTool` (`document.modelContext.getTools()`) support an optional `outputSchema` member—a JSON Schema `object` describing the expected structure of a tool's return value, aligned with MCP's `outputSchema`.
+
+### Separate Intent (`description`) from Return Structure (`outputSchema`)
+
+`outputSchema` resolves the tension between polymorphic tool consolidation (§6) and short ≤ 500-character "What + When" descriptions (§1, §3):
+
+- When a consolidated read, search, or detail tool returns 10+ properties or nested objects, those fields cannot fit inside a 500-character `description`. Without `outputSchema`, the agent cannot tell which tool returns a specific attribute (or which tool produces the identifier needed by a downstream tool in a multi-step chain), causing unnecessary clarifying questions or trial-and-error calls.
+- Keep `description` focused strictly on **intent** (what the tool does and when to select it), and put **return structure** (exact property names, types, enums, and nested shapes) in `outputSchema`.
+
+### Use `outputSchema` Selectively (Earn the Token Budget)
+
+Adding full `outputSchema` definitions across every tool in a large catalog can roughly triple the total tool-definition prompt token footprint. Declare `outputSchema` selectively where structural visibility improves tool selection or chaining:
+
+- **Include `outputSchema` on**:
+  - **Consolidated read, search, context, and detail tools** returning multi-field objects or paginated collections (e.g., `list_items`, `get_item`, `search_flights`, `get_user_preferences`) where callers look up specific attributes not named in the short description.
+  - **Chaining producer tools** whose outputs return IDs, entity `type` discriminators, handles, status enums, or codes required as inputs to downstream tools.
+- **Omit `outputSchema` on**:
+  - **Narrow mutating, UI navigation, filter, or confirmation hand-off tools** (e.g., `set_theme`, `reset_filters`, `switch_tab`, `initiate_booking`) whose return payload is trivial or self-explanatory and is not consumed by downstream tool calls.
+
+### Keep `execute()` Aligned with `outputSchema` (No Schema Drift)
+
+- **`outputSchema` must be a JSON Schema `object`**: Under the WebMCP specification, `outputSchema` is typed as WebIDL `object` and serialized with `JSON.stringify` during registration. Passing a non-object value such as `outputSchema: ""` causes `document.modelContext.registerTool()` to throw a `TypeError` during dictionary conversion (and unserializable objects reject with `TypeError`). When a tool does not need an output schema, omit the `outputSchema` property entirely (do not pass `""`, which throws `TypeError`, and do not pass an empty `{}` object, which adds useless schema noise without throwing).
+- **Strict runtime conformance**: Tool output is expected to conform to `outputSchema`, and consuming agents may reject outputs that fail validation. When `outputSchema` declares a structured object, `execute()` must return matching structured data—never prose summary strings (`"Found 5 items..."`), bare arrays when `outputSchema` declares an object wrapper like `{ result: [...] }`, or formatted text produced by a React `formatOutput` callback. Also note that `useWebMCP` in `use-webmcp-tool` v0.3.0 does not yet accept or forward `outputSchema` to `document.modelContext.registerTool()` (see [react-patterns.md § Notes & Gotchas](./react-patterns.md#6-use-webmcp-tool-v030-notes--gotchas)).
+
+### Consumer Discovery & Model API Bridging
+
+- Calling `await document.modelContext.getTools()` exposes `tool.outputSchema` (a deep copy of the registered JSON Schema object, or `undefined` when omitted) on each `RegisteredTool` (see [vanilla-patterns.md § Consumer & Discovery APIs](./vanilla-patterns.md#5-consumer--discovery-apis)).
+- When building an in-page consumer harness against a model API whose tool declaration format lacks a native output schema field, serialize or append `tool.outputSchema` into the tool declaration sent to the model so the model can still reason over returned fields.
+
+---
+
+## 8. UI Synchronization
 
 - In asynchronous tools, always await DOM/state updates _before_ returning the result to the agent so the agent inspects a consistent page state.

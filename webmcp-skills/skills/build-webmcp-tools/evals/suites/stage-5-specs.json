@@ -91,6 +91,17 @@
         "The agent explains using mockOutput in expectedCall for multi-step trajectories so subsequent steps receive mock state",
         "The agent specifies lowercase functioncall and functionresponse message types with nested response payload"
       ]
+    },
+    {
+      "id": "stage-5-output-schema-and-mock-alignment",
+      "prompt": "In Stage 5, write `schema.json` and a chained `evals.json` test case for a flight search flow where `search_flights` returns paginated flights (including `flight_id`, `airline_code`, `price`, `total_count`, `page`, `page_size`) and `initiate_booking(flight_id)` opens the checkout confirmation view. Explain how `outputSchema` should be applied across these two tools and what rule governs `mockOutput` in `evals.json`.",
+      "expected_output": "The agent reads references/evals-format.md and declares a JSON Schema object `outputSchema` on `search_flights` in `schema.json` describing the returned flight items (`flight_id`, etc.) and pagination fields consumed by downstream steps, while omitting `outputSchema` on `initiate_booking` because it is a narrow UI hand-off tool whose output is not consumed by downstream tools. For `evals.json`, the agent states that `mockOutput` on `search_flights` must conform to `search_flights`'s `outputSchema` so mock payloads do not drift from the declared return schema.",
+      "assertions": [
+        "The agent read references/evals-format.md",
+        "The output includes '\"outputSchema\"'",
+        "The agent declares outputSchema on search_flights (covering flight_id and pagination fields) while omitting outputSchema on initiate_booking",
+        "The agent states that mockOutput in evals.json must conform to or match the declared outputSchema to prevent mock-vs-schema drift"
+      ]
     }
   ]
 }

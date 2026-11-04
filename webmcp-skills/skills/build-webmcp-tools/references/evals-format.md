@@ -12,7 +12,7 @@ This guide covers the Stage 5 deliverables: the consolidated `schema.json`, the 
 ## 1. Stage 5 Procedure
 
 1. **Consolidate only approved tools**: Include only tools discovered in goals that were role-played and approved in Stages 1–4 (see [conversational-design.md](./conversational-design.md#tools-and-evals-are-strictly-goal-driven)). Merge overlapping tools and apply polymorphic consolidation per [tool-design.md](./tool-design.md).
-2. **Audit every tool**: budgets, "What + When" descriptions without schema repetition or jargon, and annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`).
+2. **Audit every tool**: budgets, "What + When" descriptions without `inputSchema`/`outputSchema` repetition or jargon, selective `outputSchema` usage on consolidated read/chaining tools, and annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`).
 3. **Write `schema.json`** (§2).
 4. **Write `evals.json`** (§3): compile baseline and variation trajectories using exact match, `$pattern` regex constraints, `mockOutput` for chained steps, nested `ordered`/`unordered` blocks, and mid-chain failure tests.
 5. **Offer the local evaluation gate** (§4) before moving to Stage 6.
@@ -21,10 +21,12 @@ This guide covers the Stage 5 deliverables: the consolidated `schema.json`, the 
 
 ## 2. Tool Schema Specification (`schema.json`)
 
-The consolidated `schema.json` file contains a root object with a `tools` array. Each tool definition includes its `name` (≤ 30 chars), `description` (≤ 500 chars), standard JSON Schema `inputSchema`, optional `outputSchema`, and `annotations`:
+The consolidated `schema.json` file contains a root object with a `tools` array. Each tool definition includes its `name` (≤ 30 chars), `description` (≤ 500 chars), standard JSON Schema `inputSchema`, optional `outputSchema`, and `annotations`.
+
+Declare `outputSchema` (a JSON Schema `object`) selectively on consolidated read/search/detail tools and chaining producer tools—such as `search_flights` below, which exposes the returned `flight_id` and pagination fields consumed by `initiate_booking`—while omitting `outputSchema` on narrow UI hand-off or mutating tools like `initiate_booking` so tool definitions earn their prompt token budget (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)):
 
 > [!IMPORTANT]
-> Descriptions follow the "What + When" formula and contain no implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC). See [tool-design.md](./tool-design.md#3-descriptions-the-what--when-formula).
+> Descriptions follow the "What + When" formula, omit parameter and return property lists already declared in `inputSchema` or `outputSchema`, and contain no implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC). See [tool-design.md](./tool-design.md#3-descriptions-the-what--when-formula).
 
 ```json
 {
@@ -54,6 +56,31 @@ The consolidated `schema.json` file contains a root object with a `tools` array.
           }
         },
         "required": ["origin", "destination", "departure_date"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "total_count": { "type": "integer", "description": "Total matching flights" },
+          "page": { "type": "integer", "description": "Current 1-based page number" },
+          "page_size": { "type": "integer", "description": "Number of flights per page" },
+          "flights": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "flight_id": {
+                  "type": "string",
+                  "description": "Flight identifier passed to initiate_booking"
+                },
+                "airline_code": { "type": "string" },
+                "departure_time": { "type": "string" },
+                "price": { "type": "number" }
+              },
+              "required": ["flight_id", "airline_code", "departure_time", "price"]
+            }
+          }
+        },
+        "required": ["total_count", "page", "page_size", "flights"]
       },
       "annotations": {
         "readOnlyHint": true
@@ -211,6 +238,8 @@ When a downstream tool call depends on entity IDs or state returned by a precedi
 ```
 
 `MockResolver.js` feeds this `mockOutput` back to the model as the tool response for subsequent steps, allowing multi-step reasoning to proceed deterministically.
+
+- **Keep `mockOutput` aligned with `outputSchema`**: Whenever a tool declares `outputSchema` in `schema.json`, every `mockOutput` payload for that tool in `evals.json` must conform to its `outputSchema` (matching wrapper keys, required properties, and value types). Allowing `mockOutput` to drift from `outputSchema` hides schema mismatches during static evals that later break against real `execute()` handlers or output-validating agents.
 
 ### Mid-Chain Failure Testing & Graceful Recovery
 
