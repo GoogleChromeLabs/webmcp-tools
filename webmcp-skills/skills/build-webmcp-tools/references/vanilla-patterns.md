@@ -52,9 +52,9 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
         },
         required: ["query"],
       },
-      // Declare outputSchema (JSON Schema object) selectively on consolidated read/search and
-      // chaining producer tools; omit on narrow mutating/navigation tools (e.g. add_to_cart in §6).
-      // Non-object values such as outputSchema: "" throw a TypeError during registerTool().
+      // Declare outputSchema (any valid JSON Schema, e.g. type: "object" or type: "array") selectively on
+      // consolidated read/search and chaining tools; omit on narrow mutating/navigation tools (add_to_cart in §6).
+      // Passing a non-object JS value such as outputSchema: "" or null throws a TypeError during registerTool().
       outputSchema: {
         type: "object",
         properties: {

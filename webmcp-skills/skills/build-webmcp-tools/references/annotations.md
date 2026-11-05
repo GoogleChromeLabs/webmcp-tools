@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # WebMCP Tool Annotations
 
-In WebMCP and the underlying Model Context Protocol specification, tool annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`) are optional boolean hints whose **default value is `false`**:
+In the W3C WebMCP specification (distinct from backend MCP, whose hints such as `destructiveHint`, `idempotentHint`, and `openWorldHint` do **not** exist in WebMCP), tool annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`) are optional boolean hints whose **default value is `false`**:
 
 - **Omission of `readOnlyHint`** → tool may mutate state (default: mutating). Pure query tools must opt in by setting `readOnlyHint: true`.
 - **Omission of `consequentialHint`** → tool does not commit irreversible/consequential actions requiring explicit confirmation (default: safe / non-consequential).

@@ -66,7 +66,7 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
 
 ## 4. Result Normalization & Error Handling
 
-`useWebMCP` automatically normalizes return values and errors into the WebMCP protocol structure:
+`useWebMCP` automatically normalizes return values and errors into `use-webmcp-tool`'s `{ content }` result wrapper (note: this `{ content, isError }` shape is a `use-webmcp-tool` library convention—native `document.modelContext.registerTool()` has no `{ content }` or `{ structuredContent }` protocol envelope and resolves plain JS values directly):
 
 | What `execute` Returns / Throws      | What the Agent Receives                                             |
 | :----------------------------------- | :------------------------------------------------------------------ |
@@ -363,8 +363,8 @@ export function ProjectBoardView() {
    The hook currently does not expose `title` or cross-origin `exposedTo` options. For tools requiring cross-origin exposure, register them directly with `document.modelContext.registerTool` inside a custom `useEffect`.
 4. **`outputSchema` Support & `formatOutput` Conformance**:
    - `use-webmcp-tool` v0.3.0 (`WebMCPOptions`) does **not** yet accept or forward `outputSchema` to `document.modelContext.registerTool` (and `webmcp-types` v0.1.10 has not yet added `outputSchema` on `WebMCP.ModelContextTool` or `WebMCP.RegisteredTool`). Passing an extra `outputSchema` field to `useWebMCP(...)` is silently ignored by the hook and will never reach `document.modelContext.getTools()`.
-   - You can declare `outputSchema` in Stage 5 `schema.json` for local evaluations (`webmcp-evals local`). If a consolidated read or chaining tool in React requires runtime `outputSchema` exposure via `document.modelContext.registerTool` before `use-webmcp-tool` adds support, register that tool in a custom `useEffect` with an `AbortController` (catching errors and resolving normalized `{ content, isError: true }` payloads) and augment `WebMCP.ModelContextTool` (`outputSchema?: object`) and `WebMCP.RegisteredTool` (`outputSchema?: object | null`) via TypeScript declaration merging until `webmcp-types` updates.
-   - Never pair a structured object `outputSchema` with a `formatOutput` callback that converts objects into prose strings (e.g. `` `Found ${rows.length} flights` ``), or return a bare array from `execute()` when `outputSchema` declares an object wrapper like `{ result: [...] }`: agents validate outputs against `outputSchema` and may reject drifted or stringified prose payloads (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)).
+   - You can declare `outputSchema` in Stage 5 `schema.json` for local evaluations (`webmcp-evals local`). If a consolidated read or chaining tool in React requires runtime `outputSchema` exposure via `document.modelContext.registerTool` before `use-webmcp-tool` adds support, register that tool in a custom `useEffect` with an `AbortController`—resolving values that match `outputSchema` directly (not wrapped in `{ content }`), catching failures to resolve structured `{ error, code, retryable }` guides per [error-handling.md](./error-handling.md), and augmenting `WebMCP.ModelContextTool` (`outputSchema?: object`) and `WebMCP.RegisteredTool` (`outputSchema?: object | null`) via TypeScript declaration merging until `webmcp-types` updates.
+   - Never pair a structured `outputSchema` (e.g. `type: "object"` or `type: "array"`) with a `formatOutput` callback that converts structured data into prose strings (e.g. `` `Found ${rows.length} flights` ``), or return a bare array from `execute()` when `outputSchema` declares an object wrapper like `{ result: [...] }` (or vice versa): agents validate outputs against `outputSchema` and may reject drifted or stringified prose payloads (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)).
 
 ---
 

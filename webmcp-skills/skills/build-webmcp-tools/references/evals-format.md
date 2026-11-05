@@ -23,7 +23,7 @@ This guide covers the Stage 5 deliverables: the consolidated `schema.json`, the 
 
 The consolidated `schema.json` file contains a root object with a `tools` array. Each tool definition includes its `name` (≤ 30 chars), `description` (≤ 500 chars), standard JSON Schema `inputSchema`, optional `outputSchema`, and `annotations`.
 
-Declare `outputSchema` (a JSON Schema `object`) selectively on consolidated read/search/detail tools and chaining producer tools—such as `search_flights` below, which exposes the returned `flight_id` and pagination fields consumed by `initiate_booking`—while omitting `outputSchema` on narrow UI hand-off or mutating tools like `initiate_booking` so tool definitions earn their prompt token budget (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)):
+Declare `outputSchema` (a JSON Schema definition—any root `type`, such as `"object"` or `"array"`) selectively on consolidated read/search/detail tools and chaining producer tools—such as `search_flights` below, which exposes the returned `flight_id` and pagination fields consumed by `initiate_booking`—while omitting `outputSchema` on narrow UI hand-off or mutating tools like `initiate_booking` so tool definitions earn their prompt token budget (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)):
 
 > [!IMPORTANT]
 > Descriptions follow the "What + When" formula, omit parameter and return property lists already declared in `inputSchema` or `outputSchema`, and contain no implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC). See [tool-design.md](./tool-design.md#3-descriptions-the-what--when-formula).

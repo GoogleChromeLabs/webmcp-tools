@@ -111,7 +111,13 @@ Never make the model **compute** a value; letting it **look up** a standard valu
 
 ## 7. Output Schemas (`outputSchema`)
 
-`ModelContextTool` (`document.modelContext.registerTool()`) and `Tool` / `RegisteredTool` (`document.modelContext.getTools()`) support an optional `outputSchema`—a JSON Schema `object` describing the expected structure of a tool's return value, aligned with MCP's `outputSchema`.
+`ModelContextTool` (`document.modelContext.registerTool()`) and `Tool` / `RegisteredTool` (`document.modelContext.getTools()`) support an optional `outputSchema`—a JSON Schema definition describing the expected structure of the plain JavaScript value resolved by `execute()`.
+
+> [!IMPORTANT]
+> **WebMCP `outputSchema` vs. MCP `outputSchema` (Do Not Conflate)**: WebMCP (`document.modelContext`) is a W3C browser API, **not** Model Context Protocol (MCP):
+>
+> - **Any JSON Schema root `type` is valid in WebMCP**: Unlike MCP (which restricts root `outputSchema` to `"type": "object"`), WebMCP allows **any valid JSON Schema** matching `execute()`'s return value—including `{ type: "object", ... }`, `{ type: "array", items: { ... } }`, primitives (`"string"`, `"number"`, `"boolean"`), or compositions (`oneOf` / `anyOf`).
+> - **Direct return values, no MCP envelopes**: Native `document.modelContext.registerTool()` resolves plain JSON-serializable JavaScript values directly from `execute()`—never wrap native WebMCP return values in MCP `CallToolResult` envelopes (`{ structuredContent, content: [{ type: "text", ... }] }`).
 
 ### Separate Intent (`description`) from Return Structure (`outputSchema`)
 
@@ -132,8 +138,8 @@ Adding full `outputSchema` definitions across every tool in a large catalog can 
 
 ### Keep `execute()` Aligned with `outputSchema` (No Schema Drift)
 
-- **`outputSchema` must be a JSON Schema `object`**: Under the WebMCP specification, `outputSchema` in `ModelContextTool` is typed as non-nullable WebIDL `object` and serialized with `JSON.stringify` during registration. Passing a non-object value such as `outputSchema: ""` or `outputSchema: null` causes `document.modelContext.registerTool()` to throw a `TypeError` during dictionary conversion (and unserializable objects reject with `TypeError`). When a tool does not need an output schema, omit the `outputSchema` property entirely (do not pass `""` or `null`, which throw `TypeError`, and do not pass an empty `{}` object, which adds useless schema noise without throwing).
-- **Strict runtime conformance**: Tool output is expected to conform to `outputSchema`, and consuming agents may reject outputs that fail validation. When `outputSchema` declares a structured object, `execute()` must return matching structured data—never prose summary strings (`"Found 5 items..."`), bare arrays when `outputSchema` declares an object wrapper like `{ result: [...] }`, or formatted text produced by a React `formatOutput` callback. Also note that `useWebMCP` in `use-webmcp-tool` v0.3.0 does not yet accept or forward `outputSchema` to `document.modelContext.registerTool()` (see [react-patterns.md § Notes & Gotchas](./react-patterns.md#6-use-webmcp-tool-v030-notes--gotchas)).
+- **WebIDL `object` value vs. JSON Schema `"type"`**: Under the WebMCP specification, the `outputSchema` member of `ModelContextTool` has non-nullable WebIDL type `object` and is serialized with `JSON.stringify` during registration. This refers to the **JavaScript value** passed for `outputSchema` (as opposed to primitives like `outputSchema: ""` or `outputSchema: null`, which throw a `TypeError` during dictionary conversion)—it does **not** require `"type": "object"` inside the JSON Schema itself (`outputSchema: { type: "array", items: ... }` is a JavaScript object and is completely valid). When a tool does not need an output schema, omit `outputSchema` entirely (do not pass `""` or `null`, which throw `TypeError`, and do not pass an empty `{}` object, which adds useless schema noise without throwing).
+- **Strict runtime conformance (no schema drift)**: Tool output is expected to conform to `outputSchema`, and consuming agents may reject outputs that fail validation. Whatever shape `outputSchema` declares—whether `{ type: "object", properties: { result: { type: "array", ... } } }` or `{ type: "array", items: { ... } }`—`execute()` must resolve a value matching that exact schema. Never return a bare array when `outputSchema` declares an object wrapper like `{ result: [...] }` (or wrap in `{ result: [...] }` / MCP `{ structuredContent, content }` when `outputSchema` declares `type: "array"` or `{ total_count, items }`), and never return prose summary strings (`"Found 5 items..."`) or text formatted by a React `formatOutput` callback when `outputSchema` declares structured data. Also note that `useWebMCP` in `use-webmcp-tool` v0.3.0 does not yet accept or forward `outputSchema` to `document.modelContext.registerTool()` (see [react-patterns.md § Notes & Gotchas](./react-patterns.md#6-use-webmcp-tool-v030-notes--gotchas)).
 
 ### Diagnosing Selection Gaps in Evaluations & Runtime Inspection
 
