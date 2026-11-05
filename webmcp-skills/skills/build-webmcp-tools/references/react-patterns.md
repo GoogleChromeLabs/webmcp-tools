@@ -66,7 +66,7 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
 
 ## 4. Result Normalization & Error Handling
 
-`useWebMCP` automatically normalizes return values and errors into `use-webmcp-tool`'s `{ content }` result wrapper (note: this `{ content, isError }` shape is a `use-webmcp-tool` library convention—native `document.modelContext.registerTool()` has no `{ content }` or `{ structuredContent }` protocol envelope and resolves plain JS values directly):
+`useWebMCP` automatically normalizes return values and errors into `use-webmcp-tool`'s `{ content }` result wrapper (note: this `{ content, isError }` shape is a `use-webmcp-tool` library convention—native `document.modelContext.registerTool()` resolves plain JS values directly):
 
 | What `execute` Returns / Throws      | What the Agent Receives                                             |
 | :----------------------------------- | :------------------------------------------------------------------ |

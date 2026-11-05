@@ -21,7 +21,7 @@ SPDX-License-Identifier: Apache-2.0
 
 WebMCP lets a web page expose client-side capabilities as structured tools to in-browser AI agents on `document.modelContext`, instead of agents scraping or clicking the DOM. This skill routes a developer to the right stage of the tool lifecycle and points to the reference file that holds the detailed rules and code for that stage.
 
-**Key tenet**: WebMCP (W3C `document.modelContext`) is a **client-side browser API**, distinct from backend MCP (`stdio`/SSE): it runs in the user's authenticated tab, supports **Tools only** (no Resources/Prompts, no MCP `{ structuredContent, content }` envelopes or `destructiveHint`/`idempotentHint`), and executes app logic directly rather than scraping or clicking the DOM.
+**Key tenet**: WebMCP runs **client-side in the browser tab on `document.modelContext`**, inside the user's authenticated session. It supports **Tools only** (no Resources or Prompts). It is **not** a backend MCP server over `stdio`/SSE, and tools execute application logic (state stores, APIs, client routers) directly rather than simulating typing or clicks.
 
 ## How to Use This Skill
 
