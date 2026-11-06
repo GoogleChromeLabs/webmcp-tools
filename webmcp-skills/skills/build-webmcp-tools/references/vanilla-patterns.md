@@ -52,27 +52,40 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
         },
         required: ["query"],
       },
-      // Declare outputSchema (any valid JSON Schema, e.g. type: "object" or type: "array") selectively on
-      // consolidated read/search and chaining tools; omit on narrow mutating/navigation tools (add_to_cart in §6).
-      // Passing a non-object JS value such as outputSchema: "" or null throws a TypeError during registerTool().
+      // Declare outputSchema only when pre-call visibility pays off (hidden consolidated fields or
+      // downstream chaining like id -> add_to_cart); omit on narrow reads/transforms and mutations.
+      // Because fallible native execute() resolves { error } on failure, pair the success schema with
+      // an inline error branch via oneOf (using disjoint required keys so each payload matches one branch).
       outputSchema: {
-        type: "object",
-        properties: {
-          total_count: { type: "integer", description: "Total matching products" },
-          items: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                id: { type: "string", description: "Product ID passed to add_to_cart" },
-                name: { type: "string" },
-                price: { type: "number" },
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              total_count: { type: "integer", description: "Total matching products" },
+              items: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", description: "Product ID passed to add_to_cart" },
+                    name: { type: "string" },
+                    price: { type: "number" },
+                  },
+                  required: ["id", "name", "price"],
+                },
               },
-              required: ["id", "name", "price"],
             },
+            required: ["total_count", "items"],
           },
-        },
-        required: ["total_count", "items"],
+          {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              retryable: { type: "boolean" },
+            },
+            required: ["error"],
+          },
+        ],
       },
       annotations: {
         readOnlyHint: true, // true = pure query (consequentialHint and untrustedContentHint default to false)
@@ -86,7 +99,6 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
           // Note: Unhandled throws/rejections in native WebMCP map to a generic DOMException: UnknownError per the W3C spec.
           return {
             error: `Catalog search service unavailable (${response.status}).`,
-            code: "SERVICE_UNAVAILABLE",
             retryable: true,
           };
         }

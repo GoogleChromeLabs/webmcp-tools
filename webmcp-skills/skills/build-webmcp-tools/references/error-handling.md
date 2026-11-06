@@ -17,6 +17,7 @@ Deliver actionable error guidance so the agent can self-correct and proceed. How
 | **Native imperative (`registerTool`)**         | **Resolve** a structured payload, e.g. `{ error: "...", code: "...", retryable: true }`.                               | Per the W3C WebMCP spec, an unhandled throw/rejection in `execute()` makes `executeTool()` reject with a generic `DOMException: UnknownError`, discarding the reason. |
 | **Declarative forms (`<form toolname>`)**      | Resolve structured field errors (e.g. `[{ field, value, message }]`) via `event.respondWith(Promise.resolve(errors))`. | Calling `Promise.reject()` discards the field details into a generic `DOMException: UnknownError`.                                                                    |
 
+- **Fallible native `registerTool` with `outputSchema`**: When `execute()` can fail and resolves `{ error: "..." }`, compose `outputSchema` inline as `{ oneOf: [successSchema, { type: "object", properties: { error: { type: "string" } }, required: ["error"] }] }` (no outer `type` on `oneOf`, optional fields like `retryable` only when returned, and mutually exclusive `required` keys or root `type`s; infallible sync reads that never return `{ error }` keep their plain `outputSchema` without `oneOf`; see [vanilla-patterns.md](./vanilla-patterns.md#1-core-tool-registration)).
 - Reserve unhandled rejections for fatal operational crashes only.
 - **Never encode a failure as a plain success string** (e.g., returning `"Saved"` on failure).
 
