@@ -13,7 +13,7 @@
  *   - `toolparamdescription` on form controls feeds the generated inputSchema.
  *   - `toolautosubmit` submits the form without waiting for the user.
  *   - The submit event gains `agentInvoked` and `respondWith()`.
- *   - `toolactivated` / `toolcancel` events fire on `window`.
+ *   - `toolactivated` / `toolcancel` events fire on `document.modelContext`.
  *   - `:tool-form-active` / `:tool-submit-active` are rewritten to classes.
  *
  * Load it AFTER webmcp-polyfill.js:
@@ -37,6 +37,23 @@
   const FORM_ACTIVE_CLASS = 'tool-form-active';
   const SUBMIT_ACTIVE_CLASS = 'tool-submit-active';
   const AUTOSUBMIT_TIMEOUT_MS = 5000;
+
+  // Lifecycle events fire on modelContext. Expose the matching event handler
+  // attributes too, so pages can use them and feature-detect where to listen.
+  for (const type of ['toolactivated', 'toolcancel']) {
+    const prop = `on${type}`;
+    if (prop in modelContext) continue;
+    let handler = null;
+    Object.defineProperty(modelContext, prop, {
+      configurable: true,
+      get: () => handler,
+      set: (value) => {
+        if (handler) modelContext.removeEventListener(type, handler);
+        handler = typeof value === 'function' ? value : null;
+        if (handler) modelContext.addEventListener(type, handler);
+      },
+    });
+  }
 
   /** @type {Map<HTMLFormElement, {name: string, signature: string, controller: AbortController}>} */
   const registrations = new Map();
@@ -86,7 +103,7 @@
       }
       properties[propName] = property;
 
-      if (el.hasAttribute('required')) {
+      if (el.hasAttribute('required') && !required.includes(propName)) {
         required.push(propName);
       }
     }
@@ -121,29 +138,34 @@
       if (!input) {
         continue;
       }
+      // A radio group comes back as a RadioNodeList, which is not an
+      // EventTarget: events must go to the radio that was actually checked.
+      let target = input;
       if (input.tagName === 'SELECT') {
         input.value = value;
       } else if (input.type === 'checkbox') {
         input.checked = !!value;
       } else if (input.type === 'radio' || (input.length && input[0]?.type === 'radio')) {
-        const radio = form.querySelector(
+        target = form.querySelector(
           `input[name="${CSS.escape(key)}"][value="${CSS.escape(String(value))}"]`
         );
-        if (radio) {
-          radio.checked = true;
+        if (target) {
+          target.checked = true;
         }
-      } else {
+      } else if (input.value !== undefined) {
         input.value = value;
       }
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      if (typeof target?.dispatchEvent === 'function') {
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        target.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     }
   }
 
   function notify(type, toolName) {
     const event = new Event(type);
     event.toolName = toolName;
-    window.dispatchEvent(event);
+    modelContext.dispatchEvent(event);
   }
 
   function executeForm(form, toolName, args, options) {
@@ -213,7 +235,11 @@
         if (settled) return;
         e.agentInvoked = true;
         e.respondWith = (value) => {
-          Promise.resolve(value).then(succeed, (err) => succeed({ error: err?.message || String(err) }));
+          // Results must be JSON-serializable, which `undefined` is not.
+          Promise.resolve(value).then(
+            (result) => succeed(result ?? null),
+            (err) => succeed({ error: err?.message || String(err) })
+          );
         };
       };
       form.addEventListener('submit', onSubmit, { capture: true });

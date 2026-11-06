@@ -43,7 +43,7 @@ prototypes live here instead:
 | `toolautosubmit`                            | Submits without waiting for the user                 |
 | `event.agentInvoked`                        | Set on the `submit` event during a tool call         |
 | `event.respondWith(value)`                  | Resolves the tool call with a result                 |
-| `toolactivated` / `toolcancel`              | Fired on `window`                                    |
+| `toolactivated` / `toolcancel`              | Fired on `document.modelContext`                     |
 | `:tool-form-active` / `:tool-submit-active` | Rewritten to equivalent classes                      |
 
 Load it after the polyfill, and only in demos that use declarative forms:
