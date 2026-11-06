@@ -128,6 +128,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
+- [@w3c/webmcp-polyfill](https://www.npmjs.com/package/@w3c/webmcp-polyfill) ([code](https://github.com/w3c-oss/webmcp-polyfill)) - A polyfill for `document.modelContext` that follows the Web Machine Learning Community Group draft, covering tool registration, discovery, execution, cancellation and `toolchange`, including across frames. No runtime JavaScript dependencies. Load it with `import "@w3c/webmcp-polyfill/auto"` or as a plain `<script>` using its `dist/polyfill.js` build. Part of the W3C Open Source Program pilot.
 - [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) *(by Google)* - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 - [use-webmcp-tool](https://www.npmjs.com/package/use-webmcp-tool) *(by Google)* - React hook for registering WebMCP tools (`document.modelContext`) with lifecycle-managed registration.
 - [simple-webmcp](https://github.com/emingure/simple-webmcp) - Turns existing JS/TS functions into WebMCP tools with `webmcp(fn)`, keeping them callable while supporting schema patching, React lifecycle helpers, execution hooks for approvals and analytics, and an in-memory development polyfill for testing.
