@@ -4,7 +4,7 @@
  *
  * Declarative WebMCP layer.
  *
- * The vendored webmcp-polyfill.js implements the imperative WebMCP API only
+ * webmcp-polyfill.js (from @w3c/webmcp-polyfill) implements the imperative API only
  * (registerTool / getTools / executeTool). This file adds the experimental
  * declarative surface that Chrome prototypes, on top of that API rather than
  * as a fork of it:
