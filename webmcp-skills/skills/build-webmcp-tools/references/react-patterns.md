@@ -32,6 +32,7 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
   name: 'tool_name',            // string (required, <= 30 chars)
   description: '...',           // string (required, <= 500 chars)
   inputSchema: { ... },         // JSON Schema object (optional)
+  outputSchema: { ... },        // JSON Schema object describing the result (optional)
   annotations: { ... },         // { readOnlyHint?, consequentialHint?, untrustedContentHint? } (optional)
   execute: async (args, { signal }) => { }, // (args: Args, options: { signal: AbortSignal }) => Result | Promise<Result> (required)
   enabled: true,                // boolean: register only while true (default: true)
@@ -53,10 +54,10 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
 ## 3. Re-Registration Triggers & Stability Rules
 
 `useWebMCP` tracks registration dependencies via:
-`[name, description, JSON.stringify(inputSchema), JSON.stringify(annotations), enabled]`
+`[name, description, JSON.stringify(inputSchema), JSON.stringify(outputSchema), JSON.stringify(annotations), enabled]`
 
 1. **Stable Literals for Schemas**:
-   Because `inputSchema` and `annotations` are compared via `JSON.stringify()`, the comparison is **key-order sensitive** (`{ a, b } !== { b, a }`). Keep schema objects hoisted to module scope or declare object properties with consistent key order to prevent registration churn.
+   Because `inputSchema`, `outputSchema`, and `annotations` are compared via `JSON.stringify()`, the comparison is **key-order sensitive** (`{ a, b } !== { b, a }`). Keep schema objects hoisted to module scope or declare object properties with consistent key order to prevent registration churn.
 2. **Callbacks Handled via Refs**:
    `execute`, `formatOutput`, and `onError` are stored in React refs. Creating new inline arrow functions on every render will **not** trigger re-registration. You can safely close over component state and props.
 3. **Never Derive `name` or `description` from Fast-Changing State**:
@@ -66,7 +67,7 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
 
 ## 4. Result Normalization & Error Handling
 
-`useWebMCP` automatically normalizes return values and errors into the WebMCP protocol structure:
+`useWebMCP` automatically normalizes return values and errors into `use-webmcp-tool`'s `{ content }` result wrapper (note: this `{ content, isError }` shape is a `use-webmcp-tool` library convention—native `document.modelContext.registerTool()` resolves plain JS values directly):
 
 | What `execute` Returns / Throws      | What the Agent Receives                                             |
 | :----------------------------------- | :------------------------------------------------------------------ |
@@ -194,7 +195,7 @@ export function CheckoutWizard({ currentStep, orderId }) {
 
 ### Pattern C: Output Shaping with `formatOutput`
 
-Enforce character budgets (≤ 1.5K characters) and structure output for LLM consumption:
+Enforce character budgets (≤ 1.5K characters) and structure output for LLM consumption (use prose-string formatting only on tools that do **not** declare a structured object `outputSchema`; see §6):
 
 ```tsx
 useWebMCP({
@@ -266,6 +267,25 @@ export function ProjectBoardView() {
           description: "Page number for pagination (starts at 1).",
         },
       },
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        total_found: { type: "integer" },
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "Item identifier passed to move_items" },
+              type: { type: "string", enum: ITEM_TYPES },
+              title: { type: "string" },
+            },
+            required: ["id", "type", "title"],
+          },
+        },
+      },
+      required: ["total_found", "items"],
     },
     annotations: {
       readOnlyHint: true,
@@ -361,6 +381,10 @@ export function ProjectBoardView() {
    `use-webmcp-tool` v0.3.0+ includes `webmcp-types@^0.1.7` as a dependency, whose `WebMCP.ToolAnnotations` includes `consequentialHint?: boolean`—do **not** cast `annotations` with `as any`. If `consequentialHint` fails to typecheck, the project likely has an older `webmcp-types` (`< 0.1.7`), `use-webmcp-tool` (`< 0.3.0`), or a custom global `WebMCP` declaration shadowing it; upgrade dependencies or remove the custom declaration rather than casting.
 3. **`title` and `exposedTo`**:
    The hook currently does not expose `title` or cross-origin `exposedTo` options. For tools requiring cross-origin exposure, register them directly with `document.modelContext.registerTool` inside a custom `useEffect`.
+4. **`outputSchema` & `formatOutput` Conformance**:
+   - `useWebMCP` passes `outputSchema` through to `document.modelContext.registerTool` and content-compares it via `JSON.stringify()` alongside `inputSchema` so identical inline literals do not trigger re-registration. Declare `outputSchema` selectively on consolidated read or chaining tools (`list_items`), omitting it on narrow reads/transforms and mutations (`move_items`).
+   - Because `useWebMCP` catches thrown `Error`s and resolves `{ content: [{ type: "text", text: err.message }], isError: true }`, React `useWebMCP` tools declare only the **success** schema in `outputSchema`—do not wrap `useWebMCP` `outputSchema` in a `oneOf` `{ error }` branch.
+   - Never pair a structured `outputSchema` (e.g. `type: "object"` or `type: "array"`) with a `formatOutput` callback that converts structured data into prose strings (e.g. `` `Found ${rows.length} flights` ``), or return a bare array from `execute()` when `outputSchema` declares an object wrapper like `{ result: [...] }` (or vice versa): agents validate outputs against `outputSchema` and may reject drifted or stringified prose payloads (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)).
 
 ---
 
