@@ -147,6 +147,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [DeepDeck](https://github.com/jo32/DeepDeck) - MIT-licensed macOS desktop client based on DeepSeek Harness that discovers and calls website-provided WebMCP tools. Its Builder lets an agent explore a site, generate and verify tools, and save versioned source per site for reuse in the DeepDeck browser.
 - [Signett](https://github.com/signettai/signett) - TypeScript SDK for registering application functions as native WebMCP tools, with JSON Schema input validation, lifecycle cleanup, authorization, human confirmation, idempotency, recovery, verification, testing, and observability.
 - [VueUse `useWebMCP`](https://vueuse.org/core/usewebmcp/) - A Vue composable in `@vueuse/core` (v15.0.0 and later) that registers a WebMCP tool through `document.modelContext` and unregisters it when the component scope is disposed. It normalizes the return value of `execute` into a valid tool result and does nothing where the API is absent, with `isSupported`, `isRegistered` and `error` refs.
+- [WebMCP Explorer](https://github.com/CorsenAI/webmcp-explorer) *(by Corsen AI)* - A Chrome extension to discover, run and security-review the WebMCP tools a page registers, imperative and declarative, with Playwright test and SARIF report exports and an optional local MCP bridge that requires approval for each call. Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/webmcp-explorer/pccddgfopjiggjhhlgndlghimbdndjef); Apache-2.0.
 
 ## Contributing
 
