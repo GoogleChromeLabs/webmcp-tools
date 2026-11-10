@@ -124,6 +124,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Start an easy game and play it until you win."
 - [Spreadsheet](https://googlechromelabs.github.io/webmcp-tools/demos/spreadsheet/) - A full spreadsheet with 27 WebMCP tools for values, formulas, formatting, sorting, conditional formats, charts and sheets. People and agents share one undo history, and each tool call shows up in an activity panel and lights up the cells it changed.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
+- [BrickifyMe](https://www.brickifyme.com/) - Turns a photo of a person into a digital LEGO-style minifigure portrait. Every page registers four WebMCP tools through `document.modelContext`: `find_figure_ideas` (idea pages by profession, gift occasion or avatar platform), `get_pricing`, `check_my_credits` and `start_checkout`. The first three only read data. `start_checkout` opens Stripe Checkout, where the person confirms the payment.
+  - **Example Prompt:** "I want a LEGO-style figure of my sister as a retirement gift. Which page fits, and what does it cost?"
 
 ## Libraries & Tools
 
