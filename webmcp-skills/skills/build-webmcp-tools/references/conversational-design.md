@@ -111,12 +111,15 @@ Stress-test each baseline conversation against ambiguity, unexpected inputs, and
 - **Scenario**: User uses contextual shorthand (e.g., _"the second flight"_, _"the cheaper one"_).
 - **Behavior**: Agent resolves shorthand against previous turn responses to identify the target ID.
 
-### 5. Human-in-the-Loop Hand-off for High-Risk Actions
+### 5. Confirmation Boundaries for High-Risk Actions
 
 - **Scenario**: Irreversible, sensitive, or financial actions (e.g., completing a $500 booking, deleting an account).
-- **Behavior**:
-  - Tool or agent transitions the UI to a confirmation modal or checkout view (`initiate_booking`) requiring explicit user approval on a dedicated UI (`requires_user_action` status).
-  - A hand-off tool that only opens the confirmation UI (`initiate_booking`) must not declare `readOnlyHint: true` (omit annotations; hints default to `false`) and does not declare `consequentialHint: true`; the user's confirmation in the UI is the boundary. Any tool that commits the action itself (e.g. `confirm_booking`) declares `consequentialHint: true`.
+- **Choose the pattern from the starting state**:
+  - **UI hand-off**: When visual review, missing inputs, third-party payment elements or authentication such as 3DS require buyer interaction, use `initiate_checkout` / `initiate_booking` to open that UI and return an application status such as `requires_user_action`. If the tool only navigates, it omits `readOnlyHint` and `consequentialHint`. The user completes the sensitive fields and final confirmation in the UI; do not ask for card details or authentication codes in chat.
+  - **Direct consequential execution**: When required inputs are already selected and the host can obtain explicit confirmation of the purchase terms before committing, a `place_order` / `confirm_booking` tool is valid without an extra checkout page. Declare `consequentialHint: true`; the host/agent must present and obtain confirmation before invoking the action. The application/backend must still validate authorization and the current terms. The hint signals consequences; it is not proof of consent or backend authorization.
+- **Describe the actual effects**: A tool that opens checkout but also creates an order, reserves stock or initiates payment is not navigation-only. Assess those effects independently of an `initiate_*` name. Report the returned application state: preparing a checkout, creating an order or returning a payment URL does not establish that payment succeeded.
+- **Stress-test refusal**: If the buyer declines confirmation, stop the attempt without committing. Do not retry as though it were a transient error, switch to another commit tool, or automate a click on the site's Confirm button to bypass the refusal. A later attempt needs a fresh user decision.
+- **Declarative forms**: Follow the [form policy](./declarative-patterns.md#6-toolautosubmit-policy-safe-vs-human-in-the-loop): omit `toolautosubmit` for sensitive/financial actions so the user submits. Filling the form is not submission or payment completion.
 
 ---
 

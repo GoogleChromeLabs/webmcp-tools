@@ -99,12 +99,12 @@ Only when the developer asks to skip design (asking "can we skip it?" counts) fo
 ## Stage 3: Turn-by-Turn Role-Play
 
 - Document every turn with 6 elements: **User utterance**, **Agent intent**, **Agent tool invocations**, **Tool response** (structured JSON with pagination fields `page_size` and `total_count`, ≤ 1,500 chars), **Site implementation & UI reaction**, **Agent response**. Format with `use-case-template.md`.
-- For payments, bookings, or high-stakes actions, model a **human-in-the-loop UI hand-off** (e.g. `initiate_booking` returning `status: "requires_user_action"` and navigating to a dedicated confirmation UI where the user clicks Confirm, rather than autonomously charging the user).
+- For payments/bookings, choose **UI hand-off** when buyer interaction is needed, or **direct consequential execution** with host confirmation before commit. Apply the [confirmation boundaries](./references/conversational-design.md#5-confirmation-boundaries-for-high-risk-actions).
 - End with the **Critique Loop** (evaluating agent demeanor/tone, clarifying questions, and autonomous confirmation boundaries): in **Interactive Mode**, pause and ask the developer to critique; in **Autonomous Mode**, explicitly self-critique those three dimensions for each goal and continue.
 
 ## Stage 4: Variations & Graceful Failure
 
-Stress-test the baseline: missing required parameters (ask, never guess), prerequisite violations (actionable errors), over-constrained queries (suggest relaxations), coreference ("the second one"), and human-in-the-loop hand-off for sensitive actions (return `status: "requires_user_action"` and open a dedicated confirmation UI the user completes; `consequentialHint: true` only on a tool that commits the action itself).
+Stress-test the baseline: missing parameters (ask, never guess), prerequisite errors, over-constrained queries (suggest relaxations), coreference ("the second one"), and confirmation boundaries (UI hand-off or confirmed direct execution). A user refusal is not a retryable technical error.
 
 ## Stage 5: Tool Consolidation & Evals
 
