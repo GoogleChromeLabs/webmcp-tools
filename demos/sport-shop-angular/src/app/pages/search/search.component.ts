@@ -60,7 +60,7 @@ export class SearchComponent implements OnInit {
         },
         required: ["priceRange"]
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const success = this.setPriceRange(params.priceRange);
         if (success) {
           return { success: true, message: `Filtered results by ${params.priceRange}` };
@@ -90,7 +90,7 @@ export class SearchComponent implements OnInit {
           }
         }
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const product = findMatchingProduct(this.filteredProducts, params);
 
         if (!product) {
