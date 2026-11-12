@@ -127,6 +127,9 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [BrickifyMe](https://www.brickifyme.com/) - Turns a photo of a person into a digital LEGO-style minifigure portrait. Every page registers four WebMCP tools through `document.modelContext`: `find_figure_ideas` (idea pages by profession, gift occasion or avatar platform), `get_pricing`, `check_my_credits` and `start_checkout`. The first three only read data. `start_checkout` opens Stripe Checkout, where the person confirms the payment.
   - **Example Prompt:** "I want a LEGO-style figure of my sister as a retirement gift. Which page fits, and what does it cost?"
 
+* [Proxy Compare](https://www.proxy-compare.com/) - Twelve browser tools for proxy, scraping API, and CAPTCHA provider lists, price scenarios, budget allowance, provider details and comparison, site search, bandwidth estimates, recorded changes, and local format controls. Calls through `document.modelContext` update the visible page and return dated evidence, billing assumptions, and disclosed provider links. The production origin participates in Chrome's WebMCP origin trial.
+  * Example Prompt: "Compare 100 GB and 500 GB of residential proxies under $300 per month, then show the recorded plans and sources for Oxylabs."
+
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
