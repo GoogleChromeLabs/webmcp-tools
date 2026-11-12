@@ -12,7 +12,7 @@ This guide covers the Stage 5 deliverables: the consolidated `schema.json`, the 
 ## 1. Stage 5 Procedure
 
 1. **Consolidate only approved tools**: Include only tools discovered in goals that were role-played and approved in Stages 1–4 (see [conversational-design.md](./conversational-design.md#tools-and-evals-are-strictly-goal-driven)). Merge overlapping tools and apply polymorphic consolidation per [tool-design.md](./tool-design.md).
-2. **Audit every tool**: budgets, "What + When" descriptions without schema repetition or jargon, and annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`).
+2. **Audit every tool**: budgets, "What + When" descriptions without `inputSchema`/`outputSchema` repetition or jargon, selective `outputSchema` usage on consolidated read/chaining tools, and annotations (`readOnlyHint`, `consequentialHint`, `untrustedContentHint`).
 3. **Write `schema.json`** (§2).
 4. **Write `evals.json`** (§3): compile baseline and variation trajectories using exact match, `$pattern` regex constraints, `mockOutput` for chained steps, nested `ordered`/`unordered` blocks, and mid-chain failure tests.
 5. **Offer the local evaluation gate** (§4) before moving to Stage 6.
@@ -21,10 +21,12 @@ This guide covers the Stage 5 deliverables: the consolidated `schema.json`, the 
 
 ## 2. Tool Schema Specification (`schema.json`)
 
-The consolidated `schema.json` file contains a root object with a `tools` array. Each tool definition includes its `name` (≤ 30 chars), `description` (≤ 500 chars), standard JSON Schema `inputSchema`, optional `outputSchema`, and `annotations`:
+The consolidated `schema.json` file contains a root object with a `tools` array. Each tool definition includes its `name` (≤ 30 chars), `description` (≤ 500 chars), standard JSON Schema `inputSchema`, optional `outputSchema`, and `annotations`.
+
+Declare `outputSchema` (a JSON Schema definition—any root `type`, such as `"object"` or `"array"`) selectively on consolidated read/search/detail tools and chaining producer tools—such as `search_flights` below, which exposes the returned `flight_id` and pagination fields consumed by `initiate_booking`—while omitting `outputSchema` on narrow UI hand-off or mutating tools like `initiate_booking` so tool definitions earn their prompt token budget (see [tool-design.md § Output Schemas](./tool-design.md#7-output-schemas-outputschema)):
 
 > [!IMPORTANT]
-> Descriptions follow the "What + When" formula and contain no implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC). See [tool-design.md](./tool-design.md#3-descriptions-the-what--when-formula).
+> Descriptions follow the "What + When" formula, omit parameter and return property lists already declared in `inputSchema` or `outputSchema`, and contain no implementation jargon (Redux, Pinia, Express, Postgres, REST, GraphQL, gRPC). See [tool-design.md](./tool-design.md#3-descriptions-the-what--when-formula).
 
 ```json
 {
@@ -54,6 +56,31 @@ The consolidated `schema.json` file contains a root object with a `tools` array.
           }
         },
         "required": ["origin", "destination", "departure_date"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "total_count": { "type": "integer", "description": "Total matching flights" },
+          "page": { "type": "integer", "description": "Current 1-based page number" },
+          "page_size": { "type": "integer", "description": "Number of flights per page" },
+          "flights": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "flight_id": {
+                  "type": "string",
+                  "description": "Flight identifier passed to initiate_booking"
+                },
+                "airline_code": { "type": "string" },
+                "departure_time": { "type": "string" },
+                "price": { "type": "number" }
+              },
+              "required": ["flight_id", "airline_code", "departure_time", "price"]
+            }
+          }
+        },
+        "required": ["total_count", "page", "page_size", "flights"]
       },
       "annotations": {
         "readOnlyHint": true
@@ -212,6 +239,8 @@ When a downstream tool call depends on entity IDs or state returned by a precedi
 
 `MockResolver.js` feeds this `mockOutput` back to the model as the tool response for subsequent steps, allowing multi-step reasoning to proceed deterministically.
 
+- **Keep `mockOutput` aligned with `outputSchema`**: Whenever a tool declares `outputSchema` in `schema.json`, every `mockOutput` payload for that tool in `evals.json` must conform to its `outputSchema` (matching wrapper keys, required properties, and value types). Allowing `mockOutput` to drift from `outputSchema` hides schema mismatches during static evals that later break against real `execute()` handlers or output-validating agents.
+
 ### Mid-Chain Failure Testing & Graceful Recovery
 
 Automated evaluations must verify that when intermediate tool calls fail (e.g., invalid coupon, seat already reserved, or item out of stock), the agent recovers gracefully rather than aborting the session or hallucinating success.
@@ -291,12 +320,12 @@ Key authoring rules for mid-chain failure tests:
 
 When an evaluation fails or an agent misbehaves, consult this diagnostic guide:
 
-| Failure Mode                          | Typical Symptom                                             | Diagnostic Checks                                                                                                                                                                |
-| :------------------------------------ | :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Wrong Tool Selected / Skipped**     | Agent calls `checkout` without calling `add_to_cart`.       | • Description clear, positive, and complete?<br>• Name intuitive (action-verb ≤ 30 chars)?<br>• Tool exposed in current page state?<br>• Description overlaps with another tool? |
-| **Incorrect Step Ordering**           | Calls `select_seat` before `search_flights`.                | • Does preceding tool output supply required context?<br>• Are tools dynamically exposed/gated by application state?<br>• Test the isolated sub-chain by pre-seeding state.      |
-| **Invalid or Hallucinated Arguments** | Agent sends raw text instead of enum, or wrong date format. | • `inputSchema` has explicit `enum` arrays and property descriptions?<br>• Required fields declared?<br>• Description explains how to map user input to structured values?       |
-| **Stale or Missing Output**           | Agent reports wrong total or claims action failed.          | • Tool logic bug?<br>• UI state update awaited before returning payload?<br>• Payload concise and formatted for LLM consumption (≤ 1.5K chars)?                                  |
-| **Runtime Exceptions / Crash**        | Agent stops abruptly; tool crashes.                         | • Runtime exceptions caught and re-thrown with actionable messages?<br>• Network failures handled?<br>• Is error distinguishable between retryable vs fatal?                     |
+| Failure Mode                          | Typical Symptom                                             | Diagnostic Checks                                                                                                                                                                                                                                                                                                      |
+| :------------------------------------ | :---------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Wrong Tool Selected / Skipped**     | Agent calls `checkout` without calling `add_to_cart`.       | • Description clear, positive, and complete?<br>• Does description state what kind of information the tool returns at a high level (keeping exact field shapes in `outputSchema`)?<br>• Name intuitive (action-verb ≤ 30 chars)?<br>• Tool exposed in current page state?<br>• Description overlaps with another tool? |
+| **Incorrect Step Ordering**           | Calls `select_seat` before `search_flights`.                | • Does preceding tool output supply required context?<br>• Are tools dynamically exposed/gated by application state?<br>• Test the isolated sub-chain by pre-seeding state.                                                                                                                                            |
+| **Invalid or Hallucinated Arguments** | Agent sends raw text instead of enum, or wrong date format. | • `inputSchema` has explicit `enum` arrays and property descriptions?<br>• Required fields declared?<br>• Description explains how to map user input to structured values?                                                                                                                                             |
+| **Stale or Missing Output**           | Agent reports wrong total or claims action failed.          | • Tool logic bug?<br>• UI state update awaited before returning payload?<br>• Payload concise and formatted for LLM consumption (≤ 1.5K chars)?                                                                                                                                                                        |
+| **Runtime Exceptions / Crash**        | Agent stops abruptly; tool crashes.                         | • Runtime exceptions caught and re-thrown with actionable messages?<br>• Network failures handled?<br>• Is error distinguishable between retryable vs fatal?                                                                                                                                                           |
 
 ---

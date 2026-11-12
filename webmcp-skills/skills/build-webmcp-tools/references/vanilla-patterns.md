@@ -28,7 +28,7 @@ Enable it in `tsconfig.json`:
 ```
 
 - **Gotcha**: a `types` array makes TypeScript include _only_ the listed packages. If the project has no `types` array yet, adding one drops `@types/node` and other automatically included types; add `webmcp-types` to an existing array instead, or use `/// <reference types="webmcp-types" />` in one source file.
-- **Replace hand-written declarations**: If the project already declares its own WebMCP types (e.g. `declare global { interface Document { modelContext?: ... } }` with custom `ModelContext` or tool interfaces), recommend deleting them and using `webmcp-types`. Hand-written types drift from the spec and hide parts of the API: a custom `execute(args)` signature without the second argument means the execution `signal` is never available, and missing `annotations` fields mean tools ship without them.
+- **Replace hand-written declarations**: If the project already declares its own WebMCP types (e.g. `declare global { interface Document { modelContext?: ... } }` with custom `ModelContext` or tool interfaces), recommend deleting them and using `webmcp-types`. Hand-written types drift from the spec and hide parts of the API: a custom `execute(args)` signature without the second argument means the execution `signal` is never available, and missing `annotations` fields mean tools ship without them. If an installed `webmcp-types` release (such as `0.1.10`) has not yet added `outputSchema`, augment the `WebMCP` namespace via declaration merging (`declare global { namespace WebMCP { interface ModelContextTool { outputSchema?: object; } interface RegisteredTool { outputSchema?: object | null; } } }`) rather than replacing `webmcp-types` (note: `ModelContextTool.outputSchema` in `registerTool()` is non-nullable `object`, whereas `tool.outputSchema` on the `Tool` / `RegisteredTool` returned by `getTools()` evaluates to `null` when omitted).
 
 ```javascript
 // 1. Feature detection
@@ -39,7 +39,7 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
     {
       name: "search_products", // <= 30 chars
       description:
-        "Searches the product catalog. Use when the user wants to find products by keyword, optionally within a category.", // <= 500 chars
+        "Searches the product catalog. Use when the user wants to find products by keyword, optionally within a category.", // <= 500 chars (never repeat inputSchema/outputSchema fields)
       inputSchema: {
         type: "object",
         properties: {
@@ -51,6 +51,41 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
           },
         },
         required: ["query"],
+      },
+      // Declare outputSchema only when pre-call visibility pays off (hidden consolidated fields or
+      // downstream chaining like id -> add_to_cart); omit on narrow reads/transforms and mutations.
+      // Because fallible native execute() resolves { error } on failure, pair the success schema with
+      // an inline error branch via oneOf (using disjoint required keys so each payload matches one branch).
+      outputSchema: {
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              total_count: { type: "integer", description: "Total matching products" },
+              items: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", description: "Product ID passed to add_to_cart" },
+                    name: { type: "string" },
+                    price: { type: "number" },
+                  },
+                  required: ["id", "name", "price"],
+                },
+              },
+            },
+            required: ["total_count", "items"],
+          },
+          {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              retryable: { type: "boolean" },
+            },
+            required: ["error"],
+          },
+        ],
       },
       annotations: {
         readOnlyHint: true, // true = pure query (consequentialHint and untrustedContentHint default to false)
@@ -64,7 +99,6 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
           // Note: Unhandled throws/rejections in native WebMCP map to a generic DOMException: UnknownError per the W3C spec.
           return {
             error: `Catalog search service unavailable (${response.status}).`,
-            code: "SERVICE_UNAVAILABLE",
             retryable: true,
           };
         }
@@ -74,8 +108,15 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
         // Always await DOM/state updates before returning payload to agent
         await updateResultsView(data.items);
 
-        // Return concise string or serializable payload under 1.5K character budget
-        return `Found ${data.total} items. Top result: ${data.items[0]?.name || "None"}.`;
+        // Return structured JSON conforming to outputSchema under the 1.5K character budget
+        return {
+          total_count: data.total,
+          items: data.items.slice(0, 12).map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+          })),
+        };
       },
     },
     {
@@ -157,12 +198,12 @@ WebMCP requires an **origin-isolated document**. Pages disabling isolation (e.g.
 When building page-level agents or chat interfaces that consume WebMCP tools directly in the browser:
 
 ```javascript
-// 1. Discover available tools (alphabetical list)
+// 1. Discover available tools (alphabetical list of Tool objects;
+//    tool.outputSchema is a deep copy of the registered JSON Schema object, or null if omitted)
 const tools = await document.modelContext.getTools();
-console.log(
-  "Available tools:",
-  tools.map((t) => t.name),
-);
+for (const tool of tools) {
+  console.log("Tool:", tool.name, "Input:", tool.inputSchema, "Output:", tool.outputSchema);
+}
 
 // 2. Discover tools including permitted cross-origin partners
 const allTools = await document.modelContext.getTools({
