@@ -76,7 +76,11 @@ async execute({ tab }) {
 
 ### Human-in-the-Loop Hand-off Tools
 
-An `initiate_*` tool that opens a confirmation screen (e.g. `initiate_booking` navigating to checkout, where the user presses Confirm) is navigation: it **must not declare `readOnlyHint: true`** and does not declare `consequentialHint: true` (omit annotations). The hand-off itself is the confirmation boundary. If you also expose a tool that commits the action directly (e.g. `confirm_booking` charging the card), that tool declares `consequentialHint: true`.
+A tool that **only opens** a confirmation screen (e.g. `initiate_booking` navigating to checkout, where the user presses Confirm) is navigation: it **must not declare `readOnlyHint: true`** and does not declare `consequentialHint: true` (omit these two hints). Any other hints still follow the tool's behavior and output. Choose this hand-off when review, missing inputs or payment/authentication UI require user interaction.
+
+A tool that commits the action directly (e.g. `confirm_booking` charging the card) declares `consequentialHint: true`. This is a valid alternative when the required inputs are selected and the host/agent obtains explicit confirmation before executing; it need not navigate through an additional checkout page. The hint is a signal to the client, not proof of consent or backend authorization. The application must still enforce authorization and the confirmed terms.
+
+Classify the actual effects, not the tool's name: an `initiate_*` tool that also creates an order, reserves stock or initiates payment needs its effects assessed rather than being assumed navigation-only. For role-play, refusal and declarative-form boundaries, see [confirmation boundaries](./conversational-design.md#5-confirmation-boundaries-for-high-risk-actions).
 
 ---
 
