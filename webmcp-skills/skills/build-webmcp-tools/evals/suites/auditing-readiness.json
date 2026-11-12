@@ -27,12 +27,12 @@
     {
       "id": "stage-6-audit-reference-loading-directives",
       "prompt": "Can you audit the WebMCP tools on our live production site and advise on best practices for error reporting and user-generated content?",
-      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: UnknownError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
+      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: OperationError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
       "assertions": [
         "The agent read references/audit-checklist.md",
         "The agent read references/agent-security.md",
         "The agent read references/error-handling.md",
-        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: UnknownError.",
+        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: OperationError.",
         "The output explains the First-Party Database Fallacy or untrusted user-authored content prompt injection threat model."
       ]
     },

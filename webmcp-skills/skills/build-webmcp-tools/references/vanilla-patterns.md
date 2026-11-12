@@ -61,7 +61,7 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
 
         if (!response.ok) {
           // Resolve with structured error guidance so the agent receives actionable context to proceed.
-          // Note: Unhandled throws/rejections in native WebMCP map to a generic DOMException: UnknownError per the W3C spec.
+          // Note: Unhandled throws/rejections in native WebMCP map to a generic DOMException: OperationError per the W3C spec.
           return {
             error: `Catalog search service unavailable (${response.status}).`,
             code: "SERVICE_UNAVAILABLE",
@@ -99,7 +99,7 @@ if ("modelContext" in document && typeof document.modelContext.registerTool === 
 3. **Respect Cancellation inside `execute`**:
    `execute(input, { signal })` receives an execution `AbortSignal` in its second argument. Always forward this `signal` to `fetch()` and long-running promises so agent cancellations terminate background network operations immediately.
 4. **Actionable Error Reporting**:
-   Under the W3C WebMCP specification (`index.bs`), if a native tool's `execute` promise rejects or throws an unhandled exception, `executeTool()` rejects with a generic `DOMException: UnknownError`, discarding the rejection reason. To allow the agent to understand what failed, self-correct, and proceed, **resolve** with a structured error payload (e.g. `{ error: "No items found", code: "NOT_FOUND", suggestion: "Broaden search query" }`). Reserve unhandled rejections only for fatal operational crashes.
+   Under the W3C WebMCP specification (`index.bs`, § Tool execution errors), if a native tool's `execute` promise rejects (`tool rejected`) or its fulfilled result cannot be serialized to JSON (`unserializable result`), `executeTool()` rejects with `DOMException: OperationError`, discarding the original reason. To allow the agent to understand what failed, self-correct, and proceed, **resolve** with a structured error payload (e.g. `{ error: "No items found", code: "NOT_FOUND", suggestion: "Broaden search query" }`). Reserve unhandled rejections only for fatal operational crashes.
 
 ---
 
@@ -220,7 +220,7 @@ export function useWebMcpCart(cartStore) {
             await cartStore.addItem(itemId, quantity);
             return `Added ${quantity} of ${itemId} to cart. Total items: ${cartStore.count}.`;
           } catch (err) {
-            // Resolve a structured error: an unhandled throw reaches the agent only as UnknownError
+            // Resolve a structured error: an unhandled throw reaches the agent only as OperationError
             return {
               error: `Could not add ${itemId} to cart: ${err.message}`,
               code: "ADD_TO_CART_FAILED",

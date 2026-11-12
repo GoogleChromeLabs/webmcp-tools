@@ -25,12 +25,12 @@
     {
       "id": "stage-6-audit-reference-loading-directives",
       "prompt": "Can you audit the WebMCP tools on our live production site and advise on best practices for error reporting and user-generated content?",
-      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: UnknownError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
+      "expected_output": "The agent routes to Stage 6 Review Checklist & Auditing. Critically, it reads the relevant reference files (specifically references/agent-security.md and references/error-handling.md) before generating final findings. It details deeper architectural context from these references: the W3C WebMCP unhandled rejection mapping to generic DOMException: OperationError (requiring structured error payloads rather than throwing/rejecting unhandled promises) and the 'First-Party Database Fallacy' where user-authored database records require untrustedContentHint: true and delimiter sandboxing against prompt injection.",
       "assertions": [
         "The agent read references/audit-checklist.md",
         "The agent read references/agent-security.md",
         "The agent read references/error-handling.md",
-        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: UnknownError.",
+        "The output explains that unhandled promise rejections are mapped by W3C WebMCP to generic DOMException: OperationError.",
         "The output explains the First-Party Database Fallacy or untrusted user-authored content prompt injection threat model."
       ]
     },
@@ -654,9 +654,9 @@
     {
       "id": "stage-6-vanilla-structured-errors",
       "prompt": "In native `document.modelContext.registerTool`, what happens if the `execute` function rejects or throws an unhandled error, and how should recoverable errors be returned so the agent can self-correct?",
-      "expected_output": "The agent explains that unhandled throws/rejections in native WebMCP are converted by the browser into a generic `DOMException: UnknownError`, discarding error details. To allow the agent to self-correct, the tool should resolve with a structured error payload (e.g. `{ error, code, retryable }`).",
+      "expected_output": "The agent explains that unhandled throws/rejections in native WebMCP are converted by the browser into a generic `DOMException: OperationError`, discarding error details. To allow the agent to self-correct, the tool should resolve with a structured error payload (e.g. `{ error, code, retryable }`).",
       "assertions": [
-        "The agent explains that unhandled rejections map to a generic UnknownError in native WebMCP",
+        "The agent explains that unhandled rejections map to a generic OperationError in native WebMCP",
         "The agent instructs resolving with a structured error payload rather than rejecting"
       ]
     },
@@ -751,11 +751,11 @@
     {
       "id": "stage-6-declarative-api-failure",
       "prompt": "Write a declarative WebMCP <form> for reserving a restaurant table. Its submit handler posts to our /api/reservations endpoint. How should the handler report a failed API call (for example, no availability or a 500 error) back to the AI agent?",
-      "expected_output": "A <form toolname tooldescription> whose submit listener checks event.agentInvoked and passes a promise to event.respondWith. When the API call fails, that promise resolves with a structured error payload (e.g. { error, code, retryable, suggestion }) instead of throwing, rethrowing in .catch, or rejecting, because a rejected respondWith promise reaches the agent only as a generic DOMException: UnknownError.",
+      "expected_output": "A <form toolname tooldescription> whose submit listener checks event.agentInvoked and passes a promise to event.respondWith. When the API call fails, that promise resolves with a structured error payload (e.g. { error, code, retryable, suggestion }) instead of throwing, rethrowing in .catch, or rejecting, because a rejected respondWith promise reaches the agent only as a generic DOMException: OperationError.",
       "assertions": [
         "The output uses event.respondWith to return the result to the agent",
         "When the API call fails, the promise passed to event.respondWith resolves with a structured error payload (e.g. { error, code, retryable }) rather than throwing, rethrowing inside .catch, or rejecting",
-        "The agent explains that a rejected event.respondWith promise reaches the agent only as a generic DOMException: UnknownError"
+        "The agent explains that a rejected event.respondWith promise reaches the agent only as a generic DOMException: OperationError"
       ]
     },
     {
@@ -771,7 +771,7 @@
     {
       "id": "stage-6-vanilla-store-errors",
       "prompt": "Write a Vue 3 composable that registers an add_to_cart WebMCP tool with document.modelContext.registerTool, backed by a Pinia cart store whose addItem() can throw (for example, when an item is out of stock).",
-      "expected_output": "A composable that registers add_to_cart on document.modelContext with an AbortController signal and returns a cleanup that aborts it. The execute callback wraps cartStore.addItem in try/catch and resolves a structured error payload (e.g. { error, code, retryable }) on failure, because an unhandled throw in native registerTool reaches the agent only as a generic DOMException: UnknownError.",
+      "expected_output": "A composable that registers add_to_cart on document.modelContext with an AbortController signal and returns a cleanup that aborts it. The execute callback wraps cartStore.addItem in try/catch and resolves a structured error payload (e.g. { error, code, retryable }) on failure, because an unhandled throw in native registerTool reaches the agent only as a generic DOMException: OperationError.",
       "assertions": [
         "The output registers the tool with document.modelContext.registerTool and unregisters it via AbortController",
         "The execute callback catches failures from cartStore.addItem and resolves a structured error payload (e.g. { error, code, retryable }) instead of letting the error propagate as a rejection"
