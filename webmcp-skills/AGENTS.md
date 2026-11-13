@@ -133,6 +133,20 @@ When adding capabilities, fixing issues, or refining guidance in `SKILL.md` or `
 
 ---
 
+## PR Scope & Review Checklist
+
+Apply this checklist before opening or approving any PR touching `skills/`:
+
+- [ ] **Single-Issue Scope**: Solve one issue/problem per PR (`Closes #<N>`). Do not bundle adjacent policy topics, unrequested audit rules, or broad suite expansions into the same diff.
+- [ ] **Tool-Author Persona Only (Never Consuming-Agent Rules)**: `build-webmcp-tools` instructs a web developer's coding assistant authoring `document.modelContext` / `<form toolname>` tools—_never_ the end user's browser shopping agent. Reject rules governing consuming-agent runtime behavior (e.g., DOM-clicking anti-bypass, chat PII prompts, or when an agent may claim an action succeeded) and conditions a page cannot observe via `document.modelContext` (e.g., whether an attached host implements a confirmation dialog).
+- [ ] **Preserve Concrete Cues in `SKILL.md`**: Never delete concrete code/schema tokens (such as `status: "requires_user_action"`, `consequentialHint: true`, or `(actionable errors)`) from `SKILL.md` to make room for abstract prose.
+- [ ] **Single Canonical Home & Internal Consistency**: State each rule once in its owning `references/*.md` file rather than repeating caveats (e.g., backend verification) across multiple guides, and verify new guidance does not weaken existing conventions (such as `initiate_*` navigation vs. `create_*`/`book_*` execution naming in `tool-design.md`).
+- [ ] **Per-Case Positive Eval Delta (No `+0.0 pp` or Duplicate Evals)**: Every _new_ eval case must individually show positive `with_skill` > `without_skill` lift (not just a positive group mean). Reject new cases where `without_skill` already passes at `100%`, where the prompt spoon-feeds the constraint, or where an existing suite (`core-principles`, `auditing-readiness`) already covers the rule.
+- [ ] **Natural Developer Prompts (No Baseline Coaching)**: Keep eval `prompt` text phrased like a real developer request—do not inject skill terminology (e.g., `"client-side WebMCP"`) into prompts to steer responses.
+- [ ] **Variance Check (`--runs 3`)**: Single-trial (`--runs 1`) failures on unrelated suites with `gemini-3.5-flash-lite` are often sampling variance; re-verify with `npm run eval:full` (`--runs 3`) rather than editing unrelated stages in the same PR.
+
+---
+
 ## Skill Authoring & Architecture Guidelines
 
 Skills in this repository follow the open standard ([agentskills.io](https://agentskills.io/home)) supported by Antigravity, Cursor, and Gemini CLI. When authoring or maintaining skills:
