@@ -1,10 +1,11 @@
 # AGENTS.md
 
-This repository contains WebMCP developer utilities, an evaluation CLI ([webmcp-evals/](webmcp-evals/)), a browser polyfill ([demos/shared/](demos/shared/)), and interactive demo apps ([demos/](demos/)). See [README.md](README.md) for the full project catalog.
+This repository contains WebMCP developer utilities, an evaluation CLI ([webmcp-evals/](webmcp-evals/)), agent skills ([webmcp-skills/](webmcp-skills/)), a browser polyfill ([demos/shared/](demos/shared/)), and interactive demo apps ([demos/](demos/)). See [README.md](README.md) for the full project catalog.
 
 Subproject-specific instructions:
 - **Demos (`demos/`)**: See [demos/AGENTS.md](demos/AGENTS.md)
 - **Evaluation CLI (`webmcp-evals/`)**: See [webmcp-evals/AGENTS.md](webmcp-evals/AGENTS.md)
+- **Agent Skills (`webmcp-skills/`)**: See [webmcp-skills/AGENTS.md](webmcp-skills/AGENTS.md)
 
 ## Repo-Wide Rules
 
@@ -17,6 +18,7 @@ Subproject-specific instructions:
   ```
 - **Build All Bundled Demos**: `./build-demos.sh`
 - **Lint & Test `webmcp-evals`**: `cd webmcp-evals && npm ci && npm run lint && npx oxfmt --check && npm test`
+- **Lint & Validate `webmcp-skills`**: `cd webmcp-skills && npm ci && npm run lint && npx oxfmt --check && npm run test:unit && npm run skill:validate`
 
 ## Adding a New Demo
 
