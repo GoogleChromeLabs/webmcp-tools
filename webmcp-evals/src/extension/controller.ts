@@ -605,6 +605,11 @@ async function launchExtensionChrome(options: ExtensionLaunchOptions): Promise<B
     }
   }
 
+  // Puppeteer passes --use-mock-keychain by default, which causes macOS Chrome to fail
+  // Secure Preferences verification and reset installed extensions in a real userDataDir.
+  const ignoreDefaultArgs =
+    options.userDataDir && process.platform === "darwin" ? ["--use-mock-keychain"] : undefined;
+
   return puppeteer.launch({
     browser: "chrome",
     channel: options.chromeChannel || DEFAULT_CHROME_CHANNEL,
@@ -613,6 +618,7 @@ async function launchExtensionChrome(options: ExtensionLaunchOptions): Promise<B
     enableExtensions: true,
     defaultViewport: null,
     ...(options.userDataDir ? { userDataDir: expandUserPath(options.userDataDir) } : {}),
+    ...(ignoreDefaultArgs ? { ignoreDefaultArgs } : {}),
     args,
   });
 }
