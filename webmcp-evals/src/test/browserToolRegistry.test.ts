@@ -4,11 +4,12 @@
  */
 
 import * as assert from "node:assert";
+import { EventEmitter, getEventListeners } from "node:events";
 import { describe, it } from "node:test";
-import { BrowserPage, BrowserToolRegistry } from "../evaluator/browser.js";
+import { BrowserPage, BrowserToolRegistry, type SettleClock } from "../evaluator/browser.js";
 
 class MockBrowserPage {
-  public evaluateResult: unknown = [];
+  public evaluateResult: unknown = "complete";
   public evaluateCalls: Array<{ fn: string | Function; args: unknown[] }> = [];
   public webmcp: any = {
     tools: () => [],
@@ -235,5 +236,274 @@ describe("BrowserToolRegistry", () => {
     const result = await registry.executeTool("bool_tool", {});
 
     assert.strictEqual(result, false);
+  });
+
+  describe("waitForToolsToSettle", () => {
+    function fakeSettleClock(onStep?: (prev: number, next: number) => void): {
+      clock: SettleClock;
+      elapsed: () => number;
+    } {
+      let now = 0;
+      return {
+        elapsed: () => now,
+        clock: {
+          now: () => now,
+          sleep: async (ms, signal) => {
+            signal?.throwIfAborted();
+            const prev = now;
+            now += ms;
+            onStep?.(prev, now);
+            signal?.throwIfAborted();
+          },
+        },
+      };
+    }
+
+    it("should wait for late-registered tools until changes pause", async () => {
+      type RawMockTool = {
+        name: string;
+        description: string;
+        frame?: object;
+        inputSchema?: object;
+      };
+      const webmcpEmitter = new EventEmitter() as EventEmitter & { tools: () => RawMockTool[] };
+      let currentTools: RawMockTool[] = [{ name: "search_location", description: "Search" }];
+      webmcpEmitter.tools = () => currentTools;
+
+      const page = new EventEmitter() as EventEmitter & {
+        webmcp: typeof webmcpEmitter;
+        evaluate: () => Promise<string>;
+      };
+      page.webmcp = webmcpEmitter;
+      page.evaluate = async () => "complete";
+
+      const { clock, elapsed } = fakeSettleClock((prev, next) => {
+        if (prev < 150 && next >= 150) {
+          currentTools = [
+            { name: "search_location", description: "Search" },
+            { name: "get_hotel_search_results", description: "Get results" },
+          ];
+          webmcpEmitter.emit("toolsadded");
+        }
+        if (prev < 200 && next >= 200) {
+          currentTools = [
+            { name: "search_location", description: "Search" },
+            { name: "get_hotel_search_results", description: "Get results" },
+            { name: "filter_search_results", description: "Filter results" },
+          ];
+          webmcpEmitter.emit("toolsadded");
+        }
+      });
+
+      const controller = new AbortController();
+      const registry = new BrowserToolRegistry(page as unknown as BrowserPage);
+      await registry.waitForToolsToSettle(
+        { signal: controller.signal, quietMs: 250, timeoutMs: 2_000, pollMs: 25 },
+        clock,
+      );
+
+      assert.deepStrictEqual(
+        registry.getCurrentTools().map((tool) => tool.functionName),
+        ["search_location", "get_hotel_search_results", "filter_search_results"],
+      );
+      assert.strictEqual(elapsed(), 450);
+      assert.strictEqual(webmcpEmitter.listenerCount("toolsadded"), 0);
+      assert.strictEqual(webmcpEmitter.listenerCount("toolsremoved"), 0);
+      assert.strictEqual(page.listenerCount("framenavigated"), 0);
+      assert.strictEqual(page.listenerCount("close"), 0);
+      assert.strictEqual(getEventListeners(controller.signal, "abort").length, 0);
+    });
+
+    it("should wait across document navigation, evaluate rejections, and in-flight navigation races", async () => {
+      type RawMockTool = { name: string; description: string };
+      const webmcpEmitter = new EventEmitter() as EventEmitter & { tools: () => RawMockTool[] };
+      let currentTools: RawMockTool[] = [{ name: "open_door", description: "Open door" }];
+      let readyState = "complete";
+      let rejectNextEvaluate = false;
+      let triggerMidEvaluateNav = true;
+      const mainFrame = {};
+      webmcpEmitter.tools = () => currentTools;
+
+      const page = new EventEmitter() as EventEmitter & {
+        webmcp: typeof webmcpEmitter;
+        mainFrame: () => object;
+        evaluate: () => Promise<string>;
+      };
+      page.webmcp = webmcpEmitter;
+      page.mainFrame = () => mainFrame;
+      page.evaluate = async () => {
+        if (triggerMidEvaluateNav) {
+          triggerMidEvaluateNav = false;
+          readyState = "loading";
+          currentTools = [];
+          page.emit("framenavigated", mainFrame);
+          webmcpEmitter.emit("toolsremoved");
+          rejectNextEvaluate = true;
+          return "complete";
+        }
+        if (rejectNextEvaluate) {
+          rejectNextEvaluate = false;
+          throw new Error("Execution context was destroyed");
+        }
+        return readyState;
+      };
+
+      const { clock, elapsed } = fakeSettleClock((prev, next) => {
+        if (prev < 100 && next >= 100) {
+          readyState = "complete";
+          currentTools = [{ name: "enter_forest", description: "Enter forest" }];
+          webmcpEmitter.emit("toolsadded");
+        }
+      });
+
+      const registry = new BrowserToolRegistry(page as unknown as BrowserPage);
+      await registry.waitForToolsToSettle({ quietMs: 100, timeoutMs: 1_000, pollMs: 25 }, clock);
+
+      assert.deepStrictEqual(
+        registry.getCurrentTools().map((tool) => tool.functionName),
+        ["enter_forest"],
+      );
+      assert.ok(
+        elapsed() >= 200,
+        `expected to wait until new page loaded + quietMs, got ${elapsed()}ms`,
+      );
+    });
+
+    it("should detect subframe navigation, distinct frame tools, and in-place schema updates", async () => {
+      const mainFrame = {};
+      const childFrame = {};
+      let currentTools: Array<{
+        name: string;
+        description: string;
+        frame: object;
+        inputSchema?: object;
+      }> = [{ name: "submit", description: "Submit", frame: mainFrame, inputSchema: { v: 1 } }];
+
+      const webmcpEmitter = new EventEmitter() as EventEmitter & {
+        tools: () => typeof currentTools;
+      };
+      webmcpEmitter.tools = () => currentTools;
+
+      const page = new EventEmitter() as EventEmitter & {
+        webmcp: typeof webmcpEmitter;
+        mainFrame: () => object;
+        evaluate: () => Promise<string>;
+      };
+      page.webmcp = webmcpEmitter;
+      page.mainFrame = () => mainFrame;
+      let evaluateCalls = 0;
+      page.evaluate = async () => {
+        evaluateCalls++;
+        return "complete";
+      };
+
+      const { clock, elapsed } = fakeSettleClock((prev, next) => {
+        if (prev < 50 && next >= 50) {
+          page.emit("framenavigated", childFrame);
+          currentTools = [
+            { name: "submit", description: "Submit", frame: childFrame, inputSchema: { v: 1 } },
+          ];
+        }
+        if (prev < 100 && next >= 100) {
+          currentTools = [
+            { name: "submit", description: "Submit", frame: childFrame, inputSchema: { v: 2 } },
+          ];
+        }
+      });
+
+      const registry = new BrowserToolRegistry(page as unknown as BrowserPage);
+      await registry.waitForToolsToSettle({ quietMs: 100, timeoutMs: 1_000, pollMs: 25 }, clock);
+
+      assert.strictEqual(evaluateCalls, 1, "Subframe navigation should not reset main-frame ready");
+      assert.strictEqual(elapsed(), 200);
+    });
+
+    it("should give up after timeoutMs when page registers no tools or evaluate hangs", async () => {
+      const page = new MockBrowserPage();
+      const registry = createRegistry(page);
+      const { clock, elapsed } = fakeSettleClock();
+
+      await registry.waitForToolsToSettle({ quietMs: 250, timeoutMs: 2_000, pollMs: 25 }, clock);
+      assert.strictEqual(elapsed(), 2_000);
+
+      const hungPage = new MockBrowserPage();
+      hungPage.evaluate = () => new Promise(() => {});
+      await assert.doesNotReject(
+        createRegistry(hungPage).waitForToolsToSettle({ timeoutMs: 30, pollMs: 10 }),
+      );
+    });
+
+    it("should return immediately on pre-aborted signal or already-closed page", async () => {
+      const page = new MockBrowserPage();
+      const registry = createRegistry(page);
+
+      const preAborted = new AbortController();
+      preAborted.abort();
+      await registry.waitForToolsToSettle({ signal: preAborted.signal });
+      assert.strictEqual(page.evaluateCalls.length, 0);
+
+      const closedPage = new EventEmitter() as EventEmitter & {
+        webmcp: { tools: () => never[] };
+        isClosed: () => boolean;
+        evaluate: () => Promise<string>;
+      };
+      closedPage.webmcp = { tools: () => [] };
+      closedPage.isClosed = () => true;
+      closedPage.evaluate = async () => {
+        throw new Error("should not evaluate a closed page");
+      };
+      await new BrowserToolRegistry(closedPage as unknown as BrowserPage).waitForToolsToSettle();
+    });
+
+    it("should resolve early without throwing and clean up listeners on mid-wait abort or page close", async () => {
+      const webmcpEmitter = new EventEmitter() as EventEmitter & {
+        tools: () => Array<{ name: string; description: string }>;
+      };
+      webmcpEmitter.tools = () => [{ name: "search_location", description: "Search" }];
+
+      const page = new EventEmitter() as EventEmitter & {
+        webmcp: typeof webmcpEmitter;
+        evaluate: () => Promise<string>;
+      };
+      page.webmcp = webmcpEmitter;
+      page.evaluate = async () => "complete";
+
+      // 1. Deterministic mid-wait AbortSignal cancellation with rejecting SettleClock.
+      const abortController = new AbortController();
+      const abortRun = fakeSettleClock((prev, next) => {
+        if (prev < 50 && next >= 50) {
+          abortController.abort(new Error("cancelled"));
+        }
+      });
+      const registry = new BrowserToolRegistry(page as unknown as BrowserPage);
+      await assert.doesNotReject(
+        registry.waitForToolsToSettle(
+          { signal: abortController.signal, quietMs: 500, timeoutMs: 2_000, pollMs: 25 },
+          abortRun.clock,
+        ),
+      );
+      assert.strictEqual(abortRun.elapsed(), 50);
+      assert.strictEqual(getEventListeners(abortController.signal, "abort").length, 0);
+
+      // 2. Deterministic mid-wait page "close" event with rejecting SettleClock.
+      const closeSignal = new AbortController();
+      const closeRun = fakeSettleClock((prev, next) => {
+        if (prev < 50 && next >= 50) {
+          page.emit("close");
+        }
+      });
+      await assert.doesNotReject(
+        registry.waitForToolsToSettle(
+          { signal: closeSignal.signal, quietMs: 500, timeoutMs: 2_000, pollMs: 25 },
+          closeRun.clock,
+        ),
+      );
+      assert.strictEqual(closeRun.elapsed(), 50);
+      assert.strictEqual(webmcpEmitter.listenerCount("toolsadded"), 0);
+      assert.strictEqual(webmcpEmitter.listenerCount("toolsremoved"), 0);
+      assert.strictEqual(page.listenerCount("framenavigated"), 0);
+      assert.strictEqual(page.listenerCount("close"), 0);
+      assert.strictEqual(getEventListeners(closeSignal.signal, "abort").length, 0);
+    });
   });
 });

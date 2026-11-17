@@ -37,10 +37,12 @@ import type {
   TrajectoryStep,
 } from "../types/evals.js";
 import { logger } from "../utils/logger.js";
-import { type BrowserPage, BrowserToolRegistry } from "./browser.js";
+import { type BrowserPage, BrowserToolRegistry, DEFAULT_SETTLE_TIMEOUT_MS } from "./browser.js";
 import { buildTestResults, DEFAULT_TIMEOUT_MS } from "./browserEvaluator.js";
+import type { SettleToolsOptions } from "./toolRegistry.js";
 
 type ExtensionBrowserRegistry = ToolSequenceRegistry & {
+  waitForToolsToSettle?(options?: SettleToolsOptions): Promise<void>;
   getBrowserConsoleErrors?(): BrowserConsoleError[];
 };
 
@@ -259,6 +261,11 @@ async function runSingleExtensionBrowserTest(
           `setup call ${failed.index} (${failed.functionName}) failed: ${failed.error}`,
         );
       }
+      await registry.waitForToolsToSettle?.(
+        stepTimeoutMs > 0
+          ? { timeoutMs: Math.min(stepTimeoutMs, DEFAULT_SETTLE_TIMEOUT_MS) }
+          : undefined,
+      );
     }
 
     recorder = PageToolCallRecorder.attach(page);

@@ -8,7 +8,12 @@ import { describe, it } from "node:test";
 import { VercelBackend } from "../backends/vercel.js";
 import { Eval } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
-import { LocalToolRegistry } from "../evaluator/toolRegistry.js";
+import { DEFAULT_SETTLE_TIMEOUT_MS } from "../evaluator/browser.js";
+import {
+  LocalToolRegistry,
+  type SettleToolsOptions,
+  type ToolRegistry,
+} from "../evaluator/toolRegistry.js";
 import { MockResolver } from "../evaluator/mockResolver.js";
 
 // Mock the AI module since we don't want to actually hit the LLM during unit tests
@@ -325,6 +330,100 @@ describe("VercelBackend", () => {
           },
         });
       });
+    });
+
+    it("should settle tools before follow-up steps in prepareStep, cap timeoutMs, and skip step 0", async (t) => {
+      const settleOptions: Array<SettleToolsOptions | undefined> = [];
+      let tools: Tool[] = [
+        {
+          functionName: "search_location",
+          description: "Search hotels",
+          parameters: { type: "object" },
+        },
+      ];
+
+      const dummyRegistry: ToolRegistry = {
+        getCurrentTools: () => tools,
+        executeTool: async () => ({ success: true }),
+        waitForToolsToSettle: async (opts?: SettleToolsOptions) => {
+          settleOptions.push(opts);
+          if (tools.length === 1) {
+            tools = [
+              ...tools,
+              {
+                functionName: "filter_search_results",
+                description: "Filter results",
+                parameters: { type: "object" },
+              },
+            ];
+          }
+        },
+      };
+
+      t.mock.method(ai.ToolLoopAgent.prototype, "generate", async function (this: any) {
+        const countBeforeRun = settleOptions.length;
+        const step0Result = await this.settings.prepareStep({ stepNumber: 0, steps: [] });
+        assert.strictEqual(step0Result, undefined);
+        assert.strictEqual(settleOptions.length, countBeforeRun, "Should not settle before step 0");
+
+        const step1Result = await this.settings.prepareStep({ stepNumber: 1, steps: [{}] });
+        assert.strictEqual(step1Result, undefined);
+        assert.strictEqual(settleOptions.length, countBeforeRun + 1, "Should settle before step 1");
+        assert.deepStrictEqual(Object.keys(this.settings.tools), [
+          "search_location",
+          "filter_search_results",
+        ]);
+
+        return {
+          steps: [
+            { text: "", toolCalls: [], toolResults: [] },
+            { text: "Done", toolCalls: [], toolResults: [] },
+          ],
+          text: "Done",
+        };
+      });
+
+      const evalCase: Eval = {
+        name: "Dynamic tool registration",
+        messages: [{ role: "user", type: "message", content: "Search and filter" }],
+        expectedCall: [],
+      };
+
+      const defaultBackend = new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+      } as any);
+      const result = await defaultBackend.executeInBrowserEval(evalCase, dummyRegistry);
+
+      assert.strictEqual(settleOptions.length, 1);
+      assert.strictEqual(settleOptions[0], undefined);
+      assert.deepStrictEqual(
+        result.steps?.map((s) => s.availableTools?.map((tool) => tool.functionName)),
+        [["search_location"], ["search_location", "filter_search_results"]],
+      );
+
+      // Short timeoutMs (< DEFAULT_SETTLE_TIMEOUT_MS) caps settle timeout down; large timeoutMs caps at DEFAULT_SETTLE_TIMEOUT_MS; 0 disables override.
+      await new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+        timeoutMs: 500,
+      } as any).executeInBrowserEval(evalCase, dummyRegistry);
+      await new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+        timeoutMs: 30_000,
+      } as any).executeInBrowserEval(evalCase, dummyRegistry);
+      await new VercelBackend({
+        model: "gemini-3-flash-preview",
+        url: "http://localhost:3000",
+        timeoutMs: 0,
+      } as any).executeInBrowserEval(evalCase, dummyRegistry);
+
+      assert.deepStrictEqual(settleOptions.slice(1), [
+        { timeoutMs: 500 },
+        { timeoutMs: DEFAULT_SETTLE_TIMEOUT_MS },
+        undefined,
+      ]);
     });
   });
 });

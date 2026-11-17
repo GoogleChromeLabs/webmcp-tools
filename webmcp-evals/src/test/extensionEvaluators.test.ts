@@ -113,6 +113,7 @@ type FailedCall = { success: false; error: string };
 function registry(
   tools: Array<keyof typeof TOOL_DESCRIPTIONS>,
   onCall?: (name: string, args?: Record<string, unknown>) => FailedCall | void,
+  onSettle?: () => void,
 ) {
   return {
     getCurrentTools: () =>
@@ -127,6 +128,9 @@ function registry(
     },
     executeToolChecked: async (name: string, args?: Record<string, unknown>) =>
       onCall?.(name, args) || { success: true as const, result: { ok: true } },
+    waitForToolsToSettle: async () => {
+      onSettle?.();
+    },
   };
 }
 
@@ -173,7 +177,9 @@ function domAssertionsFromState(tool: string, field: string, expected: string) {
 describe("executeExtensionBrowserEvals", () => {
   it("replays prior setup tool calls without crediting them to the agent and matches expected trajectory", async () => {
     const setupExecuted: Array<{ name: string; args?: Record<string, unknown> }> = [];
+    const lifecycleEvents: string[] = [];
     const controller = new MockExtensionController(async (_prompt, page) => {
+      lifecycleEvents.push("turn");
       page.simulateExtensionToolCall(
         "ext-1",
         "addTopping",
@@ -223,15 +229,23 @@ describe("executeExtensionBrowserEvals", () => {
     const results = await executeExtensionBrowserEvals(tests, config, undefined, {
       connectExtensionController: async () => controller,
       createRegistry: () =>
-        registry(["setCrust", "addTopping"], (name, args) => {
-          setupExecuted.push({ name, args });
-        }),
+        registry(
+          ["setCrust", "addTopping"],
+          (name, args) => {
+            setupExecuted.push({ name, args });
+            lifecycleEvents.push(`setup:${name}`);
+          },
+          () => {
+            lifecycleEvents.push("settle");
+          },
+        ),
     });
 
     assert.strictEqual(results.passCount, 1);
     assert.strictEqual(results.failCount, 0);
     assert.strictEqual(results.errorCount, 0);
     assert.deepStrictEqual(setupExecuted, [{ name: "setCrust", args: { crust: "thin" } }]);
+    assert.deepStrictEqual(lifecycleEvents, ["setup:setCrust", "settle", "turn"]);
     assert.deepStrictEqual(
       results.results[0]?.setupCalls?.map((call) => call.functionName),
       ["setCrust"],

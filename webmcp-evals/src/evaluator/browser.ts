@@ -4,11 +4,17 @@
  */
 
 import puppeteer, { Browser, ChromeReleaseChannel, ConsoleMessage } from "puppeteer-core";
-import type { Page as BrowserPage, WebMCPToolCall, WebMCPToolCallResult } from "puppeteer-core";
+import type {
+  Frame,
+  Page as BrowserPage,
+  WebMCPToolCall,
+  WebMCPToolCallResult,
+} from "puppeteer-core";
 import { BrowserConsoleError } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
+import { delay } from "../utils/async.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
-import { ToolRegistry } from "./toolRegistry.js";
+import type { SettleToolsOptions, ToolRegistry } from "./toolRegistry.js";
 
 export type { Browser, BrowserPage };
 
@@ -33,6 +39,28 @@ export async function launchBrowser(
 /** Result of a declarative form tool that is still waiting for a human to submit it. */
 export const PENDING_FORM_RESULT = "pending form submission";
 
+/** Default quiet window with no tool changes before `waitForToolsToSettle` resolves. */
+const DEFAULT_SETTLE_QUIET_MS = 250;
+/** Default upper bound for `waitForToolsToSettle`. */
+export const DEFAULT_SETTLE_TIMEOUT_MS = 2_000;
+/** Default polling interval while waiting for page readiness or tool changes. */
+const DEFAULT_SETTLE_POLL_MS = 25;
+
+export interface BrowserSettleToolsOptions extends SettleToolsOptions {
+  quietMs?: number;
+  pollMs?: number;
+}
+
+export interface SettleClock {
+  now(): number;
+  sleep(ms: number, signal?: AbortSignal): Promise<void>;
+}
+
+const realSettleClock: SettleClock = {
+  now: () => performance.now(),
+  sleep: (ms, signal) => delay(ms, signal),
+};
+
 export class BrowserToolRegistry implements ToolRegistry {
   private currentTools: Tool[] = [];
   private browserConsoleErrors: BrowserConsoleError[] = [];
@@ -45,6 +73,122 @@ export class BrowserToolRegistry implements ToolRegistry {
     const rawTools = this.page.webmcp.tools() || [];
     this.currentTools = mapRawBrowserToolsToConfig(rawTools);
     return [...this.currentTools];
+  }
+
+  /**
+   * Waits for the page's WebMCP tools to settle after a round of tool calls, so
+   * the next step declares the tools the page has now.
+   *
+   * A tool call can navigate or render a view that registers tools asynchronously
+   * after `execute()` resolves. This flushes a turn on the page, waits until the
+   * document is complete and has at least one tool (so async views that clear old
+   * tools while loading do not exit empty), then waits `quietMs` without further
+   * tool changes, giving up after `timeoutMs` with whatever tools arrived by then.
+   */
+  async waitForToolsToSettle(
+    {
+      signal,
+      quietMs = DEFAULT_SETTLE_QUIET_MS,
+      timeoutMs = DEFAULT_SETTLE_TIMEOUT_MS,
+      pollMs = DEFAULT_SETTLE_POLL_MS,
+    }: BrowserSettleToolsOptions = {},
+    clock: SettleClock = realSettleClock,
+  ): Promise<void> {
+    if (signal?.aborted || isPageClosed(this.page)) return;
+
+    const intervalMs = Math.max(1, pollMs);
+    const start = clock.now();
+    const readToolsSnapshot = createToolsSnapshotReader(this.page);
+    const initialSnapshot = readToolsSnapshot();
+
+    let seenSignature = initialSnapshot.signature;
+    let toolCount = initialSnapshot.count;
+    let lastActivityAt = start;
+    let pageReady = false;
+    let navigationEpoch = 0;
+
+    const stopController = new AbortController();
+    const stopSettling = () => stopController.abort();
+
+    const syncTools = (forceActivity = false) => {
+      const snapshot = readToolsSnapshot();
+      toolCount = snapshot.count;
+      if (forceActivity || snapshot.signature !== seenSignature) {
+        seenSignature = snapshot.signature;
+        lastActivityAt = clock.now();
+      }
+    };
+    const markToolChange = () => syncTools(true);
+
+    const onFrameNavigated = (frame: Frame) => {
+      const mainFrame = safeMainFrame(this.page);
+      if (!mainFrame || frame === mainFrame) {
+        navigationEpoch++;
+        pageReady = false;
+      } else {
+        lastActivityAt = clock.now();
+      }
+    };
+
+    const hasWebmcpEvents =
+      typeof this.page.webmcp.on === "function" && typeof this.page.webmcp.off === "function";
+    const hasPageEvents = typeof this.page.on === "function" && typeof this.page.off === "function";
+
+    try {
+      signal?.addEventListener("abort", stopSettling, { once: true });
+      if (hasWebmcpEvents) {
+        this.page.webmcp.on("toolsadded", markToolChange);
+        this.page.webmcp.on("toolsremoved", markToolChange);
+      }
+      if (hasPageEvents) {
+        this.page.on("framenavigated", onFrameNavigated);
+        this.page.on("close", stopSettling);
+      }
+
+      while (
+        !stopController.signal.aborted &&
+        !isPageClosed(this.page) &&
+        clock.now() - start < timeoutMs
+      ) {
+        if (!pageReady) {
+          const epoch = navigationEpoch;
+          const remaining = timeoutMs - (clock.now() - start);
+          const ready =
+            remaining > 0 &&
+            (await isDocumentComplete(this.page, remaining, stopController.signal));
+          if (stopController.signal.aborted || isPageClosed(this.page)) return;
+          if (ready && epoch === navigationEpoch) {
+            pageReady = true;
+            lastActivityAt = clock.now();
+          }
+        }
+
+        syncTools();
+
+        if (pageReady && toolCount > 0 && clock.now() - lastActivityAt >= quietMs) {
+          return;
+        }
+
+        const remaining = timeoutMs - (clock.now() - start);
+        if (remaining <= 0) return;
+        try {
+          await clock.sleep(Math.min(intervalMs, remaining), stopController.signal);
+        } catch (error) {
+          if (!stopController.signal.aborted) throw error;
+        }
+      }
+    } finally {
+      signal?.removeEventListener("abort", stopSettling);
+      stopController.abort();
+      if (hasWebmcpEvents) {
+        this.page.webmcp.off("toolsadded", markToolChange);
+        this.page.webmcp.off("toolsremoved", markToolChange);
+      }
+      if (hasPageEvents) {
+        this.page.off("framenavigated", onFrameNavigated);
+        this.page.off("close", stopSettling);
+      }
+    }
   }
 
   getBrowserConsoleErrors(): BrowserConsoleError[] {
@@ -249,4 +393,84 @@ export function consoleErrorFromMessage(
   if (location.lineNumber !== undefined) error.lineNumber = location.lineNumber;
   if (location.columnNumber !== undefined) error.columnNumber = location.columnNumber;
   return error;
+}
+
+function isPageClosed(page: BrowserPage): boolean {
+  return typeof page.isClosed === "function" && page.isClosed();
+}
+
+function safeMainFrame(page: BrowserPage): Frame | undefined {
+  try {
+    return typeof page.mainFrame === "function" ? page.mainFrame() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function createToolsSnapshotReader(page: BrowserPage): () => { count: number; signature: string } {
+  const frameIds = new WeakMap<object, number>();
+  let nextFrameId = 1;
+  const getFrameId = (frame: Frame | undefined): number => {
+    if (!frame || typeof frame !== "object") return 0;
+    let id = frameIds.get(frame);
+    if (id === undefined) {
+      id = nextFrameId++;
+      frameIds.set(frame, id);
+    }
+    return id;
+  };
+
+  return () => {
+    const tools = page.webmcp.tools() || [];
+    return {
+      count: tools.length,
+      signature: JSON.stringify(
+        tools.map((tool) => [
+          getFrameId(tool.frame),
+          tool.name,
+          tool.description ?? "",
+          tool.inputSchema ?? null,
+          tool.annotations ?? null,
+        ]),
+      ),
+    };
+  };
+}
+
+/**
+ * Yields one unthrottled task turn on the page via `MessageChannel` (avoiding
+ * Chromium's 1 Hz background `setTimeout` throttling in occluded windows) and
+ * checks whether `document.readyState === "complete"`.
+ */
+async function isDocumentComplete(
+  page: BrowserPage,
+  timeoutMs: number,
+  stopSignal: AbortSignal,
+): Promise<boolean> {
+  if (stopSignal.aborted || isPageClosed(page)) return false;
+  if (typeof page.evaluate !== "function") return true;
+
+  const raceController = new AbortController();
+  try {
+    const evaluatePromise = page
+      .evaluate(
+        () =>
+          new Promise<string>((resolve) => {
+            const { port1, port2 } = new MessageChannel();
+            port1.onmessage = () => resolve(document.readyState);
+            port2.postMessage(undefined);
+          }),
+      )
+      .catch(() => "loading");
+    const readyState = await Promise.race([
+      evaluatePromise,
+      delay(timeoutMs, AbortSignal.any([stopSignal, raceController.signal])).then(
+        () => "loading",
+        () => "loading",
+      ),
+    ]);
+    return readyState === "complete";
+  } finally {
+    raceController.abort();
+  }
 }
