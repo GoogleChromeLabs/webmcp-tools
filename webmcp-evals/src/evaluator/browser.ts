@@ -85,6 +85,10 @@ export class BrowserToolRegistry implements ToolRegistry {
    * tools while loading do not exit empty), then waits `quietMs` without further
    * tool changes, giving up after `timeoutMs` with whatever tools arrived by then.
    */
+  // TODO(https://github.com/webmachinelearning/webmcp/pull/373): Replace or
+  // supplement this quiet-window / toolCount > 0 heuristic once the spec's
+  // `waitForToolsUntil()` stability signal and `ToolChangeEvent` are exposed
+  // through `page.webmcp` (eliminating the 250ms settle delay and 0-tool timeout).
   async waitForToolsToSettle(
     {
       signal,
