@@ -259,4 +259,86 @@ describe("Browser Integration", () => {
       server.close();
     }
   });
+
+  it("settles asynchronously registered SPA tools after a navigation tool resolves", async (t) => {
+    let releaseSearchResults: (() => void) | undefined;
+    const searchGate = new Promise<void>((resolve) => {
+      releaseSearchResults = resolve;
+    });
+
+    const server = http.createServer(async (req, res) => {
+      if (req.url === "/api/search") {
+        await searchGate;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(`
+        <!DOCTYPE html>
+        <html>
+          <body>
+            <script>
+              document.modelContext.registerTool({
+                name: 'search_location',
+                description: 'Navigate to search results',
+                execute: () => {
+                  // Mimics an SPA route transition that registers tools after execute() returns.
+                  void fetch('/api/search').then(() => {
+                    document.modelContext.registerTool({
+                      name: 'filter_search_results',
+                      description: 'Filter search results',
+                      execute: () => ({ success: true })
+                    });
+                  });
+                  return { success: true };
+                }
+              });
+            </script>
+          </body>
+        </html>
+      `);
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    t.after(() => {
+      releaseSearchResults?.();
+      server.close();
+    });
+
+    let browser;
+    try {
+      browser = await launchBrowser();
+    } catch {
+      t.skip("Could not launch browser");
+      return;
+    }
+    t.after(() => browser.close());
+
+    const { port } = server.address() as { port: number };
+    const page = await browser.newPage();
+    await page.goto(`http://127.0.0.1:${port}`, { waitUntil: "networkidle2" });
+    const registry = new BrowserToolRegistry(page);
+
+    assert.deepStrictEqual(
+      registry.getCurrentTools().map((tool) => tool.functionName),
+      ["search_location"],
+    );
+
+    await registry.executeTool("search_location", {});
+    // Deterministically prove the new view's tool is not registered before settling.
+    assert.deepStrictEqual(
+      registry.getCurrentTools().map((tool) => tool.functionName),
+      ["search_location"],
+    );
+
+    const releaseTimer = setTimeout(() => releaseSearchResults?.(), 20);
+    t.after(() => clearTimeout(releaseTimer));
+    await registry.waitForToolsToSettle({ quietMs: 250, timeoutMs: 5_000 });
+
+    assert.deepStrictEqual(
+      registry.getCurrentTools().map((tool) => tool.functionName),
+      ["search_location", "filter_search_results"],
+    );
+  });
 });

@@ -32,12 +32,19 @@ import {
 } from "../simulate/conversation.js";
 import type { AgentTurnResult } from "../simulate/agentTurn.js";
 import { judgeSimulation, JudgeRequest } from "../simulate/judge.js";
-import { ToolCallOutcome, runToolCallSequence, withTimeout } from "../simulate/toolSequence.js";
+import {
+  ToolCallOutcome,
+  type ToolSequenceRegistry,
+  runToolCallSequence,
+  withTimeout,
+} from "../simulate/toolSequence.js";
 import { DomAssertionResult, evaluateDomAssertions } from "../simulate/domAssertions.js";
+import type { ToolRegistry } from "./toolRegistry.js";
 import {
   Browser,
   BrowserPage,
   BrowserToolRegistry,
+  DEFAULT_SETTLE_TIMEOUT_MS,
   launchBrowser,
   PUPPETEER_FLAGS,
 } from "./browser.js";
@@ -108,15 +115,10 @@ export type SimulationRunEvent =
   | { type: "error"; message: string };
 
 /** Everything the registry has to offer to drive setup and a conversation. */
-export type SimulationRegistry = {
-  getCurrentTools(): any;
-  executeTool(name: string, args?: Record<string, unknown>): Promise<any>;
-  executeToolChecked(
-    name: string,
-    args?: Record<string, unknown>,
-  ): Promise<{ success: true; result: unknown } | { success: false; error: string }>;
-  getBrowserConsoleErrors?(): BrowserConsoleError[];
-};
+export type SimulationRegistry = ToolRegistry &
+  ToolSequenceRegistry & {
+    getBrowserConsoleErrors?(): BrowserConsoleError[];
+  };
 
 export type SimulationModels = {
   agent: LanguageModel;
@@ -440,6 +442,9 @@ async function runOneSimulation(
           ...consoleErrors(),
         };
       }
+      await registry.waitForToolsToSettle?.({
+        timeoutMs: Math.min(timeoutMs, DEFAULT_SETTLE_TIMEOUT_MS),
+      });
     }
 
     let conversationInput:
@@ -471,7 +476,7 @@ async function runOneSimulation(
       maxTurns: simulation.maxTurns,
       maxDurationMs: simulation.maxDurationMs || config.maxDurationMs || DEFAULT_MAX_DURATION_MS,
       maxSteps: config.maxSteps || DEFAULT_MAX_STEPS,
-      registry: registry as any,
+      registry,
       agentModel: models.agent,
     });
     // An expired budget returns before the extension has stopped. Wait for it before
@@ -642,8 +647,7 @@ export async function executeSimulations(
       includeUser: needsUser,
     });
   const createRegistry =
-    dependencies.createRegistry ||
-    ((page: BrowserPage) => new BrowserToolRegistry(page) as SimulationRegistry);
+    dependencies.createRegistry || ((page: BrowserPage) => new BrowserToolRegistry(page));
 
   const results: SimulationResult[] = [];
   let runtime: SimulationTargetRuntime;

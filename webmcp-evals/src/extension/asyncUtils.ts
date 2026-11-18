@@ -3,22 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export async function delay(ms: number, signal?: AbortSignal): Promise<void> {
-  if (signal?.aborted) {
-    throw signal.reason ?? new Error("Aborted");
-  }
-  await new Promise<void>((resolve, reject) => {
-    const onAbort = (): void => {
-      clearTimeout(timer);
-      reject(signal?.reason ?? new Error("Aborted"));
-    };
-    const timer = setTimeout(() => {
-      signal?.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
-    signal?.addEventListener("abort", onAbort, { once: true });
-  });
-}
+import { delay } from "../utils/async.js";
+
+export { delay };
 
 export async function pollUntil<T>(
   check: () => Promise<T | undefined>,
@@ -36,7 +23,7 @@ export async function pollUntil<T>(
     if (value !== undefined) {
       return value;
     }
-    await delay(options.intervalMs, options.signal);
+    await delay(Math.max(1, options.intervalMs), options.signal);
   }
   const label = typeof options.label === "function" ? options.label() : options.label;
   throw new Error(`Timed out after ${options.timeoutMs} ms waiting for ${label}.`);

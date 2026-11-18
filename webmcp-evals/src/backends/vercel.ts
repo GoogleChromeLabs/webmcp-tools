@@ -9,7 +9,7 @@ import { Eval, TrajectoryStep } from "../types/evals.js";
 import { Tool, ToolCall } from "../types/tools.js";
 
 import { Backend, BrowserEvalResult, LocalEvalResult } from "../backends/index.js";
-import { BrowserToolRegistry } from "../evaluator/browser.js";
+import { BrowserToolRegistry, DEFAULT_SETTLE_TIMEOUT_MS } from "../evaluator/browser.js";
 import { mapJsonSchemaToVercelTools, mapMessages } from "../evaluator/mappers.js";
 import { getModel } from "../evaluator/models.js";
 import { SYSTEM_PROMPT } from "../evaluator/prompts.js";
@@ -26,6 +26,7 @@ export class VercelBackend implements Backend {
   private modelName: string;
   private debug: boolean;
   private maxSteps: number;
+  private timeoutMs?: number;
 
   private logger: ConsoleLogger;
 
@@ -34,6 +35,7 @@ export class VercelBackend implements Backend {
     this.aiModel = getModel(config);
     this.debug = !!config.debug;
     this.maxSteps = config.maxSteps ?? DEFAULT_MAX_STEPS;
+    this.timeoutMs = "timeoutMs" in config ? config.timeoutMs : undefined;
     this.logger = new ConsoleLogger();
     this.logger.setDebugEnabled(this.debug);
   }
@@ -137,7 +139,7 @@ export class VercelBackend implements Backend {
     };
 
     try {
-      let currentTools = await registry.getCurrentTools();
+      let currentTools = registry.getCurrentTools();
 
       const aiToolsWithExecution: Record<string, any> = {};
       const rebuildTools = (toolsList: Tool[]) => {
@@ -188,11 +190,18 @@ export class VercelBackend implements Backend {
             toolResults: event.toolResults,
           });
         },
-        prepareStep: async (_opts: any): Promise<any> => {
-          currentTools = await registry.getCurrentTools();
+        prepareStep: async (opts) => {
+          if (opts.stepNumber > 0) {
+            await registry.waitForToolsToSettle?.(
+              this.timeoutMs !== undefined && this.timeoutMs > 0
+                ? { timeoutMs: Math.min(this.timeoutMs, DEFAULT_SETTLE_TIMEOUT_MS) }
+                : undefined,
+            );
+          }
+          currentTools = registry.getCurrentTools();
           rebuildTools(currentTools);
           availableToolsPerStep.push([...currentTools]);
-          return _opts;
+          return undefined;
         },
       });
 

@@ -76,6 +76,8 @@ class FakeBrowser {
 
 class FakeRegistry implements SimulationRegistry {
   executed: Array<{ name: string; args?: Record<string, unknown> }> = [];
+  settledCount = 0;
+  events: string[] = [];
 
   constructor(
     private tools: Tool[] = [tool("addToCart"), tool("removeFromCart")],
@@ -89,6 +91,7 @@ class FakeRegistry implements SimulationRegistry {
 
   async executeTool(name: string, args?: Record<string, unknown>): Promise<any> {
     this.executed.push({ name, args });
+    this.events.push(`execute:${name}`);
     return { ok: true };
   }
 
@@ -97,8 +100,14 @@ class FakeRegistry implements SimulationRegistry {
     args?: Record<string, unknown>,
   ): Promise<{ success: true; result: unknown } | { success: false; error: string }> {
     this.executed.push({ name, args });
+    this.events.push(`execute:${name}`);
     if (this.failing[name]) return { success: false, error: this.failing[name] };
     return { success: true, result: { ok: true } };
+  }
+
+  async waitForToolsToSettle(): Promise<void> {
+    this.settledCount++;
+    this.events.push("settle");
   }
 
   getBrowserConsoleErrors(): BrowserConsoleError[] {
@@ -268,6 +277,11 @@ describe("executeSimulations", () => {
             ["addToCart"],
             "setup must have run before the agent joined",
           );
+          assert.deepStrictEqual(
+            registry.events,
+            ["execute:addToCart", "settle"],
+            "tools must settle after setup and before the conversation starts",
+          );
           return conversationResult();
         },
         judgeSimulation: async (request) => {
@@ -284,6 +298,7 @@ describe("executeSimulations", () => {
 
   it("errors without paying for a judge call when setup breaks", async () => {
     let judgeCalls = 0;
+    const registry = new FakeRegistry(undefined, { addToCart: "out of stock" });
 
     const results = await executeSimulations(
       [simulation({ setup: [{ functionName: "addToCart", arguments: { productId: "p3" } }] })],
@@ -291,7 +306,7 @@ describe("executeSimulations", () => {
       undefined,
       deps({
         launchBrowser: async () => new FakeBrowser() as unknown as Browser,
-        createRegistry: () => new FakeRegistry(undefined, { addToCart: "out of stock" }),
+        createRegistry: () => registry,
         judgeSimulation: async () => {
           judgeCalls++;
           return verdict();
@@ -301,6 +316,7 @@ describe("executeSimulations", () => {
 
     assert.strictEqual(results.errorCount, 1);
     assert.strictEqual(judgeCalls, 0);
+    assert.strictEqual(registry.settledCount, 0);
     assert.match(results.results[0].error || "", /setup call 1 \(addToCart\) failed: out of stock/);
     assert.strictEqual(results.results[0].setupCalls?.[0].outcome, "error");
   });

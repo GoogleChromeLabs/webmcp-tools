@@ -41,8 +41,8 @@ export type AgentTurnRequest = {
   /** Cap on tool-calling steps within this one turn. */
   maxSteps: number;
   /**
-   * Requests cancellation of the model call when the conversation's
-   * wall-clock budget expires. The signal is not forwarded to
+   * Requests cancellation of the model call and between-step tool settling when
+   * the conversation's wall-clock budget expires. The signal is not forwarded to
    * `ToolRegistry.executeTool`; a page operation already in flight may still
    * finish and mutate the DOM after this turn returns.
    */
@@ -112,13 +112,13 @@ export async function runAgentTurn(request: AgentTurnRequest): Promise<AgentTurn
       for (const key of Object.keys(executableTools)) delete executableTools[key];
       Object.assign(
         executableTools,
-        // Deliberately no abort signal here: ToolRegistry has no cancellation
-        // contract. Aborting the model prevents further agent work, but cannot
-        // promise to stop a page tool that has already started.
+        // Deliberately no abort signal here: ToolRegistry.executeTool has no
+        // cancellation contract. Aborting the model prevents further agent work,
+        // but cannot promise to stop a page tool that has already started.
         mapJsonSchemaToVercelTools(tools, (fnName, args) => registry.executeTool(fnName, args)),
       );
     };
-    rebuildTools(await registry.getCurrentTools());
+    rebuildTools(registry.getCurrentTools());
 
     const agent = new ToolLoopAgent({
       model,
@@ -145,12 +145,17 @@ export async function runAgentTurn(request: AgentTurnRequest): Promise<AgentTurn
         });
       },
       // WebMCP tools belong to the page, so the set changes as the agent
-      // navigates. Re-read them before every step rather than once per turn.
-      prepareStep: async (options: any): Promise<any> => {
-        const tools = await registry.getCurrentTools();
+      // navigates. Settle and re-read them before every follow-up step.
+      prepareStep: async (options) => {
+        abortSignal?.throwIfAborted();
+        if (options.stepNumber > 0) {
+          await registry.waitForToolsToSettle?.(abortSignal ? { signal: abortSignal } : undefined);
+          abortSignal?.throwIfAborted();
+        }
+        const tools = registry.getCurrentTools();
         rebuildTools(tools);
         availableToolsPerStep.push([...tools]);
-        return options;
+        return undefined;
       },
     });
 

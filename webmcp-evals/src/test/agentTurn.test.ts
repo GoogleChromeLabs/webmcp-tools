@@ -6,6 +6,7 @@
 import * as assert from "node:assert";
 import { describe, it } from "node:test";
 import * as ai from "ai";
+import type { SettleToolsOptions, ToolRegistry } from "../evaluator/toolRegistry.js";
 import { runAgentTurn } from "../simulate/agentTurn.js";
 
 const registry: any = {
@@ -154,5 +155,98 @@ describe("runAgentTurn", () => {
     await runAgentTurn(turn());
 
     assert.ok(!("abortSignal" in captured));
+  });
+
+  it("waits for tools to settle before follow-up steps and respects the abort signal", async (t) => {
+    const settleOptions: Array<SettleToolsOptions | undefined> = [];
+    let currentTools = [
+      { functionName: "search_location", description: "Search", parameters: { type: "object" } },
+    ];
+    const dynamicRegistry: ToolRegistry = {
+      getCurrentTools: () => currentTools,
+      executeTool: async () => ({}),
+      waitForToolsToSettle: async (opts?: SettleToolsOptions) => {
+        settleOptions.push(opts);
+        currentTools = [
+          ...currentTools,
+          {
+            functionName: "filter_search_results",
+            description: "Filter",
+            parameters: { type: "object" },
+          },
+        ];
+      },
+    };
+
+    t.mock.method(ai.ToolLoopAgent.prototype, "generate", async function (this: any) {
+      const step0Result = await this.settings.prepareStep({ stepNumber: 0, steps: [] });
+      assert.strictEqual(step0Result, undefined);
+      assert.strictEqual(settleOptions.length, 0);
+      assert.deepStrictEqual(Object.keys(this.settings.tools), ["search_location"]);
+
+      const step1Result = await this.settings.prepareStep({ stepNumber: 1, steps: [{}] });
+      assert.strictEqual(step1Result, undefined);
+      assert.strictEqual(settleOptions.length, 1);
+      assert.deepStrictEqual(Object.keys(this.settings.tools), [
+        "search_location",
+        "filter_search_results",
+      ]);
+      return {
+        steps: [
+          { text: "", toolCalls: [], toolResults: [] },
+          { text: "Filtered.", toolCalls: [], toolResults: [] },
+        ],
+        text: "Filtered.",
+        response: { messages: [] },
+      };
+    });
+
+    const controller = new AbortController();
+    const result = await runAgentTurn(
+      turn({ registry: dynamicRegistry, abortSignal: controller.signal }),
+    );
+
+    assert.strictEqual(settleOptions[0]?.signal, controller.signal);
+    assert.deepStrictEqual(
+      result.steps.map((step) => step.availableTools?.map((tool) => tool.functionName)),
+      [["search_location"], ["search_location", "filter_search_results"]],
+    );
+
+    // Without an abortSignal, waitForToolsToSettle receives undefined.
+    await runAgentTurn(turn({ registry: dynamicRegistry }));
+    assert.strictEqual(settleOptions[1], undefined);
+  });
+
+  it("aborts prepareStep immediately if abortSignal fires while settling tools", async (t) => {
+    const controller = new AbortController();
+    let getCurrentToolsCalls = 0;
+    const abortingRegistry: ToolRegistry = {
+      getCurrentTools: () => {
+        getCurrentToolsCalls++;
+        return [
+          {
+            functionName: "search_location",
+            description: "Search",
+            parameters: { type: "object" },
+          },
+        ];
+      },
+      executeTool: async () => ({}),
+      waitForToolsToSettle: async () => {
+        controller.abort(new Error("budget expired"));
+      },
+    };
+
+    t.mock.method(ai.ToolLoopAgent.prototype, "generate", async function (this: any) {
+      await this.settings.prepareStep({ stepNumber: 1, steps: [{}] });
+      return { steps: [], text: "", response: { messages: [] } };
+    });
+
+    const result = await runAgentTurn(
+      turn({ registry: abortingRegistry, abortSignal: controller.signal }),
+    );
+    assert.ok(result.error instanceof Error);
+    assert.strictEqual((result.error as Error).message, "budget expired");
+    assert.strictEqual(getCurrentToolsCalls, 1, "Should not re-read tools after abort");
   });
 });
