@@ -11,11 +11,11 @@ Deliver actionable error guidance so the agent can self-correct and proceed. How
 
 ## 1. Error Handling by API
 
-| API                                            | On failure                                                                                                             | Why                                                                                                                                                                   |
-| :--------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **React (`useWebMCP` from `use-webmcp-tool`)** | `throw new Error("<actionable remediation>")`. Do **not** return failure objects.                                      | The hook catches the error and resolves `{ content: [{ type: "text", text: err.message }], isError: true }`. A returned plain object is treated as success.           |
-| **Native imperative (`registerTool`)**         | **Resolve** a structured payload, e.g. `{ error: "...", code: "...", retryable: true }`.                               | Per the W3C WebMCP spec, an unhandled throw/rejection in `execute()` makes `executeTool()` reject with a generic `DOMException: UnknownError`, discarding the reason. |
-| **Declarative forms (`<form toolname>`)**      | Resolve structured field errors (e.g. `[{ field, value, message }]`) via `event.respondWith(Promise.resolve(errors))`. | Calling `Promise.reject()` discards the field details into a generic `DOMException: UnknownError`.                                                                    |
+| API                                            | On failure                                                                                                             | Why                                                                                                                                                                                                                                                                                                                                               |
+| :--------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **React (`useWebMCP` from `use-webmcp-tool`)** | `throw new Error("<actionable remediation>")`. Do **not** return failure objects.                                      | The hook catches the error and resolves `{ content: [{ type: "text", text: err.message }], isError: true }`. A returned plain object is treated as success.                                                                                                                                                                                       |
+| **Native imperative (`registerTool`)**         | **Resolve** a structured payload, e.g. `{ error: "...", code: "...", retryable: true }`.                               | Per the W3C WebMCP spec (§ Tool execution errors), `executeTool()` rejects with `DOMException: OperationError` (formerly `UnknownError`) when `execute()` returns a rejected promise (`tool rejected`, including an async throw) or the fulfilled value cannot be serialized to JSON (`unserializable result`). The original reason is discarded. |
+| **Declarative forms (`<form toolname>`)**      | Resolve structured field errors (e.g. `[{ field, value, message }]`) via `event.respondWith(Promise.resolve(errors))`. | Calling `Promise.reject()` discards the field details into a generic `DOMException: OperationError` (formerly `UnknownError`).                                                                                                                                                                                                                    |
 
 - Reserve unhandled rejections for fatal operational crashes only.
 - **Never encode a failure as a plain success string** (e.g., returning `"Saved"` on failure).
@@ -43,7 +43,7 @@ Distinguish retryable failures from fatal ones (e.g. a `retryable` flag) so the 
 async execute({ query }, { signal }) {
   const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal });
   if (!response.ok) {
-    // Resolve (do not throw) so the agent receives the details instead of UnknownError
+    // Resolve (do not throw) so the agent receives the details instead of OperationError
     return {
       error: `Catalog search service unavailable (${response.status}).`,
       code: "SERVICE_UNAVAILABLE",

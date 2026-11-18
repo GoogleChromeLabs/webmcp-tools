@@ -80,7 +80,7 @@ const { supported, registered, error } = useWebMCP<Args, Result>({
 > **Critical Rule**: **Throw actionable errors; do NOT return failure objects.**
 > Never return `{ status: "error", message: "..." }`. In `useWebMCP`, returning a plain object is interpreted as a successful execution. Throwing an `Error` triggers `onError` telemetry and resolves `{ content: [{ type: "text", text: err.message }], isError: true }`.
 >
-> _Under the hood_: `useWebMCP` catches the thrown `Error` and **resolves** the tool promise with `isError: true`. This prevents the browser from discarding the error message into a generic `DOMException: UnknownError` (as native WebMCP does on unhandled rejections), ensuring the agent receives both the full remediation text and the error flag to self-correct.
+> _Under the hood_: `useWebMCP` catches the thrown `Error` and **resolves** the tool promise with `isError: true`. This prevents the browser from discarding the error message into a generic `DOMException: OperationError` (as native WebMCP does on unhandled rejections), ensuring the agent receives both the full remediation text and the error flag to self-correct.
 
 ---
 
