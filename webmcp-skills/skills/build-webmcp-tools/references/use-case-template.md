@@ -128,9 +128,9 @@ Ensure every tool respects Chrome character budgets:
 
 ## 5. Security & Trust Boundaries
 
-- **Human-in-the-Loop Hand-off**:
-  - High-risk or irreversible actions (financial transactions, credential updates, account deletion) must be marked with `consequentialHint: true` or omit `toolautosubmit`.
-  - Transition the UI to a confirmation modal or checkout view (`initiate_booking`) rather than executing autonomous checkout.
+- **Confirmation Boundary**:
+  - **UI Hand-off**: Use `initiate_booking` / `initiate_checkout` (returning `status: "requires_user_action"`, omitting `readOnlyHint` and `consequentialHint`) when review, missing inputs, or payment/authentication UI require user interaction in the DOM.
+  - **Direct Execution**: Use `consequentialHint: true` on tools that commit high-risk or irreversible actions directly (`place_order`, `confirm_booking`) when all inputs are known and no DOM payment/auth widget is required; omit `toolautosubmit` on sensitive declarative `<form>` tools.
 - **Untrusted Content Demarcation**:
   - If tool output incorporates user reviews or third-party listings, mark with `untrustedContentHint: true` so consuming agents spotlight the payload.
 - **Server-Side Verification**:
@@ -145,4 +145,4 @@ Ensure every tool respects Chrome character budgets:
 - [ ] **Character Budgets**: Confirm all descriptions and output payloads remain within limits.
 - [ ] **UI Synchronization**: Verify DOM/application state updates match tool invocations.
 - [ ] **Actionable Errors**: Verify errors are thrown with guidance so model can self-correct.
-- [ ] **Security Compliance**: Verify agent pauses and directs user to UI for human-in-the-loop actions.
+- [ ] **Security Compliance**: Verify high-risk actions use either a UI hand-off (`requires_user_action`), a declarative form omitting `toolautosubmit`, or direct execution with `consequentialHint: true`.

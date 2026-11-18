@@ -38,7 +38,7 @@ When designing, implementing, or auditing WebMCP tools in a demo, follow the [`b
 - **Angular Demos**:
   - Use `declareExperimentalWebMcpTool` from `@angular/core` for imperative tools (see [sport-shop-angular/src/app/services/webmcp.service.ts](sport-shop-angular/src/app/services/webmcp.service.ts)) or `experimentalWebMcpTool` in Angular Signal Forms (`@angular/forms/signals`, see [leather-bag/src/app/pages/product/product.ts](leather-bag/src/app/pages/product/product.ts)).
 - **Shared Polyfill & Types**:
-  - Include `<script src="../shared/webmcp-polyfill.js"></script>` in static demos and pair `:tool-form-active` / `:tool-submit-active` CSS selectors with `.tool-form-active` / `.tool-submit-active` fallback classes.
+  - Include `<script src="../shared/webmcp-polyfill.js"></script>` in static demos. Demos with declarative forms (`<form toolname>`) or `:tool-form-active` / `:tool-submit-active` selectors must also load `<script src="../shared/webmcp-declarative.js"></script>` after it, and pair those selectors with `.tool-form-active` / `.tool-submit-active` fallback classes.
   - Reference [shared/types/webmcp-declarative.d.ts](shared/types/webmcp-declarative.d.ts) in TypeScript projects for `toolname`, `tooldescription`, `toolparamdescription`, and `toolautosubmit` attribute types.
 - **GitHub Pages Base Paths & Routing**:
   - Include the WebMCP Origin Trial `<meta http-equiv="origin-trial" ...>` tag in `index.html`.

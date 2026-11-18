@@ -99,10 +99,9 @@ export default function FlightSearch({
     });
   };
 
-  const allCodes = [
-    ...Object.entries(cityNames).map(([code, name]) => ({ code, name })),
-    ...Object.entries(airports).map(([code, name]) => ({ code, name })),
-  ];
+  const allCodes = Object.entries({ ...cityNames, ...airports }).map(
+    ([code, name]) => ({ code, name }),
+  );
 
   return (
     <div className="app">

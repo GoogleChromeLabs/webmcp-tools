@@ -377,7 +377,9 @@
         "The output enforces \"What + When\" descriptions, strips internal jargon, and audits annotations (readOnlyHint, consequentialHint, untrustedContentHint).",
         "The output proactively offers the local evaluation gate (npx webmcp-evals local)."
       ],
-      "files": ["evals/fixtures/project-app/roleplay-triage.md"]
+      "files": [
+        "evals/fixtures/project-app/roleplay-triage.md"
+      ]
     },
     {
       "id": "stage-0-router-existing-tools",
@@ -398,7 +400,9 @@
         "The agent read references/react-patterns.md",
         "The agent did NOT read references/angular-patterns.md"
       ],
-      "files": ["evals/fixtures/hotel-app/schema.json"]
+      "files": [
+        "evals/fixtures/hotel-app/schema.json"
+      ]
     },
     {
       "id": "stage-0-router-live-site-url",
@@ -441,7 +445,9 @@
         "The output audits that tools returning user-generated text declare untrustedContentHint: true.",
         "The output verifies live inspection in the Chrome DevTools Application > WebMCP pane and running the Lighthouse \"Agentic browsing\" audit."
       ],
-      "files": ["evals/fixtures/project-app/src/tools/project-tools.ts"]
+      "files": [
+        "evals/fixtures/project-app/src/tools/project-tools.ts"
+      ]
     },
     {
       "id": "skill-discovery-mcp-disambiguation",
@@ -492,9 +498,19 @@
     {
       "id": "stage-4-hitl-boundaries",
       "prompt": "Design the roleplay turn where the user confirms payment for a $500 hotel booking.",
-      "expected_output": "The roleplay or tool design explicitly requires human confirmation on dedicated UI (e.g. requires_user_action status or confirmation hand-off) rather than autonomously executing payment without user action.",
+      "expected_output": "The roleplay requires explicit human confirmation before payment commits: either a UI hand-off (e.g. initiate_booking returning status: \"requires_user_action\" and opening the checkout/confirmation view, or a declarative form omitting toolautosubmit) or direct execution (e.g. confirm_booking / place_order declaring consequentialHint: true so the host prompts for user approval before executing), rather than charging the user silently without confirmation.",
       "assertions": [
-        "The roleplay or tool design explicitly requires human confirmation on dedicated UI (e.g. requires_user_action status or confirmation hand-off) rather than autonomously executing payment without user action."
+        "The roleplay or tool design requires explicit human confirmation before payment commits—either via a UI hand-off (such as requires_user_action or a declarative form without toolautosubmit) or via direct execution declaring consequentialHint: true—rather than charging the user autonomously without confirmation"
+      ]
+    },
+    {
+      "id": "stage-4-checkout-confirmed-execution",
+      "prompt": "In our storefront's express checkout, the user's cart, shipping address, and saved payment method are already selected, with no 3DS or embedded card iframe step. Can we expose a WebMCP `place_order` tool that submits the order directly instead of navigating to a separate checkout review page first, and how should its annotations be configured?",
+      "expected_output": "Yes. Because all required inputs are already selected and no DOM-bound payment or authentication UI (such as a card iframe or 3DS challenge) is needed, direct consequential execution on document.modelContext is valid without forcing an extra checkout-page hand-off. Expose place_order with annotations: { consequentialHint: true } (omitting false hints like readOnlyHint: false since annotations are opt-in and default to false) so the host prompts the user to confirm before invoking execute().",
+      "assertions": [
+        "The agent confirms that exposing a direct `place_order` tool is valid here without requiring a separate checkout-page navigation hand-off first",
+        "The agent specifies `consequentialHint: true` on `place_order` so the host prompts for user confirmation before executing",
+        "The agent follows WebMCP's opt-in annotation rule by setting `consequentialHint: true` without declaring false-valued boilerplate like `readOnlyHint: false` in the tool definition"
       ]
     },
     {

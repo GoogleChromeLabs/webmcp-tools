@@ -124,10 +124,13 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Start an easy game and play it until you win."
 - [Spreadsheet](https://googlechromelabs.github.io/webmcp-tools/demos/spreadsheet/) - A full spreadsheet with 27 WebMCP tools for values, formulas, formatting, sorting, conditional formats, charts and sheets. People and agents share one undo history, and each tool call shows up in an activity panel and lights up the cells it changed.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
+- [BrickifyMe](https://www.brickifyme.com/) - Turns a photo of a person into a digital LEGO-style minifigure portrait. Every page registers four WebMCP tools through `document.modelContext`: `find_figure_ideas` (idea pages by profession, gift occasion or avatar platform), `get_pricing`, `check_my_credits` and `start_checkout`. The first three only read data. `start_checkout` opens Stripe Checkout, where the person confirms the payment.
+  - **Example Prompt:** "I want a LEGO-style figure of my sister as a retirement gift. Which page fits, and what does it cost?"
 
 ## Libraries & Tools
 
 - [webmcp-types](https://www.npmjs.com/package/webmcp-types) - TypeScript type definitions for WebMCP.
+- [@w3c/webmcp-polyfill](https://www.npmjs.com/package/@w3c/webmcp-polyfill) ([code](https://github.com/w3c-oss/webmcp-polyfill)) - A polyfill for `document.modelContext` that follows the Web Machine Learning Community Group draft, covering tool registration, discovery, execution, cancellation and `toolchange`, including across frames. No runtime JavaScript dependencies. Load it with `import "@w3c/webmcp-polyfill/auto"` or as a plain `<script>` using its `dist/polyfill.js` build. Part of the W3C Open Source Program pilot.
 - [WebMCP - Model Context Tool Inspector](https://github.com/beaufortfrancois/model-context-tool-inspector) *(by Google)* - A Chrome Extension to let web developers inspect web pages to verify if WebMCP tools are correctly exposed, visualize the input schema, and debug connection issues directly within the browser.
 - [use-webmcp-tool](https://www.npmjs.com/package/use-webmcp-tool) *(by Google)* - React hook for registering WebMCP tools (`document.modelContext`) with lifecycle-managed registration.
 - [simple-webmcp](https://github.com/emingure/simple-webmcp) - Turns existing JS/TS functions into WebMCP tools with `webmcp(fn)`, keeping them callable while supporting schema patching, React lifecycle helpers, execution hooks for approvals and analytics, and an in-memory development polyfill for testing.
@@ -144,6 +147,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 - [DeepDeck](https://github.com/jo32/DeepDeck) - MIT-licensed macOS desktop client based on DeepSeek Harness that discovers and calls website-provided WebMCP tools. Its Builder lets an agent explore a site, generate and verify tools, and save versioned source per site for reuse in the DeepDeck browser.
 - [Signett](https://github.com/signettai/signett) - TypeScript SDK for registering application functions as native WebMCP tools, with JSON Schema input validation, lifecycle cleanup, authorization, human confirmation, idempotency, recovery, verification, testing, and observability.
 - [VueUse `useWebMCP`](https://vueuse.org/core/usewebmcp/) - A Vue composable in `@vueuse/core` (v15.0.0 and later) that registers a WebMCP tool through `document.modelContext` and unregisters it when the component scope is disposed. It normalizes the return value of `execute` into a valid tool result and does nothing where the API is absent, with `isSupported`, `isRegistered` and `error` refs.
+- [WebMCP Explorer](https://github.com/CorsenAI/webmcp-explorer) *(by Corsen AI)* - A Chrome extension to discover, run and security-review the WebMCP tools a page registers, imperative and declarative, with Playwright test and SARIF report exports and an optional local MCP bridge that asks for approval before each call by default. Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/webmcp-explorer/pccddgfopjiggjhhlgndlghimbdndjef); Apache-2.0.
 
 ## Contributing
 

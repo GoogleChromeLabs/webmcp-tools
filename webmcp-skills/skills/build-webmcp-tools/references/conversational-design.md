@@ -111,12 +111,13 @@ Stress-test each baseline conversation against ambiguity, unexpected inputs, and
 - **Scenario**: User uses contextual shorthand (e.g., _"the second flight"_, _"the cheaper one"_).
 - **Behavior**: Agent resolves shorthand against previous turn responses to identify the target ID.
 
-### 5. Human-in-the-Loop Hand-off for High-Risk Actions
+### 5. Confirmation Boundaries for High-Risk Actions
 
 - **Scenario**: Irreversible, sensitive, or financial actions (e.g., completing a $500 booking, deleting an account).
-- **Behavior**:
-  - Tool or agent transitions the UI to a confirmation modal or checkout view (`initiate_booking`) requiring explicit user approval on a dedicated UI (`requires_user_action` status).
-  - A hand-off tool that only opens the confirmation UI (`initiate_booking`) must not declare `readOnlyHint: true` (omit annotations; hints default to `false`) and does not declare `consequentialHint: true`; the user's confirmation in the UI is the boundary. Any tool that commits the action itself (e.g. `confirm_booking`) declares `consequentialHint: true`.
+- **Choose the pattern from the starting state & site requirements**:
+  - **UI hand-off**: When visual review, missing inputs, third-party payment elements, or authentication such as 3DS require buyer interaction in the DOM, use `initiate_checkout` / `initiate_booking` to open that UI and return `status: "requires_user_action"` (omitting `readOnlyHint` and `consequentialHint`). Never put raw card numbers, CVVs, or 3DS codes in `inputSchema`—let the user complete sensitive payment/auth fields directly in the UI.
+  - **Direct consequential execution**: When all required inputs (cart, shipping, stored payment method) are already selected or passed and no DOM-bound payment/auth step remains, a direct `place_order` / `confirm_booking` tool is valid without navigating to an extra checkout page. Declare `consequentialHint: true` so the host prompts for user confirmation before invoking `execute()`.
+- **Declarative forms**: Follow the [form policy](./declarative-patterns.md#6-toolautosubmit-policy-safe-vs-human-in-the-loop): omit `toolautosubmit` for sensitive/financial actions so the user submits in the page UI.
 
 ---
 
