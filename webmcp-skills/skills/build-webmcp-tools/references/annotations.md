@@ -76,11 +76,9 @@ async execute({ tab }) {
 
 ### Human-in-the-Loop Hand-off Tools
 
-A tool that **only opens** a confirmation screen (e.g. `initiate_booking` navigating to checkout, where the user presses Confirm) is navigation: it **must not declare `readOnlyHint: true`** and does not declare `consequentialHint: true` (omit these two hints). Any other hints still follow the tool's behavior and output. Choose this hand-off when review, missing inputs or payment/authentication UI require user interaction.
+A tool that **only opens** a confirmation screen (e.g. `initiate_booking` navigating to checkout, where the user presses Confirm) is navigation: it **must not declare `readOnlyHint: true`** and does not declare `consequentialHint: true` (omit these two hints; any other hints such as `untrustedContentHint` still follow the tool's output). Choose this hand-off when in-page review, missing inputs, or payment/authentication UI require user interaction.
 
-A tool that commits the action directly (e.g. `confirm_booking` charging the card) declares `consequentialHint: true`. This is a valid alternative when the required inputs are selected and the host/agent obtains explicit confirmation before executing; it need not navigate through an additional checkout page. The hint is a signal to the client, not proof of consent or backend authorization. The application must still enforce authorization and the confirmed terms.
-
-Classify the actual effects, not the tool's name: an `initiate_*` tool that also creates an order, reserves stock or initiates payment needs its effects assessed rather than being assumed navigation-only. For role-play, refusal and declarative-form boundaries, see [confirmation boundaries](./conversational-design.md#5-confirmation-boundaries-for-high-risk-actions).
+A tool that commits the action directly (e.g. `confirm_booking` or `place_order`) declares `consequentialHint: true` to signal the host to confirm with the user before executing. Direct execution without an extra checkout-page hand-off is valid when all required inputs are already selected or passed and no DOM-bound payment/authentication step remains (see [confirmation boundaries](./conversational-design.md#5-confirmation-boundaries-for-high-risk-actions)).
 
 ---
 

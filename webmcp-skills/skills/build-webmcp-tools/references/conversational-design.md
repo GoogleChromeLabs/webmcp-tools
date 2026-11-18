@@ -114,12 +114,10 @@ Stress-test each baseline conversation against ambiguity, unexpected inputs, and
 ### 5. Confirmation Boundaries for High-Risk Actions
 
 - **Scenario**: Irreversible, sensitive, or financial actions (e.g., completing a $500 booking, deleting an account).
-- **Choose the pattern from the starting state**:
-  - **UI hand-off**: When visual review, missing inputs, third-party payment elements or authentication such as 3DS require buyer interaction, use `initiate_checkout` / `initiate_booking` to open that UI and return an application status such as `requires_user_action`. If the tool only navigates, it omits `readOnlyHint` and `consequentialHint`. The user completes the sensitive fields and final confirmation in the UI; do not ask for card details or authentication codes in chat.
-  - **Direct consequential execution**: When required inputs are already selected and the host can obtain explicit confirmation of the purchase terms before committing, a `place_order` / `confirm_booking` tool is valid without an extra checkout page. Declare `consequentialHint: true`; the host/agent must present and obtain confirmation before invoking the action. The application/backend must still validate authorization and the current terms. The hint signals consequences; it is not proof of consent or backend authorization.
-- **Describe the actual effects**: A tool that opens checkout but also creates an order, reserves stock or initiates payment is not navigation-only. Assess those effects independently of an `initiate_*` name. Report the returned application state: preparing a checkout, creating an order or returning a payment URL does not establish that payment succeeded.
-- **Stress-test refusal**: If the buyer declines confirmation, stop the attempt without committing. Do not retry as though it were a transient error, switch to another commit tool, or automate a click on the site's Confirm button to bypass the refusal. A later attempt needs a fresh user decision.
-- **Declarative forms**: Follow the [form policy](./declarative-patterns.md#6-toolautosubmit-policy-safe-vs-human-in-the-loop): omit `toolautosubmit` for sensitive/financial actions so the user submits. Filling the form is not submission or payment completion.
+- **Choose the pattern from the starting state & site requirements**:
+  - **UI hand-off**: When visual review, missing inputs, third-party payment elements, or authentication such as 3DS require buyer interaction in the DOM, use `initiate_checkout` / `initiate_booking` to open that UI and return `status: "requires_user_action"` (omitting `readOnlyHint` and `consequentialHint`). Never put raw card numbers, CVVs, or 3DS codes in `inputSchema`—let the user complete sensitive payment/auth fields directly in the UI.
+  - **Direct consequential execution**: When all required inputs (cart, shipping, stored payment method) are already selected or passed and no DOM-bound payment/auth step remains, a direct `place_order` / `confirm_booking` tool is valid without navigating to an extra checkout page. Declare `consequentialHint: true` so the host prompts for user confirmation before invoking `execute()`.
+- **Declarative forms**: Follow the [form policy](./declarative-patterns.md#6-toolautosubmit-policy-safe-vs-human-in-the-loop): omit `toolautosubmit` for sensitive/financial actions so the user submits in the page UI.
 
 ---
 

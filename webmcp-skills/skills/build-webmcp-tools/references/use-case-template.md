@@ -128,9 +128,8 @@ Ensure every tool respects Chrome character budgets:
 ## 5. Security & Trust Boundaries
 
 - **Confirmation Boundary**:
-  - Choose a UI hand-off (`initiate_booking` / `initiate_checkout`, returning e.g. `requires_user_action`) when review, missing inputs or payment/authentication UI require user interaction. A navigation-only hand-off omits `readOnlyHint` and `consequentialHint`.
-  - A tool that commits a high-risk or irreversible action directly declares `consequentialHint: true` and requires explicit host/agent confirmation before execution. It is valid without an extra checkout page when the required inputs and confirmation gate are available. The application/backend still enforces authorization and the confirmed terms; the hint alone is not consent.
-  - Assess actual effects, not an `initiate_*` prefix. Respect a declined confirmation without retries or alternate commit paths. For sensitive declarative forms, omit `toolautosubmit` so the user submits.
+  - **UI Hand-off**: Use `initiate_booking` / `initiate_checkout` (returning `status: "requires_user_action"`, omitting `readOnlyHint` and `consequentialHint`) when review, missing inputs, or payment/authentication UI require user interaction in the DOM.
+  - **Direct Execution**: Use `consequentialHint: true` on tools that commit high-risk or irreversible actions directly (`place_order`, `confirm_booking`) when all inputs are known and no DOM payment/auth widget is required; omit `toolautosubmit` on sensitive declarative `<form>` tools.
 - **Untrusted Content Demarcation**:
   - If tool output incorporates user reviews or third-party listings, mark with `untrustedContentHint: true` so consuming agents spotlight the payload.
 - **Server-Side Verification**:
@@ -145,4 +144,4 @@ Ensure every tool respects Chrome character budgets:
 - [ ] **Character Budgets**: Confirm all descriptions and output payloads remain within limits.
 - [ ] **UI Synchronization**: Verify DOM/application state updates match tool invocations.
 - [ ] **Actionable Errors**: Verify errors are thrown with guidance so model can self-correct.
-- [ ] **Security Compliance**: Verify the chosen hand-off or direct-execution confirmation boundary, including refusal. Preparing checkout or filling a form must not be reported as payment completion.
+- [ ] **Security Compliance**: Verify high-risk actions use either a UI hand-off (`requires_user_action`), a declarative form omitting `toolautosubmit`, or direct execution with `consequentialHint: true`.
