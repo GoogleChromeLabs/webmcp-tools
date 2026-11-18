@@ -49,7 +49,7 @@
     "should_trigger": true
   },
   {
-    "query": "How should a WebMCP tool return errors so the agent can recover instead of getting UnknownError?",
+    "query": "How should a WebMCP tool return errors so the agent can recover instead of getting OperationError or UnknownError?",
     "should_trigger": true
   },
   {

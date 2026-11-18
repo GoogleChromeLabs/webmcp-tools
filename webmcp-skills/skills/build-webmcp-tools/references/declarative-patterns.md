@@ -157,7 +157,7 @@ reservationForm.addEventListener("submit", async (event) => {
     })
     .catch((err) => {
       // Resolve (do not rethrow) a structured error: a rejected respondWith promise reaches
-      // the agent only as a generic DOMException: UnknownError, losing this guidance.
+      // the agent only as a generic DOMException: OperationError, losing this guidance.
       showFormError(`Reservation failed: ${err.message}`);
       return {
         error: `Reservation failed: ${err.message}`,
@@ -174,7 +174,7 @@ reservationForm.addEventListener("submit", async (event) => {
 });
 ```
 
-> **Resolve, don't reject, errors**: This applies to both field validation errors and failed API calls (the `.catch` above). As implemented in official Chrome docs and GoogleChromeLabs reference demos (`demos/french-bistro`), field validation errors are returned as structured payloads (e.g. `[{ field, value, message }]`) via `event.respondWith(validationErrors)` so the model learns exactly which form fields need correction. Rejecting (`Promise.reject`) discards the field details into a generic `DOMException: UnknownError`. Reserve rejection only for fatal operational crashes. For how React and native imperative tools report errors, see [error-handling.md](./error-handling.md).
+> **Resolve, don't reject, errors**: This applies to both field validation errors and failed API calls (the `.catch` above). As implemented in official Chrome docs and GoogleChromeLabs reference demos (`demos/french-bistro`), field validation errors are returned as structured payloads (e.g. `[{ field, value, message }]`) via `event.respondWith(validationErrors)` so the model learns exactly which form fields need correction. Rejecting (`Promise.reject`) discards the field details into a generic `DOMException: OperationError`. Reserve rejection only for fatal operational crashes. For how React and native imperative tools report errors, see [error-handling.md](./error-handling.md).
 
 ---
 
