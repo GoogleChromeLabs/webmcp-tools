@@ -1,52 +1,30 @@
 version: 2
 updates:
-  # Evaluator framework and CLI
+  # Evaluator framework, CLI, and agent skills tooling
   - package-ecosystem: "npm"
-    directory: "/webmcp-evals"
+    directories:
+      - "/webmcp-evals"
+      - "/webmcp-skills"
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
-      ai-sdk:
-        patterns:
-          - "@ai-sdk/*"
-          - "ai"
-      lint-format:
-        patterns:
-          - "oxlint*"
-          - "oxfmt*"
-          - "eslint*"
-          - "@eslint*"
-          - "prettier*"
-      all-other-dependencies:
+      tooling-security:
+        applies-to: "security-updates"
         patterns:
           - "*"
-    cooldown:
-      default-days: 7
-
-  # Agent skills and evaluation runner
-  - package-ecosystem: "npm"
-    directory: "/webmcp-skills"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
-    groups:
-      vite:
+      tooling-minor-and-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
-          - "vite*"
-          - "@vitejs/*"
-          - "vitest*"
-          - "@vitest/*"
-      lint-format:
-        patterns:
-          - "oxlint*"
-          - "oxfmt*"
-          - "eslint*"
-          - "@eslint*"
-          - "prettier*"
-      all-other-dependencies:
+          - "*"
+      tooling-major:
+        applies-to: "version-updates"
+        update-types:
+          - "major"
         patterns:
           - "*"
     cooldown:
@@ -59,36 +37,23 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
-      angular:
+      demos-security:
+        applies-to: "security-updates"
         patterns:
-          - "@angular*"
-          - "@angular-devkit/*"
-      react:
+          - "*"
+      demos-minor-and-patch:
+        applies-to: "version-updates"
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
-          - "react*"
-          - "@types/react*"
-      vite:
-        patterns:
-          - "vite*"
-          - "@vitejs/*"
-          - "vitest*"
-          - "@vitest/*"
-      tailwind-postcss:
-        patterns:
-          - "tailwind*"
-          - "@tailwindcss/*"
-          - "postcss*"
-          - "autoprefixer*"
-      lint-format:
-        patterns:
-          - "eslint*"
-          - "@eslint*"
-          - "typescript-eslint*"
-          - "@typescript-eslint/*"
-          - "prettier*"
-      all-other-dependencies:
+          - "*"
+      demos-major:
+        applies-to: "version-updates"
+        update-types:
+          - "major"
         patterns:
           - "*"
     ignore:
@@ -103,9 +68,14 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     groups:
+      github-actions-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
       github-actions:
+        applies-to: "version-updates"
         patterns:
           - "*"
     cooldown:
