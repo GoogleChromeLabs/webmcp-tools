@@ -187,6 +187,17 @@
         "The agent recommends a way to locate the relevant part before reading, such as an outline, headings, or search with line numbers",
         "The agent says the returned text must be exact (not summarized or paraphrased) so the edit tool can match originalText"
       ]
+    },
+    {
+      "id": "core-output-schema-design-and-descriptions",
+      "prompt": "Our project workspace app exposes a consolidated `get_workspace_item` tool that returns 14 fields (`id`, `type`, `title`, `status`, `assignee_id`, `sprint_id`, `priority`, `labels`, `estimate_points`, `created_at`, `updated_at`, `parent_epic_id`, `blocked_by_ids`, `url`), plus narrow tools `set_theme` and `reset_filters`. Right now in our `webmcp-evals` runs the agent keeps guessing the wrong tool when users ask about sprint assignments or blockers because `get_workspace_item`'s description only says 'Fetches an item by ID.' Should we list all 14 returned fields (or append the JSON schema) in the description, or add `outputSchema` to all three tools? Also, what does `document.modelContext.getTools()` expose for `tool.outputSchema` on `get_workspace_item` versus `set_theme`?",
+      "expected_output": "The agent reads references/tool-design.md (and optionally references/vanilla-patterns.md) and explains separating intent (`description`) from return structure (`outputSchema`). Specifically: (1) improve `get_workspace_item`'s `description` within the <= 500-character budget using the 'What + When' formula so it states at a high level what kind of information the tool returns (e.g., item metadata, sprint assignment, and dependency/blocker relationships), without listing all 14 property names or appending `outputSchema` into `description`; (2) declare `outputSchema` (a JSON Schema object) selectively on `get_workspace_item` so exact returned field names (`sprint_id`, `blocked_by_ids`, IDs) and types are exposed structurally, while omitting `outputSchema` on narrow mutating/filter tools like `set_theme` and `reset_filters` to avoid roughly tripling or bloating prompt tokens across the tool catalog; and (3) explain that `await document.modelContext.getTools()` exposes `tool.outputSchema` on each returned `Tool` as a deep copy of the registered JSON Schema object on `get_workspace_item` and `null` when omitted on `set_theme`.",
+      "assertions": [
+        "The agent read references/tool-design.md",
+        "The agent instructs keeping description within the 500-character budget using the What + When formula (summarizing high-level returned info rather than listing all 14 property names or appending outputSchema into description)",
+        "The agent recommends declaring outputSchema selectively on get_workspace_item while omitting outputSchema on set_theme and reset_filters to avoid unnecessary prompt token bloat",
+        "The agent explains that document.modelContext.getTools() exposes tool.outputSchema as the registered JSON Schema object on get_workspace_item and null when omitted on set_theme"
+      ]
     }
   ]
 }

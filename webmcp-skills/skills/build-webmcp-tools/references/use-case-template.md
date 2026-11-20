@@ -95,15 +95,16 @@ For every turn, document all 6 core elements:
 Ensure every tool respects Chrome character budgets:
 
 - **Tool Name**: ≤ 30 chars
-- **Tool Description**: ≤ 500 chars
+- **Tool Description**: ≤ 500 chars ("What + When", omitting `inputSchema` and `outputSchema` property lists)
 - **Parameter Description**: ≤ 150 chars
 - **Tool Output**: ≤ 1,500 chars
+- **Output Schema (`outputSchema`)**: Specify a JSON Schema `object` selectively on consolidated multi-field read/search tools and chaining producer tools (e.g. `search_catalog` exposing `results[].id` and pagination/facets); omit `outputSchema` on narrow selection, navigation, or confirmation hand-off tools (`select_item`, `initiate_booking`).
 
-| Tool Name          | Parameters & JSON Schema                                  | Description & Purpose                                                                        | Annotations          | Expected Site Reaction         |
-| :----------------- | :-------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------------------- | :----------------------------- |
-| `search_catalog`   | `query: string`<br>`category?: string`<br>`page?: number` | Finds catalog items with facet summaries. Use when the user browses or searches the catalog. | `readOnlyHint: true` | Updates search results grid    |
-| `select_item`      | `item_id: string`<br>`options?: object`                   | Selects a catalog item and its options. Use when the user picks an item from results.        | _(omitted)_          | Focuses item detail pane       |
-| `initiate_booking` | `item_id: string`                                         | Opens checkout for the user to confirm. Use when the user is ready to book an item.          | _(omitted)_          | Navigates route to `/checkout` |
+| Tool Name          | Input & Output JSON Schemas                                                                                                                                                             | Description & Purpose                                                                        | Annotations          | Expected Site Reaction         |
+| :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------------------- | :----------------------------- |
+| `search_catalog`   | **Input**: `query: string`, `category?: string`, `page?: number`<br>**Output (`outputSchema`)**: `{ total_count, page, page_size, results: [{ id, name, summary }], available_facets }` | Finds catalog items with facet summaries. Use when the user browses or searches the catalog. | `readOnlyHint: true` | Updates search results grid    |
+| `select_item`      | **Input**: `item_id: string`, `options?: object`<br>**Output**: _(omitted — narrow selection tool)_                                                                                     | Selects a catalog item and its options. Use when the user picks an item from results.        | _(omitted)_          | Focuses item detail pane       |
+| `initiate_booking` | **Input**: `item_id: string`<br>**Output**: _(omitted — UI hand-off tool)_                                                                                                              | Opens checkout for the user to confirm. Use when the user is ready to book an item.          | _(omitted)_          | Navigates route to `/checkout` |
 
 ---
 
