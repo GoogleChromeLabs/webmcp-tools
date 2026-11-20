@@ -12,13 +12,13 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
-    "prettier": "^3.9.9",
+    "prettier": "^3.10.1",
     "typescript": "~6.0.3",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
     "webmcp-types": "^0.1.10"
   },
   "dependencies": {
-    "pixi.js": "^8.22.0"
+    "pixi.js": "^8.23.0"
   }
 }
