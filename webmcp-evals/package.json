@@ -50,7 +50,7 @@
   "devDependencies": {
     "@types/node": "^26.6.6",
     "eslint-plugin-license-header": "^0.9.0",
-    "oxfmt": "^0.75.0",
+    "oxfmt": "^0.79.0",
     "oxlint": "^1.90.0",
     "typescript": "^7.0.2",
     "webmcp-types": "^0.1.10"
