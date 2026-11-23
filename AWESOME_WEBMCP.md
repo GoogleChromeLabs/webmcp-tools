@@ -10,6 +10,7 @@ A curated list of awesome WebMCP demos, libraries, and tools.
 
 ## Demos
 
+- [WebMCPly — Website Action Discovery Explorer](https://webmcply.com/product/scanner) - An interactive educational walkthrough showing how visible website forms, search controls, and navigation can be mapped to potential WebMCP actions. Includes a fictional travel website, page-by-page findings, evidence, and implementation prerequisites. Illustrative prototype only; does not register or execute live WebMCP tools.
 - [Explainer mini-site](https://googlechromelabs.github.io/webmcp-tools/demos/explainer/) - A side-by-side demo of how AI agents interact with a web page today (site scraping) and a future where the page declares WebMCP structured tools.
 - [Le Petit Bistro](https://googlechromelabs.github.io/webmcp-tools/demos/french-bistro/) - A restaurant reservation system that demonstrates how an AI agent can interact with a web-based booking form using declarative tool definitions.
   - **Example Prompt:** "Can you book a table for John Doe for 2 people at Le Petit Bistro next Friday, at 7 PM on the Terrace? His number is 123-456-7890. It's for a birthday celebration."
