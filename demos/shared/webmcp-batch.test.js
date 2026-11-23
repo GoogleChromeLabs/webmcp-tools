@@ -165,6 +165,11 @@ test('getSystemInstruction formats tool schemas and filters execute_batch', () =
     {
       name: 'share',
       description: 'Get a shareable URL'
+    },
+    {
+      name: 'reset',
+      description: 'Reset the page',
+      inputSchema: null
     }
   ];
 
@@ -176,7 +181,7 @@ test('getSystemInstruction formats tool schemas and filters execute_batch', () =
   const jsonContent = instructions[jsonBlockIndex + 1];
   const parsedTools = JSON.parse(jsonContent);
 
-  assert.strictEqual(parsedTools.length, 2);
+  assert.strictEqual(parsedTools.length, 3);
   assert.strictEqual(parsedTools[0].name, 'search');
   assert.strictEqual(parsedTools[0].description, 'Search products');
   assert.deepEqual(parsedTools[0].inputSchema, {
@@ -185,4 +190,6 @@ test('getSystemInstruction formats tool schemas and filters execute_batch', () =
   });
   // A tool without an inputSchema is listed without one, not with an empty schema.
   assert.deepEqual(parsedTools[1], { name: 'share', description: 'Get a shareable URL' });
+  // Tool objects report a missing inputSchema as null, which is omitted too.
+  assert.deepEqual(parsedTools[2], { name: 'reset', description: 'Reset the page' });
 });

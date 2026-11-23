@@ -63,10 +63,10 @@ async function getConfig() {
 
     const functionDeclarations = tools
       .filter((tool) => tool.name === 'execute_batch')
-      .map(({ name, description, inputSchema: parametersJsonSchema }) => ({
+      .map(({ name, description, inputSchema }) => ({
         name,
         description,
-        parametersJsonSchema,
+        ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
       }));
 
     return { systemInstruction, tools: [{ functionDeclarations }] };
@@ -80,10 +80,10 @@ async function getConfig() {
   ];
 
   const functionDeclarations = tools.map(
-    ({ name, description, inputSchema: parametersJsonSchema }) => ({
+    ({ name, description, inputSchema }) => ({
       name,
       description,
-      parametersJsonSchema,
+      ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
     }),
   );
 

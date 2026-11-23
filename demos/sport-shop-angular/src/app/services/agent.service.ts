@@ -110,10 +110,10 @@ export class AgentService {
 
     const tools = await this.getTools();
     const functionDeclarations = tools.map(
-      ({ name, description, inputSchema: parametersJsonSchema }) => ({
+      ({ name, description, inputSchema }) => ({
         name,
         description,
-        parametersJsonSchema,
+        ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
       }),
     );
 

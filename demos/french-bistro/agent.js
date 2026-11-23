@@ -35,10 +35,10 @@ async function getConfig() {
 
   const tools = await getTools();
   const functionDeclarations = tools.map(
-    ({ name, description, inputSchema: parametersJsonSchema }) => ({
+    ({ name, description, inputSchema }) => ({
       name,
       description,
-      parametersJsonSchema,
+      ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
     }),
   );
 

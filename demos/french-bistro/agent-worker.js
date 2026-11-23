@@ -106,10 +106,10 @@ async function handleUserSubmit(text, port, requestId) {
       ];
       const tools = await requestTools(port);
       const functionDeclarations = tools.map(
-        ({ name, description, inputSchema: parametersJsonSchema }) => ({
+        ({ name, description, inputSchema }) => ({
           name,
           description,
-          parametersJsonSchema,
+          ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
         }),
       );
       return { systemInstruction, tools: [{ functionDeclarations }] };
