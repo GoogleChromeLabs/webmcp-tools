@@ -35,10 +35,10 @@ async function getConfig() {
 
   const tools = await getTools();
   const functionDeclarations = tools.map(
-    ({ name, description, inputSchema: parametersJsonSchema }) => ({
+    ({ name, description, inputSchema }) => ({
       name,
       description,
-      parametersJsonSchema,
+      ...(inputSchema ? { parametersJsonSchema: inputSchema } : {}),
     }),
   );
 
@@ -103,7 +103,7 @@ function initSharedWorker(apiKey) {
 
       case 'GET_TOOLS':
         const tools = await getTools();
-        // FIXME: tool.window needs to be removed because it's not serializable.
+        // FIXME: tool.source needs to be removed because it's not serializable.
         const serializableTools = tools.map(({ name, description, inputSchema }) => ({
           name,
           description,
