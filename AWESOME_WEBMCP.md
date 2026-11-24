@@ -127,6 +127,8 @@ A curated list of awesome WebMCP demos, libraries, and tools.
   - **Example Prompt:** "Build a monthly budget for a family of four with totals and a chart."
 - [BrickifyMe](https://www.brickifyme.com/) - Turns a photo of a person into a digital LEGO-style minifigure portrait. Every page registers four WebMCP tools through `document.modelContext`: `find_figure_ideas` (idea pages by profession, gift occasion or avatar platform), `get_pricing`, `check_my_credits` and `start_checkout`. The first three only read data. `start_checkout` opens Stripe Checkout, where the person confirms the payment.
   - **Example Prompt:** "I want a LEGO-style figure of my sister as a retirement gift. Which page fits, and what does it cost?"
+- [Constellation at the Museum of Small Impossibilities](https://anthony-baker.com/exhibits/constellation/) - An interactive artwork where the same twelve dots form three squares or four triangles. An assistant can use `pick_dot` to highlight a point and `switch_shape` to redraw the lines while keeping that point selected.
+  - **Example Prompt:** "Pick dot 3. Show me the squares, then the triangles. What changed around our dot?"
 
 ## Libraries & Tools
 
