@@ -9,7 +9,9 @@ import {
   mapJsonSchemaToVercelTools,
   mapMessages,
   mapRawBrowserToolsToConfig,
+  mapToolSchemaEntriesToTools,
   sanitizeSchema,
+  sanitizeSchemaWithDiagnostics,
 } from "../evaluator/mappers.js";
 import { Tool } from "../types/tools.js";
 import { WebMCPTool } from "puppeteer-core";
@@ -49,6 +51,49 @@ describe("mappers", () => {
       assert.deepStrictEqual(sanitizeSchema(null), null);
       assert.deepStrictEqual(sanitizeSchema("string"), "string");
       assert.deepStrictEqual(sanitizeSchema({}), {});
+    });
+
+    it("reports stripped oneOf/anyOf paths without mutating the source", () => {
+      const input = {
+        type: "object",
+        properties: {
+          guests: { type: "string", oneOf: [{ const: "1" }] },
+          nested: { anyOf: [{ type: "string" }] },
+        },
+      };
+      const before = JSON.stringify(input);
+      const { sanitized, diagnostic } = sanitizeSchemaWithDiagnostics(input);
+      assert.strictEqual(JSON.stringify(input), before);
+      assert.ok(diagnostic.strippedOneOfPaths.some((p) => p.includes("guests")));
+      assert.ok(diagnostic.strippedAnyOfPaths.some((p) => p.includes("nested")));
+      assert.deepStrictEqual(sanitized.properties.nested, {});
+    });
+  });
+
+  describe("mapToolSchemaEntriesToTools", () => {
+    it("preserves outputSchema objects and nulls", () => {
+      const mapped = mapToolSchemaEntriesToTools([
+        {
+          name: "search_flights",
+          description: "Search",
+          inputSchema: { type: "object" },
+          outputSchema: {
+            type: "object",
+            properties: { flight_id: { type: "string" } },
+          },
+        },
+        {
+          name: "initiate_booking",
+          description: "Book",
+          inputSchema: { type: "object" },
+          outputSchema: null,
+        },
+      ]);
+      assert.deepStrictEqual(mapped[0].outputSchema, {
+        type: "object",
+        properties: { flight_id: { type: "string" } },
+      });
+      assert.strictEqual(mapped[1].outputSchema, null);
     });
   });
 
@@ -193,18 +238,41 @@ describe("mappers", () => {
           functionName: "search_gear",
           description: "Search for gear",
           parameters: { type: "object", properties: { item: { type: "string" } } },
+          outputSchema: null,
         },
         {
           functionName: "get_cart",
           description: "Get current cart",
           parameters: { type: "object" },
+          outputSchema: null,
         },
         {
           functionName: "add_to_cart",
           description: "Add to cart",
           parameters: {},
+          outputSchema: null,
         },
       ]);
+    });
+
+    it("preserves outputSchema when the browser tool supplies it", () => {
+      // Simulates a future Puppeteer field — not evidence that #15579 shipped.
+      const rawTools = [
+        {
+          name: "search_flights",
+          description: "Search flights",
+          inputSchema: { type: "object" },
+          outputSchema: {
+            type: "object",
+            properties: { flight_id: { type: "string" } },
+          },
+        },
+      ] as unknown as WebMCPTool[];
+      const result = mapRawBrowserToolsToConfig(rawTools);
+      assert.deepStrictEqual(result[0].outputSchema, {
+        type: "object",
+        properties: { flight_id: { type: "string" } },
+      });
     });
   });
 });

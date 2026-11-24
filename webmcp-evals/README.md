@@ -107,6 +107,19 @@ npx webmcp-evals local -b gemini -m gemini-3.5-flash -t examples/pizza-maker/sch
 | `-e, --evals <path>`      | Yes      | —        | Path to evals test suite JSON file                  |
 | `--analyze`               | No       | `false`  | Automatically run LLM report analysis on completion |
 
+#### `outputSchema` and schema projection
+
+Static `schema.json` may declare optional `outputSchema`. Local loaders preserve
+it on the normalized `Tool` shape. The Gemini backend maps a present object to
+`FunctionDeclaration.responseJsonSchema` (tool-result schema). Null/absent
+schemas are omitted. Vercel mapping still **strips** nested `oneOf`/`anyOf` for
+SDK compatibility; diagnostics record stripped paths without mutating the source.
+
+Native browser `WebMCPTool.outputSchema` depends on
+[puppeteer#15579](https://github.com/puppeteer/puppeteer/pull/15579) (still open).
+Until that ships, live tools normalize missing `outputSchema` to `null`. Do not
+treat type casts as evidence of native support.
+
 ---
 
 ### Command: `browser`

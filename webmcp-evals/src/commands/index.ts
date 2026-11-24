@@ -36,6 +36,7 @@ import { renderSimulationReport } from "../report/simulationReport.js";
 import { createBackend, type RunEvent } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
 import { DEFAULT_CONFIRM_POLICY } from "../extension/index.js";
+import { mapToolSchemaEntriesToTools } from "../evaluator/mappers.js";
 
 export interface CommandOptions {
   model: string;
@@ -133,11 +134,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   const toolsSchema: ToolsSchema = JSON.parse(
     await readFile(resolve(process.cwd(), toolsFile), "utf-8"),
   );
-  const tools: Array<Tool> = toolsSchema.tools.map((t) => ({
-    description: t.description,
-    functionName: t.name,
-    parameters: t.inputSchema || {},
-  }));
+  const tools: Array<Tool> = mapToolSchemaEntriesToTools(toolsSchema.tools);
 
   const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
 

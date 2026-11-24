@@ -119,6 +119,58 @@ describe("GeminiBackend", () => {
     assert.deepStrictEqual(result, { toolCalls: [], text: "No tool calls generated." });
   });
 
+  it("maps outputSchema to responseJsonSchema and omits it when null (keyless stub)", async () => {
+    const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
+    let passedRequest: any = null;
+    (backend as any).googleGenAI = {
+      models: {
+        generateContent: async (request: any) => {
+          passedRequest = request;
+          return { functionCalls: null, candidates: [{ content: { parts: [{ text: "ok" }] } }] };
+        },
+      },
+    };
+
+    const toolsWithOutput: Tool[] = [
+      {
+        functionName: "search_flights",
+        description: "Search flights",
+        parameters: { type: "object", properties: { from: { type: "string" } } },
+        outputSchema: {
+          type: "object",
+          properties: { flight_id: { type: "string" } },
+          required: ["flight_id"],
+        },
+      },
+      {
+        functionName: "initiate_booking",
+        description: "Start booking",
+        parameters: { type: "object", properties: {} },
+        outputSchema: null,
+      },
+    ];
+
+    const testEval: Eval = {
+      name: "outputSchema capture",
+      messages: [{ role: "user", type: "message", content: "Find flights" }],
+      expectedCall: null,
+    };
+    const resolver = new MockResolver(testEval.expectedCall);
+    const registry = new LocalToolRegistry(toolsWithOutput, resolver);
+    await backend.executeLocalEvals(testEval, registry);
+
+    const decls = passedRequest.config.tools[0].functionDeclarations;
+    assert.deepStrictEqual(decls[0].responseJsonSchema, {
+      type: "object",
+      properties: { flight_id: { type: "string" } },
+      required: ["flight_id"],
+    });
+    assert.strictEqual(
+      Object.prototype.hasOwnProperty.call(decls[1], "responseJsonSchema"),
+      false,
+    );
+  });
+
   it("should map multi-turn messages correctly during API execution", async () => {
     const backend = new GeminiBackend("dummy-api-key", "gemini-3.5-flash", "System prompt");
 
