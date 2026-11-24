@@ -34,4 +34,10 @@ async function main(): Promise<void> {
   game.setState(new IntroState(game));
 }
 
-main().catch(console.error);
+const ready = main();
+// Tools are registered after async init: tell agents to wait for them.
+// waitForToolsUntil() is not yet available in all WebMCP implementations.
+if (document.modelContext && "waitForToolsUntil" in document.modelContext) {
+  (document.modelContext as any).waitForToolsUntil(ready);
+}
+ready.catch(console.error);
