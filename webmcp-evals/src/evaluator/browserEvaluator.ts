@@ -5,7 +5,15 @@
 
 import chalk from "chalk";
 import { WebmcpConfig } from "../types/config.js";
-import { BrowserConsoleError, Eval, TestResult, TestResults } from "../types/evals.js";
+import {
+  AttemptedToolCallMetric,
+  BrowserConsoleError,
+  CaseMetricsSummary,
+  CaseRunMetrics,
+  Eval,
+  TestResult,
+  TestResults,
+} from "../types/evals.js";
 import { ToolCall } from "../types/tools.js";
 import { countExpectedCalls, evaluateExecutionTrajectory } from "../utils.js";
 
@@ -18,6 +26,65 @@ import {
   PUPPETEER_FLAGS,
 } from "./browser.js";
 import { logger } from "../utils/logger.js";
+
+/** Build case metrics from registry attempts + optional case wall-clock. */
+export function buildCaseRunMetrics(
+  toolAttempts: readonly AttemptedToolCallMetric[],
+  durationMs?: number,
+): CaseRunMetrics {
+  let completed = 0;
+  let errors = 0;
+  for (const attempt of toolAttempts) {
+    if (attempt.outcome === "completed") completed += 1;
+    else errors += 1;
+  }
+  return {
+    ...(durationMs !== undefined ? { durationMs } : {}),
+    toolAttempts: toolAttempts.map((a) => ({ ...a })),
+    attempted: toolAttempts.length,
+    completed,
+    errors,
+  };
+}
+
+/**
+ * Aggregate metrics once per case/run (first step row that carries metrics).
+ * Never use trajectory-step `passCount` as a case-success numerator.
+ */
+export function summarizeCaseMetrics(results: TestResult[]): CaseMetricsSummary | undefined {
+  const seen = new Set<string>();
+  let caseCount = 0;
+  let casesWithDuration = 0;
+  let totalDurationMs = 0;
+  let attempted = 0;
+  let completed = 0;
+  let errors = 0;
+
+  for (const result of results) {
+    if (!result.metrics) continue;
+    const key = `${result.test.name ?? ""}::${result.runIndex ?? 0}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    caseCount += 1;
+    attempted += result.metrics.attempted;
+    completed += result.metrics.completed;
+    errors += result.metrics.errors;
+    if (typeof result.metrics.durationMs === "number") {
+      casesWithDuration += 1;
+      totalDurationMs += result.metrics.durationMs;
+    }
+  }
+
+  if (caseCount === 0) return undefined;
+  return {
+    caseCount,
+    casesWithDuration,
+    totalDurationMs: casesWithDuration > 0 ? totalDurationMs : null,
+    attempted,
+    completed,
+    errors,
+  };
+}
 
 /**
  * Default `--timeout` for `browser` and `simulate`: the limit for each page navigation,
@@ -73,12 +140,14 @@ export async function executeInBrowserEvals(
     await browser.close();
   }
 
+  const caseMetricsSummary = summarizeCaseMetrics(testResults);
   return {
     results: testResults,
     testCount,
     passCount,
     failCount,
     errorCount,
+    ...(caseMetricsSummary ? { caseMetricsSummary } : {}),
   };
 }
 
@@ -99,6 +168,7 @@ async function runSingleBrowserTest(
   let page: BrowserPage | null = null;
   let registry: BrowserToolRegistry | undefined;
   let browserConsoleErrors: BrowserConsoleError[] = [];
+  const caseStartedAt = performance.now();
   try {
     if (config.verbose) {
       console.log(
@@ -124,6 +194,11 @@ async function runSingleBrowserTest(
       throw evalResult.error;
     }
 
+    const metrics = buildCaseRunMetrics(
+      registry.getToolAttemptMetrics(),
+      Math.round(performance.now() - caseStartedAt),
+    );
+
     return buildTestResults(
       test,
       evalResult.toolCalls,
@@ -131,10 +206,15 @@ async function runSingleBrowserTest(
       evalResult.steps || [],
       runIndex,
       browserConsoleErrors,
+      metrics,
     );
   } catch (e: any) {
     browserConsoleErrors = registry?.getBrowserConsoleErrors() || browserConsoleErrors;
     logger.warn("Error running browser test:", e);
+    const metrics = buildCaseRunMetrics(
+      registry?.getToolAttemptMetrics() ?? [],
+      Math.round(performance.now() - caseStartedAt),
+    );
     return [
       {
         test,
@@ -142,6 +222,7 @@ async function runSingleBrowserTest(
         outcome: "error",
         runIndex,
         stepIndex: 1,
+        metrics,
         ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
       },
     ];
@@ -172,6 +253,7 @@ export function buildTestResults(
   trajectory: any[],
   runIndex: number,
   browserConsoleErrors: BrowserConsoleError[],
+  metrics?: CaseRunMetrics,
 ): TestResult[] {
   const testResults: TestResult[] = [];
   const trajectories = test.expectedCall
@@ -186,6 +268,7 @@ export function buildTestResults(
       outcome: "pass",
       trajectory,
       ...(browserConsoleErrors.length > 0 ? { browserConsoleErrors } : {}),
+      ...(metrics ? { metrics } : {}),
       runIndex,
       stepIndex: 1,
     });
@@ -212,6 +295,7 @@ export function buildTestResults(
         ...(currentStepIndex === 1 && browserConsoleErrors.length > 0
           ? { browserConsoleErrors }
           : {}),
+        ...(metrics ? { metrics } : {}),
         runIndex,
         stepIndex: currentStepIndex,
       });

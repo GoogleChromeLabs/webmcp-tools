@@ -10,7 +10,7 @@ import type {
   WebMCPToolCall,
   WebMCPToolCallResult,
 } from "puppeteer-core";
-import { BrowserConsoleError } from "../types/evals.js";
+import { AttemptedToolCallMetric, BrowserConsoleError } from "../types/evals.js";
 import { Tool } from "../types/tools.js";
 import { delay } from "../utils/async.js";
 import { mapRawBrowserToolsToConfig } from "./mappers.js";
@@ -66,6 +66,8 @@ export class BrowserToolRegistry implements ToolRegistry {
   private browserConsoleErrors: BrowserConsoleError[] = [];
   private activeToolCalls = new Map<symbol, BrowserConsoleError["toolCalls"][number]>();
   private stopObservingBrowserConsole: (() => void) | undefined;
+  private toolAttempts: AttemptedToolCallMetric[] = [];
+  private nextInvocationSeq = 1;
 
   constructor(private page: BrowserPage) {}
 
@@ -73,6 +75,11 @@ export class BrowserToolRegistry implements ToolRegistry {
     const rawTools = this.page.webmcp.tools() || [];
     this.currentTools = mapRawBrowserToolsToConfig(rawTools);
     return [...this.currentTools];
+  }
+
+  /** Agent-driven tool attempts recorded by {@link executeToolChecked}. */
+  getToolAttemptMetrics(): readonly AttemptedToolCallMetric[] {
+    return this.toolAttempts;
   }
 
   /**
@@ -203,9 +210,43 @@ export class BrowserToolRegistry implements ToolRegistry {
     name: string,
     args: Record<string, unknown> = {},
   ): Promise<{ success: true; result: any } | { success: false; error: string }> {
+    const invocationId = `inv-${this.nextInvocationSeq++}`;
+    const startedAt = performance.now();
     const stopCollecting = this.startCollectingBrowserConsoleErrors(name, args);
     try {
-      return await this.executeToolWithoutConsoleCapture(name, args);
+      const outcome = await this.executeToolWithoutConsoleCapture(name, args);
+      const durationMs = Math.round(performance.now() - startedAt);
+      if (outcome.success) {
+        this.toolAttempts.push({
+          invocationId,
+          functionName: name,
+          arguments: args,
+          outcome: "completed",
+          durationMs,
+        });
+      } else {
+        this.toolAttempts.push({
+          invocationId,
+          functionName: name,
+          arguments: args,
+          outcome: "error",
+          durationMs,
+          error: outcome.error,
+        });
+      }
+      return outcome;
+    } catch (e: unknown) {
+      const durationMs = Math.round(performance.now() - startedAt);
+      const message = e instanceof Error ? e.message : String(e);
+      this.toolAttempts.push({
+        invocationId,
+        functionName: name,
+        arguments: args,
+        outcome: "error",
+        durationMs,
+        error: message,
+      });
+      throw e;
     } finally {
       stopCollecting();
     }
