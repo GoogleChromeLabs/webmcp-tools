@@ -34,6 +34,13 @@ if (toolAutoSubmit) {
 if (isImperative) {
   const [tool] = await document.modelContext.getTools();
 
+  // Swapping the declarative tool for an imperative one is async: tell agents to
+  // wait for it. waitForToolsUntil() is not yet available everywhere.
+  const { promise: toolsReady, resolve: setToolsReady } = Promise.withResolvers();
+  if ("waitForToolsUntil" in document.modelContext) {
+    document.modelContext.waitForToolsUntil(toolsReady);
+  }
+
   form.removeAttribute("toolname");
   form.removeAttribute("tooldescription");
   document.querySelectorAll("[toolparamdescription]").forEach((element) => {
@@ -93,7 +100,7 @@ if (isImperative) {
 
       return modalDetails.textContent;
     },
-  });
+  }).catch(console.error).finally(setToolsReady);
 }
 
 // Remove form attributes to test WebMCP audit failures
