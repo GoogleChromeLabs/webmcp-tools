@@ -3,15 +3,23 @@ name: Deploy Demos to Pages
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
+# Allow only one concurrent deployment. Queued runs are not cancelled so that
+# an in-progress production deployment is allowed to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -59,6 +67,19 @@ jobs:
         with:
           path: "./deployment-root"
 
+  # Deploying in a separate job means "Re-run failed jobs" only retries the
+  # deployment and reuses the single uploaded artifact, instead of uploading a
+  # duplicate "github-pages" artifact that makes deploy-pages fail.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
