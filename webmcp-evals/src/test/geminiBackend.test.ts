@@ -165,10 +165,7 @@ describe("GeminiBackend", () => {
       properties: { flight_id: { type: "string" } },
       required: ["flight_id"],
     });
-    assert.strictEqual(
-      Object.prototype.hasOwnProperty.call(decls[1], "responseJsonSchema"),
-      false,
-    );
+    assert.strictEqual(Object.prototype.hasOwnProperty.call(decls[1], "responseJsonSchema"), false);
   });
 
   it("should map multi-turn messages correctly during API execution", async () => {

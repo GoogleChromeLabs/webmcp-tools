@@ -116,8 +116,7 @@ export function mapJsonSchemaToVercelTools(
   inputTools.forEach((toolDef: any) => {
     const hasParams = toolDef.parameters && Object.keys(toolDef.parameters).length > 0;
     const rawParams = hasParams ? toolDef.parameters : { type: "object", properties: {} };
-    const { sanitized: parameters, diagnostic } =
-      sanitizeSchemaWithDiagnostics(rawParams);
+    const { sanitized: parameters, diagnostic } = sanitizeSchemaWithDiagnostics(rawParams);
     // Attach projection diagnostics on the source Tool for reporters (optional).
     if (toolDef && typeof toolDef === "object") {
       toolDef.schemaProjection = diagnostic;
@@ -131,6 +130,65 @@ export function mapJsonSchemaToVercelTools(
   });
 
   return tools;
+}
+
+export type SchemaProjectionSummary = {
+  functionName: string;
+  strippedOneOfPaths: string[];
+  strippedAnyOfPaths: string[];
+};
+
+/**
+ * Collect tools that lost oneOf/anyOf paths during provider projection.
+ * Used by console and HTML reporters — attachment alone is not a visible contract.
+ */
+export function collectSchemaProjectionSummaries(tools: Tool[]): SchemaProjectionSummary[] {
+  const out: SchemaProjectionSummary[] = [];
+  for (const tool of tools) {
+    const proj = tool.schemaProjection;
+    if (!proj) continue;
+    if (proj.strippedOneOfPaths.length === 0 && proj.strippedAnyOfPaths.length === 0) {
+      continue;
+    }
+    out.push({
+      functionName: tool.functionName,
+      strippedOneOfPaths: [...proj.strippedOneOfPaths],
+      strippedAnyOfPaths: [...proj.strippedAnyOfPaths],
+    });
+  }
+  return out;
+}
+
+/** Human-readable lines for schema projection diagnostics (empty when none). */
+export function formatSchemaProjectionReport(summaries: SchemaProjectionSummary[]): string[] {
+  return summaries.map((s) => {
+    const parts: string[] = [];
+    if (s.strippedOneOfPaths.length > 0) {
+      parts.push(`oneOf@${s.strippedOneOfPaths.join(",")}`);
+    }
+    if (s.strippedAnyOfPaths.length > 0) {
+      parts.push(`anyOf@${s.strippedAnyOfPaths.join(",")}`);
+    }
+    return `${s.functionName}: stripped ${parts.join("; ")}`;
+  });
+}
+
+/** Gather projection summaries from every `availableTools` entry in result trajectories. */
+export function collectSchemaProjectionsFromResults(results: {
+  results?: Array<{ trajectory?: Array<{ availableTools?: Tool[] }> }>;
+}): SchemaProjectionSummary[] {
+  const byName = new Map<string, SchemaProjectionSummary>();
+  for (const result of results.results ?? []) {
+    for (const step of result.trajectory ?? []) {
+      for (const summary of collectSchemaProjectionSummaries(step.availableTools ?? [])) {
+        // First non-empty projection per tool name wins (deterministic).
+        if (!byName.has(summary.functionName)) {
+          byName.set(summary.functionName, summary);
+        }
+      }
+    }
+  }
+  return [...byName.values()].sort((a, b) => a.functionName.localeCompare(b.functionName));
 }
 
 /**
@@ -147,8 +205,7 @@ export function mapRawBrowserToolsToConfig(rawTools: WebMCPTool[]): Tool[] {
       description: t.description,
       functionName: t.name,
       parameters: t.inputSchema || {},
-      outputSchema:
-        "outputSchema" in withOutput ? (withOutput.outputSchema ?? null) : null,
+      outputSchema: "outputSchema" in withOutput ? (withOutput.outputSchema ?? null) : null,
     };
   });
 }

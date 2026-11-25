@@ -13,6 +13,11 @@ import {
   ToolCallOutcome,
 } from "../types/evals.js";
 import { DEFAULT_CONFIRM_POLICY, describeExtensionBrowser } from "../extension/contract.js";
+import {
+  collectSchemaProjectionSummaries,
+  collectSchemaProjectionsFromResults,
+  formatSchemaProjectionReport,
+} from "../evaluator/mappers.js";
 import { matchesArgument } from "../matcher.js";
 import { sortObjectKeys } from "../utils.js";
 
@@ -136,6 +141,20 @@ function renderEvalsSummary(testResults: TestResults): string {
                 <span class="text-sm text-blue-600 font-medium">Pass Rate</span>
                 <span class="text-2xl font-bold text-blue-700">${passRate}%</span>
             </div>            
+        </div>
+        ${renderSchemaProjectionSection(testResults)}`;
+}
+
+function renderSchemaProjectionSection(testResults: TestResults): string {
+  const lines = formatSchemaProjectionReport(collectSchemaProjectionsFromResults(testResults));
+  if (lines.length === 0) return "";
+  return `
+        <div class="mt-6 border-t border-slate-100 pt-4">
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">Schema projection diagnostics</h3>
+          <p class="text-xs text-slate-500 mb-2">oneOf/anyOf paths stripped for provider compatibility (not proof of live model acceptance).</p>
+          <ul class="text-xs font-mono text-slate-600 space-y-1 list-disc list-inside">
+            ${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
+          </ul>
         </div>`;
 }
 
@@ -651,8 +670,17 @@ export function renderTrajectory(trajectory?: any[]): string {
                 "</em>" +
                 '<div class="grid grid-cols-[180px_1fr] gap-x-4 gap-y-2.5 mt-2 bg-slate-50 p-3 rounded-md border border-slate-200 max-h-60 overflow-y-auto font-sans">' +
                 step.availableTools
-                  .map(
-                    (t: any) =>
+                  .map((t: any) => {
+                    const projLines = formatSchemaProjectionReport(
+                      collectSchemaProjectionSummaries([t]),
+                    );
+                    const projNote =
+                      projLines.length > 0
+                        ? `<div class="text-[10px] text-amber-700 mt-1">Projection: ${escapeHtml(
+                            projLines[0]!.slice(projLines[0]!.indexOf(": ") + 2),
+                          )}</div>`
+                        : "";
+                    return (
                       '<div class="flex items-start">' +
                       '<span class="px-1.5 py-0.5 font-mono font-semibold bg-slate-200 text-slate-800 border border-slate-300 rounded text-[10px] truncate max-w-full" title="' +
                       escapeHtml(t.functionName) +
@@ -664,8 +692,10 @@ export function renderTrajectory(trajectory?: any[]): string {
                       (t.description
                         ? escapeHtml(t.description)
                         : '<em class="text-slate-400">No description</em>') +
-                      "</div>",
-                  )
+                      projNote +
+                      "</div>"
+                    );
+                  })
                   .join("") +
                 "</div></div>";
             }

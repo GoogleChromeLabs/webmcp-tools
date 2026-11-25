@@ -6,6 +6,9 @@
 import * as assert from "node:assert";
 import { describe, it } from "node:test";
 import {
+  collectSchemaProjectionSummaries,
+  collectSchemaProjectionsFromResults,
+  formatSchemaProjectionReport,
   mapJsonSchemaToVercelTools,
   mapMessages,
   mapRawBrowserToolsToConfig,
@@ -273,6 +276,63 @@ describe("mappers", () => {
         type: "object",
         properties: { flight_id: { type: "string" } },
       });
+    });
+  });
+
+  describe("schema projection reporting", () => {
+    it("surfaces stripped paths from tools after mapJsonSchemaToVercelTools", () => {
+      const tools: Tool[] = [
+        {
+          functionName: "book",
+          description: "Book",
+          parameters: {
+            type: "object",
+            properties: {
+              guests: { type: "string", oneOf: [{ const: "1" }] },
+              seat: { anyOf: [{ type: "string" }] },
+            },
+          },
+        },
+        {
+          functionName: "plain",
+          description: "Plain",
+          parameters: { type: "object", properties: { q: { type: "string" } } },
+        },
+      ];
+      mapJsonSchemaToVercelTools(tools);
+      const summaries = collectSchemaProjectionSummaries(tools);
+      assert.strictEqual(summaries.length, 1);
+      assert.strictEqual(summaries[0]!.functionName, "book");
+      assert.ok(summaries[0]!.strippedOneOfPaths.some((p) => p.includes("guests")));
+      assert.ok(summaries[0]!.strippedAnyOfPaths.some((p) => p.includes("seat")));
+
+      const lines = formatSchemaProjectionReport(summaries);
+      assert.strictEqual(lines.length, 1);
+      assert.match(lines[0]!, /book: stripped/);
+      assert.match(lines[0]!, /oneOf@/);
+      assert.match(lines[0]!, /anyOf@/);
+    });
+
+    it("collects unique projections from trajectory availableTools", () => {
+      const tool: Tool = {
+        functionName: "book",
+        description: "Book",
+        parameters: {},
+        schemaProjection: {
+          strippedOneOfPaths: ["properties.guests"],
+          strippedAnyOfPaths: [],
+        },
+      };
+      const fromResults = collectSchemaProjectionsFromResults({
+        results: [
+          { trajectory: [{ availableTools: [tool] }, { availableTools: [tool] }] },
+          { trajectory: [{ availableTools: [{ ...tool, functionName: "alpha" }] }] },
+        ],
+      });
+      assert.deepStrictEqual(
+        fromResults.map((s) => s.functionName),
+        ["alpha", "book"],
+      );
     });
   });
 });
