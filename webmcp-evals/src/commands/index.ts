@@ -36,6 +36,11 @@ import { renderSimulationReport } from "../report/simulationReport.js";
 import { createBackend, type RunEvent } from "../backends/index.js";
 import { analyzeEvalReport, ANALYZER_MODEL_DEFAULT, formatShortTitle } from "../analyzer/index.js";
 import { DEFAULT_CONFIRM_POLICY } from "../extension/index.js";
+import {
+  collectSchemaProjectionsFromResults,
+  formatSchemaProjectionReport,
+  mapToolSchemaEntriesToTools,
+} from "../evaluator/mappers.js";
 
 export interface CommandOptions {
   model: string;
@@ -133,11 +138,7 @@ export async function runLocalCommand(options: CommandOptions, command?: Command
   const toolsSchema: ToolsSchema = JSON.parse(
     await readFile(resolve(process.cwd(), toolsFile), "utf-8"),
   );
-  const tools: Array<Tool> = toolsSchema.tools.map((t) => ({
-    description: t.description,
-    functionName: t.name,
-    parameters: t.inputSchema || {},
-  }));
+  const tools: Array<Tool> = mapToolSchemaEntriesToTools(toolsSchema.tools);
 
   const tests: Array<Eval> = JSON.parse(await readFile(resolve(process.cwd(), evalsFile), "utf-8"));
 
@@ -666,6 +667,19 @@ function printConsoleSummary(finalResults: any): void {
   console.log(
     `\nPass count (steps): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
   );
+
+  const projectionLines = formatSchemaProjectionReport(
+    collectSchemaProjectionsFromResults(finalResults),
+  );
+  if (projectionLines.length > 0) {
+    console.log(
+      chalk.bold("Schema projection diagnostics") + " (oneOf/anyOf stripped for provider)",
+    );
+    for (const line of projectionLines) {
+      console.log(chalk.dim(`  ${line}`));
+    }
+    console.log("");
+  }
 }
 
 async function outputReports(
@@ -699,7 +713,19 @@ async function outputReports(
 
   if (reporters.includes("json")) {
     jsonPath = resolve(process.cwd(), outputDir, `report-${timestamp}.json`);
-    await writeFile(jsonPath, JSON.stringify({ config, results: finalResults }, null, 2));
+    const schemaProjections = collectSchemaProjectionsFromResults(finalResults);
+    await writeFile(
+      jsonPath,
+      JSON.stringify(
+        {
+          config,
+          results: finalResults,
+          ...(schemaProjections.length > 0 ? { schemaProjections } : {}),
+        },
+        null,
+        2,
+      ),
+    );
     console.log(`JSON report saved to ${jsonPath}`);
   }
 

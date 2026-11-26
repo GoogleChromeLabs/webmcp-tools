@@ -33,12 +33,19 @@ export class GeminiBackend implements Backend {
   }
 
   async execute(messages: Message[], toolsList: Array<Tool>): Promise<LocalEvalResult> {
+    // Map WebMCP tool outputSchema → FunctionDeclaration.responseJsonSchema
+    // (tool-result schema). Not top-level generateContent responseJsonSchema.
+    // Omit when null/absent. Stubbed request-capture tests prove serialization only.
     const functionDeclarations: Array<FunctionDeclaration> = toolsList.map((t) => {
-      return {
+      const declaration: FunctionDeclaration = {
         name: t.functionName,
         description: t.description,
         parametersJsonSchema: t.parameters,
       };
+      if (t.outputSchema && typeof t.outputSchema === "object") {
+        declaration.responseJsonSchema = t.outputSchema;
+      }
+      return declaration;
     });
 
     const contents: Array<Content> = messages.map((m) => {
