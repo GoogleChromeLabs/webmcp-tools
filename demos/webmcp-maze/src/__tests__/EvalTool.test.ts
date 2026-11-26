@@ -15,7 +15,7 @@ describe("EvalTool", () => {
   it("defines eval_code with expected schema", () => {
     const tool = createEvalTool();
     expect(tool.name).toBe("eval_code");
-    const schema = tool.inputSchema as { required?: string[] };
+    const schema = tool.inputSchema as { required?: readonly string[] };
     expect(schema.required).toContain("code");
   });
 
