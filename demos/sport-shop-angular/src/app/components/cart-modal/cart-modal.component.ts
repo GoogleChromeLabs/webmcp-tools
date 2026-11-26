@@ -49,7 +49,7 @@ export class CartModalComponent {
           }
         }
       },
-      execute: (params: any) => {
+      execute: (params) => {
         const products = this.cartService.cart().map(item => item.product);
         const product = findMatchingProduct(products, params);
         if (!product) {
@@ -112,7 +112,7 @@ export class CartModalComponent {
         },
         required: ["option"]
       },
-      execute: (params: any) => {
+      execute: (params) => {
         let idx = params.index;
         if (typeof idx !== 'number' && params.productId) {
           idx = this.cartService.cart().findIndex(item => item.product.id === params.productId);
