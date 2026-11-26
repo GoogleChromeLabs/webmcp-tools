@@ -6,6 +6,7 @@
 import { Config, WebmcpConfig } from "../types/config.js";
 import {
   BrowserConsoleError,
+  CaseRunMetrics,
   FunctionCall,
   Message,
   TestResult,
@@ -136,6 +137,31 @@ function renderEvalsSummary(testResults: TestResults): string {
                 <span class="text-sm text-blue-600 font-medium">Pass Rate</span>
                 <span class="text-2xl font-bold text-blue-700">${passRate}%</span>
             </div>            
+        </div>
+        ${renderCaseMetricsSummary(testResults)}`;
+}
+
+function renderCaseMetricsSummary(testResults: TestResults): string {
+  const summary = testResults.caseMetricsSummary;
+  if (!summary) return "";
+  const durationLabel =
+    summary.totalDurationMs === null
+      ? "unavailable"
+      : `${summary.totalDurationMs} ms across ${summary.casesWithDuration}/${summary.caseCount} case(s)`;
+  return `
+        <div class="mt-6 border-t border-slate-100 pt-4">
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">Case / tool metrics</h3>
+          <p class="text-xs text-slate-500 mb-2">
+            Case denominators are independent of trajectory-step pass counts
+            (one case with two matching calls is still one case).
+            Attempt outcomes are protocol completion, not business success.
+            Missing measurements are shown as unavailable, not zero.
+          </p>
+          <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside font-mono">
+            <li>cases with metrics: ${summary.caseCount}</li>
+            <li>case duration total: ${escapeHtml(durationLabel)}</li>
+            <li>tool attempts: ${summary.attempted} (completed ${summary.completed}, errors ${summary.errors})</li>
+          </ul>
         </div>`;
 }
 
@@ -165,6 +191,7 @@ interface TestRun {
   browserConsoleErrors?: BrowserConsoleError[];
   error?: string;
   setupCalls?: ToolCallOutcome[];
+  metrics?: CaseRunMetrics;
 }
 
 interface TestCase {
@@ -221,6 +248,9 @@ function renderDetails(testResults: Array<TestResult>): string {
     }
     if (result.setupCalls?.length) {
       run.setupCalls = result.setupCalls;
+    }
+    if (result.metrics && !run.metrics) {
+      run.metrics = result.metrics;
     }
 
     run.steps.push({
@@ -372,6 +402,8 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
 
           ${renderSetupCalls(run.setupCalls)}
 
+          ${renderRunMetrics(run.metrics)}
+
           <div class="space-y-4">
             <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Steps Evaluation</h4>
             ${run.steps.map((step) => renderStepDetails(step, run.steps.length)).join("")}
@@ -384,6 +416,28 @@ function renderRunIteration(run: TestRun, totalRuns: number): string {
       </details>
     </div>
   `;
+}
+
+function renderRunMetrics(metrics?: CaseRunMetrics): string {
+  if (!metrics) return "";
+  const duration =
+    typeof metrics.durationMs === "number" ? `${metrics.durationMs} ms` : "unavailable";
+  const attemptRows =
+    metrics.toolAttempts.length === 0
+      ? `<li class="text-slate-500">no tool attempts recorded</li>`
+      : metrics.toolAttempts
+          .map((a) => {
+            const ms = typeof a.durationMs === "number" ? `${a.durationMs} ms` : "unavailable";
+            const err = a.error ? ` — ${escapeHtml(a.error)}` : "";
+            return `<li><span class="font-semibold">${escapeHtml(a.invocationId)}</span> ${escapeHtml(a.functionName)}: ${a.outcome} (${ms})${err}</li>`;
+          })
+          .join("");
+  return `
+    <div class="bg-white rounded-lg border border-slate-200 p-3 text-xs text-slate-700 space-y-2">
+      <h4 class="font-semibold text-slate-600 uppercase tracking-wider text-[10px]">Case metrics</h4>
+      <p class="font-mono">duration: ${escapeHtml(duration)} · attempts ${metrics.attempted} (completed ${metrics.completed}, errors ${metrics.errors})</p>
+      <ul class="list-disc list-inside font-mono space-y-0.5">${attemptRows}</ul>
+    </div>`;
 }
 
 function renderRunError(error?: string): string {

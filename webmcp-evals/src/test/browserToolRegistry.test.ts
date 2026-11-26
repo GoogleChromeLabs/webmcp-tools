@@ -78,6 +78,39 @@ describe("BrowserToolRegistry", () => {
     });
   });
 
+  it("records distinct attempt metrics for duplicate tool names", async () => {
+    const page = new MockBrowserPage();
+    let calls = 0;
+    page.webmcp = {
+      tools: () => [
+        {
+          name: "search",
+          description: "Search",
+          inputSchema: { type: "object" },
+          execute: async () => {
+            calls += 1;
+            if (calls === 1) return { status: "Completed", output: { ok: true } };
+            return { status: "Error", errorText: "boom" };
+          },
+        },
+      ],
+    };
+
+    const registry = createRegistry(page);
+    await registry.executeToolChecked("search", { q: "a" });
+    await registry.executeToolChecked("search", { q: "b" });
+
+    const attempts = registry.getToolAttemptMetrics();
+    assert.strictEqual(attempts.length, 2);
+    assert.strictEqual(attempts[0]!.functionName, "search");
+    assert.strictEqual(attempts[1]!.functionName, "search");
+    assert.notStrictEqual(attempts[0]!.invocationId, attempts[1]!.invocationId);
+    assert.strictEqual(attempts[0]!.outcome, "completed");
+    assert.strictEqual(attempts[1]!.outcome, "error");
+    assert.strictEqual(typeof attempts[0]!.durationMs, "number");
+    assert.strictEqual(typeof attempts[1]!.durationMs, "number");
+  });
+
   it("should expose successful structured content to deterministic callers", async () => {
     const page = new MockBrowserPage();
     page.webmcp = {

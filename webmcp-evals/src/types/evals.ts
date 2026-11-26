@@ -95,6 +95,32 @@ export type ToolCallOutcome = {
   error?: string;
 };
 
+/**
+ * One agent-driven page tool invocation (built-in browser path).
+ * `outcome` is protocol completion, not business success — `{ok:false}` may
+ * still be `completed`. Missing measurements stay absent (never coerced to 0).
+ */
+export type AttemptedToolCallMetric = {
+  /** Distinct per registry instance; two calls with the same tool name stay separate. */
+  invocationId: string;
+  functionName: string;
+  arguments: Record<string, unknown>;
+  outcome: "completed" | "error";
+  /** Wall-clock ms for this attempt; omitted when unavailable. */
+  durationMs?: number;
+  error?: string;
+};
+
+/** Per case/run metrics. Independent of trajectory-step `passCount`. */
+export type CaseRunMetrics = {
+  /** Case wall-clock ms (not the sum of parallel tool durations). */
+  durationMs?: number;
+  toolAttempts: AttemptedToolCallMetric[];
+  attempted: number;
+  completed: number;
+  errors: number;
+};
+
 export type TestResult = {
   test: Eval;
   response: ToolCall | null;
@@ -107,6 +133,23 @@ export type TestResult = {
   browserConsoleErrors?: BrowserConsoleError[];
   runIndex?: number;
   stepIndex?: number;
+  /**
+   * Case/run metrics. Attached to every step row for the same run so JSON
+   * consumers can read them without joining on stepIndex. Do not use
+   * `passCount` as a case-success numerator when aggregating.
+   */
+  metrics?: CaseRunMetrics;
+};
+
+/** Rollup across cases (one entry per case/run, not per trajectory step). */
+export type CaseMetricsSummary = {
+  caseCount: number;
+  casesWithDuration: number;
+  /** Sum of known case durations only; null when no case reported duration. */
+  totalDurationMs: number | null;
+  attempted: number;
+  completed: number;
+  errors: number;
 };
 
 export type TestResults = {
@@ -117,4 +160,6 @@ export type TestResults = {
   failCount: number;
   /** The extension the evals ran against (`--extension` only). */
   extension?: { id: string; name: string };
+  /** Built-in browser metrics rollup; omitted when no case metrics were recorded. */
+  caseMetricsSummary?: CaseMetricsSummary;
 };

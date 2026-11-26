@@ -666,6 +666,21 @@ function printConsoleSummary(finalResults: any): void {
   console.log(
     `\nPass count (steps): ${color(`${finalResults.passCount}/${totalSteps}`)} (${passRate}%)\n`,
   );
+
+  const summary = finalResults.caseMetricsSummary;
+  if (summary) {
+    const duration =
+      summary.totalDurationMs === null
+        ? "unavailable"
+        : `${summary.totalDurationMs} ms (${summary.casesWithDuration}/${summary.caseCount} cases)`;
+    console.log(chalk.bold("Case / tool metrics") + " (not step pass counts)");
+    console.log(
+      chalk.dim(
+        `  cases: ${summary.caseCount} · duration: ${duration} · attempts: ${summary.attempted} (completed ${summary.completed}, errors ${summary.errors})`,
+      ),
+    );
+    console.log("");
+  }
 }
 
 async function outputReports(

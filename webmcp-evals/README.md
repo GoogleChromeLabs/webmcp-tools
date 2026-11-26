@@ -135,6 +135,8 @@ npx webmcp-evals browser -u https://example.com/demo -e examples/pizza-maker/eva
 
 Like `simulate`, `browser` exits with code 1 when any case fails or errors, so CI jobs and scripts can check the exit code.
 
+Built-in `browser` reports also include optional **case / tool metrics** (case wall-clock duration, per-attempt tool duration, attempted/completed/error counts). These use a **case/run denominator**, not trajectory-step `passCount` (one case with two matching expected calls is still one case). Attempt outcomes mean protocol completion, not business success. Missing measurements are shown as unavailable, not zero. Token usage and extension-agent metrics are not included in this slice.
+
 ---
 
 ### Command: `smoke`
