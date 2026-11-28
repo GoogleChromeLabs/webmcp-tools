@@ -351,7 +351,7 @@ export function renderMarkdownReport(
   return `# WebMCP Tool-Count Scaling Evaluation (#422)
 
 **Observed Model Versions:** ${modelVersions.length > 0 ? modelVersions.join(", ") : "N/A"}  
-**Total Recorded Trials:** ${records.length} (${posCorrect}/${posRecords.length} positive correct, ${absCorrect}/${absRecords.length} abstention correct, ${distractorCalls} distractor calls selected)
+**Total Recorded Trials:** ${records.length} (${posCorrect}/${posRecords.length} positive correct, ${absCorrect}/${absRecords.length} abstention correct, ${distractorCalls} distractor calls selected; excluding \`abs-01\`: every cell is 57/57, Wilson 95% CI [93.7%, 100.0%])
 
 ## Summary Table
 
@@ -371,6 +371,17 @@ ${perToolRows}
 | --- | ---: | ---: | --- |
 ${absAuditRows}
 
+## Tool Composition (Orthogonal Arm)
+
+| N | Real Tools (incl. 5 targets) | Synthetic |
+| --- | ---: | ---: |
+| <= 30 | N | 0 |
+| 40 | 30 | 10 |
+| 50 | 30 | 20 |
+| 100 | 30 | 70 |
+
+*(Same-domain non-overlapping arm: 5 real shopping targets + synthetic distractors for N > 5.)*
+
 ## Analysis-Plan Cliff Check
 
 - **Positive-Only Accuracy:** ${posCorrect}/${posRecords.length} (${posRecords.length > 0 ? ((posCorrect / posRecords.length) * 100).toFixed(1) : "0.0"}%) — ceiling effect on this \`16\`-intent compact-schema set (no accuracy degradation signal; \`16\` positive intents per cell can detect only large drops).
@@ -379,12 +390,13 @@ ${absAuditRows}
 
 ## Limitations
 
+- **Arm Naming:** \`domain-adjacent\` = same-domain tools with distinct, non-overlapping functions (\`track_shipment\`, \`initiate_return\`, \`apply_promo_code\`, etc.). It does not include similar-schema/near-duplicate tools (requested in \`#422\`), which remain untested.
 - **Single-Step & Compact-Schema Ceiling Effect:** Evaluates single-step selection across \`16\` positive and \`4\` abstention intents (\`5\` target shopping tools, \`temperature: 0\`, default thinking config with thinking tokens not reported separately). Across all completed trials, \`${distractorCalls}\` distractor tools were ever selected, indicating the current distractor set may be too easy to stress-test hard disambiguation.
 - **\`N <= 5\` Composition (\`0\` Distractors):** At \`N = 1\`, each positive intent is paired with only its own target tool and abstention intents receive \`shopping[0]\` only; \`N = 5\` includes the \`5\` base shopping tools with \`0\` distractors in both arms.
 - **Non-Independent Trials:** Each \`60\`-trial cell repeats \`20\` base intents across \`3\` shuffles, so per-trial Wilson CIs are narrower than intent-clustered CIs.
 - **Abstention Audit & Order Sensitivity:** Each cell has \`12\` abstention trials (\`4\` intents × \`3\` shuffles), making \`1–2\` trial differences (\`9/12\` vs \`11/12\`) directional/underpowered. In the \`900\`-trial run, \`abs-01\` (*"Do you sell jackets in Neon Yellow? Answer directly if that color isn't supported."*) is a borderline color-lookup query (since \`filterByPreferences\` accepts a \`color\` parameter) and accounted for all \`36/36\` false positives (\`1–3\` flips/cell depending on tool order/context), while \`abs-02..04\` abstained \`135/135\` (\`100.0%\`).
-- **Orthogonal vs. Adjacent Token Confound:** Orthogonal distractors use real \`examples/\` schemas (larger) while domain-adjacent distractors use compact synthetic schemas (\`~43%\` fewer tokens at \`N = 40\`); token growth is roughly proportional to schema mix rather than purely linear in \`N\`.
-- **Gemini Scope & Free-Tier Latency:** Results reflect the recorded Gemini \`modelVersion\`(s) (\`gemini-3.5-flash-lite\` shows no positive accuracy drop up to \`N = 100\`, encouraging for a Flash-Lite tier, but not generalizable to all models/multi-turn \`#197\`). Free-tier client \`p50\`/\`p95\` latency reflects queueing/network jitter — no reliable latency conclusion can be drawn from free-tier runs.
+- **Orthogonal vs. Adjacent Token Confound:** Orthogonal distractors use real \`examples/\` schemas up to \`N = 30\` and templated synthetic tools beyond, while same-domain non-overlapping distractors use compact synthetic schemas (\`~43%\` fewer tokens at \`N = 40\`); token growth is roughly proportional to schema mix rather than purely linear in \`N\`.
+- **Execution & Model Disclosures:** \`PREREGISTRATION.md\` planned Flash as primary and Flash-Lite as optional; due to Flash's \`20 RPD\` free-tier cap, the \`900\`-trial run used \`gemini-3.5-flash-lite\` only. The run recorded \`2\` transient/quota failures (\`1\` \`fetch failed\`, \`1\` \`429\` daily quota) retried to \`900/900\` \`ok\` via \`--resume\` with a second \`GOOGLE_AI\` key. Free-tier client \`p50\`/\`p95\` latency reflects queueing/network jitter — no reliable latency conclusion can be drawn from free-tier runs.
 - **Heuristic Reference:** At \`N = 40\` (Lighthouse \`#17221\` warning threshold), positive recall was \`100.0%\` and combined accuracy was \`96.7–98.3%\`; token-volume and latency motivations for the heuristic were not tested at a depth to confirm or refute.
 `;
 }

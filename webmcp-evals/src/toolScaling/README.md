@@ -10,6 +10,9 @@ Isolated, single-step evaluation suite measuring how website WebMCP tool counts 
 - `geminiRunner.ts`: Native `@google/genai` runner (`FunctionCallingConfigMode.AUTO`, `f.args ?? {}`, `thinkingBudget`, paired `countTokens`, bounded `429`/`503` retries, immediate daily-quota stop, JSONL checkpoint/resume).
 - `metrics.ts`: Wilson 95% CIs, Macro-F1, schema validity, semantic arg checks, pre-registered cliff check, CSV & Markdown reporting.
 - `cli.ts`: Standalone CLI (`quota-probe`, `micro-pilot`, `run`, `report`).
+- `openAiCompatRunner.ts`: Optional OpenAI-compatible runner (`--provider openrouter|groq`, not used in the `900`-trial Gemini dataset).
+
+> **Note on v1 `domain-adjacent` arm & mid-run resume:** In `dataset.ts`, the `domain-adjacent` identifier represents same-domain, non-overlapping tools (`track_shipment`, `initiate_return`, etc.), not near-duplicate schemas. During the `900`-trial `gemini-3.5-flash-lite` run, after hitting the first `GOOGLE_AI` key's daily quota at trial `828`, `openAiCompatRunner.ts` and `--provider` CLI wiring were added without altering Gemini prompt/scoring behavior, and the remaining `74` trials were resumed (`--resume`) on the same `gemini-3.5-flash-lite` model using a second `GOOGLE_AI` key.
 
 ## Commands (run inside `webmcp-evals/`)
 

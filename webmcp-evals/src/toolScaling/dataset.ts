@@ -309,8 +309,8 @@ export function applySchemaStyle(
 
 /**
  * 20 human-reviewed intents: 16 positive (covering all 5 target shopping tools)
- * + 4 abstention cases (`expectedCall: null`), designed to avoid ambiguity with
- * domain-adjacent distractors.
+ * + 4 abstention cases (`expectedCall: null`).
+ * Note: abs-01 is borderline: filterByPreferences accepts a `color` parameter (identified post-hoc).
  */
 export const BENCHMARK_INTENTS: readonly BenchmarkIntent[] = [
   // 1-3: getProducts
