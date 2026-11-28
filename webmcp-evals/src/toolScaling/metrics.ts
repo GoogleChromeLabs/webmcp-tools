@@ -208,7 +208,7 @@ export function evaluatePreRegisteredCliff(
   return {
     cliffDetected: false,
     reason:
-      "Null accuracy-cliff result up to max tested N (pre-registered >=10 pt non-overlapping CI drop not observed).",
+      "Null accuracy-cliff result up to max tested N (analysis-plan >=10 pt non-overlapping CI drop not observed).",
   };
 }
 
@@ -296,10 +296,22 @@ export function renderMarkdownReport(
   const num = (v: number | null, d = 0) => (v === null ? "N/A" : v.toFixed(d));
 
   const tableRows = summaries
-    .map(
-      (s) =>
-        `| ${s.arm} | ${s.n} | ${s.distractorType} | ${s.schemaStyle} | ${s.completedTrials}/${s.totalTrials} | ${pct(s.top1Accuracy)} [${pct(s.top1CiLow)}, ${pct(s.top1CiHigh)}] | ${pct(s.abstentionAccuracy)} | ${pct(s.macroF1)} | ${pct(s.semanticArgsRate)} | ${num(s.meanPromptTokens)} | ${num(s.meanSchemaOverheadTokens)} | ${num(s.latencyP50Ms)} / ${num(s.latencyP95Ms)} ms |`,
-    )
+    .map((s) => {
+      const cellAbs = okRecords.filter(
+        (r) =>
+          r.arm === s.arm &&
+          r.n === s.n &&
+          r.distractorType === s.distractorType &&
+          r.schemaStyle === s.schemaStyle &&
+          r.expectedFunctionName === null,
+      );
+      const cellAbsOk = cellAbs.filter((r) => r.abstentionCorrect === true).length;
+      const absCellStr =
+        cellAbs.length > 0
+          ? `${cellAbsOk}/${cellAbs.length} (${pct(s.abstentionAccuracy)})`
+          : "N/A";
+      return `| ${s.arm} | ${s.n} | ${s.distractorType} | ${s.schemaStyle} | ${s.completedTrials}/${s.totalTrials} | ${pct(s.top1Accuracy)} [${pct(s.top1CiLow)}, ${pct(s.top1CiHigh)}] | ${absCellStr} | ${pct(s.macroF1)} | ${pct(s.semanticArgsRate)} | ${num(s.meanPromptTokens)} | ${num(s.meanSchemaOverheadTokens)} | ${num(s.latencyP50Ms)} / ${num(s.latencyP95Ms)} ms |`;
+    })
     .join("\n");
 
   const perToolRows = computePerToolMetrics(records)
@@ -307,6 +319,33 @@ export function renderMarkdownReport(
       (m) =>
         `| ${m.label} | ${m.support} | ${m.tp} | ${m.fp} | ${m.fn} | ${pct(m.precision)} | ${pct(m.recall)} | ${pct(m.f1)} |`,
     )
+    .join("\n");
+
+  const absByIntent = new Map<
+    string,
+    { total: number; ok: number; fpTools: Map<string, number> }
+  >();
+  for (const r of absRecords) {
+    const entry = absByIntent.get(r.intentId) ?? { total: 0, ok: 0, fpTools: new Map() };
+    entry.total++;
+    if (r.abstentionCorrect) {
+      entry.ok++;
+    } else if (r.actualFunctionName) {
+      entry.fpTools.set(r.actualFunctionName, (entry.fpTools.get(r.actualFunctionName) ?? 0) + 1);
+    }
+    absByIntent.set(r.intentId, entry);
+  }
+  const absAuditRows = Array.from(absByIntent.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, st]) => {
+      const fpSummary =
+        st.fpTools.size > 0
+          ? Array.from(st.fpTools.entries())
+              .map(([fn, c]) => `${fn} (${c})`)
+              .join(", ")
+          : "None";
+      return `| ${id} | ${st.ok}/${st.total} | ${st.total - st.ok}/${st.total} | ${fpSummary} |`;
+    })
     .join("\n");
 
   return `# WebMCP Tool-Count Scaling Evaluation (#422)
@@ -326,18 +365,24 @@ ${tableRows}
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 ${perToolRows}
 
+## Abstention Query Audit
+
+| Intent ID | Abstained | False Positives | Called Tools |
+| --- | ---: | ---: | --- |
+${absAuditRows}
+
 ## Analysis-Plan Cliff Check
 
-- **Positive-Only Accuracy:** ${posCorrect}/${posRecords.length} (${posRecords.length > 0 ? ((posCorrect / posRecords.length) * 100).toFixed(1) : "0.0"}%) — ceiling effect on this \`16\`-intent compact-schema set (no accuracy degradation signal).
+- **Positive-Only Accuracy:** ${posCorrect}/${posRecords.length} (${posRecords.length > 0 ? ((posCorrect / posRecords.length) * 100).toFixed(1) : "0.0"}%) — ceiling effect on this \`16\`-intent compact-schema set (no accuracy degradation signal; \`16\` positive intents per cell can detect only large drops).
 - **Orthogonal Distractors (Combined Top-1):** ${orthoCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${orthoCliff.reason}
 - **Domain-Adjacent Distractors (Combined Top-1):** ${adjCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${adjCliff.reason}
 
 ## Limitations
 
-- **Single-Step & Compact-Schema Ceiling Effect:** Evaluates single-step selection across \`16\` positive and \`4\` abstention intents (\`5\` target shopping tools, \`temperature: 0\`, default thinking config). Across all completed trials, \`${distractorCalls}\` distractor tools were ever selected, indicating the current distractor set may be too easy to stress-test hard disambiguation.
-- **\`N <= 5\` Has Zero Distractors:** \`N = 1\` includes \`1\` target tool only, and \`N = 5\` includes the \`5\` base shopping tools with \`0\` distractors in both arms.
+- **Single-Step & Compact-Schema Ceiling Effect:** Evaluates single-step selection across \`16\` positive and \`4\` abstention intents (\`5\` target shopping tools, \`temperature: 0\`, default thinking config with thinking tokens not reported separately). Across all completed trials, \`${distractorCalls}\` distractor tools were ever selected, indicating the current distractor set may be too easy to stress-test hard disambiguation.
+- **\`N <= 5\` Composition (\`0\` Distractors):** At \`N = 1\`, each positive intent is paired with only its own target tool and abstention intents receive \`shopping[0]\` only; \`N = 5\` includes the \`5\` base shopping tools with \`0\` distractors in both arms.
 - **Non-Independent Trials:** Each \`60\`-trial cell repeats \`20\` base intents across \`3\` shuffles, so per-trial Wilson CIs are narrower than intent-clustered CIs.
-- **Abstention Sample & Query Audit:** Each cell contains only \`12\` abstention trials (\`4\` intents × \`3\` shuffles), making \`1–2\` trial differences (\`9/12\` vs \`11/12\`) directional/underpowered.
+- **Abstention Audit & Order Sensitivity:** Each cell has \`12\` abstention trials (\`4\` intents × \`3\` shuffles), making \`1–2\` trial differences (\`9/12\` vs \`11/12\`) directional/underpowered. In the \`900\`-trial run, \`abs-01\` (*"Do you sell jackets in Neon Yellow? Answer directly if that color isn't supported."*) is a borderline color-lookup query (since \`filterByPreferences\` accepts a \`color\` parameter) and accounted for all \`36/36\` false positives (\`1–3\` flips/cell depending on tool order/context), while \`abs-02..04\` abstained \`135/135\` (\`100.0%\`).
 - **Orthogonal vs. Adjacent Token Confound:** Orthogonal distractors use real \`examples/\` schemas (larger) while domain-adjacent distractors use compact synthetic schemas (\`~43%\` fewer tokens at \`N = 40\`); token growth is roughly proportional to schema mix rather than purely linear in \`N\`.
 - **Gemini Scope & Free-Tier Latency:** Results reflect the recorded Gemini \`modelVersion\`(s) (\`gemini-3.5-flash-lite\` shows no positive accuracy drop up to \`N = 100\`, encouraging for a Flash-Lite tier, but not generalizable to all models/multi-turn \`#197\`). Free-tier client \`p50\`/\`p95\` latency reflects queueing/network jitter — no reliable latency conclusion can be drawn from free-tier runs.
 - **Heuristic Reference:** At \`N = 40\` (Lighthouse \`#17221\` warning threshold), positive recall was \`100.0%\` and combined accuracy was \`96.7–98.3%\`; token-volume and latency motivations for the heuristic were not tested at a depth to confirm or refute.
