@@ -280,6 +280,18 @@ export function renderMarkdownReport(
   const orthoCliff = evaluatePreRegisteredCliff(summaries, "orthogonal");
   const adjCliff = evaluatePreRegisteredCliff(summaries, "domain-adjacent");
 
+  const okRecords = records.filter((r) => r.status === "ok");
+  const posRecords = okRecords.filter((r) => r.expectedFunctionName !== null);
+  const posCorrect = posRecords.filter((r) => r.top1Correct).length;
+  const absRecords = okRecords.filter((r) => r.expectedFunctionName === null);
+  const absCorrect = absRecords.filter((r) => r.abstentionCorrect === true).length;
+  const baseToolNames = new Set(
+    posRecords.map((r) => r.expectedFunctionName).filter((n): n is string => n !== null),
+  );
+  const distractorCalls = okRecords.filter(
+    (r) => r.actualFunctionName !== null && !baseToolNames.has(r.actualFunctionName),
+  ).length;
+
   const pct = (v: number | null) => (v === null ? "N/A" : `${(v * 100).toFixed(1)}%`);
   const num = (v: number | null, d = 0) => (v === null ? "N/A" : v.toFixed(d));
 
@@ -300,7 +312,7 @@ export function renderMarkdownReport(
   return `# WebMCP Tool-Count Scaling Evaluation (#422)
 
 **Observed Model Versions:** ${modelVersions.length > 0 ? modelVersions.join(", ") : "N/A"}  
-**Total Recorded Trials:** ${records.length}
+**Total Recorded Trials:** ${records.length} (${posCorrect}/${posRecords.length} positive correct, ${absCorrect}/${absRecords.length} abstention correct, ${distractorCalls} distractor calls selected)
 
 ## Summary Table
 
@@ -314,17 +326,21 @@ ${tableRows}
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 ${perToolRows}
 
-## Pre-Registered Cliff Check
+## Analysis-Plan Cliff Check
 
-- **Orthogonal Distractors:** ${orthoCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${orthoCliff.reason}
-- **Domain-Adjacent Distractors:** ${adjCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${adjCliff.reason}
+- **Positive-Only Accuracy:** ${posCorrect}/${posRecords.length} (${posRecords.length > 0 ? ((posCorrect / posRecords.length) * 100).toFixed(1) : "0.0"}%) — ceiling effect on this \`16\`-intent compact-schema set (no accuracy degradation signal).
+- **Orthogonal Distractors (Combined Top-1):** ${orthoCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${orthoCliff.reason}
+- **Domain-Adjacent Distractors (Combined Top-1):** ${adjCliff.cliffDetected ? "CLIFF DETECTED — " : ""}${adjCliff.reason}
 
 ## Limitations
 
-- **Single-Step Only:** Multi-turn tool chaining is not evaluated here (multi-turn eval support is tracked separately in \`webmcp-tools#197\`).
-- **Gemini-Only Scope:** Results reflect the recorded Gemini \`modelVersion\`(s) and should not be generalized across unrelated providers without replication.
-- **Indicative Client Latency:** Free-tier client-observed \`p50\`/\`p95\` latency includes shared queueing and network jitter, not server-side TTFT.
-- **Heuristic Reference:** Lighthouse's \`> 40\` tools warning (\`GoogleChrome/lighthouse#17221\`) and Chrome's \`30/150/500/1500\` character guidelines are treated as heuristics/recommendations, not API hard limits.
+- **Single-Step & Compact-Schema Ceiling Effect:** Evaluates single-step selection across \`16\` positive and \`4\` abstention intents (\`5\` target shopping tools, \`temperature: 0\`, default thinking config). Across all completed trials, \`${distractorCalls}\` distractor tools were ever selected, indicating the current distractor set may be too easy to stress-test hard disambiguation.
+- **\`N <= 5\` Has Zero Distractors:** \`N = 1\` includes \`1\` target tool only, and \`N = 5\` includes the \`5\` base shopping tools with \`0\` distractors in both arms.
+- **Non-Independent Trials:** Each \`60\`-trial cell repeats \`20\` base intents across \`3\` shuffles, so per-trial Wilson CIs are narrower than intent-clustered CIs.
+- **Abstention Sample & Query Audit:** Each cell contains only \`12\` abstention trials (\`4\` intents × \`3\` shuffles), making \`1–2\` trial differences (\`9/12\` vs \`11/12\`) directional/underpowered.
+- **Orthogonal vs. Adjacent Token Confound:** Orthogonal distractors use real \`examples/\` schemas (larger) while domain-adjacent distractors use compact synthetic schemas (\`~43%\` fewer tokens at \`N = 40\`); token growth is roughly proportional to schema mix rather than purely linear in \`N\`.
+- **Gemini Scope & Free-Tier Latency:** Results reflect the recorded Gemini \`modelVersion\`(s) (\`gemini-3.5-flash-lite\` shows no positive accuracy drop up to \`N = 100\`, encouraging for a Flash-Lite tier, but not generalizable to all models/multi-turn \`#197\`). Free-tier client \`p50\`/\`p95\` latency reflects queueing/network jitter — no reliable latency conclusion can be drawn from free-tier runs.
+- **Heuristic Reference:** At \`N = 40\` (Lighthouse \`#17221\` warning threshold), positive recall was \`100.0%\` and combined accuracy was \`96.7–98.3%\`; token-volume and latency motivations for the heuristic were not tested at a depth to confirm or refute.
 `;
 }
 
